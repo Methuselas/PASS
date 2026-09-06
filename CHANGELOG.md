@@ -8,6 +8,25 @@ skillsets may evolve independently.
 
 No changes yet.
 
+## 1.0.0-beta.2 - 2026-09-06
+
+### Changed
+
+- Generalized code-corpus measurement from hardcoded C and C++ handling to
+  explicit C, C++, Go, Python, and Rust language profiles.
+- Excluded conventional test files, Rust inline test modules, and testing
+  frameworks' own assertion macros from production-code measurements while
+  retaining qualified production assertion macros.
+- Retired the obsolete Art pressure harness after blind Drills replaced its
+  evaluation role.
+
+### Evidence
+
+- Reproduced the recorded C, C++, and Rust density baselines with the current
+  instrument and named the corpora behind those figures.
+- Recorded a new blind agent-authored corpus measurement, including the result
+  that assertion density alone could not distinguish the compared samples.
+
 ## 1.0.0-beta.1 - 2026-09-06
 
 First formal public beta. Earlier development was not assigned public SemVer

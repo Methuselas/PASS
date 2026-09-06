@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.1`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.2`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -446,11 +446,11 @@ boundary, release recipe format, and release manifest. Version changes mean:
   extension; and
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
-`1.0.0-beta.1` is the first formal public beta of the intended `1.0.0`
-contract. Later beta builds increment the prerelease number and may contain
-clearly documented corrections that are incompatible with an earlier beta.
-Stable `1.0.0` means the public surface is defined and future incompatible
-changes require a new major version.
+`1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
+contract; the current version is `1.0.0-beta.2`. Beta builds increment the
+prerelease number and may contain clearly documented corrections that are
+incompatible with an earlier beta. Stable `1.0.0` means the public surface is
+defined and future incompatible changes require a new major version.
 
 This is the version of the PASS factory, not a claim that every knowledge domain
 changes in lockstep. SkillForge skillsets may eventually carry their own product

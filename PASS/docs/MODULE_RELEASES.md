@@ -22,6 +22,11 @@ instructions. Profile-owned execution barriers live in the conditional
 `runtime/profile.yaml`. The same release can be uploaded/installed where Agent
 Skills are supported or used directly as an archived/context package.
 
+`RELEASE_MANIFEST.json` records the Semantic Versioning value from the factory's
+root `VERSION` file as `pass_version`. This identifies the PASS schema, tooling,
+snapshot/import, runtime, and release contract that produced the package; it is
+not the independent product version of the selected SkillForge skillset.
+
 Every release also carries `LICENSE.md`, `NOTICE.md`, `TRADEMARKS.md`,
 `CONTRIBUTING.md`, and the complete license texts under `LICENSES/`. The vendored
 Python resolver is `AGPL-3.0-or-later`; Skill instructions, cards, declarative

@@ -66,6 +66,20 @@ If no, the runtime does not depend on it.
     regression test, and does not carry source, session, or workflow state. The
     contract is `PASS/docs/MEMORY_SCHEMA.md`.
 
+## Versioning boundary
+
+PASS uses Semantic Versioning for the public factory contract. That surface is
+the documented card and module schema, runtime and memory contracts, CLI
+behavior, project snapshot/import boundary, release recipe format, and release
+manifest. The root `VERSION` file is canonical; generated releases record it as
+`pass_version`.
+
+The first formal public beta is `1.0.0-beta.1`. A beta may still make documented
+compatibility corrections before `1.0.0`; a stable release may not. Knowledge
+domains do not have to change when the PASS factory version changes, and changes
+to one domain do not force changes to another. Product-level SkillForge versions
+are independent of the PASS factory version.
+
 ## Knowledge and action composition
 
 PASS has one knowledge vocabulary with three roles, not three competing stores of

@@ -98,7 +98,10 @@ def isolated_library() -> tempfile.TemporaryDirectory:
     shutil.copytree(ROOT / "PASS", root / "PASS", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copytree(RECIPES, root / "recipes")
     shutil.copytree(ROOT / "LICENSES", root / "LICENSES")
-    for name in ("CONTRIBUTING.md", "LICENSE.md", "NOTICE.md", "TRADEMARKS.md"):
+    for name in (
+        "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE.md", "NOTICE.md",
+        "TRADEMARKS.md", "VERSION",
+    ):
         shutil.copy2(ROOT / name, root / name)
     return tmp
 
@@ -133,9 +136,16 @@ class SourceAndStateIndependenceTests(unittest.TestCase):
                 text=True, capture_output=True, cwd=root,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            gates = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))["quality_gates"]
+            manifest = json.loads(
+                (out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8")
+            )
+            gates = manifest["quality_gates"]
             self.assertEqual(gates["schema_validation"], "passed")
             self.assertEqual(gates["visual_reference_verification"], "passed")
+            self.assertEqual(
+                manifest["pass_version"],
+                (ROOT / "VERSION").read_text(encoding="utf-8").strip(),
+            )
 
     def test_deleting_temporary_research_state_does_not_change_validity(self) -> None:
         before = validate("--library", str(LIBRARY))

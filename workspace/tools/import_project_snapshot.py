@@ -17,6 +17,7 @@ from pathlib import Path, PurePosixPath
 
 ROOT_FILES = {
     "AGENTS.md",
+    "CHANGELOG.md",
     "CLAUDE.md",
     "ARCHITECTURE.md",
     "CONTRIBUTING.md",
@@ -25,6 +26,7 @@ ROOT_FILES = {
     "LICENSE.md",
     "NOTICE.md",
     "TRADEMARKS.md",
+    "VERSION",
 }
 HOST_SKILL_ROOTS = (".agents", ".claude")
 

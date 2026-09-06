@@ -10,6 +10,11 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
+**Project status:** public beta, version `1.0.0-beta.1`. The complete authoring,
+validation, project-snapshot, and release workflows are available for public
+use. Beta releases may still make documented compatibility corrections before
+the stable `1.0.0` contract.
+
 Finished, installable skillsets are published separately in
 [SkillForge](https://github.com/Methuselas/The_Skill_Forge). PASS is the authoring
 factory; SkillForge is the distribution repository.
@@ -69,8 +74,8 @@ hardcoded to those four domains.
 | --- | --- | --- | --- |
 | Source material | Evidence used while learning | No PASS dependency | No |
 | Card | Canonical reusable knowledge | Yes | Yes, when selected |
-| Skillset Memory | Evidence about real attempts | Yes, but not canon | No |
-| Project snapshot | A bounded authoring workspace | Temporary/workable | No |
+| Skillset Memory | Evidence about real attempts | Yes, but not canon | Yes, for a selected domain |
+| Project snapshot | A bounded PASS workspace for a Python-capable chat LLM | Temporary/workable | No |
 | Release | A self-contained skill product | Yes | It is the product |
 
 **PASS is the factory. [SkillForge](https://github.com/Methuselas/The_Skill_Forge) is
@@ -119,11 +124,63 @@ python PASS/tools/find_relevant.py --package metaskills --cues "plan verify revi
 python PASS/tools/find_relevant.py --package art --cues "foreshortened hand gripping" --limit 8
 ```
 
-## Create a project folder or archive
+## Run PASS inside a Python-capable chat
 
-The project builder automatically includes PASS, `metaskills`, the selected
-domain, its memory, matching host skills, the root documentation, and every
-reusable script in `workspace/tools/`.
+A **project snapshot** is an uploadable working environment made specifically
+for a chat LLM that can unpack files, read and write a project directory,
+execute Python, and return a ZIP. It lets that LLM perform real PASS authoring
+runs inside the chat window without cloning this repository, using Git, or
+accessing the maintainer's machine.
+
+A project snapshot is not an installable skill and is not published through
+SkillForge. It is a temporary copy of the part of the PASS factory needed to
+study sources, create or revise cards, update Skillset Memory when appropriate,
+regenerate indexes, and run the actual validators. The returned work is reviewed
+and imported into the canonical PASS repository; a SkillForge release can be
+built later from accepted work.
+
+The project builder automatically includes:
+
+- the portable `PASS/` authoring skill, documentation, templates, and tools;
+- `library/metaskills/` and the selected domain library;
+- the selected domain's Skillset Memory;
+- matching host-discovery skills and root instructions;
+- reusable utilities from `workspace/tools/`; and
+- optional tests, release recipes, and bounded text source inputs when requested.
+
+It deliberately leaves out unrelated domains, `.git`, retired archives, source
+PDFs, nested ZIPs, release outputs, caches, and workspace scratch. The result is
+small enough to hand to a chat while remaining capable of validating its own
+PASS work.
+
+### The project-snapshot round trip
+
+1. Build a domain-scoped project ZIP locally.
+2. Upload it to a chat or Project environment that provides file access and
+   Python execution. Attach the source separately, or include a bounded `.txt`
+   or `.md` extract under `SOURCE_INPUT/` as shown below.
+3. Tell the LLM to unpack the archive, work inside its single
+   `PASS-project-*` root, begin with `AGENTS.md` and `PASS/SKILL.md`, and perform
+   one domain-scoped PASS run.
+4. The LLM edits the project files, regenerates indexes, runs the bundled PASS
+   validators, and returns an updated ZIP preserving the same single root.
+5. Back in the canonical repository, preview the returned archive with the
+   importer. Apply it only after the proposed changes pass review.
+
+A suitable instruction to the chat is:
+
+> Unpack this PASS project snapshot and work only inside its `PASS-project-*`
+> root. Read `AGENTS.md` and `PASS/SKILL.md`, then perform one PASS authoring run
+> for the selected domain using the supplied source. Regenerate indexes, run the
+> bundled validation tools, and return the updated project as a ZIP with the
+> original single root preserved.
+
+Python accelerates and verifies the run; it does not replace the PASS authoring
+method. The host also needs permission to read and write uploaded files. A chat
+that cannot execute Python or return files can discuss PASS, but it cannot use a
+project snapshot for the intended validated round trip.
+
+### Build a project snapshot
 
 Create a new local project folder:
 
@@ -135,6 +192,22 @@ Create the equivalent uploadable ZIP:
 
 ```bash
 python workspace/tools/build_project_snapshot.py workspace/releases/PASS-project-art.zip --domain art
+```
+
+Inside the unpacked chat project, install the one runtime dependency if the host
+does not already provide it:
+
+```bash
+python -m pip install -r PASS/requirements.txt
+```
+
+Before returning the project, regenerate navigation and run the bundled checks:
+
+```bash
+python PASS/tools/build_index.py
+python PASS/tools/validate.py --package art
+python PASS/tools/verify_references.py
+python PASS/tools/memory.py validate
 ```
 
 Add a bounded source extract at the visible top-level `SOURCE_INPUT/` folder:
@@ -153,10 +226,9 @@ Useful options:
 - Add `--force` to replace an existing ZIP. Existing project directories are
   never replaced; choose a new folder name so no working copy is destroyed.
 
-Snapshots deliberately exclude `.git`, retired archives, source PDFs, nested
-ZIPs, unrelated domains, release outputs, caches, and workspace scratch. A
-source passed with `--source-text` is copied into the project only; it is never
-added to this repository automatically.
+A source passed with `--source-text` is copied into the project only; it is never
+added to this repository automatically. Source material remains evidence for the
+run and is never a dependency of a finished card.
 
 ## Import an updated project archive
 
@@ -224,6 +296,50 @@ The object contracts are closed. Never widen the schema to accommodate a card,
 and never put source provenance or practice history into canon. See
 [`PASS/docs/PASS_SCHEMA.md`](PASS/docs/PASS_SCHEMA.md) and
 [`PASS/docs/PASS_DOCTRINE.md`](PASS/docs/PASS_DOCTRINE.md).
+
+## What Drills are for
+
+Patterns hold reusable decisions, APs coordinate those decisions into complete
+actions, and **Drills build or test the capability to apply them**. A Drill is
+not another explanation card and it is not decorative homework. It creates a
+repeatable attempt with a defined task, setup, required output, success check,
+and plausible failure modes.
+
+### Training and evaluating AI today
+
+PASS currently uses Drills primarily for deliberate AI practice and capability
+evaluation. A Drill can strengthen a weak behavior, test whether a skill
+transfers to a fresh problem, or expose a failure that fluent prose would hide.
+The taker must produce the requested artifact, action, or observation—describing
+what would happen is not a completed attempt.
+
+For a meaningful evaluation, administer the Drill blind. Hide either the
+Instructions or the Success Check, depending on whether the sitting measures
+unprompted capability or execution after instruction. Freeze the produced answer
+before revealing the grading criteria, and use a separate grader when possible.
+Several Drills may share one artifact when the goal is to expose interactions
+between capabilities rather than score one in isolation.
+
+Results from real attempts belong in Skillset Memory. They do not automatically
+rewrite a Drill, Pattern, or AP, and an invalid run never counts as evidence of a
+craft weakness.
+
+### Teaching humans with AI later
+
+Drills are also the foundation for a future mode in which an AI teaches a human
+through guided practice. In that mode the AI would select an appropriate Drill,
+present the task without leaking its answer, observe the learner's actual work,
+apply the Success Check, explain the relevant failure, and choose a next attempt
+or prerequisite.
+
+The present Drill schema already separates practice, instruction, assessment,
+and common failures, but PASS does not yet claim a complete human-teaching
+system. Human-facing pacing, hint policy, accessibility, safety, progression,
+and evidence of learning still need to be designed and tested before that mode
+is declared mature. See
+[`PASS/docs/PASS_CONSUMPTION.md`](PASS/docs/PASS_CONSUMPTION.md) for current
+administration rules and [`PASS/docs/PASS_SCHEMA.md`](PASS/docs/PASS_SCHEMA.md)
+for the closed Drill contract.
 
 ## Use Skillset Memory
 
@@ -314,6 +430,33 @@ plus `metaskills`, and let discovery tools find the new package automatically.
 Do not add a global registry, repo-wide hand-authored index, new root-level tool,
 or cross-domain card dependency. Detailed module and release guidance is in
 [`docs/SKILL_AUTHOR_GUIDE.md`](docs/SKILL_AUTHOR_GUIDE.md).
+
+## Versioning and beta status
+
+PASS follows [Semantic Versioning 2.0.0](https://semver.org/). The current
+version is recorded in [`VERSION`](VERSION), and generated SkillForge manifests
+record it as `pass_version`.
+
+The PASS public compatibility surface is the documented card and module schema,
+runtime and memory contracts, command-line interfaces, project snapshot/import
+boundary, release recipe format, and release manifest. Version changes mean:
+
+- **MAJOR** — an incompatible change to that public compatibility surface;
+- **MINOR** — backward-compatible functionality or an explicitly optional
+  extension; and
+- **PATCH** — a backward-compatible correction that adds no public capability.
+
+`1.0.0-beta.1` is the first formal public beta of the intended `1.0.0`
+contract. Later beta builds increment the prerelease number and may contain
+clearly documented corrections that are incompatible with an earlier beta.
+Stable `1.0.0` means the public surface is defined and future incompatible
+changes require a new major version.
+
+This is the version of the PASS factory, not a claim that every knowledge domain
+changes in lockstep. SkillForge skillsets may eventually carry their own product
+versions; `pass_version` records which factory contract produced a release. Once
+a version is published, its contents are never silently replaced. Changes receive
+a new version and an entry in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## Contributing
 

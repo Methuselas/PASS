@@ -45,6 +45,23 @@ python -m unittest discover -s tests -p "test_*.py"
 If the contribution changes a release boundary, build and check the affected
 release as described in `README.md` and `PASS/docs/MODULE_RELEASES.md`.
 
+## Write useful commit notes
+
+A pushed commit should explain the decision, not only name the files. Use a
+short imperative subject and a body that records:
+
+- why the change was needed;
+- what behavior, contract, or content changed;
+- which validation was run and its result; and
+- whether the change has a PASS or SkillForge version impact.
+
+For generated release archives, name the rebuilt products and state that their
+release checks passed. Keep transient command output out of the message; record
+the evidence another maintainer needs to understand and trust the commit.
+
+Release notes belong in `CHANGELOG.md` as well as the commit body. A commit is
+history for maintainers; the changelog is the curated history for users.
+
 ## Licensing contributions
 
 PASS uses split open licensing:

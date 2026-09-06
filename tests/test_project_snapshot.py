@@ -23,12 +23,14 @@ class SnapshotSelectionTests(unittest.TestCase):
         relative = {path.relative_to(ROOT).as_posix() for path in files}
 
         self.assertIn("PASS/SKILL.md", relative)
+        self.assertIn("CHANGELOG.md", relative)
         self.assertIn("LICENSE.md", relative)
         self.assertIn("NOTICE.md", relative)
         self.assertIn("LICENSES/AGPL-3.0.txt", relative)
         self.assertIn("LICENSES/CC-BY-SA-4.0.txt", relative)
         self.assertIn("CONTRIBUTING.md", relative)
         self.assertIn("TRADEMARKS.md", relative)
+        self.assertIn("VERSION", relative)
         self.assertIn("library/metaskills/INDEX.md", relative)
         self.assertIn("library/game-design/INDEX.md", relative)
         self.assertIn("memory/game-design/skill_memory.yaml", relative)

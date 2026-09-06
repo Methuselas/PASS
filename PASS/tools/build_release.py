@@ -21,6 +21,12 @@ import yaml
 from paths import default_library_root, default_memory_root, repo_root_from_tool
 
 FM_RE = re.compile(r"\A---\r?\n(?P<front>.*?)\r?\n---\r?\n(?P<body>.*)\Z", re.S)
+SEMVER_RE = re.compile(
+    r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)"
+    r"(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
+)
 FORBIDDEN = {
     ".git", ".agents", ".claude", "__pycache__", ".pytest_cache",
     "workspace", "sources", "ledger", "ledgers", "worklogs", "trash",
@@ -44,6 +50,16 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: stream.read(1 << 20), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def read_pass_version() -> str:
+    path = repo_root_from_tool().resolve() / "VERSION"
+    if not path.is_file():
+        raise ValueError(f"PASS version file not found: {path}")
+    version = path.read_text(encoding="utf-8").strip()
+    if not SEMVER_RE.fullmatch(version):
+        raise ValueError(f"VERSION is not valid Semantic Versioning: {version!r}")
+    return version
 
 
 def read_yaml(path: Path) -> dict[str, Any]:
@@ -423,6 +439,9 @@ def release_graph_problems(library: Path) -> list[str]:
 
 def manifest_problems(path: Path, manifest: dict[str, Any]) -> list[str]:
     problems: list[str] = []
+    pass_version = manifest.get("pass_version")
+    if not isinstance(pass_version, str) or not SEMVER_RE.fullmatch(pass_version):
+        problems.append("release manifest lacks a valid pass_version")
     expected_hashes = manifest.get("files_sha256")
     if not isinstance(expected_hashes, dict) or not all(
         isinstance(name, str) and isinstance(digest, str)
@@ -768,6 +787,7 @@ def build(
 
         manifest = {
             "schema_version": 1,
+            "pass_version": read_pass_version(),
             "name": display_name,
             "skill_name": skill_name,
             "description": description,

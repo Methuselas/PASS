@@ -67,13 +67,17 @@ Known limits — read these before quoting a number
   measure them. The C++ baselines already recorded in Skillset Memory were taken
   before this option existed, with tests included; re-measure before comparing
   a new number against them.
-* Rust and Go inline their unit tests inside ordinary files (`#[cfg(test)]`,
-  `TestXxx` funcs). Only whole test *files* are excluded, so inline tests are
-  still counted, and for Rust that dominates the figure rather than nudging it:
-  in one corpus measured here, 86 per cent of all assertions sat in files
-  carrying a `#[cfg(test)]` module, giving an assertion rate roughly thirty times
-  the C++ corpora beside it. Read a Rust assert figure as "asserts plus unit
-  tests" until someone teaches this tool to see block scope.
+* Rust inlines unit tests inside ordinary files, and excluding whole test files
+  does not touch them. That dominates the figure rather than nudging it: in one
+  corpus measured here 86 per cent of assertions sat inside `#[cfg(test)]`
+  modules, reading as 51 per thousand lines against 6.1 once they are removed.
+  Those modules are therefore stripped by brace matching before counting, which
+  is why a Rust figure here is comparable with a C or C++ one. Go needs no such
+  handling: its tests live in `_test.go` files, already excluded.
+* Brace matching is not parsing. A brace inside a string literal or a comment
+  ends a stripped block early, so some real code is lost and none is invented —
+  the error runs toward under-counting, which is the safe direction for a
+  density.
 * One corpus is one sample. Two corpora that agree are two samples.
 """
 
@@ -150,6 +154,7 @@ LANGUAGES: dict[str, dict] = {
         "guard": r"if\s+[^\n{]*\.is_none\(\)\s*\{\s*\n?\s*return",
         "attr": ("#[must_use]", r"must_use"),
         "test_files": (r"^tests?\.rs$",),
+        "inline_test_marker": "#[cfg(test)]",
     },
 }
 
@@ -200,6 +205,42 @@ def detect_language(root: str) -> str | None:
     return best if counts[best] else None
 
 
+def strip_inline_tests(text: str, marker: str) -> str:
+    """Remove each `marker ... { ... }` block, matching braces to find its end.
+
+    Rust and Go put unit tests inside ordinary source files, so excluding whole
+    test files leaves them counted. Brace matching is more than a regex and much
+    less than a parser: a brace inside a string literal or a comment will end the
+    block early, which loses some real code and never invents any. The error is
+    therefore toward under-counting, which is the safe direction for a density.
+    """
+    out = []
+    pos = 0
+    while True:
+        start = text.find(marker, pos)
+        if start < 0:
+            out.append(text[pos:])
+            return "".join(out)
+        brace = text.find("{", start)
+        if brace < 0:
+            out.append(text[pos:])
+            return "".join(out)
+        depth = 0
+        end = brace
+        for i in range(brace, len(text)):
+            if text[i] == "{":
+                depth += 1
+            elif text[i] == "}":
+                depth -= 1
+                if depth == 0:
+                    end = i + 1
+                    break
+        else:
+            end = len(text)
+        out.append(text[pos:start])
+        pos = end
+
+
 def measure(root: str, profile: dict, assert_pattern: str | None,
             include_headers: bool, include_tests: bool) -> dict | None:
     sources = collect_sources(root, profile, include_headers, include_tests)
@@ -221,6 +262,10 @@ def measure(root: str, profile: dict, assert_pattern: str | None,
             text = open(path, encoding="utf-8", errors="ignore").read()
         except OSError:
             continue
+
+        marker = profile.get("inline_test_marker")
+        if marker and not include_tests:
+            text = strip_inline_tests(text, marker)
 
         lines = text.split("\n")
         lengths.append(len(lines))

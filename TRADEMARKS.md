@@ -4,7 +4,7 @@ The names PASS and SkillForge, their logos, and other distinctive project
 branding identify the official projects and releases maintained at:
 
 - https://github.com/Methuselas/PASS
-- https://github.com/Methuselas/SkillForge
+- https://github.com/Methuselas/The_Skill_Forge
 
 The repository's copyright licenses do not grant trademark rights or permission
 to imply sponsorship, endorsement, or official status.

@@ -11,7 +11,7 @@ dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
 Finished, installable skillsets are published separately in
-[SkillForge](https://github.com/Methuselas/SkillForge). PASS is the authoring
+[SkillForge](https://github.com/Methuselas/The_Skill_Forge). PASS is the authoring
 factory; SkillForge is the distribution repository.
 
 ```text
@@ -73,7 +73,7 @@ hardcoded to those four domains.
 | Project snapshot | A bounded authoring workspace | Temporary/workable | No |
 | Release | A self-contained skill product | Yes | It is the product |
 
-**PASS is the factory. [SkillForge](https://github.com/Methuselas/SkillForge) is
+**PASS is the factory. [SkillForge](https://github.com/Methuselas/The_Skill_Forge) is
 the distribution repository for finished skillsets.** Project snapshots are
 working copies of part of the factory; releases are the portable products made
 by it.
@@ -300,7 +300,7 @@ The four canonical PASS recipes map to SkillForge distribution files as follows:
 Every result is self-contained: it needs no source material, PASS checkout,
 SkillForge checkout, Git history, authoring memory, or external card path at
 runtime. The published packages are available from the
-[SkillForge repository](https://github.com/Methuselas/SkillForge). See
+[SkillForge repository](https://github.com/Methuselas/The_Skill_Forge). See
 [`PASS/docs/MODULE_RELEASES.md`](PASS/docs/MODULE_RELEASES.md) and
 [`PASS/docs/RELEASE_INSTALL.md`](PASS/docs/RELEASE_INSTALL.md).
 
@@ -334,7 +334,7 @@ PASS uses split open, share-alike licensing:
 This permits personal, educational, community, and commercial use while
 requiring covered redistributions and adaptations to preserve attribution and
 the applicable open terms. The official releases remain freely available from
-[SkillForge](https://github.com/Methuselas/SkillForge).
+[SkillForge](https://github.com/Methuselas/The_Skill_Forge).
 
 See [`LICENSE.md`](LICENSE.md) for scope, [`NOTICE.md`](NOTICE.md) for required
 attribution, and [`TRADEMARKS.md`](TRADEMARKS.md) for use of the PASS and
@@ -355,7 +355,7 @@ endorsed by Anthropic.
 
 If PASS or a SkillForge release helps you, the best ways to support the project
 are to star and share [PASS](https://github.com/Methuselas/PASS), share the free
-[SkillForge releases](https://github.com/Methuselas/SkillForge), report concrete
+[SkillForge releases](https://github.com/Methuselas/The_Skill_Forge), report concrete
 problems, improve an existing skillset, or contribute a new one. If you would
 also like to support its continued development financially, you can
 [buy Methuselas a coffee](https://buymeacoffee.com/methuselas). Supporting the

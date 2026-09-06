@@ -4,7 +4,7 @@ PASS (Pattern Analysis Skill System) and SkillForge were created by Methuselas
 and are maintained with contributions from their community.
 
 - PASS: https://github.com/Methuselas/PASS
-- SkillForge: https://github.com/Methuselas/SkillForge
+- SkillForge: https://github.com/Methuselas/The_Skill_Forge
 
 PASS builds on the Agent Skills format introduced and openly documented by
 Anthropic. Anthropic's public skills and specification demonstrated the portable

@@ -22,6 +22,13 @@ instructions. Profile-owned execution barriers live in the conditional
 `runtime/profile.yaml`. The same release can be uploaded/installed where Agent
 Skills are supported or used directly as an archived/context package.
 
+Every release also carries `LICENSE.md`, `NOTICE.md`, `TRADEMARKS.md`,
+`CONTRIBUTING.md`, and the complete license texts under `LICENSES/`. The vendored
+Python resolver is `AGPL-3.0-or-later`; Skill instructions, cards, declarative
+profiles, memory, and original assets are `CC-BY-SA-4.0` unless a shipped file
+states otherwise. A release missing any licensing or attribution file fails
+`build` and `check`.
+
 ## Skillset Memory in a release
 
 A release ships the memory store of every domain it bundles, and no other. The
@@ -82,8 +89,9 @@ ZIP output remains opt-in.
 Each release manifest records a SHA-256 digest for every shipped file other than
 the manifest itself. `build_release.py check` rejects missing, changed, or
 unexpected files, missing or undeclared modules, unresolved packaged object
-relationships, and stale quality-gate state. ZIP targets use the same canonical
-path protection as release directories and must use a `.zip` extension.
+relationships, missing licensing or attribution notices, and stale quality-gate
+state. ZIP targets use the same canonical path protection as release directories
+and must use a `.zip` extension.
 
 Release closure follows every outgoing canonical `cross_links` target and the
 reverse side of `prerequisite_for` edges, in addition to module requirements and

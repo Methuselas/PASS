@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 """Repository-side SkillForge contract resolver and auditor.
 
 This is an optional deterministic helper, not a host-native execution kernel. It

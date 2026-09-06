@@ -2,7 +2,10 @@
 
 A finished release is one self-contained Agent Skills-compatible directory. It has
 `SKILL.md`, `RELEASE_MANIFEST.json`, and a local `library/` containing the complete
-metaskill + prerequisite closure.
+metaskill + prerequisite closure. It also carries `LICENSE.md`, `NOTICE.md`,
+`TRADEMARKS.md`, `CONTRIBUTING.md`, and the complete applicable license texts
+under `LICENSES/`, so its rights and attribution survive independently of the
+PASS and SkillForge repositories.
 
 ## ChatGPT / Codex skills
 
@@ -18,6 +21,10 @@ For repository-local Codex discovery, place a released skill directory beneath:
 
 PASS keeps repo-only discovery wrappers under `.agents/skills/`; those
 wrappers are factory integration and are not copied into released skillsets.
+
+Keep the release root intact when installing or redistributing it. Its licensing
+and attribution files apply to the bundled software and knowledge and are part of
+the checked package, not optional surrounding documentation.
 
 ## Claude Code
 

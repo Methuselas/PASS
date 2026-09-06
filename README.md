@@ -10,6 +10,10 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
+Finished, installable skillsets are published separately in
+[SkillForge](https://github.com/Methuselas/SkillForge). PASS is the authoring
+factory; SkillForge is the distribution repository.
+
 ```text
 SOURCE OR HUMAN TEACHING
         ↓ study one coherent instructional unit
@@ -69,9 +73,10 @@ hardcoded to those four domains.
 | Project snapshot | A bounded authoring workspace | Temporary/workable | No |
 | Release | A self-contained skill product | Yes | It is the product |
 
-**PASS is the factory. SkillForge is the distribution repository for finished
-skillsets.** Project snapshots are working copies of part of the factory;
-releases are the portable products made by it.
+**PASS is the factory. [SkillForge](https://github.com/Methuselas/SkillForge) is
+the distribution repository for finished skillsets.** Project snapshots are
+working copies of part of the factory; releases are the portable products made
+by it.
 
 ## Repository map
 
@@ -242,21 +247,61 @@ Named releases select a product intent. PASS resolves the complete dependency
 closure, always adds `metaskills`, materializes the release, and validates the
 files that actually ship.
 
+The builder does not contain a machine-specific destination. The recipe and
+output paths are arguments supplied by whoever runs it:
+
 ```bash
-python PASS/tools/build_release.py build workspace/release-recipes/SkillForge_Art.yaml ../releases/SkillForge_Art
-python PASS/tools/build_release.py check ../releases/SkillForge_Art
+python PASS/tools/build_release.py build <recipe> <release-directory> --zip <distribution-zip>
+python PASS/tools/build_release.py check <release-directory>
 ```
 
-Build outputs must be outside the PASS checkout. The canonical recipes are:
+Both outputs must be outside the PASS checkout. The release directory is the
+validated, unpacked product; the optional ZIP is the same product prepared for
+upload or distribution. Existing destinations are never replaced unless the
+maintainer deliberately adds `--replace` after checking the paths.
 
-- `SkillForge_Art.yaml`
-- `SkillForge_Game_Design.yaml`
-- `SkillForge_Software_Engineering.yaml`
-- `SkillForge_Writing.yaml`
+### Publishing PASS releases to SkillForge
+
+The intended maintainer layout is two independent checkouts plus any external
+build directory:
+
+```text
+<workspace>/
+├── PASS/
+├── SkillForge/
+│   └── releases/
+└── release-builds/
+```
+
+With that layout, a build from the PASS checkout can write its validated working
+directory to `<workspace>/release-builds/` and its distributable ZIP directly to
+the sibling SkillForge checkout. For example:
+
+```bash
+python PASS/tools/build_release.py build workspace/release-recipes/SkillForge_Art.yaml ../release-builds/SkillForge_Art --zip ../SkillForge/releases/SkillForge-Art.zip
+python PASS/tools/build_release.py check ../release-builds/SkillForge_Art
+```
+
+The same relationship works wherever the repositories were cloned. On one
+Windows machine `<workspace>` might be `D:\Repos`; on another machine it could
+be `C:\work`, `/home/alex/code`, or any other location. No absolute path is
+written into the release, and consumers do not need either repository after
+downloading the ZIP.
+
+The four canonical PASS recipes map to SkillForge distribution files as follows:
+
+| PASS recipe | SkillForge release |
+| --- | --- |
+| `SkillForge_Art.yaml` | `SkillForge/releases/SkillForge-Art.zip` |
+| `SkillForge_Game_Design.yaml` | `SkillForge/releases/SkillForge-Game-Design.zip` |
+| `SkillForge_Software_Engineering.yaml` | `SkillForge/releases/SkillForge-Software-Engineering.zip` |
+| `SkillForge_Writing.yaml` | `SkillForge/releases/SkillForge-Writing.zip` |
 
 Every result is self-contained: it needs no source material, PASS checkout,
 SkillForge checkout, Git history, authoring memory, or external card path at
-runtime. See [`PASS/docs/MODULE_RELEASES.md`](PASS/docs/MODULE_RELEASES.md) and
+runtime. The published packages are available from the
+[SkillForge repository](https://github.com/Methuselas/SkillForge). See
+[`PASS/docs/MODULE_RELEASES.md`](PASS/docs/MODULE_RELEASES.md) and
 [`PASS/docs/RELEASE_INSTALL.md`](PASS/docs/RELEASE_INSTALL.md).
 
 ## Add a domain
@@ -269,6 +314,53 @@ plus `metaskills`, and let discovery tools find the new package automatically.
 Do not add a global registry, repo-wide hand-authored index, new root-level tool,
 or cross-domain card dependency. Detailed module and release guidance is in
 [`docs/SKILL_AUTHOR_GUIDE.md`](docs/SKILL_AUTHOR_GUIDE.md).
+
+## Contributing
+
+Contributions are welcome, including corrections, additional knowledge, tooling
+improvements, and independent new skillsets. Start with
+[`CONTRIBUTING.md`](CONTRIBUTING.md), which explains domain boundaries,
+validation, release expectations, and how contributed work remains open.
+
+## License and project identity
+
+PASS uses split open, share-alike licensing:
+
+- executable tools and runtime code are licensed under
+  `AGPL-3.0-or-later`; and
+- knowledge cards, Agent Skill instructions, documentation, declarative
+  profiles, recipes, and original assets are licensed under `CC-BY-SA-4.0`.
+
+This permits personal, educational, community, and commercial use while
+requiring covered redistributions and adaptations to preserve attribution and
+the applicable open terms. The official releases remain freely available from
+[SkillForge](https://github.com/Methuselas/SkillForge).
+
+See [`LICENSE.md`](LICENSE.md) for scope, [`NOTICE.md`](NOTICE.md) for required
+attribution, and [`TRADEMARKS.md`](TRADEMARKS.md) for use of the PASS and
+SkillForge names.
+
+## Acknowledgments
+
+PASS builds on the Agent Skills format introduced and openly documented by
+Anthropic. Anthropic's published skills and specification established the
+portable `SKILL.md` convention that made this project possible. PASS and
+SkillForge are independent community projects and are not affiliated with or
+endorsed by Anthropic.
+
+- [Anthropic Agent Skills](https://github.com/anthropics/skills)
+- [Agent Skills specification](https://agentskills.io)
+
+## Support PASS
+
+If PASS or a SkillForge release helps you, the best ways to support the project
+are to star and share [PASS](https://github.com/Methuselas/PASS), share the free
+[SkillForge releases](https://github.com/Methuselas/SkillForge), report concrete
+problems, improve an existing skillset, or contribute a new one. If you would
+also like to support its continued development financially, you can
+[buy Methuselas a coffee](https://buymeacoffee.com/methuselas). Supporting the
+project never changes the licensing or access to PASS or its SkillForge
+releases.
 
 ## Non-negotiable boundaries
 

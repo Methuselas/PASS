@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-or-later
 from __future__ import annotations
 
 import argparse
@@ -27,6 +28,14 @@ FORBIDDEN = {
 }
 MEMORY_DIR = "memory"
 MEMORY_STORE = "skill_memory.yaml"
+RELEASE_LEGAL_FILES = (
+    "CONTRIBUTING.md",
+    "LICENSE.md",
+    "NOTICE.md",
+    "TRADEMARKS.md",
+    "LICENSES/AGPL-3.0.txt",
+    "LICENSES/CC-BY-SA-4.0.txt",
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -204,6 +213,19 @@ def stage_memory(staging: Path, memory_root: Path, selected: set[str]) -> list[s
     return shipped
 
 
+def stage_legal_files(staging: Path) -> None:
+    """Make the release's rights and attribution portable with the product."""
+    repository = repo_root_from_tool().resolve()
+    missing = [name for name in RELEASE_LEGAL_FILES if not (repository / name).is_file()]
+    if missing:
+        raise ValueError("missing release licensing file(s): " + ", ".join(missing))
+    for name in RELEASE_LEGAL_FILES:
+        source = repository / name
+        target = staging / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, target)
+
+
 def make_read_only(root: Path) -> list[str]:
     """Strip write permission from every shipped memory file, then read it back.
 
@@ -238,6 +260,14 @@ def memory_release_problems(path: Path, declared: list[str]) -> list[str]:
             elif not (path / "library" / domain).is_dir():
                 problems.append(f"memory domain has no packaged library package: {domain}")
     return problems
+
+
+def legal_release_problems(path: Path) -> list[str]:
+    return [
+        f"missing release licensing file: {name}"
+        for name in RELEASE_LEGAL_FILES
+        if not (path / name).is_file()
+    ]
 
 
 def run_gate(script: Path, args: list[str]) -> None:
@@ -519,6 +549,14 @@ def write_skill(
             "prompt.\n\n"
             + "".join(f"- `memory/{domain}/`\n" for domain in memory_domains)
         )
+    body += (
+        "\n## License and attribution\n\n"
+        "Keep `LICENSE.md`, `NOTICE.md`, `TRADEMARKS.md`, and `LICENSES/` with "
+        "this release. The "
+        "vendored Python resolver is AGPL-3.0-or-later; the Skill instructions, "
+        "knowledge, declarative profile, memory, and original assets are "
+        "CC-BY-SA-4.0 unless a shipped file states otherwise.\n"
+    )
     (path / "SKILL.md").write_text(f"---\n{front}\n---\n\n{body}", encoding="utf-8")
 
 
@@ -716,6 +754,7 @@ def build(
             shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_nested_modules)
 
         vendor_runtime(staging, runtime_profile, deployment_profile)
+        stage_legal_files(staging)
         memory_domains = stage_memory(staging, mem, selected) if mem.is_dir() else []
 
         quality = (
@@ -757,6 +796,7 @@ def build(
             + skill_metadata_problem(staging)
             + release_graph_problems(staging / "library")
             + memory_release_problems(staging, memory_domains)
+            + legal_release_problems(staging)
             + read_only_problems
             + manifest_problems(staging, manifest)
             + runtime_release_problems(staging)
@@ -803,6 +843,7 @@ def check(path: Path) -> None:
         + skill_metadata_problem(path)
         + release_graph_problems(path / "library")
         + runtime_release_problems(path)
+        + legal_release_problems(path)
     )
     manifest_path = path / "RELEASE_MANIFEST.json"
     if not manifest_path.is_file():

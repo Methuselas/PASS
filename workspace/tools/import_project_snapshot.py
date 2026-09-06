@@ -19,9 +19,12 @@ ROOT_FILES = {
     "AGENTS.md",
     "CLAUDE.md",
     "ARCHITECTURE.md",
+    "CONTRIBUTING.md",
     "README.md",
     "LICENSE",
     "LICENSE.md",
+    "NOTICE.md",
+    "TRADEMARKS.md",
 }
 HOST_SKILL_ROOTS = (".agents", ".claude")
 
@@ -230,7 +233,7 @@ def is_all_project_file(
     parts = relative.parts
     if len(parts) == 1 and parts[0] in ROOT_FILES:
         return True
-    if parts[0] in {"PASS", "docs", "tests"}:
+    if parts[0] in {"PASS", "LICENSES", "docs", "tests"}:
         return True
     if len(parts) >= 3 and parts[:2] == ("library", "metaskills"):
         return True

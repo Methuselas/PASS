@@ -70,6 +70,7 @@ class SnapshotImportScopeTests(unittest.TestCase):
     def make_snapshot(self) -> snapshot_import.SnapshotArchive:
         paths = (
             "PASS/SKILL.md",
+            "LICENSES/AGPL-3.0.txt",
             "README.md",
             "library/metaskills/INDEX.md",
             "library/art/card.md",
@@ -110,6 +111,7 @@ class SnapshotImportScopeTests(unittest.TestCase):
         paths = {item.relative.as_posix() for item in selected}
 
         self.assertIn("README.md", paths)
+        self.assertIn("LICENSES/AGPL-3.0.txt", paths)
         self.assertIn("PASS/SKILL.md", paths)
         self.assertIn("library/metaskills/INDEX.md", paths)
         self.assertIn("workspace/tools/helper.py", paths)

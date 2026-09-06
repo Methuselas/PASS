@@ -97,6 +97,9 @@ def isolated_library() -> tempfile.TemporaryDirectory:
     shutil.copytree(LIBRARY, root / "library")
     shutil.copytree(ROOT / "PASS", root / "PASS", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copytree(RECIPES, root / "recipes")
+    shutil.copytree(ROOT / "LICENSES", root / "LICENSES")
+    for name in ("CONTRIBUTING.md", "LICENSE.md", "NOTICE.md", "TRADEMARKS.md"):
+        shutil.copy2(ROOT / name, root / name)
     return tmp
 
 
@@ -283,6 +286,15 @@ class ReleaseIntegrityTests(unittest.TestCase):
                 front = yaml.safe_load(skill_text.split("---\n", 2)[1])
                 self.assertTrue(front.get("name") and front.get("description"))
                 self.assertLessEqual(skill_path.stat().st_size, 8 * 1024)
+                for notice in (
+                    "CONTRIBUTING.md",
+                    "LICENSE.md",
+                    "NOTICE.md",
+                    "TRADEMARKS.md",
+                    "LICENSES/AGPL-3.0.txt",
+                    "LICENSES/CC-BY-SA-4.0.txt",
+                ):
+                    self.assertTrue((out / notice).is_file(), notice)
                 profile = yaml.safe_load(
                     (out / "runtime/profile.yaml").read_text(encoding="utf-8")
                 )
@@ -295,6 +307,15 @@ class ReleaseIntegrityTests(unittest.TestCase):
                     for instruction in consumer_instructions:
                         self.assertIn(instruction.strip(), barrier_text)
                 self.assertEqual(run("check", out).returncode, 0)
+
+    def test_release_check_detects_a_missing_license_notice(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "release"
+            self.assertEqual(run("build", SOFTWARE_ENGINEERING_RECIPE, out).returncode, 0)
+            (out / "NOTICE.md").unlink()
+            check = run("check", out)
+            self.assertNotEqual(check.returncode, 0)
+            self.assertIn("missing release licensing file: NOTICE.md", check.stderr)
 
     def test_release_check_detects_a_changed_card(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -15,9 +15,12 @@ ROOT_FILES = (
     "AGENTS.md",
     "CLAUDE.md",
     "ARCHITECTURE.md",
+    "CONTRIBUTING.md",
     "README.md",
     "LICENSE",
     "LICENSE.md",
+    "NOTICE.md",
+    "TRADEMARKS.md",
 )
 SKIP_DIRECTORY_NAMES = {
     ".git",
@@ -112,6 +115,7 @@ def snapshot_roots(
     roots.extend(
         (
             repo / "PASS",
+            repo / "LICENSES",
             repo / "docs",
             repo / "library/metaskills",
             repo / "workspace/tools",

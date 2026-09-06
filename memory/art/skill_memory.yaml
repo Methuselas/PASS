@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: art
-memory_version: 20
+memory_version: 22
 entries:
 - id: ART_MEM_001
   scope_type: topic
@@ -438,21 +438,22 @@ entries:
   scope_id: thumbnail_camera_and_scale
   type: training_result
   evidence_class: stochastic_performance
-  observation: 'Fixed-scene camera thumbnails remain useful when the story design is locked and
-    each view changes the camera meaningfully across lateral side, height, distance, tilt, or
-    framing. Distinct views can tell different stories without redesigning the scene. Changing
+  observation: Fixed-scene camera thumbnails remain useful when the story design is locked
+    and each view changes the camera meaningfully across lateral side, height, distance, tilt,
+    or framing. Distinct views can tell different stories without redesigning the scene. Changing
     medium or mark language from broad marker to graphite pencil can also change mood and
     expression while preserving the same camera and design. A thumbnail is an essence capture,
-    not a final render; its composition, silhouette, value grouping, focal point, and story must
-    survive reduced-size viewing.'
+    not a final render; its composition, silhouette, value grouping, focal point, and story
+    must survive reduced-size viewing.
   diagnosis:
     failure_layer: application
-    hypothesis: 'The runtime can overvalue enlarged surface finish and underweight the small-view
-      test. Treating thumbnail quality as dependent on a single roughness level can obscure that
-      camera search, continuity, mark language, and reduced-size readability are separate controls.'
-  boundary: 'Verified across fixed-scene marker and pencil camera sets reviewed by the teacher.
-    A 600x900 pixel target at 300 DPI is a useful practical 2x3 inch scale, but exact raster size
-    and the broader transfer to every thumbnail subject remain untested.'
+    hypothesis: The runtime can overvalue enlarged surface finish and underweight the small-view
+      test. Treating thumbnail quality as dependent on a single roughness level can obscure
+      that camera search, continuity, mark language, and reduced-size readability are separate
+      controls.
+  boundary: Verified across fixed-scene marker and pencil camera sets reviewed by the teacher.
+    A 600x900 pixel target at 300 DPI is a useful practical 2x3 inch scale, but exact raster
+    size and the broader transfer to every thumbnail subject remain untested.
   confidence: repeated
   status: monitoring
   evidence_count: 5
@@ -850,3 +851,262 @@ entries:
   - hands
   runtime_scope: native image generation blind Drill execution
   last_verified: '2026-09-04'
+- id: ART_MEM_015
+  scope_type: topic
+  scope_id: hand_thumb_orientation_in_profile_views
+  type: known_boundary
+  evidence_class: stochastic_performance
+  observation: In one fixed-scene thumbnail camera set, thumb-side orientation errors appeared
+    in the first and fourth profile-oriented views. The neutral-arm/profile presentation made
+    the radial/ulnar side and forearm rotation easier for the generator to mirror or lose.
+    Broader transfer beyond this set is untested.
+  diagnosis:
+    failure_layer: application
+    hypothesis: The existing hand canon contains the thumb-root and opposition/rotation decisions,
+      but the native image operation may not reliably preserve those decisions when a rough
+      profile hand is reduced to a silhouette. An explicit neutral-arm thumb-side cue and
+      a forearm-rotation check may improve routing and review.
+  boundary: Verified only in two profile-oriented hands from one six-view thumbnail camera
+    set, with direct human teaching. In this composition-first exercise, the rough thumb errors
+    were secondary and do not establish a hand-skill failure. This does not establish a card
+    defect, a universal profile-view failure, or a failure across non-profile views.
+  confidence: provisional
+  status: active
+  evidence_count: 2
+  evidence_events:
+  - ART_EV_0069
+  - ART_EV_0070
+  evidence_origin:
+  - human_teaching
+  - user_feedback
+  likely_owners:
+  - PAT_orient_thumb_by_opposition_and_rotation
+  - AP_construct_hand_from_function_contact_and_articulated_form
+  - native image generation thumbnail execution
+  retrieval_cues:
+  - hand
+  - thumb
+  - profile
+  - radial side
+  - ulnar side
+  - forearm rotation
+  - neutral arm
+  - mirror
+  runtime_scope: native image generation preview thumbnails
+  last_verified: '2026-09-05'
+- id: ART_MEM_017
+  scope_type: topic
+  scope_id: surface_can_hide_construction_failure
+  type: known_boundary
+  evidence_class: stochastic_performance
+  observation: 'A convincing silhouette or finished-looking surface can conceal a structural failure. In a dynamic foreshortened hand study, the index and ring metacarpal connections broke from the shared distal palm-wedge edge plane even though the outer contour was plausible. This boundary was generalized by human teaching to all Art construction, not only hands.'
+  diagnosis:
+    failure_layer: orchestration
+    hypothesis: 'A direct native image call can jump from a plausible silhouette to a surface-like result without proving the construction chain owned by the relevant APs. Global composition and finish can consume the error budget while local articulated structure remains unchecked.'
+  boundary: 'Verified in one dynamic foreshortened hand plus human teaching that generalized the lesson to composition, perspective, animals, props, and environments. Broader transfer and remediation remain to be retested.'
+  confidence: provisional
+  status: active
+  evidence_count: 2
+  evidence_events:
+  - ART_EV_0077
+  - ART_EV_0078
+  evidence_origin:
+  - human_teaching
+  likely_owners:
+  - AP_construct_hand_from_function_contact_and_articulated_form
+  - PAT_construct_hand_from_palm_wedge_and_digit_chain
+  - PAT_return_to_art_centerline
+  - relevant Art APs and staged construction routing
+  - native image generation full-composition execution
+  retrieval_cues:
+  - silhouette
+  - hand
+  - palm wedge
+  - finger root plane
+  - metacarpal edge
+  - staged construction
+  - white and gray overdraw
+  - erase silhouette
+  - articulated anatomy
+  - foreshortening
+  - chain stepping
+  - construction sequence
+  - composition structure
+  - perspective structure
+  - animal construction
+  - prop structure
+  - environment structure
+  - surface plausibility
+  runtime_scope: native image generation Art studies and full compositions
+  last_verified: '2026-09-05'
+- id: ART_MEM_018
+  scope_type: topic
+  scope_id: hand_finger_length_landmark_order
+  type: known_boundary
+  evidence_class: stochastic_performance
+  observation: 'A strong dorsal hand preserved topology and joints but still rendered the index finger longer than the ring finger. The working relative landmark ladder is: middle longest; ring fingertip just under the middle of the middle-finger nail; index fingertip at the bottom of the middle-finger nail or slightly below; pinky fingertip just under the ring finger''s last knuckle; thumb tip at the index finger''s first knuckle.'
+  diagnosis:
+    failure_layer: application
+    hypothesis: 'Native generation can preserve hand structure while drifting relative finger lengths, especially in spread dorsal views. Explicit fingertip-to-nail landmarks provide a compact local check before accepting the render.'
+  boundary: 'Verified in one dorsal hand with direct teaching and two added relative landmarks. Transfer across views, poses, and stronger foreshortening remains untested; the landmarks are review cues rather than rigid measurements for every perspective.'
+  confidence: provisional
+  status: active
+  evidence_count: 2
+  evidence_events:
+  - ART_EV_0079
+  - ART_EV_0080
+  evidence_origin:
+  - human_teaching
+  - user_feedback
+  likely_owners:
+  - PAT_construct_hand_from_palm_wedge_and_digit_chain
+  - PAT_unify_finger_chains_with_knuckle_shank_rhythm
+  - AP_construct_hand_from_function_contact_and_articulated_form
+  retrieval_cues:
+  - hand
+  - finger length
+  - index
+  - ring
+  - middle finger
+  - nail landmark
+  - dorsal view
+  - proportion
+  - fingertip order
+  runtime_scope: native image generation hand studies and figure transfer
+  last_verified: '2026-09-05'
+- id: ART_MEM_016
+  scope_type: topic
+  scope_id: thumbnail_continuity_under_fantasy_complexity
+  type: known_boundary
+  evidence_class: stochastic_performance
+  observation: 'A six-view dragon thumbnail set produced strong one-shot splash compositions and meaningful camera/environment variation, but continuity drifted under the more complex fantastical subject and landmark network. The dragon''s horn orientation changed in one view, the red pennant moved across several views, and the distant ruins were repeatedly redesigned.'
+  diagnosis:
+    failure_layer: continuity
+    hypothesis: 'A prose continuity spine can preserve broad human scene identity, but native generation may re-synthesize nonhuman identity details and complex architecture when camera changes are radical. The continuity contract needs stronger visual anchoring or a separate continuity-reference method for fantastical sets.'
+  boundary: 'Verified in one valid six-view dragon/aqueduct camera set. Composition, camera variation, and one-shot splash quality were strong; continuity of nonhuman anatomy and complex landmark geography failed. Transfer to simpler fantasy scenes or reference-anchored generation remains untested.'
+  confidence: provisional
+  status: active
+  evidence_count: 1
+  evidence_events:
+  - ART_EV_0076
+  evidence_origin:
+  - human_teaching
+  - user_feedback
+  likely_owners:
+  - DRILL_thumbnail_same_scene_across_camera_angles
+  - AP_run_stage0_rough_composition_search
+  - native image generation thumbnail execution
+  retrieval_cues:
+  - thumbnail
+  - camera
+  - continuity
+  - fantasy
+  - dragon
+  - nonhuman identity
+  - horn orientation
+  - landmark geography
+  - pennant
+  - ruins
+  - aqueduct
+  - environment drift
+  runtime_scope: native image generation preview thumbnails
+  last_verified: '2026-09-05'
+- id: ART_MEM_019
+  scope_type: topic
+  scope_id: thumbnail_continuity_spine_under_camera_variation
+  type: known_boundary
+  evidence_class: stochastic_performance
+  observation: >-
+    Fixed-scene camera thumbnails can produce strong individual compositions while drifting
+    in subject identity, landmark relationships, light relationships, or continuity family.
+    Explicit identity anchors and a declared continuity spine substantially improved a later
+    human/environment comparison, reducing broad drift to one localized anatomical-side error.
+    Exploratory one-shot thumbnails may loosen secondary prop placement, while sequential art
+    and later development require stricter preservation of approved scene and screen relationships.
+  diagnosis:
+    failure_layer: continuity
+    hypothesis: >-
+      Native image generation may treat each camera view as a fresh synthesis unless invariant
+      scene information is explicitly constrained and reviewed. Declaring subject identity,
+      major landmarks, light relationships, and task-specific continuity requirements before
+      generation improves isolation of camera as the intended variable.
+  boundary: >-
+    Verified across the astronaut/radar-dish and salt-basin continuity failures, one direct
+    teaching pass, and the improved six-view glasshouse retest. The improvement is not
+    deterministic and does not establish universal continuity control; the later dragon/aqueduct
+    failure remains a separate negative boundary under nonhuman and complex-landmark load.
+  confidence: provisional
+  status: active
+  evidence_count: 4
+  evidence_events:
+  - ART_EV_0071
+  - ART_EV_0072
+  - ART_EV_0073
+  - ART_EV_0075
+  evidence_origin:
+  - human_teaching
+  - user_feedback
+  likely_owners:
+  - DRILL_thumbnail_same_scene_across_camera_angles
+  - AP_run_stage0_rough_composition_search
+  - native image generation camera comparison
+  retrieval_cues:
+  - thumbnail
+  - fixed scene
+  - camera variation
+  - continuity spine
+  - identity anchor
+  - subject identity
+  - landmark
+  - light source
+  - screen geography
+  - storyboard
+  - sequential art
+  - splash page
+  - continuity family
+  runtime_scope: native image generation preview thumbnails
+  last_verified: '2026-09-05'
+- id: ART_MEM_020
+  scope_type: topic
+  scope_id: thumbnail_anatomical_side_continuity
+  type: known_boundary
+  evidence_class: stochastic_performance
+  observation: >-
+    In a strong six-view glasshouse camera set, the only detected continuity drift moved the
+    flower from the botanist's anatomical right hand to the left in one view. Camera changes can
+    legitimately change screen placement, but they do not authorize changing which anatomical
+    hand owns a prop. Character-relative hand assignment must be tracked separately from screen side.
+  diagnosis:
+    failure_layer: continuity
+    hypothesis: >-
+      Camera reversal and viewpoint change can make screen-side position look like anatomical-side
+      change unless the invariant is encoded and reviewed in character-relative coordinates.
+  boundary: >-
+    Verified in one six-view glasshouse retest after continuity teaching. Scene identity and major
+    landmarks held while one anatomical-hand assignment drifted. Transfer across other subjects,
+    prop interactions, and more extreme cameras remains untested.
+  confidence: provisional
+  status: active
+  evidence_count: 2
+  evidence_events:
+  - ART_EV_0074
+  - ART_EV_0075
+  evidence_origin:
+  - human_teaching
+  - user_feedback
+  likely_owners:
+  - DRILL_thumbnail_same_scene_across_camera_angles
+  - AP_run_stage0_rough_composition_search
+  - fixed-scene continuity review
+  retrieval_cues:
+  - anatomical side
+  - right hand
+  - left hand
+  - prop ownership
+  - screen side
+  - camera reversal
+  - botanist
+  - flower
+  - hand continuity
+  runtime_scope: native image generation preview thumbnails
+  last_verified: '2026-09-05'

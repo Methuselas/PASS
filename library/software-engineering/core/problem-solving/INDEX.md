@@ -30,6 +30,8 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Pick the Abstraction Level of Your Machine Model and Name What It Hides](PAT_reason_with_a_notional_machine_at_a_chosen_level.md) - pattern; 0 design. Tags: abstraction, mental_model, notional_machine, problem_solving.
 - [Prove a Greedy Rule Safe Before Calling It an Algorithm](PAT_prove_a_greedy_rule_safe_before_calling_it_an_algorithm.md) - pattern; 0 design. Tags: algorithm_design, correctness, greedy, optimization.
 - [Reduce the Problem Until You Can Already Solve It](PAT_reduce_the_problem_until_you_can_already_solve_it.md) - pattern; 0 design. Tags: constraints, decomposition, getting_unstuck, problem_solving.
+- [Reduce Your Problem to One That Is Already Solved](PAT_reduce_your_problem_to_one_that_is_already_solved.md) - pattern; 0 design. Tags: algorithm_design, problem_framing, reduction, reuse.
+- [Return a Certificate the Answer Can Be Checked Against](PAT_return_a_certificate_the_answer_can_be_checked_against.md) - pattern; 0 design. Tags: algorithm_design, optimization, trust, verification.
 - [Sample a Split Point You Cannot Afford to Compute](PAT_sample_a_split_point_you_cannot_afford_to_compute.md) - pattern; 0 design. Tags: algorithm_design, expected_cost, randomization, recursion.
 - [Surface the Notional Machine Hiding in Your Team's Vocabulary](DRILL_surface_notional_machines_from_code_vocabulary.md) - drill; 1 skeleton. Tags: mental_model, notional_machine, problem_solving, vocabulary.
 - [Time-Box the Guess and Name the Fallback](PAT_time_box_the_guess_and_name_the_fallback.md) - pattern; 3 rough. Tags: brute_force, debugging, estimation, sunk_cost.

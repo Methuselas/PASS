@@ -1,9 +1,10 @@
-# PASS / The Skill Forge
+# PASS
 
-PASS (Pattern Analysis Skill System) is a universal skill-card system. Sources are studied to create
-self-contained Patterns, Drills, and APs. Cards live in independent skill domains
-and are validated before entering the universal library. Source material and
-authoring scratch state are not runtime dependencies.
+PASS (Pattern Analysis Skill System) is the authoring and validation environment
+for portable AI skillsets. Sources are studied to create self-contained Patterns,
+Drills, and APs. Cards live in independent skill domains and are validated before
+entering the universal library. Source material and authoring scratch state are
+not runtime dependencies.
 
 ```text
 SOURCE MATERIAL (book / course / document / human instruction)
@@ -29,7 +30,8 @@ still builds, and still works.
 - `tests/` — architecture and release tests
 - `.agents/skills/`, `.claude/skills/` — repo-local skill discovery wrappers
 
-The release is the product. The repo is the factory.
+PASS is the factory. **SkillForge is the separate distribution repository for
+the finished skillsets.** A release is the boundary between them.
 
 ## Domains are independent
 
@@ -58,7 +60,7 @@ workspace input; low-text pages are reported for visual inspection or OCR:
 python workspace/tools/extract_pdf_text.py book.pdf workspace/authoring/book-unit.txt --pages 20-48
 ```
 
-Build a pruned archive for one Project-chat domain. An extracted source can be
+Build a pruned PASS archive for one Project-chat domain. An extracted source can be
 placed at top-level `SOURCE_INPUT/` without copying it into the repository:
 
 ```bash
@@ -123,6 +125,20 @@ do not pass. A domain release packages that domain without loading any other.
 
 The builder refuses to write inside or above the repository, so give it an output
 path outside the checkout.
+
+The complete named skillsets are:
+
+- `SkillForge_Art.yaml`
+- `SkillForge_Game_Design.yaml`
+- `SkillForge_Software_Engineering.yaml`
+- `SkillForge_Writing.yaml`
+
+Each produces one self-contained SkillForge release and automatically includes
+`metaskills`. Build the four outputs outside PASS, verify them with
+`build_release.py check`, then publish them under `releases/` in the separate
+SkillForge repository. That distribution repository should contain only its
+README files and generated releases; authoring cards, memory, source material,
+tests, and PASS tooling stay here.
 
 ## Author a card
 

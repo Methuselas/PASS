@@ -3,13 +3,13 @@ name: pass-authoring
 description: >-
   Use when studying sources or maintaining PASS APs, Patterns, Drills, modules,
   variants, references, prerequisites, release recipes, validation, or skill
-  packaging in this SkillForge repository.
+  packaging in this PASS repository.
 ---
 
 # PASS Authoring
 
 Use the canonical portable PASS package in `PASS/`; this repo skill is only a
-discovery wrapper for agents working inside SkillForge.
+discovery wrapper for agents working inside PASS.
 
 ## References by phase
 

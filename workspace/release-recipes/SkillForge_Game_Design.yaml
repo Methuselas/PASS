@@ -1,0 +1,14 @@
+name: SkillForge Game Design
+skill_name: skillforge-game-design
+description: >-
+  Use for designing, revising, critiquing, and playtesting game mechanics,
+  characters, adversaries, adventures, and playable worlds using the SkillForge
+  Game Design knowledge library.
+modules:
+  - game-design/adventures
+  - game-design/adversaries
+  - game-design/characters
+  - game-design/foundations
+  - game-design/mechanics
+  - game-design/worldbuilding
+runtime_profile: generic

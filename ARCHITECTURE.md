@@ -1,7 +1,7 @@
-# SkillForge Architecture Contract
+# PASS Architecture Contract
 
-SkillForge is a workspace for manufacturing portable, self-contained AI skillsets.
-The repo is optional infrastructure; the release is the product.
+PASS is the environment for manufacturing portable, self-contained AI skillsets.
+The environment is optional infrastructure; the release is the product.
 
 ## The guiding test
 
@@ -23,7 +23,7 @@ If no, the runtime does not depend on it.
 
 1. PASS is a portable authoring skill.
 2. Finished releases are self-contained.
-3. Released skills never depend on SkillForge.
+3. Released skills never depend on PASS.
 4. Clean chats/Projects are first-class environments; a repo is optional. A card
    authored in a chat project and one authored in a checkout use the same schema
    and validate the same way.
@@ -88,13 +88,14 @@ AP and let that protocol activate its Pattern owners. When no AP exists, ad-hoc
 Pattern composition is a valid runtime fallback and an authoring signal, not a new
 architectural subsystem. No AP registry or separate workflow database is needed.
 
-## The Skill Forge boundary
+## The SkillForge boundary
 
-**PASS is the workbench; Skill Forge is the repository of finished skillsets.**
+**PASS is the workbench; SkillForge is the repository of finished skillsets.**
 A validated card is not a skillset. `library/` holds domain knowledge being
 matured; a skillset is the mature assembled product built from it. Do not
-describe Skill Forge as "where finished cards go" — that collapses the two
-layers. As of 2026-08-16 no lane has crossed the threshold.
+describe SkillForge as "where finished cards go" — that collapses the two
+layers. Art, Game Design, Software Engineering, and Writing were declared ready
+for named SkillForge releases by the user on 2026-09-05.
 
 ### Foundations ship as their own package
 

@@ -1,6 +1,6 @@
-# SkillForge Claude Instructions
+# PASS Claude Instructions
 
-SkillForge turns studied sources into self-contained PASS cards. `PASS/` is the
+PASS turns studied sources into self-contained cards. `PASS/` is the
 portable authoring skill; `library/` is the universal library of finished cards;
 releases must be self-contained.
 

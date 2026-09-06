@@ -10,5 +10,6 @@ modules:
   - writing/college-admission-essays
   - writing/creative-nonfiction
   - writing/fiction
+  - writing/foundations
   - writing/poetry
 runtime_profile: generic

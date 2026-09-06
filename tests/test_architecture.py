@@ -1,4 +1,4 @@
-"""Architecture tests for the simplified PASS / SkillForge system.
+"""Architecture tests for the PASS authoring environment and SkillForge releases.
 
 These encode the invariants the 2026-08-15 cleanup restored: a finished skill
 library is valid on its own, each domain stands alone, and nothing here needs a
@@ -245,6 +245,28 @@ class CardContractTests(unittest.TestCase):
 
 class ReleaseIntegrityTests(unittest.TestCase):
     """11: releases package knowledge; the remaining gates are real."""
+
+    def test_named_skillforge_recipes_cover_every_domain_module(self) -> None:
+        recipe_names = {
+            "art": "SkillForge_Art.yaml",
+            "game-design": "SkillForge_Game_Design.yaml",
+            "software-engineering": "SkillForge_Software_Engineering.yaml",
+            "writing": "SkillForge_Writing.yaml",
+        }
+        self.assertEqual(set(DOMAINS), set(recipe_names))
+        for domain, filename in recipe_names.items():
+            with self.subTest(domain=domain):
+                recipe_path = RECIPES / filename
+                self.assertTrue(recipe_path.is_file(), filename)
+                recipe = yaml.safe_load(recipe_path.read_text(encoding="utf-8"))
+                selected = set(recipe.get("modules") or [])
+                available = {
+                    path.parent.relative_to(LIBRARY).as_posix()
+                    for path in (LIBRARY / domain).rglob("MODULE.yaml")
+                }
+                self.assertEqual(selected, available)
+                self.assertEqual(recipe.get("name"), "SkillForge " + domain.replace("-", " ").title())
+                self.assertTrue(str(recipe.get("skill_name", "")).startswith("skillforge-"))
 
     def test_every_recipe_builds_and_checks(self) -> None:
         for recipe in sorted(RECIPES.glob("*.yaml")):

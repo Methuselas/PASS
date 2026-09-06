@@ -150,7 +150,7 @@ Do not ship:
 - workspace-only tooling;
 - build caches;
 - unrelated skill families;
-- absolute paths or `../` dependencies back into SkillForge.
+- absolute paths or `../` dependencies back into PASS.
 
 The workspace is the factory. The release is the product.
 

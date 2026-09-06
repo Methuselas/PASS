@@ -8,7 +8,7 @@ description: >-
 
 # Software Engineering
 
-Use SkillForge's universal engineering core plus the relevant language module.
+Use PASS's universal engineering library plus the relevant language module.
 
 ## Targeted retrieval
 

@@ -7,7 +7,7 @@ def repo_root_from_tool() -> Path:
     """Return the repository root when PASS lives at <repo>/PASS/tools.
 
     This is only a convenience default. PASS remains portable: callers can always
-    supply an explicit --library path when it is used outside SkillForge.
+    supply an explicit --library path when it is used outside the PASS repository.
     """
     return Path(__file__).resolve().parents[2]
 

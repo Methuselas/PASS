@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Return a bounded, ranked view of cards in one SkillForge package."""
+"""Return a bounded, ranked view of cards in one PASS library package."""
 
 from __future__ import annotations
 

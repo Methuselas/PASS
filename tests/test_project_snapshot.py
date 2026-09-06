@@ -43,7 +43,7 @@ class SnapshotSelectionTests(unittest.TestCase):
         files = snapshot.collect_snapshot_files(ROOT, ["game-design"])
         with tempfile.TemporaryDirectory() as temp_dir:
             output = Path(temp_dir) / "snapshot.zip"
-            root_name = "SkillForge-project-game-design"
+            root_name = "PASS-project-game-design"
             with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
                 for path in files:
                     relative = path.relative_to(ROOT)
@@ -58,8 +58,8 @@ class SnapshotSelectionTests(unittest.TestCase):
     def test_explicit_source_text_gets_a_flat_visible_archive_path(self) -> None:
         path = Path("C:/outside/a-book.txt")
         self.assertEqual(
-            snapshot.source_input_name("SkillForge-project-writing", path),
-            "SkillForge-project-writing/SOURCE_INPUT/a-book.txt",
+            snapshot.source_input_name("PASS-project-writing", path),
+            "PASS-project-writing/SOURCE_INPUT/a-book.txt",
         )
 
 

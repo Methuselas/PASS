@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a pruned, domain-scoped SkillForge archive for a Project chat."""
+"""Build a pruned, domain-scoped PASS archive for a Project chat."""
 
 from __future__ import annotations
 
@@ -100,7 +100,7 @@ def source_input_name(root_name: str, path: Path) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Build a pruned SkillForge archive for one or more Project-chat domains.",
+        description="Build a pruned PASS archive for one or more Project-chat domains.",
         epilog=(
             "PASS, metaskills, selected domain cards, domain memory, and matching "
             "host skills are included. Source PDFs, nested ZIPs, .git, archive, and "
@@ -183,7 +183,7 @@ def main() -> int:
         parser.error("the snapshot selection is empty")
 
     output.parent.mkdir(parents=True, exist_ok=True)
-    root_name = "SkillForge-project-" + "-".join(domains)
+    root_name = "PASS-project-" + "-".join(domains)
     total_bytes = 0
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
         for path in files:

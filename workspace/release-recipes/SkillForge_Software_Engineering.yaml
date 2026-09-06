@@ -1,0 +1,10 @@
+name: SkillForge Software Engineering
+skill_name: skillforge-software-engineering
+description: >-
+  Use for software design, implementation, review, refactoring, testing,
+  contracts, readability, error handling, maintainability, and C++ engineering
+  using the SkillForge Software Engineering knowledge library.
+modules:
+  - software-engineering/core
+  - software-engineering/languages/cpp
+runtime_profile: generic

@@ -3,7 +3,7 @@ name: game-design
 description: >-
   Use for designing, revising, critiquing, playtesting, or practising game
   mechanics, characters, adversaries, adventures, and playable worlds with
-  SkillForge's game-design library. Do not use it for PASS source extraction.
+  PASS's game-design library. Do not use it for PASS source extraction.
 ---
 
 # Game Design

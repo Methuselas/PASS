@@ -2,7 +2,7 @@
 name: writing
 description: >-
   Use for drafting, revising, critiquing, or practising fiction, creative
-  nonfiction, poetry, college essays, and career documents with SkillForge's
+  nonfiction, poetry, college essays, and career documents with PASS's
   writing library. Do not use it for PASS source extraction or repository code.
 ---
 

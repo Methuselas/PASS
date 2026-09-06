@@ -1,7 +1,0 @@
-name: C++ Development
-skill_name: cpp-development
-description: >-
-  Use for C++ design, implementation, review, refactoring, testing, contracts,
-  error handling, maintainability, and language-specific engineering practices.
-modules:
-  - software-engineering/languages/cpp

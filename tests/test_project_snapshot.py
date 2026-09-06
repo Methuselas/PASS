@@ -76,9 +76,6 @@ class SnapshotSelectionTests(unittest.TestCase):
         self.assertIn(
             "workspace/release-recipes/SkillForge_Art.yaml", recipes
         )
-        self.assertNotIn(
-            "workspace/release-recipes/Animal_Anatomy.yaml", recipes
-        )
         self.assertTrue(
             all(
                 Path(path).name.startswith("SkillForge_")

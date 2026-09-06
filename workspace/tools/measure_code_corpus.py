@@ -51,6 +51,17 @@ Known limits — read these before quoting a number
 -------------------------------------------------
 * The counts come from regular expressions, not a parser. A project-specific
   assertion macro with an unusual name may be missed; pass --assert-pattern.
+* The C-family assertion pattern counts qualified names (ASSERT_VALID_PTR,
+  HALASSERT, FLAC__ASSERT) as well as bare `assert(`, and refuses names carrying
+  a test framework's prefix (CU_, CPPUNIT_, GTEST_, TEST_, UNITY_). Both halves
+  were measured: without the qualified form every gtest-style macro is invisible;
+  without the prefix refusal a corpus that vendors CUnit reads 88 per cent high.
+  BOOST_ is deliberately not refused — BOOST_ASSERT is production code.
+* Figures here will not match the baselines recorded in Skillset Memory to the
+  last digit, and the difference is understood rather than mysterious. Those were
+  taken by an earlier version with no test exclusion and a narrower assertion
+  pattern; the same corpora now read about 0.2 per thousand lines higher. The
+  Rust figure is unaffected and reproduces exactly.
 * Comment ratio is inflated by house styles that mandate a file prolog.
 * Python docstrings count as code, not comment. Telling a docstring from any
   other string expression needs a parser, and this is not one.
@@ -93,7 +104,17 @@ SKIP_DIR_MARKERS = ("3rdparty", "3rd_party", "third_party", "external",
                     "vcpkg", "_deps", "build", "node_modules", ".git",
                     "vendor", "site-packages", "target/debug", "target/release")
 
-C_FAMILY_ASSERT = r"\b[A-Za-z_]*(?:ASSERT|Assert|assert)\s*\("
+# Matches a bare assert and a qualified one (ASSERT_VALID_PTR, HALASSERT), but
+# not a name beginning with a test framework's prefix. Without the qualified form
+# every gtest-style macro is missed; without the prefix exclusion a corpus that
+# vendors a test framework counts the framework's own assertions as production
+# ones — measured at +88% on a C corpus bundling CUnit.
+# BOOST_ is deliberately absent: BOOST_ASSERT is Boost.Assert and belongs in
+# production counts, while Boost.Test spells its checks BOOST_CHECK/BOOST_REQUIRE,
+# which contain no "assert" and never matched in the first place.
+TEST_FRAMEWORK_PREFIXES = ("CU", "CPPUNIT", "GTEST", "TEST", "UNITY")
+C_FAMILY_ASSERT = (r"\b(?!(?:" + "|".join(TEST_FRAMEWORK_PREFIXES) + r")_)"
+                   r"[A-Za-z_]*(?:ASSERT|Assert|assert)[A-Za-z_]*\s*\(")
 C_FAMILY_GUARD = r"if\s*\(\s*!?\w+(?:\s*(?:==|!=)\s*(?:nullptr|NULL|0))?\s*\)\s*\n?\s*\{?\s*\n?\s*return"
 
 # One entry per language. `attr` is (column meaning, regex) or None where the

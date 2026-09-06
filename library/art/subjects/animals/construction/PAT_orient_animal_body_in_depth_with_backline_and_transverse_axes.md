@@ -48,7 +48,7 @@ variants: []
 
 ## Do
 - Continue the longitudinal route from the muzzle through the trunk toward the tail even where the body hides it; the concealed passage still determines how the visible masses belong to one animal.
-- Place transverse axes only at structurally useful stations. Bammes names the line between the scapular tips and the line between the hip tuberosities as especially useful cross-axes because their tilt exposes the body's turn in space.
+- Place transverse axes only at structurally useful stations. The line between the scapular tips and the line between the hip tuberosities are especially useful because their tilt exposes the body's turn in space.
 - Let the ends of those transverse axes rise, fall, or stagger according to the actual view. In repose or a turned pose, the paired landmarks are often not horizontally aligned on the page.
 - Use the resulting crossings to order the major masses along one three-dimensional trail: head, neck, thorax, lumbar connection, pelvis, and tail. Choose each mass from the animal's function and spatial situation rather than from a stock primitive recipe.
 - Add limb directions after the trunk reference system is coherent, so shoulder and pelvic attachments inherit the same depth solution instead of being patched onto a flat silhouette.

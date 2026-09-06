@@ -32,7 +32,7 @@ variants: []
 
 ## Do
 - Solve the plane's horizontal/base direction before solving its rise or fall.
-- Keep the ascending or descending vanishing point on the vanishing locus required by that plane's direction; for the hinge-like cases White demonstrates, this lies on the vertical vanishing line through the base horizontal vanishing point.
+- Keep the ascending or descending vanishing point on the vanishing locus required by that plane's direction; in hinge-like cases this lies on the vertical vanishing line through the base horizontal vanishing point.
 - Use the plane's horizontal trace/contact with the Picture Plane to establish a Picture Line when a true interval must be introduced.
 - Establish the auxiliary eye point used by the plane from the measuring point of the base direction; derive the ascending or descending measuring point from the inclined vanishing point and that auxiliary eye relationship.
 - Mark the real distance on the Picture Line, project it toward the appropriate measuring point, and intersect the line already traveling toward the inclined vanishing point.

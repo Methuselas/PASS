@@ -70,11 +70,11 @@ variants:
 **ELSE** use the forelimb specialization appropriate to the animal when the radius-ulna relationship or distal support is mechanically different.
 
 ## Do
-- Preserve the broad quadruped shoulder-girdle plan through the elbow before emphasizing the carnivore-specific divergence lower down. Bammes treats the shoulder as comparatively conservative and places the crucial change in the separately formed radius and ulna.
+- Preserve the broad quadruped shoulder-girdle plan through the elbow before emphasizing the carnivore-specific divergence lower down. Keep the shoulder comparatively conservative and place the crucial change in the separately formed radius and ulna.
 - Draw a longitudinal pivot through the forearm and make the radius visibly change position around the ulna as the paw turns. In the pronated support position, the rear surface of the paw faces forward because the turn has already happened through the forearm.
 - Keep the paw mechanically tied primarily to the radius. When the paw orientation changes, check that the radius, carpus, and metacarpal mass all agree with that new orientation.
 - Compare profile, front, back, and internal views rather than memorizing one silhouette. The crossing relationship can be visually quiet in one view and obvious in another.
-- Treat the dog and cat as different degrees of the same broad carnivore solution. Cats in Bammes's comparison retain more useful forearm rotation and a broader carpus; dogs remain more restricted and narrower.
+- Treat the dog and cat as different degrees of the same broad carnivore solution. Cats retain more useful forearm rotation and a broader carpus; dogs remain more restricted and narrower.
 - Let shoulder freedom and distal rotation serve the animal's action. A climbing or striking cat can abduct the humerus and turn the paw in ways a specialized runner construction would not permit.
 
 ## Don't

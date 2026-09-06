@@ -53,7 +53,7 @@ variants: []
 ## Do
 - Keep the largest hindquarter masses close to the pelvis and hip, and keep the main knee-extensor bulk associated with the femoral region rather than centered on the knee itself.
 - Let lower-leg muscle groups narrow into longer tendon paths as they approach the tarsus, metatarsus, and digits.
-- Preserve the visibility of the major joints as the limb unloads; Bammes's horse example makes the distal skeletal and tendinous construction increasingly explicit.
+- Preserve the visibility of the major joints as the limb unloads; make the distal skeletal and tendinous construction increasingly explicit.
 - Use the same principle comparatively rather than literally. A dog, horse, cow, and other mammal can share a proximal-to-distal unloading tendency while differing strongly in muscle amount, tendon length, foot proportions, and visible landmarks.
 - Keep tendons attached to the muscle groups and joint chain that produce them; use them as structural continuations, not isolated surface strings.
 

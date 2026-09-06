@@ -42,7 +42,7 @@ variants: []
 **ELSE** keep the deformation small when the contact is light, slow, or visually rigid
 
 ## Do
-- Carry the pre-impact action through the trunk as well as the extremities; Hultgren stretches the falling horse and the taking-off rabbit rather than leaving the body as an unchanged block between moving legs.
+- Carry the pre-impact action through the trunk as well as the extremities; stretch a falling horse or taking-off rabbit rather than leaving the body as an unchanged block between moving legs.
 - Let the first receiving contacts react to the shock before the rest of the body completes its reversal, so the impact reads as a sequence instead of a simultaneous pose change.
 - Allow the head and main masses to continue, compress, or swing after contact when their momentum has not yet been spent.
 - Reduce the rebound relative to the original fall when the sequence is showing energy loss, then let the forms return progressively toward their normal proportions as the roll or recovery slows.
@@ -50,7 +50,7 @@ variants: []
 
 ## Don't
 - Keep the torso at one unchanged length and volume relationship while only the legs announce impact.
-- Make every part reverse at the same instant; the source's falling horse has contact, head motion, whole-body reversal, and roll occurring in sequence.
+- Make every part reverse at the same instant; in a falling horse, contact, head motion, whole-body reversal, and roll occur in sequence.
 - Give the rebound the same amplitude as the incoming fall when the action is visibly dissipating momentum.
 - Snap immediately back to the ordinary standing shape after the first shock; recovery can continue through later phases.
 

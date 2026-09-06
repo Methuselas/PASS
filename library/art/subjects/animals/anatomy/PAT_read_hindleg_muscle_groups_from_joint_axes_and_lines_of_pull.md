@@ -49,17 +49,17 @@ variants: []
 **ELSE** keep the lighter skeletal construction when the major functional masses already agree with the pose and species.
 
 ## Do
-- Start from the articulated hindleg chain and its joint axes; Bammes treats the skeleton as the priority framework that gives muscle function and form a place to act.
-- Group muscles by what they do across a joint rather than by memorizing every named muscle. On the hindleg, the source distinguishes hip-moving groups, knee extensors, tarsal and digital groups, and multi-joint rump or Achilles-related groups.
+- Start from the articulated hindleg chain and its joint axes; the skeleton is the priority framework that gives muscle function and form a place to act.
+- Group muscles by what they do across a joint rather than by memorizing every named muscle. On the hindleg, distinguish hip-moving groups, knee extensors, tarsal and digital groups, and multi-joint rump or Achilles-related groups.
 - Follow the actual line of pull across the **specific joint** before assigning flexion or extension. A group can cross one axis or several, so its action cannot be inferred from one contour label alone.
-- Let the grouped flexor/extensor volumes help explain the leg's front-to-back depth. Bammes notes that these masses tend to occupy the front and rear contours more strongly than the side-to-side width.
-- Recheck the arrangement against the animal being studied. Bammes explicitly warns that his functional diagrams are simplified and that comparable species may differ in which muscle groups are present or where they originate.
+- Let the grouped flexor/extensor volumes help explain the leg's front-to-back depth. These masses often occupy the front and rear contours more strongly than the side-to-side width.
+- Recheck the arrangement against the animal being studied. Functional diagrams are simplified, and comparable species may differ in which muscle groups are present or where they originate.
 
 ## Don't
-- Do not turn "in front of the axis = extension, behind = flexion" into a universal sign rule for every joint. Bammes's own hindleg examples assign different actions at the hip, knee, tarsus, and digits; the relevant joint and line of pull decide the action.
+- Do not turn "in front of the axis = extension, behind = flexion" into a universal sign rule for every joint. The hip, knee, tarsus, and digits can assign different actions; the relevant joint and line of pull decide the action.
 - Do not inventory individual muscle names before the large functional groups and skeletal axes are clear.
 - Do not assume a horse grouping can be stamped unchanged onto cows, dogs, cats, or other mammals; genus-level differences change the visible organization.
-- Do not infer a precise contraction state or hidden attachment from a static outer contour when the source or reference does not support it.
+- Do not infer a precise contraction state or hidden attachment from a static outer contour when the visible form or reference does not support it.
 - Do not let muscle masses obscure an uncertain joint chain; correct the skeleton before developing the soft forms.
 
 ## Checklist

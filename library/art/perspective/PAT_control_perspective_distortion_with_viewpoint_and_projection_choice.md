@@ -68,7 +68,7 @@ variants:
 - When a flat-plane image is valid but requires an implausibly close station point, move the viewpoint back and rebuild the field, crop/reframe, enlarge the support, or cluster key content nearer the viewing target.
 - For a close skyscraper or other very large angular field, distinguish a mathematically valid rectilinear image from a practical display problem: the flat image may need to be physically huge to be experienced from a comfortable distance.
 - When the intended compact image must preserve a much wider directional field than a practical flat-plane setup can carry, switch deliberately to a curvilinear/spherical projection rather than locally bending objects inside a rectilinear field.
-- Keep prior Norling/Gill production checks: compare equivalent forms near the center and edges, and prefer a global reframe over local compensations.
+- Compare equivalent forms near the center and edges, and prefer a global reframe over local compensations.
 
 ## Don't
 - Assume that edge distortion proves the perspective construction itself is mathematically wrong; test the implied station point first.

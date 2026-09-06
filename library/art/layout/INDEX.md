@@ -8,6 +8,7 @@
 - [Create Motion Parallax By Separating Panning Layers By Depth And Speed](PAT_create_motion_parallax_by_separating_panning_layers_by_depth_and_speed.md) - pattern; 0 design. Tags: animation, background, depth, layout, panning, parallax.
   - Variants: `Plan Multiplane Motion From A Master Action Level` (method_sequence).
 - [Decompose Animation Scene Into Registered Level Stack For Independent Control](PAT_decompose_animation_scene_into_registered_level_stack_for_independent_control.md) - pattern; 2 block. Tags: animation, compositing, layers, layout, registration, scene_planning.
+- [Develop Approved Storyboard Shot Into Production Layout](AP_develop_approved_storyboard_shot_into_production_layout.md) - ap; 2 block. Tags: animation, handoff, layout, perspective, scene_planning, storyboard.
 - [Package Approved Layout Into Executable Scene Plan](AP_package_approved_layout_into_executable_scene_plan.md) - ap; 2 block. Tags: animation, camera, handoff, layout, production, scene_planning.
 - [Pose Out Approved Storyboard Action Into Layout Without Reauthoring Scene](PAT_pose_out_approved_storyboard_action_into_layout_without_reauthoring_scene.md) - pattern; 2 block. Tags: animation, handoff, layout, posing, production, storyboard.
 - [Preserve Established Scene Geography While Cheating Minor Details For Clarity](PAT_preserve_established_scene_geography_while_cheating_minor_details_for_clarity.md) - pattern; 0 design. Tags: clarity, comics, continuity, geography, layout, staging.

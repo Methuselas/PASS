@@ -11,7 +11,7 @@ stage_binding: 1 skeleton
 lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
-specialization_axis: method
+specialization_axis: domain
 foundation_object_id: none
 tags:
 - figure_drawing

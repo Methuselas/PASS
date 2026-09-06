@@ -43,7 +43,7 @@ variants: []
 **ELSE** simplify the feather detail while keeping the same functional band hierarchy beneath the silhouette
 
 ## Do
-- Place the longest primary feathers along the outer wing where Webster assigns the strongest propulsive role.
+- Place the longest primary feathers along the outer wing, where their propulsive role is strongest.
 - Build the secondary feathers along the forearm as the broad lifting region of the wing.
 - Use tertiary feathers to continue the surface from the upper arm toward the body.
 - Layer coverts over the flight feathers so neighboring rows can slide while the wing keeps a comparatively smooth continuous surface.

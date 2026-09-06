@@ -68,7 +68,7 @@ variants:
 - Do not begin by copying the outer appearance and then force an internal structure to fit the contour afterward.
 - Do not collect bones, muscles, and landmarks as disconnected facts with no hierarchy in the whole animal.
 - Do not let a remembered anatomical diagram overrule the observed proportions, pose, or surface response of the animal being drawn.
-- Do not treat Bammes's function-based explanations as proof that every visible form has one simple biological cause; use them as drawing hypotheses that must still agree with the subject.
+- Do not treat function-based explanations as proof that every visible form has one simple biological cause; use them as drawing hypotheses that must still agree with the subject.
 
 ## Checklist
 - The skull, thorax, and pelvis can be located before small surface anatomy is added.

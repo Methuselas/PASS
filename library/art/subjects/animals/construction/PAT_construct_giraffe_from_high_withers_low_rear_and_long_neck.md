@@ -41,17 +41,17 @@ variants: []
 **ELSE** use the broader quadruped mass scaffold when the subject does not need the giraffe-specific height and neck relationships.
 
 ## Do
-- Set the shoulder/withers and pelvic masses at visibly different heights before drawing the outer back contour; Hultgren makes the rear sit lower than the high withers rather than leveling the torso.
+- Set the shoulder/withers and pelvic masses at visibly different heights before drawing the outer back contour; keep the rear lower than the high withers rather than leveling the torso.
 - Treat the neck as a long structural continuation from the raised front of the trunk, tapering toward the small head instead of attaching a uniform tube to a generic barrel.
 - Keep the body and limbs angular enough that the changes at shoulder, elbow, wrist, hip, knee, hock, and hoof remain readable through the long silhouette.
 - Build the head from its centerline and large shape contrast: a relatively wide jaw narrowing toward the pointed V-shaped nose, then place the eye, ear, horn, lip, and nostril details on that construction.
-- Check the animal from more than one view. Hultgren pairs side/front head studies, full-body constructions, limb/hoof details, and a front-reaching pose so the long proportions do not depend on one silhouette.
+- Check the animal from more than one view. Pair side/front head studies, full-body constructions, limb/hoof details, and a front-reaching pose so the long proportions do not depend on one silhouette.
 
 ## Don't
 - Level the shoulder and hindquarter masses and then rely on neck length alone to identify the animal.
 - Make the neck a disconnected hose whose base does not explain how it rises from the front body mass.
 - Let coat spots substitute for structural proportion; the giraffe should still read when the pattern is removed.
-- Turn Hultgren's descriptive words such as "very angular" or the caricature page's "knock-knees" into fixed biological measurements or universal gait rules.
+- Turn descriptive words such as "very angular" or caricature labels such as "knock-knees" into fixed biological measurements or universal gait rules.
 
 ## Checklist
 - The withers are clearly higher than the rear before surface detail is added.

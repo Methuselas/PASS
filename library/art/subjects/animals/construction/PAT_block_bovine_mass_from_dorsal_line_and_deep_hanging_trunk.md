@@ -41,7 +41,7 @@ variants: []
 
 ## Do
 - Establish the upper dorsal route before drawing the lowest belly contour so the body has an organizing support direction rather than only an outer silhouette.
-- Treat Hultgren's basket-like hanging-body idea as a construction metaphor: place the deep trunk below the spine and let its depth, width, and sag explain the animal's weight.
+- Use a basket-like hanging-body construction metaphor: place the deep trunk below the spine and let its depth, width, and sag explain the animal's weight.
 - Keep the shoulder, pelvis, and major limb pivots readable through the bulk so the legs attach to a constructed body instead of to an undifferentiated oval.
 - Use front, rear, and three-quarter checks to keep the deep body three-dimensional; a heavy side silhouette still needs a believable centerline and left-right width.
 - Adjust the amount of neck, shoulder, and forequarter emphasis to the actual cow or bull being drawn rather than copying one fixed source example.

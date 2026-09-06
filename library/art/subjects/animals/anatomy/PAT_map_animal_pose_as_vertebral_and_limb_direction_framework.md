@@ -92,7 +92,7 @@ variants:
 - Do not preserve one standing skeleton unchanged and merely bend its silhouette around a new pose.
 - Do not let volume or coat hide an uncertain joint direction; solve the framework before relying on the surface.
 - Do not treat every visible bend in contour as a skeletal pivot.
-- Do not copy the horse pivot map as a literal universal chart for every land mammal; Bammes uses it as a representative comparison.
+- Do not copy the horse pivot map as a literal universal chart for every land mammal; use it only as a representative comparison.
 
 ## Checklist
 - The vertebral direction can be read without the outer contour.

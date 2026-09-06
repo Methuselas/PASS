@@ -41,7 +41,7 @@ Make a compact feature sheet for the **eye, nose, mouth, and ear**. For each fea
 Separating the **supporting solid** from the **visible soft or secondary forms** so features remain believable when the head turns, tilts, or is seen from above or below.
 
 ## Setup
-Prepare four rows labeled eye, nose, mouth, and ear. Give each row three small boxes: front or near-front, three-quarter, and one deliberately difficult view such as profile, up-view, or down-view. Use clear reference or Hogarth's diagrams for the first pass. Keep the drawings small enough that you cannot hide construction problems with detail.
+Prepare four rows labeled eye, nose, mouth, and ear. Give each row three small boxes: front or near-front, three-quarter, and one deliberately difficult view such as profile, up-view, or down-view. Use clear reference for the first pass. Keep the drawings small enough that you cannot hide construction problems with detail.
 
 ## Instructions
 1. In every box, draw only the **support form** first. Use socket plus globe for the eye, a broad triangular wedge/underplane for the nose, the dental/mouth barrel for the mouth, and a shell-and-bowl mass for the ear.
@@ -63,7 +63,7 @@ Prepare four rows labeled eye, nose, mouth, and ear. Give each row three small b
 ## Common Failures
 - Drawing a finished eye, nose, mouth, or ear outline first and inventing support underneath afterward.
 - Keeping the same visible feature shape in front, three-quarter, and up/down views.
-- Using Hogarth's average proportions or stylized forms as exact anatomy for every subject.
+- Using average proportions or stylized forms as exact anatomy for every subject.
 - Adding eyelashes, nostril darkness, lip creases, or ear ridges before the support form is coherent.
 - Copying a front-view nose shadow as a dark graphic shape without checking whether it is caused by the constructed bridge, tip, wings, and lighting direction.
 - Correcting only surface contour while leaving the underlying globe, wedge, barrel, or bowl misoriented.

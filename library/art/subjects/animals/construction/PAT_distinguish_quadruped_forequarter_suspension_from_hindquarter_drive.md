@@ -58,14 +58,14 @@ variants: []
 - Let the forelimb read comparatively as a load-bearing support chain whose major directions carry the suspended trunk toward the ground.
 - Trace the hindlimb through its direct skeletal relationship with the pelvis, then follow the angular joint chain that can straighten as the animal pushes or lifts.
 - Use scapular and pelvic direction as structural clues connecting the limbs back into the trunk instead of treating the legs as appendages pasted onto body masses.
-- Compare the source's support-versus-drive model to the actual animal, pose, and gait phase before deciding how strongly either role should dominate.
+- Compare the support-versus-drive model to the actual animal, pose, and gait phase before deciding how strongly either role should dominate.
 
 ## Don't
 - Do not attach the front of a quadruped to the thorax as though the shoulder girdle were simply a smaller version of the pelvic socket.
 - Do not make the fore- and hindlimb chains mechanically identical merely because both reach the ground.
-- Do not hard-code Bammes's stated two-thirds-front / one-third-rear weight split as a universal ratio for every species, individual, or pose.
+- Do not hard-code a two-thirds-front / one-third-rear weight split as a universal ratio for every species, individual, or pose.
 - Do not universalize the horse-specific tendon and elbow-locking examples to all quadrupeds.
-- Do not interpret "support" and "drive" as exclusive functions; Bammes presents them as dominant structural emphases in his representative model.
+- Do not interpret "support" and "drive" as exclusive functions; treat them as dominant structural emphases in a representative model.
 
 ## Checklist
 - The forequarter attachment can be explained through scapular placement and suspension of the thorax rather than a fictional bone-to-bone chest socket.

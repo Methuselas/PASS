@@ -5,7 +5,7 @@ Nothing in PASS reads this directory.
 `library/` holds the finished cards. That is the whole system of record. There is
 no authoring state to maintain beside it: no ledger, no source registry, no unit
 queue, no reading receipts, no provenance records, no attestations. All of that
-was retired on 2026-08-15 (see `docs/CLEANUP_2026-08-15.md`).
+was retired on 2026-08-15.
 
 Keep whatever working notes help you while you study a source. They are yours,
 they are disposable, and **deleting all of them cannot invalidate the library.**

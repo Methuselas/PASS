@@ -42,7 +42,7 @@ target_skill: identifying which spatial control is failing in a foreshortened fi
 # Audit Foreshortening With Nine Depth Checks
 
 ## Practice Task
-Take one Stage 2 or early Stage 3 figure with a strong advance/recession problem and make a diagnostic copy. Run Hogarth's nine depth principles as **questions**, one at a time, to identify the smallest spatial failure that explains the bad read. Correct only the failed relationship, then redraw the pose without the diagnostic scaffolds.
+Take one Stage 2 or early Stage 3 figure with a strong advance/recession problem and make a diagnostic copy. Run the nine depth checks as **questions**, one at a time, to identify the smallest spatial failure that explains the bad read. Correct only the failed relationship, then redraw the pose without the diagnostic scaffolds.
 
 ## Target Skill
 Diagnosing a foreshortening failure before solving it with more anatomy, more rendering, or a complete restart.

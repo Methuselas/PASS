@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 workspace/releases/
+workspace/art/*
 
 # Local authoring scratch. Nothing in PASS reads it; deleting it cannot
 # invalidate the library. See workspace/authoring/README.md.

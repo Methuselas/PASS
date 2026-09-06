@@ -36,11 +36,11 @@ variants: []
 
 ## Pattern Rule
 **IF** your code branches on an enum whose set of values may grow over time
-**THEN** handle every known value explicitly and arrange for an unhandled value to fail loudly — an exhaustive switch that throws after itself — rather than letting a new value be handled implicitly.
+**THEN** handle every known value explicitly and arrange for an unhandled value to fail at the earliest point the language can detect it, rather than letting a new value be handled implicitly.
 
 ## Do
 - Replace an if-statement that handles some values and implicitly assumes the rest: an `isOutcomeSafe` that only special-cases `COMPANY_WILL_GO_BUST` silently rules a future `WORLD_WILL_END` "safe."
-- Make an unhandled value a fail-fast programming error: throw an unchecked exception after the switch, and back it with a unit test that calls the function for every enum value.
+- Make an unhandled value a fail-fast programming error. Where the compiler refuses a non-exhaustive match outright, that refusal is the whole mechanism and nothing further is needed; where it does not, throw an unchecked exception after the switch and back it with a unit test that calls the function for every enum value.
 - Put the throw after the switch, not in a `default` case, so the compiler's exhaustiveness warning still fires as a second layer of protection.
 
 ## Don't

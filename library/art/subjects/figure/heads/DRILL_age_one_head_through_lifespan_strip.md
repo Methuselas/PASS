@@ -46,7 +46,7 @@ Choose one constructed head identity and draw it as a small lifespan strip. Pres
 Separating **identity** from **age change** so a character can grow from infancy to old age without becoming a series of unrelated generic heads or a young adult covered with age symbols.
 
 ## Setup
-Use one neutral head design or one subject with age-progression reference if available. Make seven boxes at the same approximate scale: infant, early child, school-age, teen, young adult, middle age, and older/advanced-old-age. Hogarth's exact year labels are source scaffolds, not required biological targets.
+Use one neutral head design or one subject with age-progression reference if available. Make seven boxes at the same approximate scale: infant, early child, school-age, teen, young adult, middle age, and older/advanced-old-age. Treat exact year labels as loose study scaffolds, not required biological targets.
 
 ## Instructions
 1. Draw the young-adult version first. Establish the core cranial envelope, jaw character, feature spacing, and profile relationships that will carry identity through the strip.
@@ -67,7 +67,7 @@ Use one neutral head design or one subject with age-progression reference if ava
 ## Common Failures
 - Scaling the adult head down for childhood without changing cranial/facial relationships.
 - Aging the adult only with crow's-feet, forehead lines, gray hair, or a receding hairline.
-- Applying every Hogarth year-specific cue to every person.
+- Applying every age-band cue to every person.
 - Assuming tooth loss, stoop, gauntness, or heavy sag is mandatory in old age.
 - Letting age changes alter the core head type so strongly that identity disappears.
 

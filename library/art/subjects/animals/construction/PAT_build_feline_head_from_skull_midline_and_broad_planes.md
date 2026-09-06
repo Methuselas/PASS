@@ -40,7 +40,7 @@ variants: []
 **ELSE** keep the simpler animal-head block when the compact head already reads solidly without extra planar subdivision.
 
 ## Do
-- Begin from the large cranial and muzzle relationship rather than from the eyes, nose, or mane. Hultgren's lioness sequence explicitly moves from skull groundwork through a planar construction to the living head.
+- Begin from the large cranial and muzzle relationship rather than from the eyes, nose, or mane. Move from skull groundwork through a planar construction to the living head.
 - Use the central division as a comparison line: as the head turns, let paired forms on either side inherit the same perspective instead of remaining front-facing symbols.
 - Solve a few broad plane changes first—forehead into side plane, cheek into muzzle, muzzle into its front/end turn—then let smaller forms sit on those larger surfaces.
 - Keep the planes related to one another as parts of one head mass. A plane break should explain a real turn in the constructed form rather than merely decorate the surface.
@@ -48,7 +48,7 @@ variants: []
 
 ## Don't
 - Start with a finished eye, nose, mouth, or mane and try to infer the head volume around those details afterward.
-- Treat the vertical centerline in Hultgren's front-facing examples as a fixed symmetry line when the head turns; it must wrap with the form and viewpoint.
+- Treat the vertical centerline as a fixed symmetry line when the head turns; it must wrap with the form and viewpoint.
 - Facet every cat head into the exact same lion diagram. Domestic cats, pumas, tigers, lionesses, and stylized designs can differ substantially in skull, muzzle, cheek, and soft-tissue shape.
 - Use dark rendering to conceal a head whose broad planes or bilateral perspective still disagree.
 

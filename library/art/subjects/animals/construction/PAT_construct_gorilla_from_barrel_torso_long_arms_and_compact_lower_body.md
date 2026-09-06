@@ -54,18 +54,18 @@ variants:
 **ELSE** use the general gesture-to-mass construction when the subject does not require gorilla-specific proportion and support relationships.
 
 ## Do
-- Start with the torso as the dominant mass. Hultgren labels the body "massive and barrel-like," and his front and three-quarter studies keep that trunk larger and more continuous than a human-like chest-and-waist split.
+- Start with the torso as the dominant mass. Keep the massive, barrel-like trunk larger and more continuous than a human-like chest-and-waist split in front and three-quarter views.
 - Place shoulder, pelvic, elbow, wrist, knee, and ankle pivots on a simplified skeletal scaffold before expanding the limbs, so the very long arms stay attached to one coherent body rather than hanging from the silhouette.
 - Compare forelimb reach against the shorter, more compact lower-body support before local anatomy; use the actual reference to set the degree rather than copying a fixed ratio from one drawing.
-- Block the hands and feet as meaningful support forms. Hultgren calls out short thumbs and wide toe separation as visible landmarks; retain those as source-scoped checks and verify their exact shape in the intended reference.
+- Block the hands and feet as meaningful support forms. Use short thumbs and wide toe separation as visible landmarks, then verify their exact shape in the intended animal reference.
 - Check the same construction from front, three-quarter, and bent poses so the barrel mass, shoulder breadth, arm length, and compact leg support survive rotation instead of reading only in profile.
 - Build the head as its own compact cranial/facial mass and then apply species-specific facial landmarks; do not let facial detail substitute for the torso-and-limb proportion statement.
 
 ## Don't
 - Begin from ordinary human torso proportions and try to make the result read as a gorilla only by extending the arms or adding hair.
-- Shrink the legs to the extreme comic proportions on Hultgren's caricature page when the task is naturalistic construction.
-- Turn the source's short-thumb or wide-toe notes into exact universal measurements; they are drawing landmarks in this unit, not a complete primate-hand or foot anatomy system.
-- Bury the head deeply into the torso as a naturalistic requirement; Hultgren uses that specifically as a menace-caricature exaggeration.
+- Shrink the legs to extreme comic proportions when the task is naturalistic construction.
+- Turn short-thumb or wide-toe observations into exact universal measurements; they are drawing landmarks in this unit, not a complete primate-hand or foot anatomy system.
+- Bury the head deeply into the torso as a naturalistic requirement; that is a caricature exaggeration for menace, not a neutral anatomical rule.
 - Let the hands, feet, or forearms become decorative endpoints after the torso has been solved; their scale and placement help carry the body's support and reach.
 
 ## Checklist

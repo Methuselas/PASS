@@ -52,16 +52,16 @@ variants: []
 ## Do
 - Start from the thorax as one coherent vessel-like mass rather than from visible rib lines. Let the hidden rib framework inform the core without turning the study into a rib-counting exercise.
 - Establish the dorsal and ventral longitudinal routes first so the core has a readable axis and viewing direction before local contour is refined.
-- Add only enough cross-sections to show how the thorax changes from front to back. In Bammes's non-primate examples the shoulder-girdle region is comparatively narrow and the rear thorax broadens; treat primates and any observed exception from the actual reference rather than forcing that progression universally.
+- Add only enough cross-sections to show how the thorax changes from front to back. In many non-primate mammals the shoulder-girdle region is comparatively narrow and the rear thorax broadens; calibrate primates and any observed exception from the actual reference rather than forcing that progression universally.
 - Let each cross-section describe actual width-versus-depth character. A thorax can be laterally compressed, deep, broad, asymmetric, nearly square, or otherwise unlike a neutral ellipse.
 - Imagine the cross-sections cutting through the mass and meeting its internal symmetry/axial organization rather than floating as decorative contour bands on the surface.
 - Emphasize decisive curve apexes and major plane/gradient convergence when those changes help the core turn in space. Use facets as construction evidence, not as permanent style.
 - Keep the thorax mentally present beneath fur, soft tissue, and later surface anatomy so those layers wrap a specific core instead of replacing it.
 
 ## Don't
-- Do not trace the visible ribs and assume their lines automatically describe the thorax volume; Bammes explicitly separates the construction sections from rib lines.
+- Do not trace the visible ribs and assume their lines automatically describe the thorax volume; keep construction sections distinct from individual rib lines.
 - Do not use one constant oval or cylinder section from sternum to rear thorax when the mass changes width, depth, or asymmetry along its length.
-- Do not memorize Bammes's dog, lion, horse, cow, human, or gorilla sections as fixed species laws. They are comparative construction examples that must be calibrated to the actual animal and view.
+- Do not memorize dog, lion, horse, cow, human, or gorilla sections as fixed species laws. They are comparative construction examples that must be calibrated to the actual animal and view.
 - Do not cover the core in indeterminate hatching to simulate volume before its axial routes, sections, and major plane changes agree.
 - Do not keep every teaching section or facet in the finished drawing once the organic mass is understood.
 

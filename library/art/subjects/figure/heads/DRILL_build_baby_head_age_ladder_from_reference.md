@@ -42,7 +42,7 @@ Make a small sequence of baby and early-childhood head blocks from clear referen
 Remembering how the facial mass grows inside the larger young-child cranium so age reads from construction before surface cues.
 
 ## Setup
-Collect three clear references spanning approximately **first year**, **second/third year**, and **third/fourth year**. A sleeping baby, photograph, or still image is appropriate; Loomis explicitly warns that a moving baby is difficult to study before the proportions are familiar. Draw all heads at roughly the same scale.
+Collect three clear references spanning approximately **first year**, **second/third year**, and **third/fourth year**. A sleeping baby, photograph, or still image is appropriate because a moving baby is difficult to study before the proportions are familiar. Draw all heads at roughly the same scale.
 
 ## Instructions
 1. For the first reference, block the cranial ball and attach a **much shorter facial plane** than you would use for an adult. Mark the whole-head halfway line and the brow relationship before drawing features.

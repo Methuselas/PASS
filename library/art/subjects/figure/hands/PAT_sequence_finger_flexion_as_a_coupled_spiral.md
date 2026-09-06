@@ -11,7 +11,7 @@ stage_binding: 2 block
 lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
-specialization_axis: method
+specialization_axis: domain
 foundation_object_id: PAT_construct_hand_from_palm_wedge_and_digit_chain
 tags:
 - hand

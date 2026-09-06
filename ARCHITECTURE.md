@@ -153,7 +153,7 @@ projections, state sidecars, a synchronization protocol, a universal meta-domain
 a shared Teaching lane, a migration framework, or a mandatory session-state
 object.
 
-Retired 2026-08-15. See `docs/CLEANUP_2026-08-15.md`.
+Retired 2026-08-15.
 
 **Skillset Memory is not one of these, and must not become one.** It records
 empirical results of using the canon, which is the one thing the retired

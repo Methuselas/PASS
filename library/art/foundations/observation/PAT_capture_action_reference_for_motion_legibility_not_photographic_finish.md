@@ -10,7 +10,7 @@ stage_binding: 0 design
 lane_fit: both
 foundation_role: specialization
 routing_class: specialized
-specialization_axis: method
+specialization_axis: tool
 foundation_object_id: PAT_create_task_specific_reference_when_available_material_misses_required_action
 tags:
 - action_analysis
@@ -51,7 +51,7 @@ variants: []
 - Do not optimize an action-analysis capture for polish, shallow-focus beauty, or dramatic blur when those choices hide the mechanics being studied.
 - Do not let random camera shake, erratic reframing, or inconsistent tracking create an extra motion signal that obscures the subject's movement.
 - Do not preserve every body region at maximum detail when the research question only depends on a smaller set of landmarks or contacts.
-- Do not turn Webster's example shutter, sensitivity, focal-length, or equipment values into fixed rules; the durable requirement is sufficient motion legibility for the task.
+- Do not turn example shutter, sensitivity, focal-length, or equipment values into fixed rules; the durable requirement is sufficient motion legibility for the task.
 
 ## Checklist
 - The capture preserves the movement information named by the study question.

@@ -52,7 +52,7 @@ Solve one twisted animal trunk first as a rounded four-sided mass, then as an or
 Converting axial trunk torsion from an abstract spatial block into a believable organic animal form and then reconstructing the same twist from imagination.
 
 ## Setup
-Use a pose in which the front and rear of the trunk clearly disagree in orientation. Keep the first pass free of limbs, coat, and muscle detail. A small piece of Plasticine or modeling clay is useful because the source specifically uses a hand-twisted model to make the torsion visible.
+Use a pose in which the front and rear of the trunk clearly disagree in orientation. Keep the first pass free of limbs, coat, and muscle detail. Use a small piece of Plasticine or modeling clay as a hand-twisted model to make the torsion visible.
 
 ## Instructions
 1. Draw a simple four-sided trunk block with slightly rounded corners. Mark a center/vertebral route and at least three cross-sections so each end has an unambiguous facing direction.

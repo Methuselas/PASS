@@ -60,15 +60,15 @@ variants:
 - Establish the gathered or compressed setup first when the reference shows it: propulsive limb joints close, the body lowers or bunches, and non-supporting limbs prepare for the launch rather than posing independently.
 - Let push-off change the **whole framework**, not only the rear feet; the major body direction and relevant joint chains should visibly lengthen or redirect as the animal leaves support.
 - Treat the suspension phase as an intermediate whole-body configuration with its own limb organization, not as a frozen maximum-stretch icon.
-- Prepare the forequarter for the next receiving contact, then let the visible joint response agree with the animal and phase; Bammes's horse, dog, and cat examples receive load differently.
+- Prepare the forequarter for the next receiving contact, then let the visible joint response agree with the animal and phase; horses, dogs, and cats receive load differently.
 - Bring the hindlimbs forward or fold them for recovery when the reference shows the next support being prepared.
-- Let vertebral and neck motion participate only to the degree supported by the species and reference; Bammes shows strong spinal flexion/extension in the dog and cat examples and a different organization in the horse jump.
+- Let vertebral and neck motion participate only to the degree supported by the species and reference; dogs and cats can show strong spinal flexion/extension while a horse jump uses a different organization.
 
 ## Don't
 - Do not give horse, dog, and cat the same spinal flexibility, limb timing, or landing mechanics merely because all three leave the ground.
 - Do not make every limb fully extend at the same instant; propulsion, suspension, reaching, reception, and recovery overlap differently.
 - Do not stretch or compress the actual limb segment lengths to create the feeling of spring.
-- Do not treat Bammes's "tension spring" or centrifugal-force language as literal universal biomechanics; preserve the observable pose sequence and species-specific structure.
+- Do not treat "tension spring" or centrifugal-force metaphors as literal universal biomechanics; preserve the observable pose sequence and species-specific structure.
 - Do not use the landing pose without accounting for the gathered and suspended phases that produced it when the task is to show motion rather than a single contact instant.
 
 ## Checklist

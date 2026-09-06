@@ -86,7 +86,7 @@ variants:
 - Fade distant objects while leaving their cast shadows or ground contacts equally black and crisp.
 - Treat atmospheric depth as a background-only fog effect when middle-ground forms should also participate.
 - Use contrast loss to repair wrong scale, convergence, overlap, or object placement.
-- Import Gill's simplified particle explanation as a complete physical theory of atmospheric scattering; keep the card at the observable rendering level.
+- Import a simplified particle explanation as a complete physical theory of atmospheric scattering; keep the card at the observable rendering level.
 - Do not preserve the old blanket rule that every receding color must become cooler; near-sun glare, warm haze, smoke, and other illumination states can reverse the hue shift.
 - Do not assume every distant silhouette automatically reads as distant; a hard, high-contrast backlit cutout can visually advance and fight the atmospheric hierarchy.
 

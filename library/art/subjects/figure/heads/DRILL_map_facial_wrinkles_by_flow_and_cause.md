@@ -62,7 +62,7 @@ Choose three references with different visible conditions: one active expression
 ## Common Failures
 - Copying every visible line at equal strength.
 - Drawing stock forehead, crow's-feet, or nasolabial symbols without checking their present direction and cause.
-- Forcing all three Hogarth flow families onto every face.
+- Forcing all three wrinkle-flow families onto every face.
 - Labeling every old-age crease as sag or every expression crease as muscle tension when the actual cause is mixed or unclear.
 - Adding wrinkles to compensate for weak head construction or unclear feature deformation.
 

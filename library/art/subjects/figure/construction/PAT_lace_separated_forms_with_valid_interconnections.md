@@ -9,9 +9,9 @@ library_path:
 - construction
 stage_binding: 3 rough
 lane_fit: skill
-foundation_role: specialization
-routing_class: specialized
-specialization_axis: method
+foundation_role: foundation
+routing_class: general
+specialization_axis: none
 foundation_object_id: none
 tags:
 - figure_drawing
@@ -70,7 +70,7 @@ variants:
 - Follow the object's own structure; the same principle can transfer to mechanical or designed forms when their real construction provides a valid joining path.
 
 ## Don't
-- Memorize Hogarth's long routes as fixed formulas for every body, build, pose, or viewpoint.
+- Memorize any one set of long connection routes as fixed formulas for every body, build, pose, or viewpoint.
 - invent decorative lines merely because a passage looks empty.
 - Keep adding connective marks after they begin to obscure the larger figure.
 

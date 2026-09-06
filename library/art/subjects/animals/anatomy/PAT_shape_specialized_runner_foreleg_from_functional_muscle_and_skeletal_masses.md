@@ -69,9 +69,9 @@ variants:
 
 ## Do
 - Preserve the scapula as a flat triangular attachment on the side of the thorax while layering the surrounding shoulder masses. The living form should not erase the mobile blade established in the runner skeleton.
-- Around the shoulder and elbow, group the large soft forms by their relationship to the joint axes before naming individual muscles. Bammes's profile construction places flexor and extensor masses in a strong front-to-back sequence.
+- Around the shoulder and elbow, group the large soft forms by their relationship to the joint axes before naming individual muscles. Place flexor and extensor masses in a strong front-to-back sequence.
 - Use the view to control the apparent section. In profile, the layered muscle groups create substantial depth from front to back; in a front view, the same foreleg is much more compressed from side to side.
-- In the lower runner foreleg, let soft tissue become selective rather than symmetrical. In Bammes's horse model the muscular covering is concentrated toward the front and outer side while the inner side reads more spare and structurally exposed; verify the actual animal instead of treating that distribution as a universal mammal rule.
+- In the lower runner foreleg, let soft tissue become selective rather than symmetrical. In a horse, the muscular covering is concentrated toward the front and outer side while the inner side reads more spare and structurally exposed; verify the actual animal instead of treating that distribution as a universal mammal rule.
 - From around the carpal region downward, let long tendons and skeletal landmarks increasingly govern the modeling. Keep the distal limb alive and connected, but do not refill it with proximal muscle volume.
 - In a living-animal study, look for an alternating rhythm of muscular fullness and harder skeletal/tendinous accents rather than one uninterrupted fleshy contour.
 

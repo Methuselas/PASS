@@ -34,7 +34,7 @@ variants: []
 - Establish the mirror plane before drawing the reflected object: its trace/direction and, when tipped, its plane orientation matter.
 - Use a small plan and/or elevation when the reflected direction is not obvious; reflect rays/directions so the angle of incidence equals the angle of reflection.
 - Use source-to-mirror contact points as anchors where structural lines meet the mirror plane.
-- Preserve equal perpendicular source/image distance across a level mirror or calm-water plane; this is the simple branch already captured by Norling.
+- Preserve equal perpendicular source/image distance across a level mirror or calm-water plane; this is the simple horizontal-reflection branch.
 - For vertical or tipped mirrors, derive the reflected direction family from the mirror geometry rather than reusing the source object's vanishing point automatically.
 - Once the reflected geometry is defined in space, construct it with ordinary perspective/oblique-perspective methods and measuring points as needed.
 - Validate with both position and direction: a reflected point must be located correctly across the mirror, and reflected parallel edges must converge according to their reflected world direction.

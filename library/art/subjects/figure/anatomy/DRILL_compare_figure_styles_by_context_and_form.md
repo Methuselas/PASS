@@ -65,7 +65,7 @@ Use reliable reproductions with basic attribution and, when available, a known d
 
 ## Common Failures
 - Copying brushwork, line flavor, or decorative motifs before identifying the figure's mass, proportion, movement, and spatial organization.
-- Treating Hogarth's historical categories or twentieth-century terminology as exhaustive or scientifically fixed classifications.
+- Treating historical style categories or twentieth-century terminology as exhaustive or scientifically fixed classifications.
 - Assuming every unusual proportion is an anatomy mistake, or the opposite: excusing accidental construction errors as “style” without evidence.
 - Explaining a work's meaning from appearance alone when its use or historical context is unknown.
 - Comparing only one artist per period and calling that artist's personal manner the style of an entire era.

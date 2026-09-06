@@ -67,7 +67,7 @@ Complete the relevant carnivore foreleg, paw, and muscle-mass studies first. Use
 4. In the stretching pose, splay the forelegs widely and let the metacarpal mass fan toward the digits. Show the claws only where the intended stretch and the species construction support them.
 5. Preserve the contrast between the relatively small shoulder area nestled against the steep side of the thorax and the broader distal spread of forearm and paw. Use that change of mass to keep the limb attached to the body while still making the paw feel expansive.
 6. Strengthen depth by allowing the advancing forearm and paw to occupy more apparent volume when the view calls for it. The enlargement should clarify spatial recession and the action, not detach the paw from the forearm or change the underlying anatomy.
-7. Add only the head and facial cues needed to protect the intended read. In Bammes's stretching example, closed, drowsy eyes and a closed mouth prevent the exposed claws and wide forelegs from turning the pose into a threat display.
+7. Add only the head and facial cues needed to protect the intended read. In a relaxed stretch, closed, drowsy eyes and a closed mouth can prevent exposed claws and wide forelegs from turning the pose into a threat display.
 8. Compare the two studies at block level. If either pose reads as the wrong action, return to trunk curve, shoulder placement, limb compression/extension, paw attitude, or mass recession before adding finish. Once one study is structurally and expressively clear, it may be carried into a more responsive finishing medium without redesigning the solved construction.
 
 ## Success Check

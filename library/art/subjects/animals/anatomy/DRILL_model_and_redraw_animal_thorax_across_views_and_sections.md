@@ -52,7 +52,7 @@ Choose one animal thorax type and study it as a simple three-dimensional core ra
 Internalizing an animal thorax as a manipulable three-dimensional core whose changing sections can be reconstructed consistently from unfamiliar viewpoints.
 
 ## Setup
-Use a readable thorax reference, skeleton image, or Bammes-style comparative section study. Keep the first model simple: one enclosed thorax mass with an anterior opening, posterior expansion, dorsal/ventral routes, and only the section changes needed to distinguish its type. Avoid fur and musculature during the drill.
+Use a readable thorax reference, skeleton image, or comparative section study. Keep the first model simple: one enclosed thorax mass with an anterior opening, posterior expansion, dorsal/ventral routes, and only the section changes needed to distinguish its type. Avoid fur and musculature during the drill.
 
 ## Instructions
 1. In profile, draw the thorax as one closed core and mark its broad dorsal and ventral routes. Use the profile outline only as a guide to the mass, not as a finished silhouette to copy.

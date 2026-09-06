@@ -204,7 +204,7 @@ variants:
 
 ## Do
 - Start from the structural comparison, not from random feature enlargement: decide whether the intended character depends on stoutness, length, taper, compactness, leg-to-body ratio, head-to-body ratio, or another dominant relationship.
-- Push several related dimensions together so the caricature has one coherent idea; Hultgren makes his draft horse short and full, his thoroughbred slim and tapering, and his colt longer-legged and shorter-bodied.
+- Push several related dimensions together so the caricature has one coherent idea: a draft horse may become shorter and fuller, a thoroughbred slimmer and more tapered, and a colt longer-legged and shorter-bodied.
 - Let secondary traits reinforce the same idea after the major proportions work, such as mane shape, tail flare, hoof fullness, ear size, or muzzle size.
 - Keep sockets, joints, and body masses connected through the exaggeration so the design still behaves like the animal it caricatures.
 - Test the exaggeration in silhouette and in a simple construction drawing before spending on coat or facial detail.
@@ -213,7 +213,7 @@ variants:
 - Enlarge unrelated features independently until the animal becomes a collection of jokes.
 - Use a surface marker such as stripes or mane alone when the underlying body still reads as a generic horse.
 - Preserve realistic proportions and rely on an extreme facial expression to do all of the caricature work.
-- Treat Hultgren's individual exaggerations as mandatory formulas for every draft horse, zebra, thoroughbred, or colt.
+- Treat individual exaggerations as mandatory formulas for every draft horse, zebra, thoroughbred, or colt.
 
 ## Checklist
 - The caricature's main distortion can be described as one or two coherent proportional directions.

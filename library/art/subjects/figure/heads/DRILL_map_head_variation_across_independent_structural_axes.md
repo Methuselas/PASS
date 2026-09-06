@@ -60,10 +60,10 @@ Choose at least nine clear head references with varied ages, appearances, and vi
 
 ## Common Failures
 - Sorting references by ethnicity or ancestry instead of by visible structural relationships.
-- Treating Hogarth's broad/intermediate/long labels or exact ratios as biological classes.
+- Treating broad/intermediate/long labels or exact ratios as biological classes.
 - Assuming a broad skull requires one facial slope, feature set, or forehead shape.
 - Letting hair, eyebrows, expression, or surface rendering create all the variation while the underlying head block remains identical.
-- Measuring the nose tip as if it defined the facial-projection axis Hogarth is diagramming.
+- Measuring the nose tip as if it defined the underlying facial-projection axis.
 
 ## Notes
 **Large head variation can be compared along more than one structural dimension**, and those dimensions should combine freely. Do not assign one head form to an entire population. The comparison exercise is useful; the historical racial and ethnic classification framework is not.

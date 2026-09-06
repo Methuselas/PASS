@@ -11,7 +11,7 @@ stage_binding: 3 rough
 lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
-specialization_axis: method
+specialization_axis: domain
 foundation_object_id: PAT_construct_hand_from_palm_wedge_and_digit_chain
 tags:
 - hand
@@ -58,7 +58,7 @@ variants:
 
 ## Don't
 - Assume one finger configuration has a universal meaning across contexts or cultures.
-- Copy a symbolic hand sign from the source as though it were a timeless anatomy rule.
+- Treat one symbolic hand sign as though it were a timeless anatomy rule.
 - Separate gesture from arm direction and hand attitude when those elements materially change the reading.
 - Add expressive finger variation that contradicts the intended message.
 - Try to rescue an emotionally neutral or contradictory wrist by decorating the fingers.

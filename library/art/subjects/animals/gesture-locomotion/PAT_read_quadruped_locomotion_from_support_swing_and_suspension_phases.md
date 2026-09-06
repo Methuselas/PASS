@@ -53,13 +53,13 @@ variants: []
 - Draw the support relationship under each phase—single contact, diagonal pair, same-side pair, three contacts, or no contact—so the body's placement can be checked against what is carrying it.
 - Treat suspension as a phase with no ground contact, not as a generic symbol for speed; compare the phases immediately before and after it.
 - Read a gait as a **sequence of changing support relationships** rather than a memorized row of leg shapes.
-- Confirm exact phase order from species- and gait-specific reference when accuracy matters; Bammes's horse diagrams are a structural analysis method, not a universal timing chart for all quadrupeds.
+- Confirm exact phase order from species- and gait-specific reference when accuracy matters; horse diagrams provide a structural analysis method, not a universal timing chart for all quadrupeds.
 
 ## Don't
 - Do not infer support from whichever hoof or paw is visually nearest the ground.
 - Do not copy the six horse-walk phases onto another species without checking its actual gait.
 - Do not assume that every fast gait must contain the same kind or duration of suspension.
-- Do not hard-code Bammes's species list for ambling or his statement that locomotor thrust always comes from behind as universal animal mechanics.
+- Do not hard-code one species list for ambling or assume that locomotor thrust always comes from behind as universal animal mechanics.
 - Do not let the torso remain mechanically unchanged while the support geometry beneath it changes from phase to phase.
 
 ## Checklist

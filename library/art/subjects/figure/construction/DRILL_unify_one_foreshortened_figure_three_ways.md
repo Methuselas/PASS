@@ -64,7 +64,7 @@ Use one figure with at least three strong overlaps and one major joint directed 
 - Changing the pose between copies and making the comparison meaningless.
 - Applying all three controls at maximum strength in the combined version.
 - Using tone to hide an unresolved overlap or attachment.
-- Treating the exercise as a contest to imitate Hogarth's finish rather than a test of visual need.
+- Treating the exercise as a contest to imitate a particular finish rather than a test of visual need.
 
 ## Notes
 The three means of unity are options, not a compulsory sequence. The final copy tests judgment: the artist learns not only how each control works, but when its contribution is unnecessary. Repeated comparison should make both the gain and the cost of each control visible.

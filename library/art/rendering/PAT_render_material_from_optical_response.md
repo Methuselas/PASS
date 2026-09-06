@@ -155,7 +155,7 @@ variants:
 - Before labeling a color change on translucent, cloudy, colored, or partly opaque glass as a reflection, diagnose whether the change comes mainly from intrinsic material color, opacity/cloudiness, thickness-dependent transmission, reflected surroundings, or a mixture.
 - Judge reflection visibility on transparent surfaces partly from the value behind them: a dark transmitted or interior field can make reflected surroundings read strongly, while a bright field behind the surface can make those reflections comparatively weak.
 - On a nominally flat reflective surface, keep reflection gradients consistent with the plane instead of bending them along the outer contour and accidentally implying curvature.
-- When a material has intrinsic directional organization—wood grain is the source case—preserve enough of that direction through value, color, texture, and later optical effects to identify the material. Let perspective and host-form orientation transform the pattern across differently oriented surfaces; finish, reflection, or burnishing may modify the cue but should not erase it when material identity depends on it.
+- When a material has intrinsic directional organization—wood grain is a common case—preserve enough of that direction through value, color, texture, and later optical effects to identify the material. Let perspective and host-form orientation transform the pattern across differently oriented surfaces; finish, reflection, or burnishing may modify the cue but should not erase it when material identity depends on it.
 - Treat raking light angle as a control on texture visibility: relief can become strongest in lit halftones near the terminator and nearly disappear in shadow, so do not map one bump pattern uniformly and merely darken it.
 - Diagnose the dominant optical mechanism before rendering: diffuse/matte response, specular environment reflection, transparent transmission, subsurface scattering, and surface texture are different causes and should hand off to the stronger dedicated model when one dominates.
 - For water, hand off to the dedicated view-angle/reflection/transmission/wave model instead of relying on generic gloss/transparency bullets when the surface behavior matters.
@@ -163,7 +163,7 @@ variants:
 ## Don't
 - Replace form construction with texture symbols or surface noise.
 - Assume one canned highlight proves “glass,” “metal,” “water,” or “leather” regardless of viewpoint and surroundings.
-- Copy Gill's ideal white-reflects-all / black-absorbs-all diagrams as literal material physics; use them only as a historical simplification of relative reflectance.
+- Copy ideal white-reflects-all / black-absorbs-all diagrams as literal material physics; use them only as a historical simplification of relative reflectance.
 - Render every material cue at equal strength when only two or three cues are needed to communicate the surface.
 - Assume glass must become dark merely because the object or opening sits in shadow; a dark setting can still carry a bright sky or other illuminated reflection.
 - Do not collapse reflection, transmission, subsurface scattering, and texture into one generic material effect simply because all can produce bright or soft passages.

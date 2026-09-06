@@ -78,7 +78,7 @@ Use a single reference with readable skull/jaw proportions and a clear enough li
 - Making four progressively more polished copies without changing what is being analyzed.
 - Correcting likeness only in the final contour while the proportion study remains generic.
 - Drawing a memorized anatomy chart that does not fit the observed head.
-- Applying the same Loomis block facets literally to every subject instead of adapting the planes to the actual skull and soft forms.
+- Applying the same block facets literally to every subject instead of adapting the planes to the actual skull and soft forms.
 - Using dark tone to conceal uncertain planes or misplaced features.
 
 ## Notes

@@ -48,7 +48,7 @@ variants: []
 
 ## Don't
 - Start with a finished horse silhouette and fit the bones inside afterward.
-- Hang the foreleg directly from the rib cage while ignoring the scapular bridge that Hultgren places around it.
+- Hang the foreleg directly from the rib cage while ignoring the scapular bridge that wraps around it.
 - Reduce the horse leg to a generic human-style knee-and-ankle rhythm when the observed joint chain and hoof placement show a different sequence.
 - Memorize one rigid standing skeleton and reuse it unchanged in crouching, rearing, or running poses.
 

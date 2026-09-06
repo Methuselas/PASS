@@ -49,7 +49,7 @@ variants: []
 ## Do
 - Start from the articulated skeleton. The axis and the directions of the adjoining segments determine which local surfaces compress, separate, project, or flatten.
 - Compare the same joint in a more open and a more closed state. Ask what physically changes in the visible construction instead of rotating one memorized silhouette.
-- Let complex joint structures change their apparent bulk when flexed. In Bammes's runner foreleg, flexion of the carpus changes the relationship of its two rows of bones and produces a broader, blunter local mass.
+- Let complex joint structures change their apparent bulk when flexed. In a runner foreleg, flexion of the carpus changes the relationship of its two rows of bones and produces a broader, blunter local mass.
 - Break a strongly flexed digital chain into the small articulating arcs or facets that the joints actually create rather than smoothing the reverse side into one continuous curve.
 - Include moving girdle or proximal structures when they materially change the limb. A shifted scapula changes the shoulder region and the downstream reach of the whole foreleg; joint-state analysis is not confined to the smallest hinge.
 - Check the result from the current view. A joint may show strong angular or planar change in profile and much less of that information in front or rear view.
@@ -59,7 +59,7 @@ variants: []
 - Do not infer exact species anatomy from an axis alone; the axis organizes the change, but bone shape, soft tissue, and viewpoint still determine what becomes visible.
 - Do not force a smooth contour through a joint when the articulated forms create a real break, projection, or overlap.
 - Do not exaggerate every internal bone change through the surface. Rebuild what materially affects the visible form and keep concealed mechanics subordinate when they do not.
-- Do not treat Bammes's horse hinge examples as proof that every animal joint is mechanically equivalent.
+- Do not treat horse hinge examples as proof that every animal joint is mechanically equivalent.
 
 ## Checklist
 - The joint's visible shape changes when its articulation changes.

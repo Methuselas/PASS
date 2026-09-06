@@ -42,7 +42,7 @@ variants: []
 - Mark the contacts that take weight, the limbs that drive away from contact, and the legs that are folding or traveling toward the next placement.
 - Follow the same body landmarks through several phases so the sequence reads as one continuing animal rather than unrelated attractive poses.
 - Close the loop: compare the last phase to the starting phase and check that the next support relationship follows naturally.
-- Use Hultgren's trot and canter pages as phase-analysis examples, then confirm precise gait timing from appropriate reference when accuracy matters.
+- Use trot and canter phase studies as analysis examples, then confirm precise gait timing from appropriate reference when accuracy matters.
 
 ## Don't
 - Pose all four legs for maximum spread without assigning them different jobs in the cycle.

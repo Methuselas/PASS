@@ -81,7 +81,7 @@ SCORE_KEYS = ("artifact_quality", "process_validity", "skill_attribution")
 
 # Keys from the authoring vocabulary retired 2026-08-15, plus the session-state
 # vocabulary the temporary-state firewall excludes. Memory must not grow either
-# back under a new namespace. See docs/CLEANUP_2026-08-15.md.
+# back under a new namespace.
 FORBIDDEN_KEYS = {
     "source_id", "source_title", "page", "pages", "locator", "hash", "sha256",
     "receipt", "attestation", "provenance", "ledger",

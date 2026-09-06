@@ -57,7 +57,7 @@ Use an actual skeleton, museum reference, or clear multi-view skeletal plate. Be
 2. Add the principal joint axes and simplify the joint ends into readable ball, condylar, or hinge-related forms. Check their positions relative to one another before developing the shafts.
 3. Build the bone shafts between those joint forms, allowing them to narrow progressively and to retain their observed curvature rather than converting them into uniform rods.
 4. Study the distal foot separately instead of compressing it into one terminal symbol. Place the metatarsal structure and digital joints in the observed stance and view.
-5. Make at least one three-quarter or rear study where width and depth can be checked, not only a profile. Bammes's wolf example uses the rear three-quarter view to expose the metatarsal structure as a spatial form.
+5. Make at least one three-quarter or rear study where width and depth can be checked, not only a profile. Use the rear three-quarter view to expose the metatarsal structure as a spatial form.
 6. Repeat the sequence on the second animal type without changing the order of the study. Compare which segment lengths, joint angles, distal contacts, and foot forms changed while the articulated chain remained traceable.
 7. Finish by reducing both studies back to their pivots and main directions. If the detailed bone drawing cannot be simplified back to the original chain, correct the structure rather than adding more anatomy.
 

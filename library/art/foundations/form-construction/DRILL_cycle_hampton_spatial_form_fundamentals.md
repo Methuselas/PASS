@@ -1,7 +1,7 @@
 ---
 object_id: DRILL_cycle_hampton_spatial_form_fundamentals
 object_type: drill
-name: Cycle Hampton’s Spatial Form Fundamentals
+name: Cycle Spatial Form Fundamentals
 library_path:
 - art
 - foundations
@@ -31,7 +31,7 @@ variants: []
 target_skill: Maintain convincing three-dimensional form while rotating, combining, wrapping, and organically modifying simple primitives
 ---
 
-# Cycle Hampton’s Spatial Form Fundamentals
+# Cycle Spatial Form Fundamentals
 
 ## Practice Task
 Complete one short cycle of six spatial-form exercises before anatomy work.

@@ -48,7 +48,7 @@ Varying the amount and kind of explicit description while preserving one stable 
 Choose a clear animal-head reference with readable skull type, soft forms, and coat or tonal information. Make one accepted Stage-3 construction first, then duplicate or redraw it twice at the same orientation.
 
 ## Instructions
-1. State the dominant impression you want both finished studies to preserve.
+1. State the dominant impression you want both finished studies to preserve, and give one sentence of visible evidence for why that impression is the right governing target for this head.
 2. In version A, use a descriptive strategy: allow contour, hatching, or coat direction to make plane turns and structural relief explicit.
 3. Keep the marks tied to the actual head volume; use texture as an organizing surface path rather than as a decorative fill.
 4. In version B, reduce explicit description. Use selected tonal notes, blank areas, broken marks, and omission so fewer statements imply the same living head.
@@ -59,7 +59,7 @@ Choose a clear animal-head reference with readable skull type, soft forms, and c
 - Both finishes preserve the same accepted construction.
 - The descriptive version uses explicit marks to organize form rather than merely accumulate texture.
 - The suggestive version remains species-specific despite greater omission.
-- The intended impression survives in both strategies.
+- The intended impression is supported by a visible-evidence rationale and survives in both strategies.
 - Each version stops when its statement is complete instead of converging toward the same amount of finish.
 
 ## Common Failures

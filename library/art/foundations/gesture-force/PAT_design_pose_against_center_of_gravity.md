@@ -8,9 +8,9 @@ library_path:
 - gesture-force
 stage_binding: 1 skeleton
 lane_fit: skill
-foundation_role: foundation
-routing_class: general
-specialization_axis: none
+foundation_role: specialization
+routing_class: specialized
+specialization_axis: domain
 foundation_object_id: none
 tags:
 - figure_drawing

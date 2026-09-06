@@ -25,6 +25,9 @@ MEMORY = ROOT / "memory"
 BUILDER = ROOT / "PASS/tools/build_release.py"
 VALIDATOR = ROOT / "PASS/tools/validate.py"
 RECIPES = ROOT / "workspace/release-recipes"
+CANONICAL_RECIPES = tuple(sorted(RECIPES.glob("SkillForge_*.yaml")))
+ART_RECIPE = RECIPES / "SkillForge_Art.yaml"
+SOFTWARE_ENGINEERING_RECIPE = RECIPES / "SkillForge_Software_Engineering.yaml"
 SHARED_PACKAGE = "metaskills"
 # Discovered, not hardcoded: a lane may be absent or empty while it is being
 # rebuilt, and the invariant is about the domains that exist, not a fixed list.
@@ -121,7 +124,7 @@ class SourceAndStateIndependenceTests(unittest.TestCase):
             result = subprocess.run(
                 [
                     sys.executable, str(root / "PASS/tools/build_release.py"), "build",
-                    str(root / "recipes/CPP_Development.yaml"), str(out),
+                    str(root / "recipes/SkillForge_Software_Engineering.yaml"), str(out),
                     "--library", str(root / "library"),
                 ],
                 text=True, capture_output=True, cwd=root,
@@ -178,7 +181,7 @@ class DomainIndependenceTests(unittest.TestCase):
     def test_domain_release_excludes_unrelated_domains(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "CPP_Development.yaml", out).returncode, 0)
+            self.assertEqual(run("build", SOFTWARE_ENGINEERING_RECIPE, out).returncode, 0)
             modules = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))["modules"]
             self.assertIn("software-engineering/languages/cpp", modules)
             for foreign in ("art", "writing", "teaching"):
@@ -189,7 +192,7 @@ class DomainIndependenceTests(unittest.TestCase):
 
     def test_teaching_is_not_required_by_any_domain(self) -> None:
         self.assertFalse((LIBRARY / "teaching").exists(), "teaching is quarantined out of library/")
-        for recipe in sorted(RECIPES.glob("*.yaml")):
+        for recipe in CANONICAL_RECIPES:
             modules = yaml.safe_load(recipe.read_text(encoding="utf-8"))["modules"]
             with self.subTest(recipe=recipe.name):
                 self.assertFalse(any(str(name).startswith("teaching") for name in modules))
@@ -269,7 +272,7 @@ class ReleaseIntegrityTests(unittest.TestCase):
                 self.assertTrue(str(recipe.get("skill_name", "")).startswith("skillforge-"))
 
     def test_every_recipe_builds_and_checks(self) -> None:
-        for recipe in sorted(RECIPES.glob("*.yaml")):
+        for recipe in CANONICAL_RECIPES:
             with self.subTest(recipe=recipe.name), tempfile.TemporaryDirectory() as tmp:
                 out = Path(tmp) / "release"
                 result = run("build", recipe, out)
@@ -296,7 +299,7 @@ class ReleaseIntegrityTests(unittest.TestCase):
     def test_release_check_detects_a_changed_card(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "CPP_Development.yaml", out).returncode, 0)
+            self.assertEqual(run("build", SOFTWARE_ENGINEERING_RECIPE, out).returncode, 0)
             card = next((out / "library/software-engineering/languages/cpp").rglob("PAT_*.md"))
             card.write_text(card.read_text(encoding="utf-8") + "\nmutation\n", encoding="utf-8")
             check = run("check", out)
@@ -306,7 +309,7 @@ class ReleaseIntegrityTests(unittest.TestCase):
     def test_release_check_detects_a_missing_declared_asset(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "Animal_Anatomy.yaml", out).returncode, 0)
+            self.assertEqual(run("build", ART_RECIPE, out).returncode, 0)
             next(out.rglob("broken_gate_stage1_canonical_scene_skeleton.png")).unlink()
             check = run("check", out)
             self.assertNotEqual(check.returncode, 0)
@@ -315,7 +318,7 @@ class ReleaseIntegrityTests(unittest.TestCase):
     def test_release_check_detects_a_deleted_module(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "CPP_Development.yaml", out).returncode, 0)
+            self.assertEqual(run("build", SOFTWARE_ENGINEERING_RECIPE, out).returncode, 0)
             shutil.rmtree(out / "library/software-engineering/languages/cpp")
             check = run("check", out)
             self.assertNotEqual(check.returncode, 0)
@@ -330,11 +333,11 @@ class ReleaseIntegrityTests(unittest.TestCase):
     def test_output_refuses_the_repository(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             zip_out = ROOT / "library/do-not-overwrite.zip"
-            result = run("build", RECIPES / "CPP_Development.yaml", Path(tmp) / "release", "--zip", zip_out)
+            result = run("build", SOFTWARE_ENGINEERING_RECIPE, Path(tmp) / "release", "--zip", zip_out)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("zip output path inside or above the repository", result.stderr)
             self.assertFalse(zip_out.exists())
-            self.assertNotEqual(run("build", RECIPES / "CPP_Development.yaml", ROOT / "sub").returncode, 0)
+            self.assertNotEqual(run("build", SOFTWARE_ENGINEERING_RECIPE, ROOT / "sub").returncode, 0)
 
 
 class ValidatorScopeTests(unittest.TestCase):
@@ -610,7 +613,7 @@ class ReleaseMemoryTests(unittest.TestCase):
     def test_release_ships_the_memory_of_the_domains_it_bundles(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "Animal_Anatomy.yaml", out).returncode, 0)
+            self.assertEqual(run("build", ART_RECIPE, out).returncode, 0)
             manifest = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["memory_domains"], ["art"])
             self.assertTrue((out / "memory/art/skill_memory.yaml").is_file())
@@ -623,7 +626,7 @@ class ReleaseMemoryTests(unittest.TestCase):
     def test_shipped_memory_is_read_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "Animal_Anatomy.yaml", out).returncode, 0)
+            self.assertEqual(run("build", ART_RECIPE, out).returncode, 0)
             for shipped in (out / "memory").rglob("*"):
                 if shipped.is_file():
                     with self.subTest(file=shipped.name):
@@ -636,7 +639,7 @@ class ReleaseMemoryTests(unittest.TestCase):
         """Memory is domain-scoped exactly as the library is."""
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "CPP_Development.yaml", out).returncode, 0)
+            self.assertEqual(run("build", SOFTWARE_ENGINEERING_RECIPE, out).returncode, 0)
             manifest = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
             self.assertNotIn("art", manifest["memory_domains"])
             self.assertFalse((out / "memory/art").exists())
@@ -650,7 +653,7 @@ class ReleaseMemoryTests(unittest.TestCase):
             result = subprocess.run(
                 [
                     sys.executable, str(root / "PASS/tools/build_release.py"), "build",
-                    str(root / "recipes/Animal_Anatomy.yaml"), str(out),
+                    str(root / "recipes/SkillForge_Art.yaml"), str(out),
                     "--library", str(root / "library"),
                 ],
                 text=True, capture_output=True, cwd=root,
@@ -664,7 +667,7 @@ class ReleaseMemoryTests(unittest.TestCase):
     def test_release_check_detects_a_deleted_memory_store(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "Animal_Anatomy.yaml", out).returncode, 0)
+            self.assertEqual(run("build", ART_RECIPE, out).returncode, 0)
             store = out / "memory/art/skill_memory.yaml"
             store.chmod(0o600)
             store.unlink()
@@ -677,7 +680,7 @@ class ReleaseMemoryTests(unittest.TestCase):
         """The packaged store is portable: the memory tool reads it and nothing else."""
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
-            self.assertEqual(run("build", RECIPES / "Animal_Anatomy.yaml", out).returncode, 0)
+            self.assertEqual(run("build", ART_RECIPE, out).returncode, 0)
             result = subprocess.run(
                 [
                     sys.executable, str(ROOT / "PASS/tools/memory.py"), "validate",

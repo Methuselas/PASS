@@ -42,15 +42,15 @@ variants: []
 **ELSE** use the broader quadruped mass scaffold when the subject does not need elephant-specific bulk, back, and trunk relationships.
 
 ## Do
-- Start with the largest rounded masses and the overall sweep of the body. Hultgren's construction sequence rounds in the main forms before adding the smaller forms and finish.
-- Keep a readable dorsal route across the top of the body. Hultgren calls the vertebral column especially prominent on the back, so the upper contour should not dissolve into an unstructured dome.
+- Start with the largest rounded masses and the overall sweep of the body. Round in the main forms before adding smaller forms and finish.
+- Keep a readable dorsal route across the top of the body. The vertebral column is especially prominent on the back, so the upper contour should not dissolve into an unstructured dome.
 - Let the bulk contain angular structural changes, especially from the front and three-quarter view. The head, shoulder region, legs, and feet still need changes of plane and direction even when the silhouette is massive.
-- Attach the trunk from the constructed head and taper it through its length instead of drawing a uniform tube. On the underside, preserve the flatter, divided surface treatment Hultgren calls out before wrinkles and texture are elaborated.
-- Use the skeleton as an explanation for visible depressions and attachments rather than copying bone shapes onto the skin. Hultgren specifically points back to the skeleton to explain the hollow cheek.
+- Attach the trunk from the constructed head and taper it through its length instead of drawing a uniform tube. On the underside, preserve the flatter, divided surface treatment before elaborating wrinkles and texture.
+- Use the skeleton as an explanation for visible depressions and attachments rather than copying bone shapes onto the skin. For example, let the skull structure explain the hollow cheek.
 - Add ears, tusks, skin folds, toes, and small contour breaks only after the main body, head, limb supports, and trunk already read.
 
 ## Don't
-- Do not make sheer size an excuse for featureless roundness; Hultgren explicitly asks for big sweeping forms while still describing the animal as angular.
+- Do not make sheer size an excuse for featureless roundness; preserve angular structure inside the big sweeping forms.
 - Do not turn the prominent back structure into an exposed bony ridge in every individual or view. Use it as a construction cue and check the intended reference.
 - Do not make the trunk a smooth rubber hose whose underside, taper, attachment, and directional changes are all identical.
 - Do not trace the skeleton literally through the finished surface; let it explain mass placement, cheek relief, and support relationships.

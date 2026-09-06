@@ -11,7 +11,7 @@ stage_binding: 2 block
 lane_fit: both
 foundation_role: specialization
 routing_class: specialized
-specialization_axis: medium
+specialization_axis: domain
 foundation_object_id: none
 tags:
 - figure_drawing

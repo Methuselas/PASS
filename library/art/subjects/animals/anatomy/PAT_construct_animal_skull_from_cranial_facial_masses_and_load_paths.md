@@ -54,7 +54,7 @@ variants: []
 ## Don't
 - Do not memorize a horse, cow, dog, lion, or ape skull as an isolated contour recipe.
 - Do not assume the cranial/facial boundary occupies the same place in every species.
-- Do not copy Bammes's named architectural analogies as literal anatomy rules; they are mnemonic descriptions of different structural characters.
+- Do not copy named architectural analogies as literal anatomy rules; they are mnemonic descriptions of different structural characters.
 - Do not let a simplified type erase the individual animal, age, breed, or viewpoint visible in the reference.
 
 ## Checklist

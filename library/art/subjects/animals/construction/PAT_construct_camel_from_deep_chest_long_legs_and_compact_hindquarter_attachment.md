@@ -42,15 +42,15 @@ variants: []
 
 ## Do
 - Establish the deep chest before refining the belly contour so the long legs hang from a body with enough vertical mass to balance them.
-- Keep the upper hindquarter attachment visually compact; Hultgren repeatedly contrasts that narrow rear attachment with the larger chest and longer leg structure in side, front, and rear studies.
+- Keep the upper hindquarter attachment visually compact against the larger chest and longer leg structure across side, front, and rear views.
 - Let the head keep its nonparallel facial directions instead of automatically making the eye line follow the mouth line; place the eyes broadly on the constructed head before polishing lids or lashes.
-- Treat the hump silhouette as an added soft body mass. Hultgren explicitly separates it from the backbone, and his skeleton study keeps the spinal route readable beneath the outer hump contour.
+- Treat the hump silhouette as an added soft body mass. Keep it separate from the backbone and preserve the spinal route beneath the outer hump contour.
 - Check front and rear views as well as profile so the long limbs, narrow rear attachment, chest width, and hump placement do not work only in silhouette.
-- Match the number and shape of humps to the actual subject or reference; the source drawings include more than one hump configuration rather than presenting one universal outline.
+- Match the number and shape of humps to the actual subject or reference; more than one hump configuration exists, so no single outline is universal.
 
 ## Don't
 - Paste a hump onto a horse-like or cattle-like body and expect that surface cue to carry the camel construction.
-- Spread the hind-leg attachment so broadly that the small rear support relationship Hultgren emphasizes disappears.
+- Spread the hind-leg attachment so broadly that the small rear support relationship disappears.
 - Force the eye and mouth onto one shared slant simply because that alignment works for another animal head.
 - Turn the hump into a bony extension of the vertebral column when blocking the skeleton beneath the surface.
 - Copy one source specimen's hump count, leg proportions, or head angle as a fixed formula for every camel.

@@ -8,9 +8,9 @@ library_path:
 - form-construction
 stage_binding: 3 rough
 lane_fit: skill
-foundation_role: foundation
-routing_class: general
-specialization_axis: none
+foundation_role: specialization
+routing_class: specialized
+specialization_axis: domain
 foundation_object_id: none
 tags:
 - figure_drawing

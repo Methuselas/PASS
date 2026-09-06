@@ -40,13 +40,13 @@ variants: []
 ## Do
 - See the intended mood mentally before committing to a finished pose; let the emotional read guide the first rough staging rather than trying to discover it through surface detail.
 - Make the large posture carry the first burden of expression: height or droop of the head, extension or compression of the neck, lowering or lifting of the quarters, weight shift, and the direction of attention can all change the read before small features are visible.
-- Add secondary cues only when they suit the animal and situation. Hultgren's examples use ears, tails, mane, nostrils, eye exposure, and neck tension to reinforce already-readable body attitudes.
+- Add secondary cues only when they suit the animal and situation. Ears, tails, mane, nostrils, eye exposure, and neck tension can reinforce already-readable body attitudes.
 - In groups, use spacing, orientation, and physical contact as part of the emotional statement; a resting head, shared direction of attention, or clustered bodies can contribute as much as an individual facial cue.
 - Sketch more than one rough pose when the first staging is weak. Ask whether the meaning reads in silhouette, whether the staging is clear, and what large change would make the pose stronger.
 
 ## Don't
 - Do not make facial detail, fur marks, or eye treatment rescue a pose whose large body attitude is emotionally ambiguous.
-- Do not copy one species' signaling cues onto another as a universal rule; the source examples are staging observations, not a complete ethology.
+- Do not copy one species' signaling cues onto another as a universal rule; the examples are staging observations, not a complete ethology.
 - Do not stack every possible excitement, fear, fatigue, or relaxation cue into one pose. Select the few that agree with the intended state and the observed or designed animal.
 - Do not sacrifice support, joint logic, or plausible weight merely to exaggerate mood; expressive staging still has to belong to the body that is carrying it.
 - Do not polish a weak emotional read. Return to the rough pose while silhouette and staging can still be changed cheaply.

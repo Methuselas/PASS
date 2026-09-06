@@ -348,7 +348,7 @@ user-scoped store.
 
 The validator rejects entries carrying keys from the retired authoring
 vocabulary (`source_id`, `session_id`, `current_stage`, `unit`, `next_unit`,
-`parent_gen_id`, and similar). See `docs/CLEANUP_2026-08-15.md`.
+`parent_gen_id`, and similar).
 
 ## 9. Seeding
 

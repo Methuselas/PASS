@@ -40,17 +40,17 @@ variants: []
 **ELSE** use the broader quadruped three-mass scaffold when the subject does not require the bear-specific compactness and withers break.
 
 ## Do
-- Start from the bear's compact overall mass, but preserve the three body breaks Hultgren marks instead of merging the whole animal into one unbroken bean shape.
+- Start from the bear's compact overall mass, but preserve the three major body breaks instead of merging the whole animal into one unbroken bean shape.
 - In standing poses, make the three principal units readable before fur and local anatomy. Let their overlap and relative size explain the bear's squat, heavy construction.
 - Keep the withers as a structural interruption between the neck and back rather than smoothing that transition into one continuous arc.
-- Use straight or diagonal passages where they clarify weight, plane change, or joint direction. Hultgren explicitly warns that bears tempt the artist into too many curves.
+- Use straight or diagonal passages where they clarify weight, plane change, or joint direction. The bear's rounded bulk can tempt the artist into too many curves.
 - Build the outer forms over the structural block while keeping shoulder, pelvis, and limb attachments legible through the compact silhouette.
 - Check the construction in front, rear, standing, and crouched views so the three-unit logic survives rotation instead of working only in profile.
 
 ## Don't
 - Do not draw the bear as one uniformly round mass with four short legs attached to the bottom.
 - Do not erase the neck-to-back break by making every upper contour equally smooth and curved.
-- Do not interpret Hultgren's straight-line preference as a universal ban on curves; use straight passages to clarify the compact structure, then follow the actual contour.
+- Do not interpret a straight-line preference as a universal ban on curves; use straight passages to clarify the compact structure, then follow the actual contour.
 - Do not copy the broadness, fur volume, or exact mass proportions of one illustrated bear onto every bear species or individual.
 - Do not let coat texture conceal the major unit boundaries before the block is structurally convincing.
 

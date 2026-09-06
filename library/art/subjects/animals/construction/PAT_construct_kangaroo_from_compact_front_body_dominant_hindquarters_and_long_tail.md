@@ -42,7 +42,7 @@ variants: []
 **ELSE** use a more general gesture-to-mass scaffold when the subject does not need kangaroo-specific mass and tail relationships.
 
 ## Do
-- Make the hindquarters the dominant body mass before refining the belly, thighs, or feet; Hultgren explicitly locates most of the animal's bulk there.
+- Make the hindquarters the dominant body mass before refining the belly, thighs, or feet; locate most of the animal's bulk there.
 - Keep the rib-cage/front-body mass visibly smaller so the upper body does not compete with the pelvis and thighs for visual weight.
 - Attach the tail broadly at the rear body, then taper it over its length. Treat it as a structural and directional member of the pose rather than as a decorative cord added after the body is finished.
 - Let the tail participate in the whole-body sweep when the pose supports it. In standing or resting poses, check the actual reference for whether and how the tail contacts the ground instead of assuming one support formula for every action.
@@ -51,10 +51,10 @@ variants: []
 
 ## Don't
 - Build a deer-like or dog-like trunk first and try to make it read as a kangaroo by adding long feet and a tail afterward.
-- Make the rib cage as large as the hindquarter mass; that erases the front-to-rear proportion contrast Hultgren uses to identify the animal.
+- Make the rib cage as large as the hindquarter mass; that erases the front-to-rear proportion contrast that identifies the animal.
 - Reduce the tail to a thin gesture line when its base and taper are large enough to affect the silhouette and mass balance.
-- Turn Hultgren's comparisons to deer or rodents into literal anatomical equivalences; use them only as source-specific visual shorthand and return to the actual animal for naturalistic structure.
-- Treat the source's broad statements about the tail acting as a rudder or supporting weight as a universal biomechanical law across every gait or jump.
+- Turn comparisons to deer or rodents into literal anatomical equivalences; use them only as visual shorthand and return to the actual animal for naturalistic structure.
+- Treat broad statements about the tail acting as a rudder or supporting weight as a universal biomechanical law across every gait or jump.
 
 ## Checklist
 - The hindquarters dominate the mass statement before fur, feet, or facial details are added.

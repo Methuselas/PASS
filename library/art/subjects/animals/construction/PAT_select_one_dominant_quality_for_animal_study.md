@@ -50,7 +50,7 @@ variants:
 **ELSE** when the assignment explicitly requires several dimensions, establish a clear order of emphasis and study them in sequence rather than trying to develop all of them equally at once
 
 ## Do
-- Decide what first makes this animal worth drawing before committing to detail. Bammes's examples include proportion, function or action, surface texture, solidity, structure, delicacy, massiveness, and squatness.
+- Decide what first makes this animal worth drawing before committing to detail. Candidate qualities include proportion, function or action, surface texture, solidity, structure, delicacy, massiveness, and squatness.
 - Phrase the governing impression concretely enough to test, such as unusually massive, extremely slender, strongly compressed, dominated by a coat texture, or defined by a particular action.
 - Let large choices serve the selected idea first: choose the pose, proportion emphasis, degree of simplification, and amount of surface description according to what the study is trying to say.
 - Allow interesting secondary traits to recede when they compete with the selected quality, even when they would be enjoyable to draw.

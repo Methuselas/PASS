@@ -58,17 +58,17 @@ variants:
 **ELSE** keep the animal in its conventional construction and let character come from animal-specific pose and proportion.
 
 ## Do
-- Decide first which two or three anchors make the species survive stylization. In Hultgren's fox examples, pointed ears, the projecting muzzle, and the full tail remain strong even after the figure becomes upright and costumed.
+- Decide first which two or three anchors make the species survive stylization. In a fox, pointed ears, the projecting muzzle, and the full tail can remain strong even after the figure becomes upright and costumed.
 - Humanize the **role and behavior** before replacing the anatomy: upright carriage, hand-like acting, clothing, props, and theatrical expression can move the design toward a person while the head and tail still carry the animal read.
 - Keep the species anchors attached to one coherent construction. The muzzle should still project from the head mass, the ears should still sit on the skull, and the tail should still attach to the pelvis rather than becoming decorative symbols pasted onto a human figure.
 - Test the character without costume or props. If removing accessories erases the species, restore stronger animal structure before adding more human cues.
-- Use the story to choose the degree of humanization. Hultgren explicitly presents both a more conventional fox type and more humanized fox types rather than treating one level as mandatory.
+- Use the story to choose the degree of humanization; both conventional and strongly humanized animal types are valid, so no one level is mandatory.
 
 ## Don't
 - Start with a human body and add only ears and a tail; that preserves a costume cue, not necessarily the animal's construction.
 - Humanize every feature at once until the muzzle, ear placement, limb logic, and tail attachment no longer agree with the intended species.
 - Rely on clothing or props to carry species identity when the naked silhouette and head no longer read as the animal.
-- Copy Hultgren's specific fox costumes, expressions, or proportions as a universal anthropomorphic formula.
+- Copy specific fox costumes, expressions, or proportions as a universal anthropomorphic formula.
 - Treat the fox landmarks retained here as fixed biological measurements; verify naturalistic structure from stronger anatomical reference when accuracy matters.
 
 ## Checklist

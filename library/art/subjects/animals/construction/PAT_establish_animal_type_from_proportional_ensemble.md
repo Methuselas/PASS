@@ -106,7 +106,7 @@ variants:
 
 ## Don't
 - Do not force different animals into one standardized basic formula and then try to recover their identity with surface traits.
-- Do not memorize a few fixed ratios and apply them before looking at the subject; Bammes explicitly rejects rigid a priori proportion rules in favor of investigation.
+- Do not memorize a few fixed ratios and apply them before looking at the subject; derive proportion from investigation rather than rigid a priori rules.
 - Do not enlarge or shorten one feature in isolation while leaving the rest of the proportional ensemble unchanged when the intended type depends on several linked relationships.
 - Do not treat functional explanations attached to one representative animal type as exhaustive biological laws for every member of a category.
 

@@ -47,7 +47,7 @@ variants: []
 **ELSE** keep the joint understated when its axis and state are already clear from the larger limb construction.
 
 ## Do
-- Treat the pivot axis as the organizer of the local form. In Bammes's runner-hindleg model, hinge-dominant cross-axes make flexion and extension legible before small surface anatomy is added.
+- Treat the pivot axis as the organizer of the local form. In a hinge-dominant runner hindleg, cross-axes make flexion and extension legible before small surface anatomy is added.
 - At the femuro-tibial joint, let a relatively extended state read as a broad obtuse meeting with a clear accent around the patellar region; as the joint flexes, allow the meeting to break into more distinct facets as the femoral end rolls relative to the tibia.
 - At the tarsal joint, compare the shallow extended angle with the sharper flexed angle. Let the calcaneum change its visible projection with the state of the joint rather than keeping it pasted in one direction.
 - Let the visible form change more strongly in profile, where the joint angles declare themselves. In front or rear view, prioritize the joint-axis and support alignment instead of inventing side-view facets that the camera cannot show.
@@ -55,8 +55,8 @@ variants: []
 
 ## Don't
 - Do not draw the femuro-tibial or tarsal region as the same capsule merely rotated between two bones.
-- Do not copy Bammes's horse joint silhouette literally onto another species; retain the axis-and-state method while checking the actual anatomy.
-- Do not treat every bend in the leg as an identical hinge. The source emphasizes hinge-dominant cross-axes in running forms, not a universal joint model for every animal.
+- Do not copy one horse joint silhouette literally onto another species; retain the axis-and-state method while checking the actual anatomy.
+- Do not treat every bend in the leg as an identical hinge. Use hinge-dominant cross-axes for running forms, not as a universal joint model for every animal.
 - Do not infer exact surface anatomy from the angle alone when muscle, tendon, species, or viewpoint materially changes what is visible.
 
 ## Checklist

@@ -59,7 +59,7 @@ variants: []
 
 ## Don't
 - Do not bend or twist only the outer contour while leaving the internal axis and cross-sections unchanged.
-- Do not mirror the two sides of the thorax through a lateral bend; equal fullness destroys the compression-versus-extension logic Bammes demonstrates.
+- Do not mirror the two sides of the thorax through a lateral bend; equal fullness destroys the compression-versus-extension logic.
 - Do not force the dog diagram onto every mammal as a fixed anatomical template. Use it as a construction model, then check the actual animal.
 - Do not carry the temporary four-sided block literally into the final organic contour. Its job is to make the spatial mechanics transparent.
 - Do not add detailed ribs or vertebral processes merely to prove anatomy when a few section changes already communicate the same deformation.

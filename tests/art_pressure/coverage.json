@@ -121,19 +121,19 @@
       "object_name": "Choose Viewpoint to Strengthen the Story Effect"
     },
     {
-      "incoming_relationships": 11,
-      "object_id": "AP_gate_staged_visual_work_by_approval",
-      "object_name": "Gate Staged Visual Work by Approval"
+      "incoming_relationships": 12,
+      "object_id": "AP_develop_storyboard_sequence_in_progressive_directing_passes",
+      "object_name": "Develop a Storyboard Sequence in Progressive Directing Passes"
     },
     {
-      "incoming_relationships": 11,
+      "incoming_relationships": 12,
       "object_id": "AP_construct_a_shared_scene_perspective_field",
       "object_name": "Construct a Shared Scene Perspective Field"
     },
     {
       "incoming_relationships": 11,
-      "object_id": "AP_develop_storyboard_sequence_in_progressive_directing_passes",
-      "object_name": "Develop a Storyboard Sequence in Progressive Directing Passes"
+      "object_id": "AP_gate_staged_visual_work_by_approval",
+      "object_name": "Gate Staged Visual Work by Approval"
     },
     {
       "incoming_relationships": 11,
@@ -151,16 +151,16 @@
       "object_name": "Concentrate Contrast and Accents at the Focal Area"
     }
   ],
-  "objects": 549,
+  "objects": 550,
   "objects_by_type": {
-    "ap": 58,
+    "ap": 59,
     "drill": 119,
     "pattern": 372
   },
-  "records": 1089,
+  "records": 1090,
   "records_by_status": {
     "MERGED_OR_ABSORBED": 4,
-    "NOT_TESTED": 1068,
+    "NOT_TESTED": 1069,
     "PASS_WITH_BOUNDARY_CONFIRMED": 16,
     "REPLACED": 1
   },

@@ -31,6 +31,28 @@ class SnapshotSelectionTests(unittest.TestCase):
         self.assertFalse(any(path.startswith("library/art/") for path in relative))
         self.assertFalse(any(path.startswith("library/writing/") for path in relative))
 
+    def test_art_snapshot_discovers_visual_art_host_skills(self) -> None:
+        files = snapshot.collect_snapshot_files(ROOT, ["art"])
+        relative = {path.relative_to(ROOT).as_posix() for path in files}
+
+        self.assertIn(".claude/skills/visual-art/SKILL.md", relative)
+        self.assertIn(".agents/skills/visual-art/SKILL.md", relative)
+        self.assertIn("docs/ART_HELP.md", relative)
+        self.assertNotIn(".claude/skills/game-design/SKILL.md", relative)
+        self.assertNotIn(".agents/skills/game-design/SKILL.md", relative)
+
+    def test_snapshot_includes_reusable_workspace_tools_without_cache(self) -> None:
+        files = snapshot.collect_snapshot_files(ROOT, ["art"])
+        relative = {path.relative_to(ROOT).as_posix() for path in files}
+
+        self.assertIn("workspace/tools/extract_pdf_text.py", relative)
+        self.assertIn("workspace/tools/build_project_snapshot.py", relative)
+        self.assertIn("workspace/tools/import_project_snapshot.py", relative)
+        self.assertFalse(any("/__pycache__/" in path for path in relative))
+        self.assertFalse(any(path.casefold().endswith(".pyc") for path in relative))
+        self.assertFalse(any(path.startswith("workspace/authoring/") for path in relative))
+        self.assertFalse(any(path.startswith("workspace/releases/") for path in relative))
+
     def test_snapshot_selection_excludes_sources_archives_and_pdf_files(self) -> None:
         files = snapshot.collect_snapshot_files(ROOT, ["software-engineering"])
         relative = {path.relative_to(ROOT).as_posix() for path in files}
@@ -38,6 +60,32 @@ class SnapshotSelectionTests(unittest.TestCase):
         self.assertFalse(any("workspace/sources" in path for path in relative))
         self.assertFalse(any(path.startswith("archive/") for path in relative))
         self.assertFalse(any(path.casefold().endswith((".pdf", ".zip")) for path in relative))
+
+    def test_include_recipes_keeps_only_canonical_skillforge_recipes(self) -> None:
+        files = snapshot.collect_snapshot_files(
+            ROOT, ["art"], include_recipes=True
+        )
+        recipes = {
+            path.relative_to(ROOT).as_posix()
+            for path in files
+            if path.relative_to(ROOT).as_posix().startswith(
+                "workspace/release-recipes/"
+            )
+        }
+
+        self.assertIn(
+            "workspace/release-recipes/SkillForge_Art.yaml", recipes
+        )
+        self.assertNotIn(
+            "workspace/release-recipes/Animal_Anatomy.yaml", recipes
+        )
+        self.assertTrue(
+            all(
+                Path(path).name.startswith("SkillForge_")
+                and Path(path).suffix == ".yaml"
+                for path in recipes
+            )
+        )
 
     def test_written_snapshot_has_one_stable_root_and_no_other_domain(self) -> None:
         files = snapshot.collect_snapshot_files(ROOT, ["game-design"])
@@ -61,6 +109,32 @@ class SnapshotSelectionTests(unittest.TestCase):
             snapshot.source_input_name("PASS-project-writing", path),
             "PASS-project-writing/SOURCE_INPUT/a-book.txt",
         )
+
+    def test_project_directory_is_materialized_as_the_project_root(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp = Path(temp_dir)
+            repo = temp / "repo"
+            project = temp / "PASS-project-art"
+            source = repo / "library/art/card.md"
+            source.parent.mkdir(parents=True)
+            source.write_text("card\n", encoding="utf-8")
+            source_input = temp / "unit.txt"
+            source_input.write_text("source\n", encoding="utf-8")
+            expected_bytes = source.stat().st_size + source_input.stat().st_size
+
+            total = snapshot.write_snapshot_directory(
+                project, repo, [source], [source_input]
+            )
+
+            self.assertEqual(
+                (project / "library/art/card.md").read_text(encoding="utf-8"),
+                "card\n",
+            )
+            self.assertEqual(
+                (project / "SOURCE_INPUT/unit.txt").read_text(encoding="utf-8"),
+                "source\n",
+            )
+            self.assertEqual(total, expected_bytes)
 
 
 if __name__ == "__main__":

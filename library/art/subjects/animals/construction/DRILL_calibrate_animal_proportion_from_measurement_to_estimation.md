@@ -39,7 +39,7 @@ variants: []
 # Calibrate Animal Proportion From Measurement to Estimation
 
 ## Practice Task
-Measure a clear animal profile once with Bammes's head-length and trunk-rectangle method, then repeat the same large proportional judgment with progressively less measuring until the eye can estimate the framework and use exact measurement only to resolve uncertainty.
+Measure a clear animal profile once with a head-length and trunk-rectangle method, then repeat the same large proportional judgment with progressively less measuring until the eye can estimate the framework and use exact measurement only to resolve uncertainty.
 
 ## Target Skill
 Calibrating animal proportion from a measured profile framework, then estimating the same large relationships reliably enough that exact measurement becomes an occasional uncertainty check.
@@ -68,7 +68,7 @@ Choose a live animal or clear side-view reference whose withers, croup, front of
 - Using a strong three-quarter or foreshortened view as though its projected lengths were a clean profile comparison.
 - Keeping the compass in constant use after the exercise has already exposed the large relationships.
 - Correcting a bad proportional framework with coat, hooves, facial features, or other local identifiers.
-- Memorizing Bammes's horse, cow, human, or ape example ratios instead of measuring the animal actually being drawn.
+- Memorizing horse, cow, human, or ape example ratios instead of measuring the animal actually being drawn.
 
 ## Notes
 Bammes calls the comparison of heights, lengths, and widths with one another and with the whole an analogous or simultaneous method. His practical sequence begins with a repeatable head-length module, establishes the front height, trunk length, rear height, enclosing rectangle, belly level, neck length, and head direction, and only then proceeds to limbs and accents. The durable teaching point is not the source's numeric example: it is the transition from exact measurement to trained estimation. Bammes explicitly says the goal is to work increasingly freely from life and to return to exact measurement only when something remains uncertain.

@@ -89,7 +89,7 @@ variants:
 - Do not trace each body region with an attractive local curve and expect the pieces to add up to one gesture.
 - Do not make every edge equally wavy or graceful; uniform curvature can flatten structure and weaken changes of direction.
 - Do not force the neck or tail into the main sweep when it works better as an accent, counterdirection, or independent secondary action.
-- Do not turn Hultgren's compositional maxims into literal laws. Opposition, repetition, straight-versus-curve contrast, and horizontal/vertical/diagonal variety are tools to clarify the present action, not mandatory ingredients in every drawing.
+- Do not turn compositional maxims into literal laws. Opposition, repetition, straight-versus-curve contrast, and horizontal/vertical/diagonal variety are tools to clarify the present action, not mandatory ingredients in every drawing.
 
 ## Checklist
 - One dominant directional sweep can be traced through at least two major regions of the animal.

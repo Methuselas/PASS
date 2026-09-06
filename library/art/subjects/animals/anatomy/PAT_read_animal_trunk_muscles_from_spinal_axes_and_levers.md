@@ -56,15 +56,15 @@ variants: []
 
 ## Do
 - Treat the pelvis and sacrum as the movement-center anchor used by the pure trunk-muscle system, then follow the major insertions toward spinal processes and ribs as levers rather than memorizing isolated muscle names.
-- Mark the three spinal-axis relationships Bammes identifies before assigning action: muscles to the side of a through-axis can produce lateral bending; muscles above the transverse axes act as extensors while those on the abdominal side act as flexors; muscles crossing the longitudinal axis diagonally can produce torsion.
-- Prioritize the three large groups Bammes singles out for the artist: the ventral `rectus abdominis`, the dorsal spinal extensor mass, and the diagonal external oblique abdominal group. Read them as broad functional masses around the abdominal cavity before resolving smaller anatomy.
+- Mark three spinal-axis relationships before assigning action: muscles to the side of a through-axis can produce lateral bending; muscles above the transverse axes act as extensors while those on the abdominal side act as flexors; muscles crossing the longitudinal axis diagonally can produce torsion.
+- Prioritize three large groups: the ventral `rectus abdominis`, the dorsal spinal extensor mass, and the diagonal external oblique abdominal group. Read them as broad functional masses around the abdominal cavity before resolving smaller anatomy.
 - Let the rectus abdominis support flexion/convex arching of the vertebral column; let the powerful paired spinal extensor cords support extension/hollow arching; let the external oblique's diagonal route support torsion and cooperate with flexion and lateral bending.
 - Use the dog and horse plates as comparative demonstrations of the same functional organization, not as identical surface templates. The width, length, visibility, fascia, and neighboring forms change with the animal.
 
 ## Don't
 - Do not assign trunk-muscle action from a muscle name alone when its position relative to the relevant spinal axis is unclear.
 - Do not treat the three important groups as decorative bands pasted on a thorax; their routes connect pelvis/sacrum, vertebral levers, ribs, and the abdominal wall.
-- Do not fold trunk-to-limb or trunk-to-shoulder-girdle muscles into this pure-trunk map. Bammes explicitly excludes those groups from this subsection.
+- Do not fold trunk-to-limb or trunk-to-shoulder-girdle muscles into this pure-trunk map; those groups belong to a different functional analysis.
 - Do not turn ancillary functions such as respiration, abdominal pressing, or birth into visible drawing claims unless the reference or pose actually supports a surface consequence.
 - Do not force the dog or horse arrangement onto another species without checking its proportions and soft-tissue structure.
 

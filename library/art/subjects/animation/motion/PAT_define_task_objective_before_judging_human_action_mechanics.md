@@ -55,7 +55,7 @@ variants: []
 - Do not judge an action only by whether it resembles the generic category named in the brief.
 - Do not use maximum force when the task requires accuracy, restraint, or fine control.
 - Do not assume that two actions using the same tool, limb, or broad gesture should share the same force, timing, or body recruitment.
-- Do not treat Webster's objective labels as mutually exclusive boxes; real actions can combine them and shift emphasis during the movement.
+- Do not treat objective labels as mutually exclusive boxes; real actions can combine them and shift emphasis during the movement.
 
 ## Checklist
 - The intended result of the action can be stated independently of the pose description.

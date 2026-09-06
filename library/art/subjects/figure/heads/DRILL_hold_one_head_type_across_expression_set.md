@@ -50,7 +50,7 @@ Design or choose one clearly constructed head type, then draw that same head thr
 Separating **head identity and construction** from **expression deformation** so a character does not become a different person every time the face moves.
 
 ## Setup
-Start from one head whose large cranial envelope, jaw, feature spacing, and viewpoint system are already clear. Choose four expressions from Loomis's examples or comparable visible actions, such as a smile, laugh, frown, pout, worry, or anger. Keep a mirror available so you can observe what the facial tissues actually do instead of inventing expression symbols.
+Start from one head whose large cranial envelope, jaw, feature spacing, and viewpoint system are already clear. Choose four clearly visible expression actions, such as a smile, laugh, frown, pout, worry, or anger. Keep a mirror available so you can observe what the facial tissues actually do instead of inventing expression symbols.
 
 ## Instructions
 1. Draw the neutral construction first. Mark only enough of the cranial ball/facial plane, middle line, jaw, and feature placement to make the head type unmistakable.

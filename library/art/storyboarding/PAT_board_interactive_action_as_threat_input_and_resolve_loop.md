@@ -61,8 +61,8 @@ variants:
 - Do not let decorative action hide the moment when input matters.
 - Do not introduce the next threat before the previous successful action has been visibly acknowledged.
 - Do not treat every playable beat as an isolated vignette with no continuity into the next state.
-- Do not infer a complete branching, failure-state, or game-design architecture when the source sequence only establishes a successful threat-and-resolve progression.
-- Do not canonize source-specific prompt flashes, input symbols, or fixed timing values as universal interactive-board rules.
+- Do not infer a complete branching, failure-state, or game-design architecture when the available brief only establishes a successful threat-and-resolve progression.
+- Do not canonize one example's prompt flashes, input symbols, or fixed timing values as universal interactive-board rules.
 
 ## Checklist
 - The current threat is recognizable before input is expected.

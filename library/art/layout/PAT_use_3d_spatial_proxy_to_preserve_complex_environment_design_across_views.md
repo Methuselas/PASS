@@ -9,7 +9,7 @@ stage_binding: 1 skeleton
 lane_fit: both
 foundation_role: specialization
 routing_class: specialized
-specialization_axis: method
+specialization_axis: tool
 foundation_object_id: none
 tags:
 - layout

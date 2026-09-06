@@ -64,7 +64,7 @@ Use clear skull references for one herbivore, one carnivore, and one anthropoid 
 ## Common Failures
 - Copying the outer contour accurately while leaving the internal architecture unexplained.
 - Comparing isolated details without first comparing the whole cranial/facial balance.
-- Treating Bammes's representative horse, cow, dog, lion, and ape examples as exhaustive species formulas.
+- Treating representative horse, cow, dog, lion, and ape examples as exhaustive species formulas.
 - Adding teeth and sutures before the major cavities and load paths are coherent.
 - Correcting the memory redraw only at the silhouette instead of repairing the structural cause.
 

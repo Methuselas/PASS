@@ -63,7 +63,7 @@ No special setup required.
 4. Repeat with several stripes that move toward, away from, over, and around the form.
 5. Redraw the same object without the literal stripes, adding only a few imagined cross-contours that preserve the same surface logic.
 6. Compare whether the imagined lines still turn coherently through the volume.
-7. For the Mattesi variant, repeat on an organic figure without relying on its outer contour: choose a force route, anchor it to useful internal centers such as the spine, ribcage center, knee, top of foot, facial center, or a major limb axis, and trace how that route travels over, around, toward, and away across connected masses.
+7. For the no-contour figure variant, repeat on an organic figure without relying on its outer contour: choose a force route, anchor it to useful internal centers such as the spine, ribcage center, knee, top of foot, facial center, or a major limb axis, and trace how that route travels over, around, toward, and away across connected masses.
 8. Check the imagined route against the actual camera-facing form and correct any path that cuts into, flattens, or contradicts the volume.
 
 ## Success Check

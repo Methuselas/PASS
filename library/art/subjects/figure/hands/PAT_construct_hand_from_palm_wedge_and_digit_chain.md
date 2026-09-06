@@ -145,11 +145,12 @@ variants:
 
 ## Pattern Rule
 **IF** a hand must be made dimensional before digit anatomy and contour detail
-**THEN** establish the palm wedge and the expected hand topology first, map one valid root for every required digit branch, and construct each branch as a continuous articulated chain before visible overlap is allowed to hide it
+**THEN** establish the palm wedge and the expected hand topology first, establish the shared distal palm/root boundary when the topology has a humanlike long-finger group, map one valid root for every required digit branch, and construct each branch as a continuous articulated chain before visible overlap is allowed to hide it
 **ELSE** return to the palm orientation and topology map before spreading or bending the digits
 
 ## Do
 - Resolve the expected topology from explicit design information or authoritative reference before counting digits. If no different anatomy is established for an otherwise humanlike subject, use a humanlike fallback of four long-finger roots on the finger side of the palm plus one thumb root on the thumb side.
+- For a humanlike long-finger group, establish one continuous distal palm/root boundary from the palm wedge before separating the four long-finger roots. Perspective, the palm vault, spread, and foreshortening may curve or project that boundary and give the fingers different starting planes; they do not authorize an individual long-finger root to float independently away from the shared palm structure.
 - Map all required roots before local contour or foreshortening hides their identities; each required branch gets one root and each root owns one branch.
 - When digits overlap strongly, use `VAR_training_construct_overlapping_digits_deepest_to_nearest`: fully construct the most obscured required chain first, then add progressively nearer chains one at a time, counting completed chains against the established topology. Reject hidden construction only after the anatomy exists underneath.
 - Graduate humanlike finger thickness from the heavier thumb and index side toward the little finger side; for nonhuman or stylized anatomy, preserve the established design rather than forcing this gradient.
@@ -158,6 +159,8 @@ variants:
 
 ## Don't
 - Treat a plausible silhouette or fingertip count as proof that the root topology is correct.
+- For a humanlike hand, let one long-finger root break away from the shared distal palm/root boundary merely because the outer contour still looks plausible.
+- Flatten the shared distal palm/root boundary into a mandatory straight or coplanar row; the palm vault and view can project the four roots differently while preserving their common structural origin.
 - Add a new digit chain after the established topology is already complete simply because a shadow, gap, or overlap suggests one.
 - Let a required digit dissolve into the palm, detach from its root, share another digit's invented root, or penetrate the palm mass because its continuation is occluded or compressed.
 - For a humanlike hand, satisfy a five-protrusion silhouette with the wrong identities, such as three long fingers plus two thumb-like branches, or keep the thumb coplanar with the fingers as a fifth parallel digit.
@@ -166,13 +169,14 @@ variants:
 
 ## Checklist
 - The palm has a clear thick rear, shallow front, and readable facing plane.
+- For a humanlike long-finger group, all four long-finger roots inherit from one continuous distal palm/root boundary even when perspective or the palm vault makes that boundary curve, stagger, or change plane.
 - The completed digit set matches the established hand topology exactly; the humanlike fallback resolves as four long-finger chains plus one mechanically distinct thumb branch.
 - Every required digit traces root-to-tip through one unique valid base, remains continuous through overlap, and changes direction at joints rather than merging into or emerging arbitrarily from the palm.
 - No extra chain survives after the expected topology is complete.
 - When the topology includes a humanlike thumb, it opposes the finger group and can drop below the palm plane rather than behaving as another long finger.
 
 ## Notes
-The hand's complexity becomes manageable when the palm controls the view and the digits inherit their placement from it. The topology map prevents a convincing contour from hiding an impossible anatomical graph. The rod-and-ball idea explains articulation, while the wedge and cushion structure prevents a skeletal or mechanical-looking result.
+The hand's complexity becomes manageable when the palm controls the view and the digits inherit their placement from it. In a humanlike hand, the shared distal palm/root boundary is a structural continuity relationship, not a demand for a flat knuckle row: the palm vault can radiate the fingers into different planes while their roots still belong to one continuous palm structure. The topology map prevents a convincing contour from hiding an impossible anatomical graph. The rod-and-ball idea explains articulation, while the wedge and cushion structure prevents a skeletal or mechanical-looking result.
 
 `VAR_dynamic_hands_ch01_compound_palm_scoop` retains **Build the Palm as a Compound Scoop** as a bounded alternative; use it only under the conditions recorded in the variant metadata.
 

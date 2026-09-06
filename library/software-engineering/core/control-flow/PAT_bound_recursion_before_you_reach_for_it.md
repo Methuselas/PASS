@@ -44,6 +44,7 @@ variants: []
 - Record what you have already visited when the structure can contain cycles. Marking each position as it is reached is what prevents the walker from circling forever, and it is a separate mechanism from the terminating test rather than a refinement of it.
 - Add a depth counter where no simple terminating test exists. It has to survive across calls, so it is a member of the enclosing object or a parameter passed down — a local re-created on each call counts nothing.
 - Keep the recursion inside one routine. A cycle that runs through two or three routines before returning to the first is genuinely hard to see, and if the design will not collapse to a single self-calling routine, the depth counter stops being optional.
+- Stop descending at the size where something already solves it, which need not be the smallest case the definition admits. Splitting a value until single bits remain is correct and wasteful when the processor multiplies whole words in one step, so the useful floor is whatever a primitive or library call handles directly, and below it the per-call bookkeeping costs more than the work being avoided.
 - Watch what the routine puts on the stack. Recursion gives no guarantee about how much stack it will consume and no way to predict the run-time behaviour in advance, so size any depth limit against the stack you are willing to spend, and allocate memory-heavy locals from the heap rather than letting each level carry them.
 
 ## Don't

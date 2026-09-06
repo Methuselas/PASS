@@ -18,10 +18,14 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
   - Variants: `Treat Borrowed Keywords as Metaphors Nobody Chose` (context).
 - [Choose the Problem's Representation Before Solving It](PAT_choose_a_problem_representation_before_solving.md) - pattern; 0 design. Tags: cognition, models, problem_solving, representation.
 - [Cue Yourself With the Domain, Not With a Generic Problem-Solving Frame](PAT_use_domain_specific_cues_not_generic_problem_frames.md) - pattern; 0 design. Tags: deliberate_practice, problem_solving, retrieval, transfer.
+- [Decide Whether the Split or the Combine Does the Work](PAT_decide_whether_the_split_or_the_combine_does_the_work.md) - pattern; 0 design. Tags: algorithm_design, decomposition, performance, recursion.
 - [Find a Defect by Hypothesis, Not by Guessing](AP_find_a_defect_by_hypothesis_not_by_guessing.md) - ap; 3 rough. Tags: debugging, defects, diagnosis, hypothesis.
 - [Find the Real Constraints Before Calling It Impossible](PAT_find_the_real_constraints_before_calling_it_impossible.md) - pattern; 0 design. Tags: assumptions, constraints, design, problem_solving.
 - [Fix the Cause, Not the Symptom](PAT_fix_the_cause_not_the_symptom.md) - pattern; 3 rough. Tags: corrections, debugging, defects, maintainability.
+- [Generalise the Problem to Get a Stronger Recursive Step](PAT_generalize_the_problem_to_get_a_stronger_recursive_step.md) - pattern; 0 design. Tags: algorithm_design, problem_framing, recursion.
+- [Move the Work Into a Cheaper Representation and Back](PAT_move_the_work_into_a_cheaper_representation_and_back.md) - pattern; 0 design. Tags: algorithm_design, performance, representation, transformation.
 - [Pick the Abstraction Level of Your Machine Model and Name What It Hides](PAT_reason_with_a_notional_machine_at_a_chosen_level.md) - pattern; 0 design. Tags: abstraction, mental_model, notional_machine, problem_solving.
 - [Reduce the Problem Until You Can Already Solve It](PAT_reduce_the_problem_until_you_can_already_solve_it.md) - pattern; 0 design. Tags: constraints, decomposition, getting_unstuck, problem_solving.
+- [Sample a Split Point You Cannot Afford to Compute](PAT_sample_a_split_point_you_cannot_afford_to_compute.md) - pattern; 0 design. Tags: algorithm_design, expected_cost, randomization, recursion.
 - [Surface the Notional Machine Hiding in Your Team's Vocabulary](DRILL_surface_notional_machines_from_code_vocabulary.md) - drill; 1 skeleton. Tags: mental_model, notional_machine, problem_solving, vocabulary.
 - [Time-Box the Guess and Name the Fallback](PAT_time_box_the_guess_and_name_the_fallback.md) - pattern; 3 rough. Tags: brute_force, debugging, estimation, sunk_cost.

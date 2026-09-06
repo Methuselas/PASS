@@ -14,11 +14,11 @@ judgements, and a number here is not a verdict.
 
 Usage
 -----
-    python workspace/measure_code_corpus.py PATH [PATH ...] --label NAME
+    python workspace/tools/measure_code_corpus.py PATH [PATH ...] --label NAME
 
     # several corpora side by side, one --label per path:
-    python workspace/measure_code_corpus.py \
-        "D:/Repos/MC2_Remastered/mclib" "D:/Repos/MC2_Remastered/RenderCore" \
+    python workspace/tools/measure_code_corpus.py \
+        path/to/corpus-a path/to/corpus-b \
         --label "human 2001" --label "agent"
 
 What the numbers mean

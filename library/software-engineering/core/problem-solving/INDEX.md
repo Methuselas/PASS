@@ -23,8 +23,10 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Find the Real Constraints Before Calling It Impossible](PAT_find_the_real_constraints_before_calling_it_impossible.md) - pattern; 0 design. Tags: assumptions, constraints, design, problem_solving.
 - [Fix the Cause, Not the Symptom](PAT_fix_the_cause_not_the_symptom.md) - pattern; 3 rough. Tags: corrections, debugging, defects, maintainability.
 - [Generalise the Problem to Get a Stronger Recursive Step](PAT_generalize_the_problem_to_get_a_stronger_recursive_step.md) - pattern; 0 design. Tags: algorithm_design, problem_framing, recursion.
+- [Make Only Forced Moves, So Failure Proves There Was No Solution](PAT_make_only_forced_moves_so_failure_proves_there_was_no_solution.md) - pattern; 0 design. Tags: algorithm_design, constraints, invariant, search.
 - [Move the Work Into a Cheaper Representation and Back](PAT_move_the_work_into_a_cheaper_representation_and_back.md) - pattern; 0 design. Tags: algorithm_design, performance, representation, transformation.
 - [Pick the Abstraction Level of Your Machine Model and Name What It Hides](PAT_reason_with_a_notional_machine_at_a_chosen_level.md) - pattern; 0 design. Tags: abstraction, mental_model, notional_machine, problem_solving.
+- [Prove a Greedy Rule Safe Before Calling It an Algorithm](PAT_prove_a_greedy_rule_safe_before_calling_it_an_algorithm.md) - pattern; 0 design. Tags: algorithm_design, correctness, greedy, optimization.
 - [Reduce the Problem Until You Can Already Solve It](PAT_reduce_the_problem_until_you_can_already_solve_it.md) - pattern; 0 design. Tags: constraints, decomposition, getting_unstuck, problem_solving.
 - [Sample a Split Point You Cannot Afford to Compute](PAT_sample_a_split_point_you_cannot_afford_to_compute.md) - pattern; 0 design. Tags: algorithm_design, expected_cost, randomization, recursion.
 - [Surface the Notional Machine Hiding in Your Team's Vocabulary](DRILL_surface_notional_machines_from_code_vocabulary.md) - drill; 1 skeleton. Tags: mental_model, notional_machine, problem_solving, vocabulary.

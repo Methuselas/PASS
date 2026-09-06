@@ -39,6 +39,7 @@ variants: []
 ## Do
 - Ask what the current representation forces you to track, and whether a different one would make the same answer fall out of a shorter calculation.
 - Notice when the obvious framing follows the surface story rather than the quantity actually asked for; the bird-and-trains problem is hard when you model the bird's path and easy when you notice the trains meet in thirty minutes and multiply the bird's speed by the time.
+- Rewrite the measure of success as well as the data. A cost written as a sum over the endpoints of a structure, each weighted by how deep it sits, hides which local step reduces it; the same cost rewritten as a sum over every part of the structure except its outermost makes the smallest two parts obviously the ones to combine first. Nothing about the problem changed, and a step that was invisible became forced.
 - Exploit representations your tools make cheap — halving a number is a right shift once it is in binary — and say out loud which operation you are trying to make cheap.
 - Treat a language's built-in representations as a real force on your design: APL makes a matrix solution natural, while Java makes nested loops the path of least resistance because a matrix class has to be built first.
 

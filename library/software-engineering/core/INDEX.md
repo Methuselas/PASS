@@ -271,7 +271,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Hard To Misuse](hard-to-misuse/INDEX.md) - 14 object(s).
 - [Modularity](modularity/INDEX.md) - 15 object(s).
 - [Performance](performance/INDEX.md) - 33 object(s).
-- [Problem Solving](problem-solving/INDEX.md) - 25 object(s).
+- [Problem Solving](problem-solving/INDEX.md) - 28 object(s).
 - [Readability](readability/INDEX.md) - 32 object(s).
 - [Refactoring](refactoring/INDEX.md) - 11 object(s).
 - [Reusability](reusability/INDEX.md) - 9 object(s).

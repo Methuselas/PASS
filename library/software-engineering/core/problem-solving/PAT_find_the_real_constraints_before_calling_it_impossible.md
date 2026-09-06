@@ -41,6 +41,7 @@ variants: []
 - Honour the constraints that turn out to be real, however irritating they are. The audit is for finding which ones are real, not for arguing your way out of them.
 - Order the constraints by how much they restrict you and satisfy the tightest first, then fit the rest inside. A woodworker cuts the longest pieces first and takes the smaller ones out of what remains, and starting from the loosest constraint reliably paints you into the corner the tightest one was always going to occupy.
 - Look for the freedom as deliberately as the restriction. Solutions live in the degrees of freedom you did not notice you had, and a solution gets dismissed early far more often than a constraint gets challenged.
+- Let the audit terminate. It is the first move and not an unlimited one: where the boundary has been established honestly and the problem still resists, the next question is whether it is one of the known hard problems in other vocabulary, which is settled by construction rather than by further searching for freedom that is not there.
 - Run the short question list when it feels harder than it should be: is there an easier way; are you solving the actual problem or a peripheral technicality that grabbed your attention; what specifically makes this hard; does it have to be done this way; does it have to be done at all.
 
 ## Don't

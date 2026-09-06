@@ -19,17 +19,23 @@ tags:
 cross_links:
 - rel: teaches
   target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-- rel: supports
+- rel: teaches
+  target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
+- rel: teaches
   target_object_id: PAT_use_the_defining_affordances_of_an_adopted_game_system
 - rel: teaches
-  target_object_id: PAT_build_complete_resolution_procedures_incrementally
-- rel: supports
-  target_object_id: PAT_make_the_game_operable_without_hidden_designer_knowledge
+  target_object_id: PAT_preserve_behavioral_compatibility_when_replacing_inherited_mechanics
+- rel: teaches
+  target_object_id: PAT_design_rules_artifacts_for_learning_and_retrieval
+- rel: teaches
+  target_object_id: PAT_curate_modular_rules_for_safe_onboarding
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
 confidence: high
-target_skill: Analyze how a game turns design goals into player behavior, component mechanics, complete resolution procedures, and tradeoffs rather than stopping at preference judgments.
+target_skill: Analyze how a game turns design goals into player behavior, component
+  mechanics, complete resolution procedures, and tradeoffs rather than stopping at
+  preference judgments.
 references: []
 variants: []
 ---
@@ -57,6 +63,7 @@ Choose a game that is unfamiliar, structurally different from your current proje
 9. Separate architectural improvement from experiential repositioning. Ask both whether the later version implements the same experience more cleanly and whether it materially changes decision density, pacing, operating burden, or intended audience; a cleaner implementation does not by itself establish a lighter or broader experience.
 10. Evaluate mature revisions through both a veteran-reference lens and a novice-facilitator lens. Record whether established users gain retrieval, consolidation, or compatibility benefits, and whether a new facilitator receives a known-good playable configuration, safe omissions, and expansion triggers without first mastering the full rules surface.
 11. For the same comparison, record what the later interface preserves, removes, relocates, or visually reframes, and evaluate the resulting usability change without assuming that newer presentation is automatically better.
+12. Record one plausible interpretation of an observed rule or procedure that the executed play evidence rules out, narrows, or qualifies, and state the observation that does so.
 
 ## Success Check
 - At least one resolution procedure was actually played or executed, and the teardown records an observed decision, behavior, pacing cost, lookup cost, or interaction effect from that run rather than only predicting what the rules should do.
@@ -79,4 +86,6 @@ Choose a game that is unfamiliar, structurally different from your current proje
 - Treating convertibility as compatibility without checking whether characters, capabilities, power relationships, procedures, and play identity survive the migration.
 
 ## Notes
-Repeated comparison builds a designer’s vocabulary of solutions. Reading can reveal procedures, but actual play or equivalent execution exposes pacing, lookup cost, interaction effects, and player adaptation that are easy to miss on paper. Distinguishing a component mechanic from the larger resolution procedure prevents a teardown from treating one roll, modifier, or damage operation as if it were the entire action protocol. The exercise is most valuable when contrasting different implementations of the same broad problem. Chapter 19 adds the published artifact itself to that teardown. RPGs repeatedly use similar information grammar — chapter, section, subsection, procedure, example, table, reference — while expressing it through very different visual identities, and the same game can substantially change that identity between editions. Comparative review should therefore test whether a particular interface makes the game easier or harder to operate, while treating visual style as a separate preference and art direction as a distinct but interacting layer that can strengthen or weaken immersion without replacing usability. Edition comparison also needs a mechanical migration pass: a later version can preserve names and setting while replacing dependencies important enough to alter learned procedures, character behavior, content compatibility, or the game's practical identity. Additive, evolutionary, and replacement approaches can all be valid; the drill records what changed and what that change cost before judging fit. A revision can also become substantially cleaner without repositioning the experience at all, so implementation quality and experiential profile must be scored separately. Mature products further need two interface passes: established users may benefit from consolidation and fast reference while newcomers need an executable route into competent facilitation. Reference completeness, learning architecture, and curation support are related but distinct qualities.
+Repeated comparison builds a designer’s vocabulary of solutions. Reading can reveal procedures, but actual play or equivalent execution exposes pacing, lookup cost, interaction effects, and player adaptation that are easy to miss on paper. Distinguishing a component mechanic from the larger resolution procedure prevents a teardown from treating one roll, modifier, or damage operation as if it were the entire action protocol. The exercise is most valuable when contrasting different implementations of the same broad problem. The published artifact itself also belongs in the teardown. RPGs repeatedly use similar information grammar — chapter, section, subsection, procedure, example, table, reference — while expressing it through very different visual identities, and the same game can substantially change that identity between editions. Comparative review should therefore test whether a particular interface makes the game easier or harder to operate, while treating visual style as a separate preference and art direction as a distinct but interacting layer that can strengthen or weaken immersion without replacing usability. Edition comparison also needs a mechanical migration pass: a later version can preserve names and setting while replacing dependencies important enough to alter learned procedures, character behavior, content compatibility, or the game's practical identity. Additive, evolutionary, and replacement approaches can all be valid; the drill records what changed and what that change cost before judging fit. A revision can also become substantially cleaner without repositioning the experience at all, so implementation quality and experiential profile must be scored separately. Mature products further need two interface passes: established users may benefit from consolidation and fast reference while newcomers need an executable route into competent facilitation. Reference completeness, learning architecture, and curation support are related but distinct qualities.
+
+This drill practices the capabilities owned by **Evaluate Mechanics by the Decisions and Agency They Create**, **Budget Mechanical Operating Cost by Decision Value and Activation Cadence**, **Use the Defining Affordances of an Adopted Game System**, **Preserve Behavioral Compatibility When Replacing Inherited Mechanics**, **Design Rules Artifacts for Learning and Retrieval**, **Curate Modular Rules for Safe Onboarding**.

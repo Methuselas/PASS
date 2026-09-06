@@ -21,15 +21,19 @@ cross_links:
   target_object_id: PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
 - rel: teaches
   target_object_id: PAT_invoke_resolution_only_for_meaningful_uncertainty
-- rel: supports
+- rel: teaches
   target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+- rel: teaches
+  target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
 - rel: teaches
   target_object_id: PAT_build_complete_resolution_procedures_incrementally
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
 confidence: high
-target_skill: Determine when a core resolution grammar is broad enough, whether added mechanics integrate into complete resolution procedures, when no resolution is needed, and when a specialized subsystem genuinely earns its additional complexity.
+target_skill: Determine when a core resolution grammar is broad enough, whether added
+  mechanics integrate into complete resolution procedures, when no resolution is needed,
+  and when a specialized subsystem genuinely earns its additional complexity.
 references: []
 variants: []
 ---
@@ -84,3 +88,5 @@ Choose a game with a defined core resolution method. Prepare six short test situ
 
 ## Notes
 A core mechanic should be broad enough to absorb ordinary variation but not so dominant that every distinct activity collapses into the same experience. This drill separates three decisions that are often conflated: whether resolution is needed, whether the existing grammar can express the situation, and whether a specialized subsystem adds enough meaningful play to justify its operating cost. Temporal compression is a useful integration stress because it can pressure several mechanics at once without introducing a new test language: an eight-hour repair attempted inside four hours may reveal whether difficulty, assistance, interruption, partial progress, scope, and consequences already connect coherently. Incremental integration adds the complementary development test: preserve a known-working baseline, add one mechanic at its dependency point, and rerun the complete affected procedure before continuing. This makes regression diagnosable and discourages patch accretion around an interaction that should instead be redesigned.
+
+This drill practices the capabilities owned by **Reuse Core Resolution Grammar Before Adding New Mechanics**, **Invoke Resolution Only for Meaningful Uncertainty**, **Evaluate Mechanics by the Decisions and Agency They Create**, **Budget Mechanical Operating Cost by Decision Value and Activation Cadence**, **Build Complete Resolution Procedures Incrementally**.

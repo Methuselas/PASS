@@ -8,18 +8,39 @@
 - [Align Repeated and Rewarded Behavior with Intended Outcomes](PAT_align_repeated_and_rewarded_behavior_with_intended_outcomes.md) - pattern; 0 design. Tags: outcomes, player-behavior, practice, rewards.
 - [Allocate Simulation Detail by Expected Persistence](PAT_allocate_simulation_detail_by_expected_persistence.md) - pattern; 0 design. Tags: complexity, persistence, progressive-detail, representation, simulation.
 - [Choose a Game Foundation by the Experience It Must Support](PAT_choose_a_game_foundation_by_the_experience_it_must_support.md) - pattern; 0 design. Tags: adaptation, architecture, framework, novelty.
+- [Classify Playtest Evidence Before Revising](PAT_classify_playtest_evidence_before_revising.md) - pattern; 3 rough. Tags: diagnosis, evidence, feedback, playtesting.
+- [Control Playtest Conditions Before Attributing Behavior to the Design](PAT_control_playtest_conditions_before_attributing_behavior_to_the_design.md) - pattern; 3 rough. Tags: environment, evidence, facilitation, playtesting.
 - [Cover Required Production Functions with Explicit Ownership](PAT_cover_required_production_functions_with_explicit_ownership.md) - pattern; 0 design. Tags: collaboration, ownership, production, tools.
-- [Define Completion Against a Living Game Design Document](PAT_define_completion_against_a_living_game_design_document.md) - pattern; 0 design. Tags: completion, gdd, iteration, scope.
+- [Curate Modular Rules for Safe Onboarding](PAT_curate_modular_rules_for_safe_onboarding.md) - pattern; 0 design. Tags: modules, onboarding, optionality, usability.
+- [Define a Game Foundation and Scope](AP_define_a_game_foundation_and_scope.md) - ap; 0 design. Tags: architecture, audience, foundations, production, scope.
+- [Define Design Completion Against Current-Version Fundamentals](PAT_define_completion_against_a_living_game_design_document.md) - pattern; 0 design. Tags: completion, gdd, iteration, scope.
 - [Define the Intended Player Before Designing for Them](PAT_define_the_intended_player_before_designing_for_them.md) - pattern; 0 design. Tags: audience, communication, complexity, experience.
+- [Describe the Game by Player Fantasy and Recurring Play](PAT_describe_the_game_by_player_fantasy_and_recurring_play.md) - pattern; 0 design. Tags: audience, communication, experience, positioning.
+- [Design Rules Artifacts for Learning and Retrieval](PAT_design_rules_artifacts_for_learning_and_retrieval.md) - pattern; 0 design. Tags: learning, reference, rules, usability.
+- [Distinguish Future Hooks from Current Supported Functionality](PAT_distinguish_future_hooks_from_current_supported_functionality.md) - pattern; 0 design. Tags: capabilities, completeness, roadmap, scope.
 - [Evaluate Mechanics by the Decisions and Agency They Create](PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create.md) - pattern; 0 design. Tags: agency, decisions, mechanics, resolution.
-- [Integrate Genre Blends Instead of Merely Stacking Them](PAT_integrate_genre_blends_instead_of_merely_stacking_them.md) - pattern; 0 design. Tags: coherence, genre, integration, worldbuilding.
-- [Make the Game Operable Without Hidden Designer Knowledge](PAT_make_the_game_operable_without_hidden_designer_knowledge.md) - pattern; 0 design. Tags: assumptions, onboarding, rules, usability.
+- [Expose Construction Grammar for Expected Downstream Authorship](PAT_expose_construction_grammar_for_expected_downstream_authorship.md) - pattern; 0 design. Tags: authorship, construction, extensibility, usability.
   - Variants: `Use a Sample Adventure as an Executable Reference Implementation` (context).
+- [Integrate Genre Blends Instead of Merely Stacking Them](PAT_integrate_genre_blends_instead_of_merely_stacking_them.md) - pattern; 0 design. Tags: coherence, genre, integration, worldbuilding.
+- [Keep Common-Path Procedures Inside the Declared Playable Core](PAT_keep_common_path_procedures_inside_the_declared_playable_core.md) - pattern; 0 design. Tags: completeness, core, modules, packaging.
+- [Keep the Current Game Design Specification Living](PAT_keep_game_design_specification_living_and_dependency_aware.md) - pattern; 0 design. Tags: gdd, revision, specification.
+- [Make the Game Operable Without Hidden Designer Knowledge](PAT_make_the_game_operable_without_hidden_designer_knowledge.md) - pattern; 0 design. Tags: delegation, handoff, rules, usability.
+- [Match Information Precision to Decision Precision](PAT_match_information_precision_to_decision_precision.md) - pattern; 0 design. Tags: decisions, information, precision, usability.
 - [Match Practiced Behavior to the Intended Outcome](PAT_match_practiced_behavior_to_the_intended_outcome.md) - pattern; 0 design. Tags: learning, outcomes, player-behavior, training.
 - [Match the Cost of Failure to the Player's Prior Investment](PAT_match_the_cost_of_failure_to_the_players_prior_investment.md) - pattern; 0 design. Tags: failure, investment, recovery, stakes.
+- [Preserve Behavioral Compatibility When Replacing Inherited Mechanics](PAT_preserve_behavioral_compatibility_when_replacing_inherited_mechanics.md) - pattern; 0 design. Tags: compatibility, editions, migration, systems.
+- [Preserve Established Interface Conventions When They Carry User Meaning](PAT_preserve_established_interface_conventions_when_they_carry_user_meaning.md) - pattern; 0 design. Tags: compatibility, presentation, systems, terminology.
+- [Project Reward Currency Mix Across Role Advancement](PAT_project_reward_currency_mix_across_role_advancement.md) - pattern; 0 design. Tags: advancement, balance, campaign-economy, currencies, rewards.
+- [Repair the Smallest Correct Owner of a Confirmed Defect](PAT_repair_the_smallest_correct_owner_of_a_confirmed_defect.md) - pattern; 3 rough. Tags: defects, ownership, refactoring, revision.
+- [Retest Revisions Before Treating Them as Validated](PAT_retest_revisions_before_treating_them_as_validated.md) - pattern; 3 rough. Tags: playtesting, regression, revision, validation.
 - [Reverse-Engineer a Game Through Play](DRILL_reverse_engineer_a_game_through_play.md) - drill; 0 design. Tags: analysis, mechanics, play, reverse-engineering.
-- [Run a Simulation Budget Audit](AP_run_a_simulation_budget_audit.md) - ap; 0 design. Tags: HOPR, TBMD, cadence, complexity, resources, simulation.
+- [Run a Simulation Budget Audit](AP_run_a_simulation_budget_audit.md) - ap; 2 block. Tags: HOPR, TBMD, cadence, complexity, resources, simulation.
 - [Run an Edition Delta Audit](AP_run_an_edition_delta_audit.md) - ap; 0 design. Tags: behavior, comparison, complexity, editions, refactoring, regression.
-- [Run an Evidence-Driven Playtest Revision Cycle](AP_run_an_evidence_driven_playtest_revision_cycle.md) - ap; 0 design. Tags: evidence, feedback, playtesting, revision.
+- [Run an Evidence-Driven Playtest Revision Cycle](AP_run_an_evidence_driven_playtest_revision_cycle.md) - ap; 3 rough. Tags: evidence, feedback, playtesting, revision.
+- [Scope the Game to Available Production Capability](PAT_scope_the_game_to_available_production_capability.md) - pattern; 0 design. Tags: feasibility, production, resources, scope.
+- [Test Audience Fit with Representative External Players](PAT_test_audience_fit_with_representative_external_players.md) - pattern; 3 rough. Tags: audience, evaluation, playtesting, sampling.
+- [Test Recovery Loops for Repeatable Reset Incentives](PAT_test_recovery_loops_for_repeatable_reset_incentives.md) - pattern; 0 design. Tags: attrition, incentives, loops, recovery, resources, resting.
+- [Trace Foundational Design Changes Through Dependent Work](PAT_trace_foundational_design_changes_through_dependent_work.md) - pattern; 0 design. Tags: change-impact, dependencies, design, revision.
 - [Translate Genre into Play Requirements](PAT_translate_genre_into_play_requirements.md) - pattern; 0 design. Tags: coherence, expectations, experience, genre.
+- [Treat Optional Modules as Removable Dependency Sets](PAT_treat_optional_modules_as_removable_dependency_sets.md) - pattern; 0 design. Tags: dependencies, modules, optionality, scope.
 - [Use the Defining Affordances of an Adopted Game System](PAT_use_the_defining_affordances_of_an_adopted_game_system.md) - pattern; 0 design. Tags: affordances, compatibility, systems, traditions.

@@ -24,15 +24,19 @@ cross_links:
   target_object_id: DRILL_map_attribute_dependency_density
 - rel: related_to
   target_object_id: DRILL_audit_specialist_subsystem_participation
-- rel: supports
-  target_object_id: AP_run_a_simulation_budget_audit
+- rel: teaches
+  target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
+- rel: teaches
+  target_object_id: PAT_compress_repeated_minor_actors_into_shared_state
 reference:
   source_title: Shadowrun, Third Edition
   author: FASA Corporation contributors
 confidence: high
 references: []
 variants: []
-target_skill: Detect when extra actions multiply downstream procedure, feedback, and spotlight strongly enough that a speed or command advantage becomes a structural dominance problem.
+target_skill: Detect when extra actions multiply downstream procedure, feedback, and
+  spotlight strongly enough that a speed or command advantage becomes a structural
+  dominance problem.
 ---
 
 # Audit Action-Economy Multipliers
@@ -50,16 +54,19 @@ Choose a subsystem where a legal option can materially increase action count or 
 1. Record the baseline actor's number of meaningful actions in one full cycle and the human-facing operations each action can invoke.
 2. Apply the legal speed, initiative, command, summon, drone, pet, or other action-multiplying option and rerun the same cycle.
 3. Count not only extra actions but every downstream procedure they can trigger: attack sequences, defensive rolls, damage processing, movement, resource allocation, status changes, or subordinate actions.
-4. Measure each participant's share of meaningful decisions and TBMD across the cycle.
+4. Measure each participant's share of meaningful decisions and Time Between Meaningful Decisions (TBMD) across the cycle.
 5. Trace feedback. Record whether early extra actions can wound, disable, reposition, suppress, or otherwise reduce an opponent's later action quantity or effectiveness.
 6. Check the refresh cadence of shared resources and defensive state. Determine whether more actions also produce more resources, clear accumulated penalties sooner, reset per-action/per-turn counters more often, or instead force one fixed reserve to be spread across the enlarged action count.
-7. Test at least one counterpressure such as escalating cost, resource dilution, exposure, recoil, fatigue, vulnerability, or opportunity loss.
+7. Test at least one built-in counterpressure such as escalating cost, resource dilution, exposure, recoil, fatigue, vulnerability, or opportunity loss when one exists. If the system provides no meaningful counterpressure, record that absence instead of inventing one for the test.
 8. Distinguish **control bandwidth** from **actor bandwidth**. If one command can activate several drones, pets, summons, agents, hirelings, or subordinate units, count every independent action cycle that still resolves after the command.
 9. Test whether money, build points, spells, or other resources can purchase new independent actors; compare that growth curve with options that improve one existing actor.
 10. If initiative or tempo can itself be spent on interrupts, defenses, reactions, or emergency actions, audit that value separately from acting earlier and acting more often; one speed statistic may be buying priority, quantity, and defensive flexibility simultaneously.
 11. When a summon, service, charge, command point, or similar abstract resource purchases subordinate behavior, expand the cost into **resolved actor time**. A single service that covers an entire combat can buy many turns and many downstream procedures; compare resource consumption against actor cycles, not against the number of commands issued.
 12. Compare the action-multiplier option with a same-cost option that improves one action rather than creating more actions.
-13. If the system already compresses numerous minor GM-controlled actors through shared initiative, group resources, aggregated damage, or simplified morale, run the same fidelity test on numerous player-owned subordinates. Ownership does not change the table-time cost of an independent actor cycle.
+13. If the system already compresses numerous minor facilitator-controlled actors through shared initiative, group resources, aggregated damage, or simplified morale, run the same fidelity test on numerous player-owned subordinates. Ownership does not change the table-time cost of an independent actor cycle.
+14. Record whether the multiplier's numeric purchase cost by itself would make the option look acceptable, then identify the measured downstream leverage and any counterpressure needed to judge whether that price is actually sufficient.
+15. Record one plausible comparison case that could make the multiplier look acceptable or unacceptable for a different wrong reason, and record the evidence needed to distinguish it from the tested case.
+16. Classify the multiplier as acceptable, constrained, or structurally dominant for the tested ecology and state the observed reason for that classification.
 
 ## Success Check
 - Baseline and multiplied runs were both executed through a complete comparable cycle.
@@ -84,3 +91,5 @@ Choose a subsystem where a legal option can materially increase action count or 
 
 ## Notes
 Action economy is a multiplier, not an ordinary modifier. One additional action can invoke the full downstream machinery of the game and may also deny future opposition actions if early success causes wounds, control states, or removal. The dangerous form is positive feedback: the advantage acts first, acts more often, and uses those actions to reduce the opponent's opportunity to answer. Extra actions can also be defensive multipliers when acting clears accumulated attack pressure, refreshes reaction windows, or supplies a tempo pool that can be spent on interrupts. Counterpressure should be tested against that whole loop, not against the initiative number in isolation. Cheap group commands do not make a minion architecture cheap if each subordinate still receives its own meaningful turns; control compression and actor compression are separate design problems. Likewise, a service-based summon economy can look bounded while still purchasing disproportionate table bandwidth if one service authorizes many independent actions across an encounter. Price or constrain the generated actor stream, not only the trigger that created it. Apply actor-fidelity compression by decision importance and count, not by controller identity: a minor subordinate costs the table the same independent resolution cycle whether a player or the facilitator owns it.
+
+This drill practices the capabilities owned by **Budget Mechanical Operating Cost by Decision Value and Activation Cadence** and **Compress Repeated Minor Actors into Shared State**.

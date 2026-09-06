@@ -24,10 +24,11 @@ cross_links:
 - rel: related_to
   target_object_id: DRILL_profile_serial_resolution_latency
 reference:
-  source_title: "Twilight: 2000 (1st Edition) and Twilight: 2000 Version 2.2"
-  author: "Frank Chadwick; David Nilsen, Loren Wiseman, and Lester Smith"
+  source_title: 'Twilight: 2000 (1st Edition) and Twilight: 2000 Version 2.2'
+  author: Frank Chadwick; David Nilsen, Loren Wiseman, and Lester Smith
 confidence: high
-target_skill: Preserve differentiated consequences while reducing unnecessary causal-resolution work.
+target_skill: Preserve differentiated consequences while reducing unnecessary causal-resolution
+  work.
 references: []
 variants: []
 ---
@@ -48,14 +49,16 @@ Choose a subsystem with at least three possible persistent failure states, such 
 2. Execute the existing or most literal causal procedure once and count human-facing operations, lookups, branch transitions, arithmetic, and state writes.
 3. Build a bounded alternative that maps severity, margin, or another compact input directly into the same final-state vocabulary.
 4. Execute the same event with the compressed procedure.
-5. Compare HOPR, approximate TBMD, retrieval distance, and final state.
+5. Compare Human Operations Per Resolution (HOPR), retrieval distance, and final state. If the event occurs inside a representative multi-actor cycle, also record Time Between Meaningful Decisions (TBMD); otherwise do not infer table-level TBMD from one isolated event.
 6. Identify every intermediate quantity from the literal procedure that disappears after the event and ask whether retaining it changed any later decision.
+7. Test one plausible coarser final-state model, including a single aggregate durability track such as hit points when it can represent the tested object, and identify which later decisions it would preserve or erase.
+8. Select the procedure to keep for the tested context and state the preserved-consequence and measured-cost reason for the choice.
 
 ## Success Check
 - Both procedures were actually executed and ended in final states drawn from the same decision-relevant state list.
 - The comparison records HOPR or equivalent human operations for both runs rather than merely predicting that one is faster.
 - At least one intermediate causal value is shown to be unnecessary after state selection, or the drill records that none could safely be removed.
-- A named near-miss is excluded: replacing component states with a single hit-point total does not pass when the listed component failures produce different later decisions.
+- A named near-miss is excluded: replacing differentiated states with one aggregate durability track does not pass when the listed failures produce different later decisions.
 - The selected procedure is justified by preserved consequences and measured operating cost, not by a general preference for realism or simplicity.
 
 ## Common Failures
@@ -66,3 +69,5 @@ Choose a subsystem with at least three possible persistent failure states, such 
 
 ## Notes
 Detailed output and detailed derivation are separate design dimensions. This drill forces the designer to hold consequence granularity constant while changing only the route used to reach it.
+
+This drill practices the capabilities owned by **Preserve Decision-Relevant State While Compressing Resolution Procedure**.

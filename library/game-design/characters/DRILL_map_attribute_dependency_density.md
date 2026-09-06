@@ -18,7 +18,7 @@ tags:
 - optimization
 - cadence
 cross_links:
-- rel: supports
+- rel: teaches
   target_object_id: PAT_price_character_options_by_mechanical_leverage_and_constraint
 - rel: related_to
   target_object_id: DRILL_trace_a_character_option_into_play
@@ -30,7 +30,8 @@ reference:
 confidence: high
 references: []
 variants: []
-target_skill: Detect attributes whose value compounds through many high-cadence downstream systems even when the attribute bonus itself looks ordinary.
+target_skill: Detect attributes whose value compounds through many high-cadence downstream
+  systems even when the attribute bonus itself looks ordinary.
 ---
 
 # Map Attribute Dependency Density
@@ -55,6 +56,7 @@ Use a complete representative character sheet and the rules that derive skills, 
 8. Compare a one-step increase in each attribute against representative narrower purchases that could produce similar outcomes.
 9. Repeat the graph for at least two campaign ecologies, such as combat-heavy and social/investigative play, to expose environment-dependent value.
 10. Identify counterweights such as encumbrance penalties, hard skill gates, opportunity costs, caps, resource dilution, or competing resources and test whether they materially reduce the leverage.
+11. Record a final classification for each high-leverage attribute—optimization bottleneck, broken attribute, or neither—and state the observed dependencies and counterweights that justify the classification.
 
 ## Success Check
 - Every foundational attribute has a named downstream dependency set rather than a skill-count total alone.
@@ -63,7 +65,7 @@ Use a complete representative character sheet and the rules that derive skills, 
 - Any action-quantity dependency is expanded through its downstream procedures rather than counted as one ordinary edge.
 - An attribute with many low-value dependencies is distinguished from one with fewer but high-cadence/high-consequence dependencies.
 - At least one counterweight is tested rather than merely listed.
-- The final judgment distinguishes **optimization bottleneck** from **broken attribute**; high value alone does not prove failure.
+- The final judgment distinguishes **optimization bottleneck** from **broken attribute** and gives the dependency/counterweight reason for the classification; high value alone does not prove failure.
 
 ## Common Failures
 - Counting the number of linked skills while ignoring initiative, derived resources, advancement, or feedback loops.
@@ -73,3 +75,5 @@ Use a complete representative character sheet and the rules that derive skills, 
 
 ## Notes
 Attribute balance is a graph problem. Count resource-generation and ceiling effects as first-class dependencies: a rating that both creates more uses and makes each use stronger, or that both sets a specialist ceiling and improves the tests below it, can compound faster than a raw skill-link count suggests. The useful diagnostic is not raw bonus size but **dependency density × cadence × consequence**, adjusted for feedback and counterpressure. Action quantity is a multiplier edge because each extra action can invoke whole downstream procedures, and advancement economics can create another hidden edge when a broad attribute also lowers the future cost of linked expertise. A modest-looking attribute can dominate optimization when it simultaneously improves sequencing, action count, competence, resource generation, and the ability to exploit the first successful action.
+
+This drill practices the capabilities owned by **Price Character Options by Mechanical Leverage**.

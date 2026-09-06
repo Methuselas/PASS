@@ -17,16 +17,17 @@ tags:
 - constraints
 - playtesting
 cross_links:
-- rel: supports
-  target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-- rel: supports
-  target_object_id: PAT_build_complete_resolution_procedures_incrementally
+- rel: teaches
+  target_object_id: PAT_repair_the_smallest_correct_owner_of_a_confirmed_defect
+- rel: teaches
+  target_object_id: PAT_retest_revisions_before_treating_them_as_validated
 - rel: related_to
   target_object_id: DRILL_stress_test_the_core_resolution_grammar
 - rel: related_to
   target_object_id: DRILL_trace_a_character_option_into_play
 confidence: high
-target_skill: Determine whether legal combinations bypass an intended mechanical constraint and distinguish a genuine exploit from acceptable system mastery.
+target_skill: Determine whether legal combinations bypass an intended mechanical constraint
+  and distinguish a genuine exploit from acceptable system mastery.
 references: []
 variants: []
 ---
@@ -52,6 +53,7 @@ Choose a mechanic or option whose ordinary procedure already works reliably enou
 7. Distinguish exploitation from system mastery. A clever, rare, expensive, risky, or highly situational optimization may be acceptable when the intended limiter still matters; a cheap or repeatable interaction that defeats a major constraint is a stronger defect signal.
 8. Diagnose the smallest correct owner of the failure. If one dependency cleanly bypasses an otherwise sound constraint, repair that dependency. If legal play repeatedly escapes the mechanic's basic regulating assumption, redesign or remove the underlying mechanic instead of building compensating patches around it.
 9. Rerun the hostile combination after any repair and test nearby dependencies that could inherit the change.
+10. Record one legal optimized comparison that presses the same mechanic without defeating the named limiter. If no such comparison exists in the rules surface, record that absence and the closest legal case instead of inventing a control build.
 
 ## Success Check
 - The ordinary baseline was actually executed successfully before hostile testing; merely asserting that it is stable does not pass.
@@ -59,7 +61,7 @@ Choose a mechanic or option whose ordinary procedure already works reliably enou
 - At least one extreme but legal combination was actually executed or concretely simulated against the limiter.
 - The record shows the interaction chain that produces the tested result rather than only the final optimized build or number.
 - Any unusual advantage is classified by severity, accessibility, frequency, and investment, and the record states whether a major intended constraint was actually defeated.
-- The record names at least one plausible near-miss: an optimized interaction that is strong or clever but does **not** defeat the limiter, and explains why treating that case as an exploit would confuse system mastery with a defect.
+- The record includes a plausible near-miss when the rules provide one: an optimized interaction that is strong or clever but does **not** defeat the limiter, with the reason it remains system mastery rather than a defect. If no such legal comparison exists, the record explicitly documents that absence and the closest tested case.
 - If a repair is proposed, the record explains why the failure is local or structural, and the changed behavior is rerun rather than accepted from reasoning alone.
 
 ## Common Failures
@@ -72,3 +74,5 @@ Choose a mechanic or option whose ordinary procedure already works reliably enou
 
 ## Notes
 Adversarial constraint testing asks a different question from ordinary procedure testing: not merely whether the rule executes, but whether legal composition can escape the assumptions that keep its strongest effects safe. Identify the intended limiter first, then search the legal interaction surface for ways around it. Rare, expensive, difficult, risky, or highly situational optimizations may be acceptable system mastery; high-impact interactions that cheaply or repeatedly defeat a major constraint are stronger exploit signals. When a local dependency is the problem, prefer the smallest repair that restores the intended constraint. When the regulating assumption itself collapses under ordinary legal composition, redesigning or removing the mechanic is cleaner than accumulating patches.
+
+This drill practices the capabilities owned by **Repair the Smallest Correct Owner of a Confirmed Defect**, **Retest Revisions Before Treating Them as Validated**.

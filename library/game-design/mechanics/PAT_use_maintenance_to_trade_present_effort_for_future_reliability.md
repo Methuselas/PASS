@@ -22,7 +22,7 @@ cross_links:
 - rel: related_to
   target_object_id: PAT_use_time_to_structure_opportunity
 - rel: related_to
-  target_object_id: PAT_compress_resource_contents_without_erasing_resource_constraints
+  target_object_id: PAT_couple_resource_pools_through_shared_bottlenecks_and_conversion
 reference:
   source_title: "Twilight: 2000 (1st Edition) and Twilight: 2000 Version 2.2"
   author: "Frank Chadwick; David Nilsen, Loren Wiseman, and Lester Smith"

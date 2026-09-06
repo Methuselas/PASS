@@ -45,7 +45,7 @@ variants: []
 - Prefer categorical severity, lookup compression, precomputed mappings, or another bounded transformation when it can reach the same decision-relevant states with fewer human operations.
 - Preserve component-specific or location-specific state when engine failure, fuel loss, limb loss, communications failure, weapon loss, or another result changes play differently.
 - Trace what state survives the resolution and ask whether each intermediate calculation is ever consulted again.
-- Compare the high-detail and compressed procedures by HOPR, TBMD, retrieval distance, and the decisions their outputs enable.
+- Compare the high-detail and compressed procedures by Human Operations Per Resolution (HOPR), Time Between Meaningful Decisions (TBMD), retrieval distance, and the decisions their outputs enable.
 - When one declaration represents many simulated units, compress projectile, packet, target, or component generation separately from the consequence model; then test the maximum number of consequential results the second stage may still invoke.
 - Prefer compressing **process before consequence** when the consequence state drives later play. A burst, chase, intrusion, injury, credential check, or identity verification can use a compact cause-resolution step while still preserving armor effects, damage type, wounds, evidence, positioning, recovery, burned access, or other downstream state.
 - For paperwork- or data-heavy fictional systems, consider compressing the hidden supporting detail into a quality/rating while preserving meaningful failure state such as exposure, revocation, burned credentials, frozen access, or future investigation.

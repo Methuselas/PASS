@@ -4,7 +4,10 @@
 
 ## Objects
 
+- [Compress Repeated Minor Actors into Shared State](PAT_compress_repeated_minor_actors_into_shared_state.md) - pattern; 0 design. Tags: adversaries, compression, groups, npcs, state.
+- [Design an Adversary for Play](AP_design_an_adversary_for_play.md) - ap; 0 design. Tags: adversaries, behavior, factions, npcs, representation.
 - [Express Faction Power as Deployable Response Capacity](PAT_express_faction_power_as_deployable_response_capacity.md) - pattern; 0 design. Tags: adversaries, campaign-state, factions, organizations, resources.
 - [Give Adversaries a Distinct Play Pattern](PAT_give_adversaries_a_distinct_play_pattern.md) - pattern; 0 design. Tags: adversaries, decisions, monsters, tactics.
 - [Scale NPC and Adversary Detail to Their Role in Play](PAT_scale_npc_and_adversary_detail_to_their_role_in_play.md) - pattern; 0 design. Tags: adversaries, complexity, npcs, representation.
 - [Test an Adversary Beyond Its Stat Block](DRILL_test_an_adversary_beyond_its_stat_block.md) - drill; 0 design. Tags: adversaries, monsters, playtesting, tactics.
+- [Use Behavioral Commitment to Resolve Routine Opposition Decisions](PAT_use_behavioral_commitment_to_resolve_routine_opposition_decisions.md) - pattern; 0 design. Tags: abstraction, adversaries, behavior, morale, npcs.

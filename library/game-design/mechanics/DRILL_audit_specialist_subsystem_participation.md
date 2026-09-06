@@ -20,12 +20,12 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: DRILL_profile_serial_resolution_latency
+- rel: teaches
+  target_object_id: PAT_keep_specialist_play_coupled_to_shared_team_decisions
 - rel: related_to
-  target_object_id: PAT_define_roles_by_distinct_world_interfaces
-- rel: supports
   target_object_id: PAT_account_for_the_intended_play_environment_before_freezing_the_design
 - rel: related_to
-  target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
 - rel: related_to
   target_object_id: DRILL_audit_action_economy_multipliers
 reference:
@@ -34,7 +34,8 @@ reference:
 confidence: high
 references: []
 variants: []
-target_skill: Detect specialist subsystems that are internally engaging but impose excessive waiting, spectator time, or facilitator load on the rest of the table.
+target_skill: Detect specialist subsystems that are internally engaging but impose
+  excessive waiting, spectator time, or facilitator load on the rest of the table.
 ---
 
 # Audit Specialist Subsystem Participation
@@ -50,20 +51,20 @@ Choose a subsystem with exclusive or privileged verbs: hacking, astral travel, v
 
 ## Instructions
 1. List the subsystem's separate state: maps, initiative, movement, resources, opponents, terminology, equipment, and resolution rules.
-2. Mark every meaningful decision during the sequence by who is authorized to make it. Watching, hearing narration, or giving nonbinding advice does not count as acting on state.
-3. Measure TBMD for each non-specialist from their last consequential decision before the subsystem sequence to their next consequential decision after or during it.
+2. Mark every consequential decision during the sequence by who is authorized to make it, and separately log observation, narration, and nonbinding advice.
+3. Measure Time Between Meaningful Decisions (TBMD) for each non-specialist from their last consequential decision before the subsystem sequence to their next consequential decision after or during it.
 4. Track **fictional time** and **attention time** separately. A one-second fictional turn still consumes real human decision and resolution time.
-5. Record facilitator HOPR, especially when stronger opposition gains more actions, entities, programs, summons, drones, or other operator-controlled units.
+5. Record facilitator Human Operations Per Resolution (HOPR), especially when stronger opposition gains more actions, entities, programs, summons, drones, or other operator-controlled units.
 6. Test **shared-state coupling**: whether the subsystem's outputs alter doors, enemies, routes, information, resources, alarms, positioning, or other scenario state that matters to the whole party.
-7. Test **shared-decision coupling** separately: while the subsystem is active, identify which non-specialists can make consequential decisions on that shared state. Caring about the result, watching the sequence, or benefiting afterward does not count.
+7. Test **shared-decision coupling** separately: while the subsystem is active, identify which non-specialists make consequential decisions on that shared state and which only observe, advise, or benefit afterward.
 8. Classify the structure. A **specialist superstructure** adds privileged verbs while teammates keep acting on the same problem; a **parallel game** contains enough exclusive state, verbs, opposition, and tactical decisions to sustain extended play without teammate input.
 9. Check whether the specialist controls a **shared platform** or an exclusive environment. Shared vehicles, defenses, command structures, and other platforms can concentrate expertise while preserving teammate agency; exclusive digital, astral, scouting, or remote environments need stronger TBMD controls.
 10. Run the **someone-else test**: ask whether the subsystem remains enjoyable and comprehensible when another player is the specialist and you are waiting outside it.
-11. Run a **synchronization and co-location test**. Sharing the same initiative clock, map, physical room, or fictional second does not prove shared participation; measure who owns consequential decisions during the synchronized procedure.
+11. Run a **synchronization and co-location test**. Record which initiative clocks, maps, physical spaces, or fictional-time windows are shared, then measure who owns consequential decisions during the synchronized procedure.
 12. Test the specialist's optimized/high-performance mode separately. If the strongest mode grants more actions, exclusive state, remote embodiment, or autonomous helpers, measure whether optimization itself increases isolation or spotlight concentration.
-13. Distinguish preparation compression from live-play compression. Faster encounter generation does not count as reduced table TBMD unless the live sequence also changes.
+13. Measure preparation compression and live-play compression separately: record any change in encounter-generation/preparation work and any change in live table TBMD.
 14. Test **shared legibility** separately from shared state. Ask whether a non-specialist can tell what the specialist is trying to accomplish, how close the attempt is to changing the shared scene, and what danger is escalating without knowing the specialist subsystem's jargon.
-15. Test **facilitator compensation** separately from local repair. If the GM can rebalance a session by cutting, shortening, or relocating later spotlight, record that as session budgeting; rerun the specialist sequence unchanged to see whether its local TBMD and spectatorship remain.
+15. Test **facilitator compensation** separately from local repair. Record any later spotlight cut, shortening, or relocation as session budgeting, and rerun the specialist sequence unchanged to measure its local TBMD and participation separately.
 16. Prototype one participation change—shared reactions, cross-domain objectives, alternating turns, compressed specialist resolution, bounded solo segments, shared-platform control, or another interface—and rerun the same sequence.
 
 ## Success Check
@@ -76,8 +77,9 @@ Choose a subsystem with exclusive or privileged verbs: hacking, astral travel, v
 - The subsystem is classified as a specialist superstructure, parallel game, or bounded hybrid with the observation that justifies the classification.
 - Facilitator workload is measured when subsystem opposition has its own actions.
 - The someone-else test is answered from the perspective of a non-specialist participant.
-- The optimized rerun changes participation or live-play structure rather than only prep time.
+- The optimized/high-performance mode is tested and its effect on participation or live-play structure, including no material change, is recorded; a prep-time change alone is not counted as a participation change.
 - Any facilitator-level spotlight compensation is reported separately from local subsystem cost; a later scene cut does not count as making the original procedure faster or more participatory.
+- A named near-miss is rejected using the measurements: shared state, shared timing, shared narration, or prep-time savings alone do not establish shared live participation when consequential decisions remain isolated.
 
 ## Common Failures
 - Concluding that a subsystem is successful because the specialist player enjoys it.
@@ -93,3 +95,5 @@ Choose a subsystem with exclusive or privileged verbs: hacking, astral travel, v
 
 ## Notes
 A subsystem can have excellent internal output justification and still be expensive for the table. Participation coverage is a separate complexity dimension: ten minutes of rich decisions shared by four players costs differently from ten minutes of equally rich procedure controlled by one. **Shared-state coupling does not imply shared-decision coupling.** Specialist identity is healthiest when its privileged verbs alter shared state while the rest of the party can continue making consequential choices around that state. Facilitator spotlight management can compensate across a session, but compensation is not compression: removing a later scene does not refund the human waiting time already consumed by an isolated procedure. Shared platforms often support that structure naturally; exclusive environments require deliberate attention scheduling or bounded resolution. **Shared legibility** matters too: teammates need not know the specialist's internal rules, but they should be able to understand the current objective, progress, danger, and expected shared consequence well enough to decide around it. Synchronization is not participation: two domains can share one initiative clock while remaining decision-isolated. Specialist failure can also run in the opposite direction—autonomous helpers may multiply one player's actor count and table share even when command overhead is low.
+
+This drill practices the capabilities owned by **Keep Specialist Play Coupled to Shared Team Decisions**.

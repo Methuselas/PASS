@@ -25,6 +25,8 @@ cross_links:
   target_object_id: PAT_account_for_the_intended_play_environment_before_freezing_the_design
 - rel: related_to
   target_object_id: PAT_define_the_intended_player_before_designing_for_them
+- rel: related_to
+  target_object_id: PAT_scope_the_game_to_available_production_capability
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
@@ -49,8 +51,6 @@ variants: []
 - Define deliverables and acceptance criteria when work crosses between roles, including scope, revision expectations, schedule, format, and other handoff conditions that materially affect completion.
 - Use independent review when distance from one's own work materially improves quality, but treat it as a quality-control technique rather than a mandatory staffing rule.
 - Evaluate tool-assisted output by the same integration and validation standards applied to human-produced output.
-- Define the version of the game artifact that can be responsibly produced with the money, time, skills, tools, and labor currently available; let scope expand or contract when those resources materially change.
-- Prefer a smaller coherent and usable game over an idealized version whose required creative or technical work cannot presently be completed to the intended standard.
 
 ## Don't
 - Assume a professional game requires a large or multi-person production team.
@@ -59,7 +59,6 @@ variants: []
 - Accept work merely because it was produced by a specialist, contractor, collaborator, or AI tool.
 - Infer quality solely from whether the production method was human, automated, or AI-assisted.
 - Use a tool to replace judgment that the creator still needs to exercise over the finished game.
-- Add artifact features whose required writing, art, layout, implementation, editing, or other production work exceeds the project's actual capability without deliberately changing scope or resources.
 - Treat outsourcing as removal of responsibility for specifying, reviewing, integrating, and accepting the delivered work.
 
 ## Checklist
@@ -68,9 +67,8 @@ variants: []
 - Cross-role deliverables have enough scope and acceptance criteria to prevent hidden handoff assumptions.
 - Tool-assisted or outsourced work is reviewed and integrated rather than accepted on provenance alone.
 - The finished game artifact is validated as a coherent whole, not merely as a collection of individually completed parts.
-- Current game scope fits the creator's actual production capability, or the project has deliberately changed resources or scope to close the gap.
 
 ## Notes
 A production team is a set of responsibilities, not a headcount. One creator may cover many roles, while another project may distribute the same functions across employees, freelancers, collaborators, or tools. The durable requirement is capable ownership and validation. A production tool should be judged by whether it helps the creator produce better work under responsible human direction—not by whether the tool itself is human. Roles are required; headcount is optional; responsibility is not.
 
-This Pattern owns production **of the game artifact**: the creative and technical functions needed to turn the design into a coherent, usable thing. Manufacturing, inventory, storefront operation, distribution arrangements, fulfillment, crowdfunding delivery, and release promotion are downstream publication or marketing concerns and should be owned by those domains rather than accumulated here. Game Design still has to scope the artifact to work that can actually be completed and integrated.
+This Pattern owns production **of the game artifact**: the creative and technical functions needed to turn the design into a coherent, usable thing. Manufacturing, inventory, storefront operation, distribution arrangements, fulfillment, crowdfunding delivery, and release promotion are downstream publication or marketing concerns and should be owned by those domains rather than accumulated here. Production ownership remains distinct from scope feasibility: this decision identifies who owns required work and how handoffs are accepted; project scope is evaluated separately against available production capability.

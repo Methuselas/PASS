@@ -4,10 +4,23 @@
 
 ## Objects
 
-- [Calibrate Encounters to Their Purpose, Challenge, and Response Space](PAT_calibrate_encounters_to_their_purpose_challenge_and_response_space.md) - pattern; 0 design. Tags: adventures, challenge, difficulty, encounters, response-space.
+- [Build Stake Weight Through Player Investment Before Threatening It](PAT_build_stake_weight_through_player_investment_before_threatening_it.md) - pattern; 0 design. Tags: adventures, consequences, investment, stakes.
+- [Calibrate Encounter Challenge to Purpose and Context](PAT_calibrate_encounters_to_their_purpose_challenge_and_response_space.md) - pattern; 0 design. Tags: adventures, challenge, difficulty, encounters.
+- [Define Encounter Response Space by Intended Challenge](PAT_define_encounter_response_space_by_intended_challenge.md) - pattern; 0 design. Tags: adventures, agency, encounters, responses.
+- [Design a Playable Adventure](AP_design_a_playable_adventure.md) - ap; 0 design. Tags: adventures, encounters, information, outcomes, structure.
 - [Design Shared Problems with Multiple Solution Interfaces](PAT_design_shared_problems_with_multiple_solution_interfaces.md) - pattern; 0 design. Tags: adventures, agency, participation, roles, solutions.
+- [Establish Adventure Entry Premise Without Prescribing Personal Motivation](PAT_establish_adventure_entry_premise_without_prescribing_personal_motivation.md) - pattern; 0 design. Tags: adventures, agency, entry, premise.
 - [Generate Sandbox Situations from World State and Player Needs](PAT_generate_sandbox_situations_from_world_state_and_player_needs.md) - pattern; 0 design. Tags: agency, encounters, resources, sandbox, situations, world-state.
+- [Give High-Consequence Risks a Learnable Information Basis](PAT_give_high_consequence_risks_a_learnable_information_basis.md) - pattern; 0 design. Tags: adventures, fairness, information, risk.
+- [Ground Encounter Elements in the Fictional Situation](PAT_ground_encounter_elements_in_the_fictional_situation.md) - pattern; 0 design. Tags: adventures, coherence, ecology, encounters.
+- [Keep Progress-Critical Information from Becoming a Single Failure Point](PAT_keep_progress_critical_information_from_becoming_a_single_failure_point.md) - pattern; 0 design. Tags: adventures, clues, failure, information.
 - [Layer Adventure Information by How Players Can Access It](PAT_layer_adventure_information_by_how_players_can_access_it.md) - pattern; 0 design. Tags: adventures, discovery, information, perception.
+- [Make Climaxes Converge Accumulated Play State](PAT_make_climaxes_converge_accumulated_play_state.md) - pattern; 0 design. Tags: adventures, climaxes, consequences, preparation.
 - [Make Preparation Change Problem Topology](PAT_make_preparation_change_problem_topology.md) - pattern; 0 design. Tags: agency, infiltration, information, legwork, preparation.
-- [Structure Adventure Narratives with Milestones, Plot Beats, and Player Agency](PAT_structure_adventure_narratives_with_milestones_plot_beats_and_player_agency.md) - pattern; 0 design. Tags: adventures, agency, milestones, narrative.
+- [Prepare Executable Adventure Outcome States](PAT_prepare_executable_adventure_outcome_states.md) - pattern; 0 design. Tags: adventures, consequences, endings, failure.
+- [Preserve Player Control of Protagonist Response in Adventure Text](PAT_preserve_player_control_of_protagonist_response_in_adventure_text.md) - pattern; 0 design. Tags: adventures, agency, narration, protagonists.
+- [Preserve Stable Challenge Conditions Against Reactive Difficulty Protection](PAT_preserve_stable_challenge_conditions_against_reactive_difficulty_protection.md) - pattern; 0 design. Tags: adventures, difficulty, fairness, progression.
+- [Shape Adventure Challenge Progression Deliberately](PAT_shape_adventure_challenge_progression_deliberately.md) - pattern; 0 design. Tags: adventures, challenge, difficulty, progression.
+- [Structure Adventure Progression with Milestones and Triggered Beats](PAT_structure_adventure_narratives_with_milestones_plot_beats_and_player_agency.md) - pattern; 0 design. Tags: adventures, agency, milestones, narrative.
 - [Use In-World Information as a Scenario Interface](PAT_use_in_world_information_as_a_scenario_interface.md) - pattern; 0 design. Tags: adventures, factions, hooks, information, uncertainty.
+- [Use Least-Force Constraints to Preserve Directed Adventure Scope](PAT_use_least_force_constraints_to_preserve_directed_adventure_scope.md) - pattern; 0 design. Tags: adventures, agency, constraints, scope, transitions.

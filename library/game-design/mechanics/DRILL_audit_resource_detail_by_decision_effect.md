@@ -20,13 +20,16 @@ tags:
 cross_links:
 - rel: teaches
   target_object_id: PAT_compress_resource_contents_without_erasing_resource_constraints
+- rel: teaches
+  target_object_id: PAT_couple_resource_pools_through_shared_bottlenecks_and_conversion
 - rel: related_to
-  target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
 reference:
-  source_title: "Twilight: 2000 (1st Edition) and Twilight: 2000 Version 2.2"
-  author: "Frank Chadwick; David Nilsen, Loren Wiseman, and Lester Smith"
+  source_title: 'Twilight: 2000 (1st Edition) and Twilight: 2000 Version 2.2'
+  author: Frank Chadwick; David Nilsen, Loren Wiseman, and Lester Smith
 confidence: high
-target_skill: Determine which tracked resource distinctions create actual planning and which only create clerical state.
+target_skill: Determine which tracked resource distinctions create actual planning
+  and which only create clerical state.
 references: []
 variants: []
 ---
@@ -40,7 +43,7 @@ Audit one resource-heavy subsystem by tracing every tracked distinction into an 
 Determine which tracked resource distinctions create actual planning and which only create clerical state.
 
 ## Setup
-Choose a subsystem with at least three resource distinctions and a representative scenario in which some of those resources can be depleted, substituted, converted, or resupplied.
+Choose a subsystem with at least three resource distinctions and a representative scenario in which some of those resources can be depleted, substituted, converted, or resupplied. Include at least two resources that compete through a shared bottleneck such as time, money, cargo, labor, access, mobility, or exposure.
 
 ## Instructions
 1. List every resource field the table must track and the cadence at which it changes.
@@ -49,6 +52,7 @@ Choose a subsystem with at least three resource distinctions and a representativ
 4. Execute the scenario once with the full resource model and record the decisions that actually occur.
 5. Select one distinction that produced bookkeeping but no observed decision, compress or remove it, and rerun the same scenario.
 6. Compare the two runs. Keep the compression only if the same meaningful constraints and tradeoffs remain legible.
+7. Test one plausible broader compression that would merge several tracked resource distinctions, including a single universal-supply abstraction when it can represent the tested resources, and identify which observed decisions from the full run it would preserve or erase.
 
 ## Success Check
 - Every retained resource distinction is tied to at least one observed decision in the full-detail run.
@@ -65,3 +69,5 @@ Choose a subsystem with at least three resource distinctions and a representativ
 
 ## Notes
 Resource detail earns its cost at the boundary where remaining supply or ownership state changes planning. The audit therefore tests resources under pressure rather than judging their names or realism in isolation. Equipment fields can justify substantial detail when they alter acquisition, movement through the world, legal exposure, traceability, maintenance, or conversion back into spendable value—not only tactical performance.
+
+This drill practices the capabilities owned by **Compress Resource Contents Without Erasing Resource Constraints** and **Couple Resource Pools Through Shared Bottlenecks and Conversion**.

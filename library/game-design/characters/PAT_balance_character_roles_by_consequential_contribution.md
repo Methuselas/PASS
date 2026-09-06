@@ -24,6 +24,8 @@ cross_links:
 - rel: related_to
   target_object_id: PAT_align_repeated_and_rewarded_behavior_with_intended_outcomes
 - rel: related_to
+  target_object_id: PAT_project_reward_currency_mix_across_role_advancement
+- rel: related_to
   target_object_id: PAT_calibrate_encounters_to_their_purpose_challenge_and_response_space
 - rel: related_to
   target_object_id: PAT_define_roles_by_distinct_world_interfaces

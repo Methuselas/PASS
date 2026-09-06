@@ -18,11 +18,11 @@ tags:
 - recovery
 cross_links:
 - rel: related_to
-  target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  target_object_id: PAT_build_stake_weight_through_player_investment_before_threatening_it
 - rel: related_to
-  target_object_id: PAT_derive_character_capabilities_from_expected_play
+  target_object_id: PAT_restore_meaningful_participation_before_full_fictional_recovery_when_needed
 - rel: related_to
-  target_object_id: PAT_calibrate_encounters_to_their_purpose_challenge_and_response_space
+  target_object_id: PAT_prepare_executable_adventure_outcome_states
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
@@ -35,54 +35,38 @@ variants: []
 
 ## Pattern Rule
 **IF** the game can remove, destroy, reset, invalidate, or substantially set back something the player has invested in
-**THEN** evaluate the severity and frequency of that failure against the time, effort, emotional commitment, and scarce resources required to obtain what is being lost
+**THEN** evaluate the severity and frequency of that failure against the time, effort, emotional commitment, and scarce resources required to obtain and replace what is being lost
 **ELSE** keep failure lightweight when little prior investment is at stake.
 
 ## Do
 - Measure replacement and recovery cost, not merely the nominal size of the penalty.
-- Count character creation and development time as prior investment, and count the real time required for a player to return to meaningful participation after character loss as part of the failure cost.
+- Count character creation, learning, customization, advancement, and development time as prior investment when those costs can be erased.
+- Count scarce resources, opportunity cost, and repeated play spent obtaining an endangered asset or state.
 - Consider emotional attachment separately from mechanical value; a long-developed character or customized asset may matter beyond its statistics.
-- Count **fictional investment created through play** as prior investment. NPCs, communities, locations, causes, relationships, promises, duties, and objectives can acquire weight because players have interacted with them, chosen for them, sacrificed for them, depended on them, or repeatedly acted to protect them.
-- Separate **threat magnitude** from **stake weight**. A kingdom, planet, or civilization is not automatically a stronger stake than one person, place, or promise the players have actually come to value.
-- Build important stakes before threatening them. Give the table opportunities to know, use, rely on, choose for, or otherwise assign value to what may later be lost.
-- When failure damages or destroys something carrying substantial accumulated fictional investment, let the aftermath acknowledge that loss in the game state and fiction rather than treating it as a disposable numerical penalty.
+- Evaluate failure frequency together with loss severity. A consequence that is acceptable as a rare campaign event may be intolerable as an ordinary stochastic result.
 - Use frequent severe failure more comfortably when restart, replacement, or rebuilding is quick and expected.
-- When large losses are part of the intended experience, provide enough warning, agency, narrative weight, or recovery structure to justify them.
-- Define encounter defeat consequences deliberately instead of treating death or adventure termination as the automatic meaning of failure. Capture, retreat, separation, lost resources, injury, lost time, humiliation, changed relationships, or terminal failure may all be appropriate depending on the intended experience.
-
-- Compare consequence duration with campaign cadence. When realistic full recovery takes longer than the current adventure can pause, decide deliberately whether the character becomes functionally playable before full recovery, the campaign supplies downtime, the player receives an alternate participation path, or the long absence is itself intended play.
-- Distinguish fictional recovery from participation recovery. A wound, breakdown, curse, imprisonment, or other setback may remain present in the fiction after the player has regained enough agency to participate meaningfully.
-- Treat an ordinary stochastic result that can remove a heavily invested character from several expected sessions as a campaign-level consequence, even when the fictional injury or setback is realistic.
+- When large losses are part of the intended experience, provide enough warning, agency, significance, or recovery structure to make that risk legible and proportionate.
+- Treat loss that erases hours of construction, advancement, or repeated play as a larger experiential cost than the same fictional event applied to a cheap, replaceable asset.
+- When several defeat consequences would fit the fiction, prefer one whose cost matches the current investment and intended experience rather than defaulting automatically to the harshest state.
 
 ## Don't
-- Evaluate lethality or reset frequency without considering how long the player spent reaching the endangered state.
-- Assume two mechanically equal losses feel equal when one erases substantially more preparation or attachment.
+- Evaluate lethality, reset frequency, or permanent loss without considering how long the player spent reaching the endangered state.
+- Assume two mechanically equal losses feel equal when one erases substantially more preparation, scarce resources, or attachment.
 - Protect all investment from loss when meaningful risk is part of the design; the goal is proportionality, not immunity.
-- Assume every lost encounter should kill the characters or end the adventure when a lower-cost failure state better fits the current investment and the encounter's purpose.
-- Assume that increasing the fictional scale of a threat automatically increases its emotional force.
-- Threaten an NPC, community, location, or cause as if the players must care merely because the adventure labels it important.
-
-- Equate full fictional recovery time with total player inactivity without testing the campaign cadence that consequence assumes.
-- Call a long-duration setback proportional because its fictional timescale is realistic while ignoring how many expected sessions it removes from the player.
-- Use specialized healing, replacement characters, downtime, or other recovery infrastructure as an unspoken requirement for keeping the campaign playable.
+- Treat a high-cost loss as acceptable merely because it is realistic in the fiction.
+- Make an ordinary random result erase campaign-scale investment unless that level of volatility is part of the promised experience and the recovery/replacement loop supports it.
+- Use nominal penalty size as a substitute for measuring how much player effort must be repeated after failure.
 
 ## Checklist
-- The average time and effort required to replace the threatened asset are known or testable.
-- Character lethality has been tested against the time required to build, understand, and replace a character at the point where loss can occur.
-- Failure frequency and recovery time are evaluated together.
-- Important encounters state what defeat means and whether that state is recoverable, redirecting, or terminal.
-- High-investment losses carry appropriate warning, agency, or significance for the intended experience.
-- Important fictional stakes have been given enough play exposure or player interaction to justify the weight the design expects them to carry.
-- Threat magnitude and accumulated player investment are evaluated separately.
-- The aftermath of a high-investment fictional loss makes the changed state perceptible.
+- The time, effort, resources, and learning required to obtain the threatened state are known or testable.
+- Replacement or recovery cost is measured from the player's perspective, not only as an in-fiction number.
+- Character lethality has been tested against the effort required to build, understand, and replace a character at the point where loss can occur.
+- Failure frequency and investment erased per failure are evaluated together.
+- High-investment losses carry appropriate warning, agency, significance, or recovery support for the intended experience.
 - Playtests watch for frustration caused by erased effort rather than only for numerical balance.
-
-- Long-duration consequences have been tested against the campaign's actual cadence, including how many sessions the affected player could lose before meaningful participation returns.
-- Full fictional recovery and functional participation recovery are explicitly the same only when that equivalence is intended and supported by the campaign structure.
+- Ordinary stochastic failure cannot silently produce campaign-scale loss unless that volatility is intentional.
 
 ## Notes
-The same failure mechanic can feel exciting or intolerable depending on what precedes it. Cheap, quickly generated assets can support high lethality, while a loss that erases hours of construction or attachment carries a much larger experiential cost. Failure design therefore depends on prior investment as well as consequence. A first-level character designed to be replaced in minutes can support a very different mortality loop from a highly customized character that takes an hour to rebuild, even if the fictional event is identical.
+The same failure mechanic can feel exciting or intolerable depending on what precedes it. Cheap, quickly generated assets can support high lethality, while a loss that erases hours of construction, advancement, or customization carries a much larger experiential cost. Failure design therefore depends on prior investment as well as consequence. A character designed to be replaced in minutes can support a different mortality loop from a highly customized character that takes an hour to rebuild, even when the fictional event is identical.
 
-Chapter 17 applies the same proportionality principle at encounter scale. Buinicki recommends considering capture, rescue, retreat, safe havens, recovery, and other consequences when an encounter may overwhelm the party. The principle does not require every failure to preserve progress: deliberately terminal failure remains valid when the intended challenge and prior investment justify it.
-
-Chapter 18 broadens investment beyond player-built assets. Stakes gain force when prior play has made the threatened thing matter. This is why a smaller loss can carry more emotional weight than a larger but abstract catastrophe. The Volturnus series demonstrates the principle over multiple adventures: the players meet societies, solve their problems, discover the Sathar threat, and accumulate reasons to care about the planet before the Battle of Volturnus places those relationships at risk. Louis V. Jameson's fate also pays off the series' original search mission by revealing that he died defending people he had barely known. The design does not command a particular emotion; it gives the discovery weight by remembering earlier investment and allowing the players' own response to supply the meaning.
+This Pattern owns **loss proportionality**. Building emotional stake weight through prior play and deciding how a player returns to meaningful participation during long fictional recovery are separate design decisions rather than additional duties of this rule.

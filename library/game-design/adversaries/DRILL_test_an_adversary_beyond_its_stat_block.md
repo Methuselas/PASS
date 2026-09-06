@@ -19,9 +19,9 @@ tags:
 cross_links:
 - rel: teaches
   target_object_id: PAT_give_adversaries_a_distinct_play_pattern
-- rel: supports
+- rel: teaches
   target_object_id: PAT_scale_npc_and_adversary_detail_to_their_role_in_play
-- rel: supports
+- rel: teaches
   target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
 - rel: related_to
   target_object_id: PAT_calibrate_encounters_to_their_purpose_challenge_and_response_space
@@ -29,7 +29,9 @@ reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
 confidence: high
-target_skill: Verify that an adversary creates a recognizable decision pattern in actual play rather than relying on description, inflated statistics, or unused special rules.
+target_skill: Verify that an adversary creates a recognizable decision pattern in
+  actual play rather than relying on description, inflated statistics, or unused special
+  rules.
 references: []
 variants: []
 ---
@@ -43,7 +45,7 @@ Take one adversary that is supposed to feel distinctive and test whether that id
 Verify that an adversary creates a recognizable decision pattern in actual play rather than relying on description, inflated statistics, or unused special rules.
 
 ## Setup
-Choose one adversary with a defined role, need, or motive. Prepare a representative encounter in which the adversary can use its intended capabilities without requiring a special environment that exists only to make the test work.
+Choose one adversary that is intended to have a distinctive play pattern and has a defined role, need, or motive. Prepare a representative encounter in which the adversary can use its intended capabilities without requiring a special environment that exists only to make the test work.
 
 ## Instructions
 1. State the adversary's basic need, motive, or behavioral logic and identify one sensory or behavioral tell that communicates what kind of threat it may be.
@@ -73,3 +75,5 @@ Choose one adversary with a defined role, need, or motive. Prepare a representat
 
 ## Notes
 A memorable adversary is more than a collection of numbers. This drill tests whether its identity survives contact with play: players should have something meaningful to notice, learn, or adapt to, and the adversary's distinctiveness should be visible through those decisions rather than through bookkeeping alone.
+
+This drill practices the capabilities owned by **Give Adversaries a Distinct Play Pattern**, **Scale NPC and Adversary Detail to Their Role in Play**, **Evaluate Mechanics by the Decisions and Agency They Create**.

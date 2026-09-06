@@ -25,6 +25,8 @@ cross_links:
   target_object_id: PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
 - rel: related_to
   target_object_id: PAT_spend_worldbuilding_detail_where_it_changes_play
+- rel: related_to
+  target_object_id: PAT_define_temporal_priority_by_the_advantage_it_grants
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
@@ -66,8 +68,6 @@ variants: []
 
 ## Notes
 Time is both a familiar fictional measure and a flexible game resource. Its smallest formal expression is often the combat round: participants have a bounded window and must decide what can fit inside it. The same structure scales upward. "What can I do this round?" and "What can I do in the next four hours?" ask the same underlying question at different resolutions. Time becomes especially useful as a pressure test because reducing the available window can expose whether repair, healing, crafting, movement, training, assistance, difficulty, and other mechanics integrate cleanly. The design goal is not to maximize timekeeping; it is to make opportunity legible when elapsed time changes what players can do.
-
-**Temporal priority / initiative.** Inside a small decision window, initiative determines the temporal priority of competing intentions. Different games may use random rolls, fixed attributes, weapon or action speed, side order, declared actions, simultaneous resolution, delays, interrupts, or multiple passes. The universal design question is not "who rolls initiative?" but what priority grants: earlier resolution, later choice, information advantage, reaction rights, extra actions, or another timing benefit.
 
 **Task duration.** An action may consume minutes, hours, days, or longer without requiring a separate time subsystem. Duration becomes mechanical when it competes with another activity, deadline, resource, recovery window, or opportunity.
 

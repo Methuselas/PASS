@@ -18,9 +18,9 @@ tags:
 - state
 cross_links:
 - rel: teaches
-  target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
 - rel: teaches
-  target_object_id: PAT_build_complete_resolution_procedures_incrementally
+  target_object_id: PAT_automate_mechanical_maintenance_without_hiding_causality
 - rel: related_to
   target_object_id: DRILL_stress_test_mechanical_constraints_under_composition
 - rel: related_to
@@ -31,7 +31,8 @@ reference:
   source_title: GURPS Basic Set, Fourth Edition
   author: Steve Jackson, David L. Pulver, and Sean M. Punch
 confidence: high
-target_skill: Detect when individually reasonable conditional mechanics create excessive operating load or cascades under realistic simultaneous activation.
+target_skill: Detect when individually reasonable conditional mechanics create excessive
+  operating load or cascades under realistic simultaneous activation.
 references: []
 variants: []
 ---
@@ -55,7 +56,8 @@ Choose a working subsystem with at least three conditional rules that can plausi
 5. Identify any branch that is cheap in isolation but expensive because another rule repeatedly reactivates it, changes its timing, or makes its state harder to remember.
 6. Remove or collapse one active layer and rerun the stacked scene. Record the decision, consequence, simulation distinction, or genre effect that disappears with it.
 7. If the intended medium can automate bookkeeping, simulate that automation and verify that the player can still inspect why the visible result changed.
-8. Decide whether each tested layer should remain baseline, become opt-in, be collapsed into a broader approximation, be automated, or be redesigned, and record the observed reason for that choice.
+8. Record one plausible low-overlap comparison case that could make raw rule count look more expensive than the actually activated procedure, and note how its active-state footprint differs from the stacked scene.
+9. Decide whether each tested layer should remain baseline, become opt-in, be collapsed into a broader approximation, be automated, or be redesigned, and record the observed reason for that choice.
 
 ## Success Check
 - The stacked scene actually activated at least three selected mechanics simultaneously; listing three optional rules that never overlap does not pass.
@@ -64,6 +66,7 @@ Choose a working subsystem with at least three conditional rules that can plausi
 - A named near-miss is included in which the subsystem contains many rules but the tested scene activates only one; the record explains why raw rule count alone would have overstated the observed operating burden.
 - At least one active layer was removed or collapsed and the stacked scene was rerun, producing concrete evidence about what play value that layer actually contributed.
 - Any keep, opt-in, collapse, automate, or redesign decision cites an observed contribution and an observed operating cost rather than a preference for realism or simplicity.
+- If automation is tested, the player-facing result remains traceable to visible inputs, rules, and state changes; hidden servicing does not become hidden causality.
 
 ## Common Failures
 - Testing every conditional rule separately and assuming their isolated costs simply add without interaction.
@@ -74,3 +77,5 @@ Choose a working subsystem with at least three conditional rules that can plausi
 
 ## Notes
 Conditional depth can keep the common path efficient: a serious-wound check need not run when no serious wound occurred, and an environmental hazard need not matter when the character is safe. The harder case appears when fiction makes several conditions true at once. Shared resources and derived values can turn separate modules into a cascade, so operating cost must be measured under representative composition as well as one rule at a time. The goal is not to prohibit detailed simulation. A survival game may gain important decisions when injury, fatigue, cold, food, and movement interact. The drill asks whether the stacked state is itself the intended play or merely the bookkeeping required to reach it.
+
+This drill practices the capabilities owned by **Budget Mechanical Operating Cost by Decision Value and Activation Cadence** and **Automate Mechanical Maintenance Without Hiding Causality**.

@@ -19,15 +19,19 @@ tags:
 cross_links:
 - rel: teaches
   target_object_id: PAT_choose_a_randomizer_by_the_uncertainty_profile_it_must_produce
-- rel: supports
+- rel: teaches
   target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-- rel: supports
+- rel: teaches
+  target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
+- rel: teaches
   target_object_id: PAT_account_for_the_intended_play_environment_before_freezing_the_design
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
 confidence: high
-target_skill: Compare plausible randomizers by probability behavior, information output, operating cost, and fit with the intended experience rather than by familiarity or novelty.
+target_skill: Compare plausible randomizers by probability behavior, information output,
+  operating cost, and fit with the intended experience rather than by familiarity
+  or novelty.
 references: []
 variants: []
 ---
@@ -51,13 +55,15 @@ Choose one action central enough to recur in normal play. Define the character's
 5. Execute each version several times at the table or in a lightweight simulation and record arithmetic, counting, component handling, lookup, explanation, and approximate resolution time.
 6. Test one highly competent legal character or one large legal modifier/pool combination to see whether the mechanic behaves sensibly near the edge of its expected range.
 7. State how each version communicates competence and difficulty to the player and whether the physical act of resolving it supports the intended mood or tension.
-8. Choose the implementation that best fits the intended experience and name at least one real advantage of a rejected alternative.
+8. Record one plausible single-metric winner: a candidate that looks best by one tested dimension such as average success rate, arithmetic simplicity, or familiarity, then record what another tested requirement reveals about that candidate.
+9. Choose the implementation that best fits the intended experience and name at least one real advantage of a rejected alternative.
 
 ## Success Check
 - At least three distinct randomizer structures were implemented against the same action and consequence model.
 - The comparison includes probability shape or success behavior, not merely the number or type of dice used.
 - At least one execution-cost observation was recorded for every candidate.
 - The extreme legal case was actually calculated, rolled, or simulated rather than assumed to be safe.
+- A named near-miss is tested: a candidate that looks best by one metric is not accepted on that metric alone when another measured requirement materially conflicts with the intended experience.
 - The selected mechanic is justified by specific experiential and operational requirements, not by novelty, tradition, or personal familiarity alone.
 - At least one rejected implementation is acknowledged as viable for a different design goal.
 
@@ -70,3 +76,5 @@ Choose one action central enough to recur in normal play. Define the character's
 
 ## Notes
 Randomizer choice is comparative engineering rather than a search for the most original die trick. A familiar mechanism may be the best fit, and a mathematically elegant one may still impose the wrong handling cost or emotional rhythm. Extreme-case testing is especially useful where supporting pools, modifiers, or resources can scale independently of the nominal power of an action.
+
+This drill practices the capabilities owned by **Choose a Randomizer by the Uncertainty Profile It Must Produce**, **Evaluate Mechanics by the Decisions and Agency They Create**, **Budget Mechanical Operating Cost by Decision Value and Activation Cadence**, **Account for the Intended Play Environment Before Freezing the Design**.

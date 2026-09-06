@@ -20,14 +20,18 @@ cross_links:
 - rel: teaches
   target_object_id: PAT_derive_character_capabilities_from_expected_play
 - rel: teaches
+  target_object_id: PAT_choose_specialization_boundaries_by_permission_and_economic_effect
+- rel: teaches
   target_object_id: PAT_balance_character_roles_by_consequential_contribution
-- rel: supports
+- rel: teaches
   target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
 confidence: high
-target_skill: Verify that a character option creates a meaningful, differentiated contribution in play without becoming a dead choice, mandatory permission key, or exploit component.
+target_skill: Verify that a character option creates a meaningful, differentiated
+  contribution in play without becoming a dead choice, mandatory permission key, or
+  exploit component.
 references: []
 variants: []
 ---
@@ -41,7 +45,7 @@ Take one class, skill, feat, trait, template, advantage, power, or equivalent ch
 Verify that a character option creates a meaningful, differentiated contribution in play without becoming a dead choice, mandatory permission key, or exploit component.
 
 ## Setup
-Choose an option important enough that a player might select it as part of the character's identity or specialization. Prepare at least two representative situations where the advertised competence could plausibly matter.
+Choose an option important enough that a player might select it as part of the character's identity or specialization, from a rules context that permits at least one representative advancement state and one legal combination with another option. Prepare at least two representative situations where the advertised competence could plausibly matter.
 
 ## Instructions
 1. State the competence, fantasy, or problem-solving role the option advertises and the recurring situations in which that promise should matter.
@@ -50,7 +54,8 @@ Choose an option important enough that a player might select it as part of the c
 4. Run one representative scene and record whether the option materially changes information, decisions, risk, access, or outcome.
 5. Advance the character once and test whether the option remains meaningful relative to neighboring options.
 6. Combine it with at least one other legal option and test for a dominant strategy, erased niche, or unintended change to the risk profile.
-7. Decide whether to keep, revise, restrict, or remove the option based on its observed contribution, permission-gating, bookkeeping cost, and combination behavior.
+7. Record one plausible nonspecialist outcome close enough to the specialist result to test where the niche boundary actually lies.
+8. Decide whether to keep, revise, restrict, or remove the option based on its observed contribution, permission-gating, bookkeeping cost, and combination behavior, and record the reason for the decision.
 
 ## Success Check
 - A representative scene was actually run or concretely simulated, and the record identifies what information, decision, risk, access, or outcome changed because the tested option was present.
@@ -68,3 +73,5 @@ Choose an option important enough that a player might select it as part of the c
 
 ## Notes
 Character options are part of the game's promise about who a player can become. This drill checks both sides of that promise: the content must give the option somewhere consequential to matter, and the option must remain differentiated when other characters, advancement, and legal combinations enter the same design space.
+
+This drill practices the capabilities owned by **Derive Character Capabilities from Expected Play**, **Choose Specialization Boundaries by Permission and Economic Effect**, **Balance Character Roles by Consequential Contribution**, **Evaluate Mechanics by the Decisions and Agency They Create**.

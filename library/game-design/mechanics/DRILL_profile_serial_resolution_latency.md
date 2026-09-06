@@ -18,8 +18,8 @@ tags:
 - throughput
 cross_links:
 - rel: teaches
-  target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-- rel: supports
+  target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
+- rel: teaches
   target_object_id: PAT_account_for_the_intended_play_environment_before_freezing_the_design
 - rel: related_to
   target_object_id: DRILL_stress_test_concurrent_rule_activation
@@ -30,10 +30,12 @@ cross_links:
 - rel: related_to
   target_object_id: DRILL_audit_action_economy_multipliers
 reference:
-  source_title: Rolemaster Standard Rules and Rolemaster Fantasy Role Playing Core Rules
+  source_title: Rolemaster Standard Rules and Rolemaster Fantasy Role Playing Core
+    Rules
   author: Coleman Charlton, John Curtis, Pete Fenlon, and Steve Marvin
 confidence: high
-target_skill: Detect when tolerable per-action operating cost multiplies across sequential actors into long player downtime or poor table throughput.
+target_skill: Detect when tolerable per-action operating cost multiplies across sequential
+  actors into long player downtime or poor table throughput.
 references: []
 variants: []
 ---
@@ -56,10 +58,10 @@ Choose a subsystem in which several actors resolve in sequence. Use a representa
 4. Separate decision time from operator-service time. Mark arithmetic, table retrieval, cross-book or cross-screen navigation, state maintenance, interpretation, and repeated setup that can consume time without creating a new choice.
 5. Identify serial multipliers. Record which costs recur once per actor, once per attack, once per target, once per persistent condition, or once per facilitator-controlled entity rather than assuming one resolution represents the whole round.
 6. Rerun the same round with one plausible interface or procedure change such as a consolidated reference page, a shared table, precomputed invariant arithmetic, a coarser state representation, parallel resolution, or transparent automation. Keep the player-facing choices as constant as possible.
-7. Compare the two runs and decide whether the bottleneck is primarily decision density, procedure length, retrieval distance, state maintenance, actor count, facilitator concentration, or a combination. Record which play value would be lost by any proposed simplification.
-
-8. For any action that resolves several simulated units inside one declaration, such as bullets, missiles, targets, subcomponents, summons, or damage packets, record whether operator work grows per unit while player decision count remains mostly fixed. Treat this as a serial multiplier even when it occurs inside one actor's turn.
-- When a subsystem grants one participant several decision cycles while others wait, record participation coverage and separate fictional elapsed time from real attention time; accelerated fictional timing does not imply low TBMD.
+7. Compare the two runs and classify the bottleneck as decision density, procedure length, retrieval distance, state maintenance, actor count, facilitator concentration, or a combination. Record the measured change and the play value that any recommendation must preserve.
+8. Record one case from the run where an individual resolution looked tolerable but the whole-cycle timing changed the assessment.
+9. If any ordinary action resolves several simulated units inside one declaration—such as bullets, missiles, targets, subcomponents, summons, or damage packets—measure whether operator work grows per unit while player decision count remains mostly fixed. Otherwise mark this scaling check not applicable.
+10. If the subsystem gives one participant several decision cycles while others wait, measure whether non-specialists make consequential decisions on shared state during that sequence or only observe and advise, and separate fictional elapsed time from real attention time. Otherwise mark this specialist-sequence check not applicable.
 
 ## Success Check
 - A complete representative multi-actor round or cycle was actually executed and timed; timing one isolated action and multiplying by actor count does not pass.
@@ -70,8 +72,8 @@ Choose a subsystem in which several actors resolve in sequence. Use a representa
 - The rerun changes one interface or procedure factor while preserving the intended decisions closely enough to identify whether the observed latency came from retrieval, calculation, state maintenance, or the decision structure itself.
 - Any recommendation states both the measured throughput gain and the meaningful decision, consequence, simulation distinction, or genre effect that must remain intact.
 
-- At least one within-action scaling factor is checked when the system contains multi-unit resolution; a test that times one bullet or one component while the normal action can require many does not pass.
-- At least one prolonged specialist sequence is checked for whether non-specialists are acting on shared state or merely watching and advising.
+- When the system contains multi-unit resolution, at least one within-action scaling factor is checked; timing one bullet or one component while the normal action can require many does not pass. When no ordinary action has that shape, the check is explicitly marked not applicable.
+- When the subsystem contains a prolonged specialist sequence, the record distinguishes non-specialists acting on shared state from merely watching or advising. When no such sequence exists, the check is explicitly marked not applicable.
 
 ## Common Failures
 - Measuring only the GM's total combat duration without locating where individual participants lose decision access.
@@ -82,3 +84,5 @@ Choose a subsystem in which several actors resolve in sequence. Use a representa
 
 ## Notes
 A resolution can be acceptable in isolation and still produce poor table flow when its operating cost repeats serially across every participant and every facilitator-controlled actor. Detailed table-driven systems make this especially visible, but the problem is general: attacks, reactions, upkeep steps, bidding, initiative, status decay, and other repeated procedures can multiply small local friction into long waits. HOPR provides a rough count of human operations; TBMD captures the player's experiential consequence. Neither metric is a universal target. A tactical game may intentionally support long intervals filled with reactions and planning, while a fast action game may require very short gaps. The exercise asks whether the waiting is intended play or merely the time humans spend servicing the rules.
+
+This drill practices the capabilities owned by **Budget Mechanical Operating Cost by Decision Value and Activation Cadence**, **Account for the Intended Play Environment Before Freezing the Design**.

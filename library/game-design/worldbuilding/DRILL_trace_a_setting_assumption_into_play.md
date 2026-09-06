@@ -19,13 +19,14 @@ tags:
 cross_links:
 - rel: teaches
   target_object_id: PAT_propagate_world_assumptions_along_actual_dependencies
-- rel: supports
+- rel: teaches
   target_object_id: PAT_spend_worldbuilding_detail_where_it_changes_play
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
 confidence: high
-target_skill: Turn a significant setting fact into coherent player-facing consequences without over-propagating it into unrelated parts of the world.
+target_skill: Turn a significant setting fact into coherent player-facing consequences
+  without over-propagating it into unrelated parts of the world.
 references: []
 variants: []
 ---
@@ -48,6 +49,7 @@ Use a setting premise that could plausibly affect access, travel, resources, ins
 4. Test one apparent contradiction to determine whether the conflicting element actually depends on the premise; preserve it when no dependency requires a change.
 5. Convert one dependency chain into something characters can seek, combine, protect, trade, misunderstand, negotiate over, or exploit.
 6. Remove at least one consequence that exists only because the premise was assumed to affect everything.
+7. Name one plausible consequence that fits the premise thematically but lacks a causal dependency, and record the missing dependency that disqualifies it.
 
 ## Success Check
 - The setting fact has explicit operating constraints, and at least one dependency chain has actually been traced from those constraints to a concrete player-facing decision, access condition, information problem, or adventure opportunity.
@@ -64,3 +66,5 @@ Use a setting premise that could plausibly affect access, travel, resources, ins
 
 ## Notes
 The exercise is especially useful for high-impact premises such as teleportation, resurrection, ubiquitous magic, artificial intelligence, scarce resources, or unusual political structures. The goal is not maximal extrapolation; it is enough causal propagation that the setting feels coherent and produces playable consequences.
+
+This drill practices the capabilities owned by **Propagate World Assumptions Along Actual Dependencies**, **Spend Worldbuilding Detail Where It Changes Play**.

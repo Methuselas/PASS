@@ -38,6 +38,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 ## Objects
 
+- [Amortize a Sequence Instead of Bounding One Operation](PAT_amortize_a_sequence_instead_of_bounding_one_operation.md) - pattern; 0 design. Tags: algorithms, amortized_analysis, data_structures, performance.
 - [Ask Whether the Hot Code Can Run Less Often](PAT_ask_whether_the_hot_code_can_run_less_often.md) - pattern; 4 final. Tags: design, optimization, performance, profiling, tuning.
 - [Ask Whether the Problem Grows With the Machine](PAT_ask_whether_the_problem_grows_with_the_machine.md) - pattern; 0 design. Tags: concurrency, estimation, measurement, performance, scalability.
 - [Build a Pool for a Hot Allocation](AP_build_a_pool_for_a_hot_allocation.md) - ap; 4 final. Tags: allocation, performance, pooling, resource_management, tuning.
@@ -72,3 +73,4 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Trade a Branch for Unconditional Work](PAT_trade_a_branch_for_unconditional_work.md) - pattern; 4 final. Tags: branches, hardware, optimization, performance, readability.
 - [Treat a Compound Condition as Several Branches](PAT_treat_a_compound_condition_as_several_branches.md) - pattern; 4 final. Tags: branches, control_flow, hardware, optimization, performance.
 - [Tune a Measured Bottleneck](AP_tune_a_measured_bottleneck.md) - ap; 4 final. Tags: iteration, measurement, optimization, performance.
+- [Widen a Search Tree's Fan-Out When Access Latency Dominates](PAT_widen_a_search_trees_fan_out_when_access_latency_dominates.md) - pattern; 0 design. Tags: data_structures, design, memory, performance.

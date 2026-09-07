@@ -12,6 +12,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 ## Objects
 
 - [Add Detail Until the Model Admits One Reading](PAT_make_a_reasoning_model_determinate.md) - pattern; 3 rough. Tags: models, problem_solving, reasoning, working_memory.
+- [Augment a Structure With Locally Derivable Data](PAT_augment_a_structure_with_locally_derivable_data.md) - pattern; 0 design. Tags: algorithm_design, data_structures, design, maintainability.
 - [Build a Working Mental Model of Unfamiliar Code](AP_build_a_mental_model_of_unfamiliar_code.md) - ap; 3 rough. Tags: code_comprehension, mental_model, problem_solving, working_memory.
 - [Check Whether a New Constraint Crosses the Tractability Line](PAT_check_whether_a_new_constraint_crosses_the_tractability_line.md) - pattern; 0 design. Tags: algorithm_design, estimation, intractability, requirements.
 - [Check Whether a Second Model Composes With the One You Already Use](PAT_check_whether_a_second_model_composes_or_conflicts.md) - pattern; 2 block. Tags: abstraction, mental_model, notional_machine, problem_solving.
@@ -44,3 +45,4 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Surface the Notional Machine Hiding in Your Team's Vocabulary](DRILL_surface_notional_machines_from_code_vocabulary.md) - drill; 1 skeleton. Tags: mental_model, notional_machine, problem_solving, vocabulary.
 - [Sweep Sorted Events and Compare Only Neighbors](PAT_sweep_sorted_events_and_compare_only_neighbors.md) - pattern; 0 design. Tags: algorithm_design, ordering, performance, search.
 - [Time-Box the Guess and Name the Fallback](PAT_time_box_the_guess_and_name_the_fallback.md) - pattern; 3 rough. Tags: brute_force, debugging, estimation, sunk_cost.
+- [Update a Sliding Computation Incrementally](PAT_update_a_sliding_computation_incrementally.md) - pattern; 0 design. Tags: algorithm_design, hashing, incremental_computation, performance.

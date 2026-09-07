@@ -133,6 +133,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Match the Problem to a Known Coordination Shape](PAT_match_the_problem_to_a_known_coordination_shape.md) - pattern; 0 design. Tags: concurrency, design, patterns, starvation, threading.
 - [Merge Concurrent Operations Into One Before Applying Them](PAT_merge_concurrent_operations_into_one_before_applying_them.md) - pattern; 0 design. Tags: concurrency, contention, design, latency, scalability.
 - [Name the Committing Step on Every Path](DRILL_name_the_committing_step_on_every_path.md) - drill; 3 rough. Tags: concurrency, correctness, lock_free, review.
+- [Parallelize the Combine Step or It Becomes the Bottleneck](PAT_parallelize_the_combine_step_or_it_becomes_the_bottleneck.md) - pattern; 0 design. Tags: concurrency, design, divide_and_conquer, scalability.
 - [Place Cooperating Work at the Narrowest Scope That Holds It](PAT_place_cooperating_work_at_the_narrowest_scope_that_holds_it.md) - pattern; 0 design. Tags: concurrency, decomposition, design, gpu, locality.
 - [Price Communication by Transfer Count and Volume Separately](PAT_price_communication_by_transfer_count_and_volume_separately.md) - pattern; 0 design. Tags: communication, concurrency, decomposition, granularity, performance.
 - [Publish Shared Data Through One Atomic Handle](PAT_publish_shared_data_through_one_atomic_handle.md) - pattern; 4 final. Tags: concurrency, data_structures, lock_free, memory_order, threading.

@@ -41,4 +41,5 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Sample a Split Point You Cannot Afford to Compute](PAT_sample_a_split_point_you_cannot_afford_to_compute.md) - pattern; 0 design. Tags: algorithm_design, expected_cost, randomization, recursion.
 - [State the Approximation Guarantee You Actually Have](PAT_state_the_approximation_guarantee_you_actually_have.md) - pattern; 0 design. Tags: algorithm_design, approximation, heuristics, honesty.
 - [Surface the Notional Machine Hiding in Your Team's Vocabulary](DRILL_surface_notional_machines_from_code_vocabulary.md) - drill; 1 skeleton. Tags: mental_model, notional_machine, problem_solving, vocabulary.
+- [Sweep Sorted Events and Compare Only Neighbors](PAT_sweep_sorted_events_and_compare_only_neighbors.md) - pattern; 0 design. Tags: algorithm_design, ordering, performance, search.
 - [Time-Box the Guess and Name the Fallback](PAT_time_box_the_guess_and_name_the_fallback.md) - pattern; 3 rough. Tags: brute_force, debugging, estimation, sunk_cost.

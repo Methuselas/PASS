@@ -22,6 +22,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Cue Yourself With the Domain, Not With a Generic Problem-Solving Frame](PAT_use_domain_specific_cues_not_generic_problem_frames.md) - pattern; 0 design. Tags: deliberate_practice, problem_solving, retrieval, transfer.
 - [Decide Whether the Split or the Combine Does the Work](PAT_decide_whether_the_split_or_the_combine_does_the_work.md) - pattern; 0 design. Tags: algorithm_design, decomposition, performance, recursion.
 - [Define the Subproblems and Let Their Dependencies Set the Order](PAT_define_the_subproblems_and_let_their_dependencies_set_the_order.md) - pattern; 0 design. Tags: algorithm_design, decomposition, dynamic_programming, memory.
+- [Estimate a Count by Random Sampling When Enumeration Is Intractable](PAT_estimate_a_count_by_random_sampling_when_enumeration_is_intractable.md) - pattern; 0 design. Tags: algorithm_design, estimation, intractability, probabilistic.
 - [Fill the Table or Memoise the Recursion, by What You Actually Reach](PAT_fill_the_table_or_memoise_the_recursion_by_what_you_reach.md) - pattern; 0 design. Tags: algorithm_design, dynamic_programming, memoization, performance.
 - [Find a Defect by Hypothesis, Not by Guessing](AP_find_a_defect_by_hypothesis_not_by_guessing.md) - ap; 3 rough. Tags: debugging, defects, diagnosis, hypothesis.
 - [Find the Real Constraints Before Calling It Impossible](PAT_find_the_real_constraints_before_calling_it_impossible.md) - pattern; 0 design. Tags: assumptions, constraints, design, problem_solving.

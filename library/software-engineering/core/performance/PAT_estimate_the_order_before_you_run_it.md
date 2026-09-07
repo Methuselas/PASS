@@ -52,6 +52,7 @@ variants: []
 - Don't trust a curve measured only on small inputs. Runtime can look convincingly linear right until the working set stops fitting in memory, at which point the system starts swapping and the times degrade sharply — and nothing about the code predicted the cliff.
 - Don't rank parallel implementations by growth rate at all. Dividing work adds a coordination term that grows with the number of units and the data moved, and that term is linear or worse while the term it is attached to may grow far more slowly — so the version with the better classification can be the slower one across every size you will ever run, not merely at small ones.
 - Don't measure with random data alone. A sort fed random keys can behave completely differently the first time it meets input that is already ordered, which is precisely where the average-case guarantee of a partitioning sort stops applying.
+- Don't read a numeric loop bound as evidence the algorithm is polynomial in the size of its input. A loop that runs up to some value W read from the input, rather than up to a count of items in it, costs time proportional to W itself — but W only takes log W digits to write down, so an algorithm that looks like an ordinary double loop, such as the textbook table for the knapsack problem, is exponential in the size of its actual encoding even though nothing about its structure looks exponential. This is worth naming — pseudo-polynomial time — because the same code that handles a hundred items comfortably can become unusable the moment the numbers involved get large, with no change to the loop nesting that would warn you.
 
 ## Checklist
 - What is the varying quantity here, and what sets its upper bound?
@@ -60,6 +61,7 @@ variants: []
 - Would constant factors or setup cost reverse the ranking at the sizes you actually see?
 - Does the test data include the ordered and degenerate cases, or only random ones?
 - If the work is divided across units, have you varied the unit count as well as the input size?
+- Does a loop bound come from a count of input items, or from the numeric value of one — and if the latter, is that value's own magnitude bounded?
 
 ## Notes
 This is a daily estimate rather than a formal analysis. Most of the time the check is subconscious — you write a loop, you notice it runs once per item, you satisfy yourself that is sensible here — and the notation only comes out when the answer is not obvious. Treating it as a piece of computer science reserved for people who write sort routines is what causes it to be skipped, because almost nobody writes sort routines and the library version will beat anything you produce without serious effort. The shapes still turn up constantly in ordinary code, which is where the estimate pays.

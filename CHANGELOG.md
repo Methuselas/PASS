@@ -6,11 +6,52 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.4 - 2026-09-07
+
+### Added
+
+- Added one generic, model-neutral Drill administrator for every current and
+  future skillset. It discovers canonical Drill cards, prepares either blind
+  cut, supports same-domain Drill chains, freezes produced answers before
+  revealing grading material, validates complete criterion accounting, and
+  exports Skillset Memory-compatible candidate events.
+- Added fail-closed lifecycle checks for premature grader material, missing or
+  empty answers, symbolic-link escapes, answer mutation after freeze,
+  incomplete grades, invalid-run attribution, and cross-domain chains.
+- Added shared lifecycle coverage for Game Design and Software Engineering,
+  including a clean extracted-release run through prepare, freeze, reveal, and
+  finalize.
+
 ### Changed
 
+- Made Drill support capability-derived during release construction. A release
+  containing canonical Drill objects now vendors `scripts/skillforge_drill.py`,
+  declares that fact in `RELEASE_MANIFEST.json`, and receives portable and
+  manual administration instructions in its generated `SKILL.md`; releases
+  without Drills carry no unnecessary runner.
+- Clarified that Drill administration standardizes evidence boundaries and
+  stopping behavior without selecting a model or constraining how the taker
+  reasons, solves, or uses its capabilities.
+- Kept release-mode training append-free: finalization creates a reviewable
+  candidate event inside disposable run state and never mutates packaged,
+  read-only Skillset Memory.
 - Required AI-authored merge and release commits to record what changed, what
   was intentionally excluded or preserved, validation performed, and any known
   issue left behind.
+
+### Validation
+
+- Validated 1,625 canonical objects and all reviewed visual references.
+- Passed all 161 repository tests, including all four SkillForge release builds
+  and checks and 15 focused Drill-administration tests.
+- Confirmed discovery of 119 Art, 14 Game Design, 71 Software Engineering, and
+  89 Writing Drills without a domain registry.
+
+### Preserved boundaries
+
+- The runner launches no models, sub-agents, repetitions, or comparative arms;
+  model execution and any batch-wide sibling cancellation remain the host
+  controller's responsibility.
 
 ## 1.0.0-beta.3 - 2026-09-07
 

@@ -63,6 +63,15 @@ work, load the barriers and prefer the resolver's bounded result; read the full
 profile directly when the resolver is unavailable or when inspecting the runtime
 contract itself.
 
+If the release contains canonical Drill cards, it also vendors the optional
+model-neutral `scripts/skillforge_drill.py` administrator. It discovers only the
+release-local `library/`, prepares either canonical blind cut, freezes the taker
+artifact before revealing the rubric, checks that every Success Check criterion
+was graded, and exports a candidate training event. It does not select a model,
+dictate its reasoning, launch repeat attempts, judge craft semantics, or write
+the release's read-only Skillset Memory. The generated `SKILL.md` contains the
+portable/manual protocol.
+
 A release recipe may also name a target-specific `deployment_profile`. Package
 size is then measured at release build/check time against that profile. No recipe
 currently names one and `PASS/runtime/deployment_profiles/` does not yet exist;

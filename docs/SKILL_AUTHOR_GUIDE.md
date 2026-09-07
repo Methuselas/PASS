@@ -40,6 +40,12 @@ A recipient receives the complete result. They do not resolve SkillForge depende
 
 Every released SkillForge skillset includes `metaskills` automatically. The release recipe must not depend on a human remembering to add it.
 
+Drill support is capability-derived in the same way. If the resolved release
+contains at least one canonical `object_type: drill` card, the builder vendors
+the model-neutral `scripts/skillforge_drill.py` administrator and generates its
+usage contract in `SKILL.md`. A domain supplies valid Drill cards; it does not
+register itself with or fork the administration code.
+
 `metaskills` is the universal catch-all process baseline shared by all skillsets. Domain-specific modules extend it; they do not replace it.
 
 ## 4. Declare prerequisites explicitly

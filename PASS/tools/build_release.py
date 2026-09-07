@@ -463,7 +463,9 @@ def manifest_problems(path: Path, manifest: dict[str, Any]) -> list[str]:
         problems.append("release manifest lacks a valid modules list")
     else:
         try:
-            actual = set(discover(path / "library"))
+            packaged_modules = discover(path / "library")
+            actual = set(packaged_modules)
+            packaged_objects = object_index(path / "library", packaged_modules)[0]
         except (OSError, ValueError, yaml.YAMLError) as exc:
             problems.append(f"invalid packaged modules: {exc}")
         else:
@@ -471,6 +473,14 @@ def manifest_problems(path: Path, manifest: dict[str, Any]) -> list[str]:
                 problems.append(f"missing declared module: {name}")
             for name in sorted(actual - set(declared)):
                 problems.append(f"undeclared packaged module: {name}")
+            expected_drill_runner = any(
+                data.get("object_type") == "drill"
+                for _card, data in packaged_objects.values()
+            )
+            if not isinstance(manifest.get("drill_runner"), bool):
+                problems.append("release manifest lacks a drill_runner boolean")
+            elif manifest["drill_runner"] != expected_drill_runner:
+                problems.append("release manifest drill_runner does not match packaged cards")
     return problems
 
 
@@ -487,6 +497,7 @@ def write_skill(
     display_name: str,
     description: str,
     runtime_profile: str,
+    has_drills: bool,
     memory_domains: list[str] | None = None,
 ) -> None:
     front = yaml.safe_dump(
@@ -533,6 +544,24 @@ def write_skill(
         "`RELEASE_MANIFEST.json` lists every bundled module; do not preload that list or "
         "the complete library.\n"
     )
+    if has_drills:
+        body += (
+            "\n## Blind Drill administration\n\n"
+            "This release includes canonical Drills and the optional model-neutral "
+            "`scripts/skillforge_drill.py` helper. It standardizes administration, "
+            "not how a taker reasons or solves the task. `list` and `show` discover "
+            "the bundled Drills; `prepare` creates a student-safe packet at either "
+            "`before-instructions` or `before-success-check`; `freeze` seals the "
+            "produced answer before `reveal` creates the grader packet; and `finalize` "
+            "requires every canonical Success Check criterion to be dispositioned. "
+            "Use repeated `--drill` arguments to chain compatible Drills from one "
+            "domain. Never expose `controller/` to the taker.\n\n"
+            "The helper never repeats a sitting, judges craft semantics, or writes "
+            "Skillset Memory. `finalize` exports `candidate_training_event.json` for "
+            "review and later import into the owning repository. If Python is "
+            "unavailable, follow the same prepare → produce → freeze → reveal → grade "
+            "order manually from the card.\n"
+        )
     if consumer_instructions:
         barriers_path = path / "references" / "execution-barriers.md"
         barriers_path.parent.mkdir(parents=True, exist_ok=True)
@@ -572,7 +601,7 @@ def write_skill(
         "\n## License and attribution\n\n"
         "Keep `LICENSE.md`, `NOTICE.md`, `TRADEMARKS.md`, and `LICENSES/` with "
         "this release. The "
-        "vendored Python resolver is AGPL-3.0-or-later; the Skill instructions, "
+        "vendored Python helpers are AGPL-3.0-or-later; the Skill instructions, "
         "knowledge, declarative profile, memory, and original assets are "
         "CC-BY-SA-4.0 unless a shipped file states otherwise.\n"
     )
@@ -583,17 +612,27 @@ def runtime_root() -> Path:
     return repo_root_from_tool().resolve() / "PASS" / "runtime"
 
 
-def vendor_runtime(staging: Path, runtime_profile: str, deployment_profile: str | None) -> None:
+def vendor_runtime(
+    staging: Path,
+    runtime_profile: str,
+    deployment_profile: str | None,
+    has_drills: bool,
+) -> None:
     root = runtime_root()
     resolver = root / "skillforge_runtime.py"
+    drill_runner = root / "skillforge_drill.py"
     profile = root / "profiles" / f"{runtime_profile}.yaml"
     if not resolver.is_file():
         raise ValueError(f"SkillForge resolver not found: {resolver}")
     if not profile.is_file():
         raise ValueError(f"runtime profile not found: {profile}")
+    if has_drills and not drill_runner.is_file():
+        raise ValueError(f"SkillForge Drill runner not found: {drill_runner}")
     (staging / "scripts").mkdir(parents=True, exist_ok=True)
     (staging / "runtime").mkdir(parents=True, exist_ok=True)
     shutil.copy2(resolver, staging / "scripts" / "skillforge_runtime.py")
+    if has_drills:
+        shutil.copy2(drill_runner, staging / "scripts" / "skillforge_drill.py")
     shutil.copy2(profile, staging / "runtime" / "profile.yaml")
     if deployment_profile:
         source = root / "deployment_profiles" / f"{deployment_profile}.yaml"
@@ -665,6 +704,46 @@ def runtime_release_problems(path: Path) -> list[str]:
     if result.returncode:
         detail = (result.stdout + "\n" + result.stderr).strip()
         return [f"runtime doctor failed: {detail}"]
+    drill_cards: list[str] = []
+    try:
+        _modules = discover(path / "library")
+        drill_cards = [
+            object_id
+            for object_id, (_card, data) in object_index(
+                path / "library", _modules
+            )[0].items()
+            if data.get("object_type") == "drill"
+        ]
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        return [f"cannot inspect packaged Drills: {exc}"]
+    drill_runner = path / "scripts" / "skillforge_drill.py"
+    if drill_cards and not drill_runner.is_file():
+        return ["missing vendored SkillForge Drill runner"]
+    if not drill_cards and drill_runner.exists():
+        return ["SkillForge Drill runner shipped without any packaged Drills"]
+    if drill_cards:
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(drill_runner),
+                "--library",
+                str(path / "library"),
+                "list",
+                "--format",
+                "json",
+            ],
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode:
+            detail = (result.stdout + "\n" + result.stderr).strip()
+            return [f"Drill runner discovery failed: {detail}"]
+        try:
+            discovered = json.loads(result.stdout)
+        except json.JSONDecodeError as exc:
+            return [f"Drill runner returned invalid discovery JSON: {exc}"]
+        if {item.get("object_id") for item in discovered} != set(drill_cards):
+            return ["Drill runner discovery does not match packaged Drill objects"]
     return []
 
 
@@ -742,6 +821,9 @@ def build(
         raise ValueError("release recipe has no modules")
     selected = resolve(entries, modules, by_id, owner)
     objects = included_objects(selected, by_id, owner)
+    has_drills = any(
+        data.get("object_type") == "drill" for _path, data in objects.values()
+    )
     display_name = str(spec.get("name") or recipe.stem)
     skill_name = str(spec.get("skill_name") or slugify(display_name))
     description = str(spec.get("description") or f"Use for tasks requiring the {display_name} SkillForge skillset.")
@@ -772,7 +854,7 @@ def build(
             dst = staging / "library" / name
             shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_nested_modules)
 
-        vendor_runtime(staging, runtime_profile, deployment_profile)
+        vendor_runtime(staging, runtime_profile, deployment_profile, has_drills)
         stage_legal_files(staging)
         memory_domains = stage_memory(staging, mem, selected) if mem.is_dir() else []
 
@@ -794,11 +876,12 @@ def build(
             "modules": sorted(selected),
             "memory_domains": memory_domains,
             "runtime_profile": runtime_profile,
+            "drill_runner": has_drills,
             "deployment_profile": deployment_profile,
             "quality_gates": quality,
         }
         write_skill(
-            staging, skill_name, display_name, description, runtime_profile,
+            staging, skill_name, display_name, description, runtime_profile, has_drills,
             memory_domains,
         )
         # Freeze before hashing, so the manifest describes files in the state the

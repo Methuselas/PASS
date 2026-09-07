@@ -25,6 +25,13 @@ request string resolves to a given mode and lane; declared risk checks are
 reported; every card reference in every profile resolves to a real `object_id`;
 the completion audit reports what a record omits.
 
+**`test_skillforge_drill.py` — model-neutral Drill administration.** Canonical
+Drills are discovered without a registry; blind cuts hide the right sections;
+freeze precedes reveal; contamination fails closed; every rubric criterion is
+accounted for; candidate events satisfy the memory schema; Game Design and
+Software Engineering share one lifecycle; Drill-capable releases vendor and run
+the same helper without depending on `PASS/`.
+
 **`test_se_drill_support.py` — Software Engineering Drill administration.** The
 derived inventory covers every current SE Drill without becoming a second
 registry; the C++ pilot keeps taker and grader material separate; the Software

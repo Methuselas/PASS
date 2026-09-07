@@ -218,6 +218,45 @@ usually correct about what *would* happen, and it fails exactly the bullets that
 asked for evidence. The Instructions already ask for the artifact; the reminder is
 what gets them followed.
 
+### Optional model-neutral Drill runner
+
+Hosts with Python can use `PASS/runtime/skillforge_drill.py` to make the
+administration boundary auditable. The helper does not prescribe a model,
+reasoning method, or craft answer. It only keeps the student packet separate,
+freezes the produced artifact, reveals the canonical rubric in the correct
+order, requires every Success Check bullet to be graded, and exports a candidate
+history event. The same protocol may be followed manually when Python is not
+available.
+
+```bash
+# Find a Drill and inspect its complete controller-side card.
+python PASS/runtime/skillforge_drill.py list --domain game-design
+python PASS/runtime/skillforge_drill.py show DRILL_stress_test_the_core_resolution_grammar
+
+# Prepare one sitting. Repeat --drill to create a same-domain chain.
+python PASS/runtime/skillforge_drill.py prepare \
+  --drill DRILL_stress_test_the_core_resolution_grammar \
+  --cut before-instructions \
+  --scenario path/to/novel-case.md \
+  --out path/to/disposable-run
+
+# Give only disposable-run/student/ to the taker, then seal its answer.
+python PASS/runtime/skillforge_drill.py freeze --run path/to/disposable-run
+python PASS/runtime/skillforge_drill.py reveal --run path/to/disposable-run
+
+# A semantic grader completes grader/grade.json before finalization.
+python PASS/runtime/skillforge_drill.py finalize \
+  --run path/to/disposable-run \
+  --event-id GAMEDESIGN_EV_0001 \
+  --task "Execute a novel core-resolution case"
+```
+
+`controller/` is private until freeze; exposing it contaminates the sitting.
+`finalize` writes `candidate_training_event.json` inside the disposable run and
+never edits `memory/`. Review that candidate and import it through the owning
+repository's memory workflow if it is worth preserving. The runner never starts
+another taker or repeats an invalid sitting.
+
 **Drills may be chained** — several taken at once against a single shared artifact
 that must satisfy all of their Instructions simultaneously. Chaining does not
 weaken the individual results, and the collisions are the point: two drills'

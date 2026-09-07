@@ -25,11 +25,18 @@ Skills are supported or used directly as an archived/context package.
 `RELEASE_MANIFEST.json` records the Semantic Versioning value from the factory's
 root `VERSION` file as `pass_version`. This identifies the PASS schema, tooling,
 snapshot/import, runtime, and release contract that produced the package; it is
-not the independent product version of the selected SkillForge skillset.
+not the independent product version of the selected SkillForge skillset. Its
+`drill_runner` boolean records whether the resolved object set contains a Drill
+and therefore carries the portable administrator.
+
+When the resolved object set contains at least one canonical Drill, the builder
+also vendors `scripts/skillforge_drill.py`. This is derived from card frontmatter,
+not a domain registry: future domains inherit the same administration substrate
+by shipping valid Drill cards. Releases without Drills do not carry it.
 
 Every release also carries `LICENSE.md`, `NOTICE.md`, `TRADEMARKS.md`,
 `CONTRIBUTING.md`, and the complete license texts under `LICENSES/`. The vendored
-Python resolver is `AGPL-3.0-or-later`; Skill instructions, cards, declarative
+Python helpers are `AGPL-3.0-or-later`; Skill instructions, cards, declarative
 profiles, memory, and original assets are `CC-BY-SA-4.0` unless a shipped file
 states otherwise. A release missing any licensing or attribution file fails
 `build` and `check`.

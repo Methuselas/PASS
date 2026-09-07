@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.3`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.4`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -373,6 +373,18 @@ Repository maintainers can generate the current inventory with
 small C++ administration pilot under
 [`tests/fixtures/software_engineering_drills/`](tests/fixtures/software_engineering_drills/).
 
+For an actual blind sitting, the optional
+[`PASS/runtime/skillforge_drill.py`](PASS/runtime/skillforge_drill.py) helper
+implements the shared prepare → produce → freeze → reveal → grade → finalize
+lifecycle. It is model-neutral: it standardizes evidence boundaries and stopping
+rules, not the taker's reasoning style. Only `student/` is exposed before freeze;
+`controller/` stays private, every canonical Success Check bullet must receive a
+grader disposition, and finalization exports a candidate history event without
+editing Skillset Memory. Releases that contain Drill cards receive the same
+helper automatically under `scripts/skillforge_drill.py`. See
+[`PASS/docs/PASS_CONSUMPTION.md`](PASS/docs/PASS_CONSUMPTION.md#optional-model-neutral-drill-runner)
+for the command sequence.
+
 ### Teaching humans with AI later
 
 Drills are also the foundation for a future mode in which an AI teaches a human
@@ -496,7 +508,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.3`. Beta builds increment the
+contract; the current version is `1.0.0-beta.4`. Beta builds increment the
 prerelease number and may contain clearly documented corrections that are
 incompatible with an earlier beta. Stable `1.0.0` means the public surface is
 defined and future incompatible changes require a new major version.

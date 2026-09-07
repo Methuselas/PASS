@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: game-design
-memory_version: 15
+memory_version: 16
 entries:
 - id: GAMEDESIGN_MEM_001
   scope_type: topic
@@ -898,22 +898,29 @@ entries:
     when they remove, reroute, or transform later obstacles rather than merely grant bonuses against an unchanged sequence.
     Shadowrun 4E corroborated this with prepared Matrix exploits, stolen credentials, wireless/cold-storage access choices,
     astral reconnaissance, drone surveillance, equipment sourcing, and layered security; the strongest preparation often removed
-    a live contest entirely because the access state had already been changed.'
+    a live contest entirely because the access state had already been changed. A non-blind original low-level fantasy adventure
+    production probe then applied the principle in from-scratch construction: its hub exposed services, information, guidance,
+    and social consequences while its wilderness exposed route choice, scouting, negotiation, danger, and safe-camp decisions
+    that changed how later obstacles could be approached.'
   confidence: repeated
   status: active
   diagnosis:
     failure_layer: training
     hypothesis: Playable setting detail is strongest when geography, factions, and information create reusable action interfaces
       rather than only descriptive lore.
-  boundary: Verified in Cyberpunk 2020 referee support and Shadowrun 3E layered run/security architecture. Dynamic campaign
-    evolution in both still requires significant facilitator synthesis.
-  evidence_count: 3
+  boundary: Verified in Cyberpunk 2020 referee support, Shadowrun 3E and 4E layered run/security architecture, and one original
+    low-level fantasy adventure construction. The original build demonstrated application in creation, but its town hub remained
+    comparatively shallow in competing interests, evolving local consequences, and return-visit state. The production probe
+    was not blind or controlled, and dynamic campaign evolution still requires further construction and playtest evidence.
+  evidence_count: 4
   evidence_events:
   - GAMEDESIGN_EV_0012
   - GAMEDESIGN_EV_0013
   - GAMEDESIGN_EV_0014
+  - GAMEDESIGN_EV_0015
   evidence_origin:
   - training_benchmark
+  - user_feedback
   likely_owners:
   - PAT_build_playable_settings_as_action_topologies
   - PAT_design_shared_problems_with_multiple_solution_interfaces
@@ -930,8 +937,11 @@ entries:
   - shared problem multiple interfaces
   - in-world information
   - deployable faction power
+  - original adventure construction
+  - town hub
+  - wilderness routes
   runtime_scope: generic
-  last_verified: '2026-09-04'
+  last_verified: '2026-09-07'
 - id: GAMEDESIGN_MEM_019
   scope_type: topic
   scope_id: action_economy_multipliers
@@ -1072,3 +1082,61 @@ entries:
   - event throughput
   runtime_scope: generic
   last_verified: '2026-09-04'
+- id: GAMEDESIGN_MEM_022
+  scope_type: topic
+  scope_id: integrated_adventure_production
+  type: training_result
+  evidence_class: stochastic_performance
+  observation: >-
+    In one non-blind low-level fantasy adventure production probe, applying the Game Design canon coordinated many relevant
+    decisions inside a single coherent artifact without requiring card-by-card decomposition. The resulting adventure successfully
+    combined a bounded entry premise, redundant progress-critical information, setting action interfaces, noncombat encounter
+    responses, deliberate danger progression, telegraphed optional extreme risk, accumulated-state changes to the climax,
+    multiple executable outcomes, exploration-aligned rewards, and referee-facing retrieval support. Structural design was
+    stronger than professional module prose, hub depth, and cartographic presentation. Prose and cartographic presentation
+    were not backed by auxiliary Writing or Cartography skills during the run; the comparatively shallow hub remained a Game
+    Design weakness.
+  confidence: provisional
+  status: active
+  diagnosis:
+    failure_layer: training
+    hypothesis: Integrated production probes can test whether many Game Design owners coordinate inside one coherent problem
+      state, without proving causal improvement over an unassisted run or isolating the effect of individual cards.
+  boundary: Observed once in an original Basic-era D&D level 1-3 adventure with a maximum length of 30 pages. This was a non-blind
+    skillset production probe, not a formal canonical Drill or treatment/control comparison. The artifact was runnable on
+    paper but not table-playtested, so encounter lethality, advancement pace, live faction negotiation, and at-table retrieval
+    remain unverified. Baseline, isolation, retention, and transfer were not tested. Professional writing and cartographic
+    quality were not isolated Game Design tests because those auxiliary skills were absent.
+  evidence_count: 1
+  evidence_events:
+  - GAMEDESIGN_EV_0015
+  evidence_origin:
+  - training_benchmark
+  - user_feedback
+  likely_owners:
+  - AP_design_a_playable_adventure
+  - PAT_build_playable_settings_as_action_topologies
+  - PAT_keep_progress_critical_information_from_becoming_a_single_failure_point
+  - PAT_define_encounter_response_space_by_intended_challenge
+  - PAT_shape_adventure_challenge_progression_deliberately
+  - PAT_make_climaxes_converge_accumulated_play_state
+  - PAT_prepare_executable_adventure_outcome_states
+  - PAT_align_repeated_and_rewarded_behavior_with_intended_outcomes
+  interventions:
+  - training: Repeat the same production brief after adventure-module study and compare structural, operational, and presentation
+      quality without changing the underlying task constraints.
+    isolation_result: untested
+    retention_result: untested
+    transfer_result: untested
+  retrieval_cues:
+  - integrated adventure production
+  - original adventure construction
+  - production brief
+  - multi-pattern application
+  - coherent artifact
+  - module benchmark
+  - town hub
+  - wilderness procedures
+  - morale reactions
+  runtime_scope: generic
+  last_verified: '2026-09-07'

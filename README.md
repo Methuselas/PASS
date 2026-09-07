@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.2`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.3`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -297,6 +297,36 @@ and never put source provenance or practice history into canon. See
 [`PASS/docs/PASS_SCHEMA.md`](PASS/docs/PASS_SCHEMA.md) and
 [`PASS/docs/PASS_DOCTRINE.md`](PASS/docs/PASS_DOCTRINE.md).
 
+## Testing software cards against real code
+
+Software card field tests apply one card to one bounded slice of human-written
+software, build a small proof of concept, and compare engineering decisions.
+They are distinct from Drills and comparative treatment/control studies. See
+[`PASS/docs/SOFTWARE_CARD_FIELD_TESTS.md`](PASS/docs/SOFTWARE_CARD_FIELD_TESTS.md).
+
+Each review records why its subject was chosen: from a neutral external pool,
+for relevance to an active project, or from personal interest. These are all
+useful field evidence, but they support different claims. PASS ships a blank
+local-context template rather than embedding any maintainer's source choices in
+the public protocol.
+
+The template is maintained by the model, not filled out by the user. Code plus a
+plain-language goal is enough to start. A catalog is optional and is needed only
+when the user wants the model to select a neutral external project; the user can
+paste a link, name a preferred list, or ask the model to offer one.
+
+The full protocol is for maintainers qualifying cards. Ordinary users can simply
+ask PASS to review, fix, or build their software; they are not required to run a
+study first. Qualification begins with the authored language module. Evidence
+that a core card works in one language supports that language only, and finding a
+real defect in the human code is useful evidence rather than a failed review.
+
+Verified coverage does not determine ownership. A cross-language decision lives
+in one shared core even if it was learned from a C++ book or has only been tested
+in C++ so far. Language modules contain the language's realization, idioms,
+constraints, and exceptions. Releases ship that shared core once rather than
+duplicating a private core folder for every language.
+
 ## What Drills are for
 
 Patterns hold reusable decisions, APs coordinate those decisions into complete
@@ -466,7 +496,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.2`. Beta builds increment the
+contract; the current version is `1.0.0-beta.3`. Beta builds increment the
 prerelease number and may contain clearly documented corrections that are
 incompatible with an earlier beta. Stable `1.0.0` means the public surface is
 defined and future incompatible changes require a new major version.

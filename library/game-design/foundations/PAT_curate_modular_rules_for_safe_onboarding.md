@@ -28,7 +28,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_unlock_optional_complexity_after_core_familiarity
+  variant_name: Unlock Optional Complexity After Core Familiarity
+  variant_basis: method_sequence
+  difference_from_foundation: Activate optional detail only after players have demonstrated familiarity with the core loop, using competence rather than first-session completeness as the trigger for adding operating burden.
+  when_to_use: Optional procedures enrich decisions but are unnecessary for initial competence and can be added without changing the core rules already learned.
+  when_not_to_use: The optional rule changes the core mental model, is required for a common-path decision from the first session, or the group explicitly wants the full complexity immediately.
+  absorbed_from_object_id: none
 ---
 
 # Curate Modular Rules for Safe Onboarding
@@ -62,3 +69,5 @@ variants: []
 
 ## Notes
 Optional rules are only easy to omit when the user can make that decision cheaply and safely. A system with many individually reasonable modules can impose a large configuration burden before play if their dependencies, activation conditions, and combined omissions are not curated. The starting configuration is therefore an executable recommendation, not a claim that one subset is universally correct. It gives novices a known-good path and makes later complexity conditional on concrete needs rather than on fear of accidentally leaving something essential out.
+
+Variant `game_design_variant_unlock_optional_complexity_after_core_familiarity` stages optional complexity by learner readiness. It is useful when the table can operate the true core loop first and later add detail without relearning that loop; it is poor fit when the delayed procedure changes the foundation itself.

@@ -135,6 +135,48 @@ establishes the **necessary chain**; the relevant local Pattern enters when the
 flow reaches its decision moment. If an unordered bundle would work equally well,
 the AP is not adding orchestration value.
 
+## Testing software cards against real code
+
+A software card field test is not a Drill and does not require a control arm. It
+selects one card and one bounded slice of human-written software, reads the real
+implementation and its surrounding constraints, records what the human design
+does, builds and exercises a small card-guided proof of concept, and compares the
+two designs. The result asks whether the card survives contact with real code and
+helps the model improve its own engineering—not whether access to PASS caused a
+statistically measurable treatment effect.
+
+Use this full protocol when a maintainer is qualifying cards. An ordinary user
+who asks for help with a software project receives normal card-guided project
+work; they do not have to supply a catalog or validate PASS first. Finding and
+demonstrating a genuine defect in the human review subject is useful evidence,
+not a failed comparison.
+
+Declare whether the source was selected from a neutral external catalog, for its
+relevance to an active project, or from personal interest. A catalog is only a
+selection frame; the selected repository is the review subject. Never inherit a
+different user's corpus assignments or silently describe project-relevant and
+interest-led sources as neutral controls.
+
+Do not make the user administer this classification. Code plus a practical goal
+is enough to begin. Ask at most one plain-language setup question when the reason
+for selection is unclear; require or offer a catalog only when a neutral source
+must be chosen, then record the answer and local context for the user.
+
+Use one reviewer, one primary card, one source slice, and one proof of concept.
+Finish and report before selecting another. The complete protocol and review-note
+template are in
+[`SOFTWARE_CARD_FIELD_TESTS.md`](SOFTWARE_CARD_FIELD_TESTS.md).
+
+Begin qualification with the authored language module. A core card exercised
+only through one language has verified support in that language; it does not yet
+have field evidence from other languages. Do not test the entire core first or
+attribute a missing language specialization directly to the core decision.
+
+This evidence boundary does not change module ownership. Cross-language
+decisions remain in one shared core even when first learned from a
+language-specific source. Language modules carry only their realization,
+constraints, idioms, and exceptions; they never receive private copies of core.
+
 ## Taking a drill
 
 **Administer it blind.** A drill read whole scores recognition, and returns clean

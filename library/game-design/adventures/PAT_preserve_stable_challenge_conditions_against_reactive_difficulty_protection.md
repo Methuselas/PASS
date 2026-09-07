@@ -42,6 +42,7 @@ variants: []
 - Let character advancement change the party's relative position against recurring or stable opposition unless the fiction gives that opposition a credible reason to escalate too.
 - When opposition adapts, base the response on information, resources, motives, institutions, or procedures the opposition could actually use.
 - Use visible or inferable environmental rules consistently rather than changing them ad hoc to suppress an unexpectedly effective tactic.
+- If a random procedure can generate an outcome the scenario cannot honestly accept, constrain, replace, or omit that procedure before rolling rather than invoking it and vetoing a legitimate result afterward.
 - Distinguish **planned escalation** triggered by established situation from **reactive difficulty protection** triggered only because the players are succeeding.
 
 ## Don't
@@ -50,6 +51,7 @@ variants: []
 - Cancel a legal tactic, resource, spell, ally, or preparation because it makes the current challenge easier than planned.
 - Invent a new immunity, reinforcement, hazard, or resource drain after the players reveal a strong strategy when no established cause supports that change.
 - Treat an easier-than-expected victory as proof that the encounter failed when the ease was earned through meaningful prior decisions.
+- Roll on a table or random procedure and then discard an inconvenient result solely because it would upset the intended difficulty or sequence.
 
 ## Checklist
 - Challenge-changing conditions are stable, established, or causally justified before they are used to answer player success.
@@ -58,6 +60,7 @@ variants: []
 - Opposition adaptation follows actual information and resources available to the opposition.
 - Planned escalation can be distinguished from changes introduced only to preserve a target difficulty.
 - The design can accept an easier climax or bypass when prior play honestly earned it.
+- Random procedures contain only outcomes the design is prepared to honor under their stated conditions, or their constraints are declared before the roll.
 
 ## Notes
 Progression and preparation lose meaning when the world silently reads the character sheet or the facilitator repairs every successful tactic by increasing resistance. Stable challenge conditions let players learn, prepare, improve, and experience the consequences of those choices. This does not require static opposition: enemies can adapt and situations can escalate. The difference is causality. A coherent response grows from the world and its actors; reactive difficulty protection grows only from the designer's desire to preserve a predetermined pressure band.

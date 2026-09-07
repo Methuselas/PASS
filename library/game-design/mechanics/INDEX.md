@@ -9,30 +9,45 @@
 - [Audit Resource Detail by Decision Effect](DRILL_audit_resource_detail_by_decision_effect.md) - drill; 0 design. Tags: abstraction, decisions, playtesting, resources, simulation.
 - [Audit Specialist Subsystem Participation](DRILL_audit_specialist_subsystem_participation.md) - drill; 0 design. Tags: participation, specialists, spotlight, subsystems, tbmd.
 - [Automate Mechanical Maintenance Without Hiding Causality](PAT_automate_mechanical_maintenance_without_hiding_causality.md) - pattern; 0 design. Tags: automation, mechanics, operating-cost, transparency, usability.
+- [Bound Self-Reinforcing Momentum Before It Erases Counterplay](PAT_bound_self_reinforcing_momentum_before_it_erases_counterplay.md) - pattern; 0 design. Tags: caps, combat, counterplay, momentum, positive-feedback.
 - [Budget Mechanical Operating Cost by Decision Value and Activation Cadence](PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence.md) - pattern; 0 design. Tags: cadence, complexity, mechanics, operating-cost, throughput.
 - [Budget Renewable Reserves Against Future Demands](PAT_budget_renewable_reserves_against_future_demands.md) - pattern; 0 design. Tags: cadence, pools, resources, risk, tactics.
 - [Build Complete Resolution Procedures Incrementally](PAT_build_complete_resolution_procedures_incrementally.md) - pattern; 0 design. Tags: integration, mechanics, procedures, resolution.
+- [Center Renewable Resources on a Safe Equilibrium](PAT_center_renewable_resources_on_a_safe_equilibrium.md) - pattern; 0 design. Tags: equilibrium, mechanics, overcharge, resources, risk.
 - [Choose a Randomizer by the Uncertainty Profile It Must Produce](PAT_choose_a_randomizer_by_the_uncertainty_profile_it_must_produce.md) - pattern; 0 design. Tags: mechanics, probability, randomizers, resolution.
+  - Variants: `Use Orthogonal Outcome Channels` (method_sequence).
 - [Compare State Detail to Resolution Cost](DRILL_compare_state_detail_to_resolution_cost.md) - drill; 0 design. Tags: HOPR, TBMD, resolution, simulation, state, testing.
 - [Compress Resource Contents Without Erasing Resource Constraints](PAT_compress_resource_contents_without_erasing_resource_constraints.md) - pattern; 0 design. Tags: abstraction, decisions, inventory, logistics, operator-cost, resource-management, scarcity.
+- [Constrain Random Consequences by Causal Fit](PAT_constrain_random_consequences_by_causal_fit.md) - pattern; 0 design. Tags: causality, consequences, mechanics, randomness, tables.
 - [Couple Resource Pools Through Shared Bottlenecks and Conversion](PAT_couple_resource_pools_through_shared_bottlenecks_and_conversion.md) - pattern; 0 design. Tags: conversion, decisions, logistics, planning, resource-management, scarcity.
 - [Decide Whether a Mechanic Acts on the Player or the Character](PAT_decide_whether_a_mechanic_acts_on_the_player_or_the_character.md) - pattern; 0 design. Tags: character-capability, embodiment, mechanics, player-facing.
 - [Define Temporal Priority by the Advantage It Grants](PAT_define_temporal_priority_by_the_advantage_it_grants.md) - pattern; 0 design. Tags: action-economy, initiative, mechanics, timing.
+  - Variants: `Use Side-Owned Activation Slots` (method_sequence).
 - [Design and Integrate a Core Resolution System](AP_design_and_integrate_a_core_resolution_system.md) - ap; 0 design. Tags: complexity, integration, mechanics, resolution, uncertainty.
+- [Discharge Accumulated Pressure Through Voluntary Complications](PAT_discharge_accumulated_pressure_through_voluntary_complications.md) - pattern; 0 design. Tags: complications, consent, corruption, persistent-state, pressure.
+- [Escalate Accumulating Pressure Through Capability-Specific Thresholds](PAT_escalate_accumulating_pressure_through_capability_specific_thresholds.md) - pattern; 0 design. Tags: impairment, mechanics, pressure, stress, thresholds.
+- [Escalate Pressure Before a Finite Resource Reaches Zero](PAT_escalate_pressure_before_a_finite_resource_reaches_zero.md) - pattern; 0 design. Tags: depletion, pressure, reliability, resources, risk.
 - [Expand Resolution Detail Only After Consequential State Change](PAT_expand_resolution_detail_only_after_consequential_state_change.md) - pattern; 0 design. Tags: complexity, consequences, mechanics, operator-cost, resolution.
 - [Factor Repeated Resolution Structures into Shared Procedures and Data](PAT_factor_repeated_resolution_structures_into_shared_procedures_and_data.md) - pattern; 0 design. Tags: data, mechanics, refactoring, tables.
+- [Gate Consequential Injury Behind a Recoverable Buffer](PAT_gate_consequential_injury_behind_a_recoverable_buffer.md) - pattern; 0 design. Tags: consequences, criticals, health, injury, recovery.
 - [Invoke Resolution Only for Meaningful Uncertainty](PAT_invoke_resolution_only_for_meaningful_uncertainty.md) - pattern; 0 design. Tags: mechanics, pacing, resolution, uncertainty.
 - [Keep Semantic Difficulty Labels Mechanically Consistent](PAT_keep_semantic_difficulty_labels_mechanically_consistent.md) - pattern; 0 design. Tags: adjudication, consistency, difficulty, mechanics.
 - [Make Area Effects Change Space and Opportunity](PAT_make_area_effects_change_space_and_opportunity.md) - pattern; 0 design. Tags: area-effects, combat, control, movement, tactics.
+- [Make Resource Retention Pay for Persistence Across Cycles](PAT_make_resource_retention_pay_for_persistence_across_cycles.md) - pattern; 0 design. Tags: downtime, economy, resources, retention, scarcity.
+- [Match Resolution Scale to the Decisions in Play](PAT_match_resolution_scale_to_the_decisions_in_play.md) - pattern; 0 design. Tags: abstraction, mass-combat, mechanics, resolution, scale.
+- [Model Extended Processes with Persistent Progress State](PAT_model_extended_processes_with_persistent_progress_state.md) - pattern; 0 design. Tags: clocks, extended-tasks, mechanics, progress, state.
 - [Model Stress Through Adaptive Decision Throughput](PAT_model_stress_through_adaptive_decision_throughput.md) - pattern; 0 design. Tags: action-economy, agency, cognition, combat, psychology, stress.
 - [Preserve Decision-Relevant State While Compressing Resolution Procedure](PAT_preserve_decision_relevant_state_while_compressing_resolution_procedure.md) - pattern; 0 design. Tags: abstraction, consequences, operator-cost, resolution, simulation, state.
 - [Profile a Randomizer Before Committing to It](DRILL_profile_a_randomizer_before_committing_to_it.md) - drill; 0 design. Tags: mechanics, probability, randomizers, testing.
 - [Profile Serial Resolution Latency](DRILL_profile_serial_resolution_latency.md) - drill; 0 design. Tags: complexity, pacing, playtesting, throughput.
 - [Restore Meaningful Participation Before Full Fictional Recovery When Needed](PAT_restore_meaningful_participation_before_full_fictional_recovery_when_needed.md) - pattern; 0 design. Tags: campaign-cadence, consequences, participation, recovery.
 - [Reuse Core Resolution Grammar Before Adding New Mechanics](PAT_reuse_core_resolution_grammar_before_adding_new_mechanics.md) - pattern; 0 design. Tags: architecture, mechanics, refactoring, resolution.
+- [Separate Purchase Price from Local Availability](PAT_separate_purchase_price_from_local_availability.md) - pattern; 0 design. Tags: access, availability, economy, scarcity, settlements.
 - [Separate Stabilization from Recovery](PAT_separate_stabilization_from_recovery.md) - pattern; 0 design. Tags: injury, medicine, persistent-state, recovery, time.
 - [Stress-Test Concurrent Rule Activation](DRILL_stress_test_concurrent_rule_activation.md) - drill; 0 design. Tags: complexity, mechanics, playtesting, state.
 - [Stress-Test Mechanical Constraints Under Composition](DRILL_stress_test_mechanical_constraints_under_composition.md) - drill; 0 design. Tags: constraints, exploits, mechanics, playtesting.
 - [Stress-Test the Core Resolution Grammar](DRILL_stress_test_the_core_resolution_grammar.md) - drill; 0 design. Tags: mechanics, playtesting, refactoring, resolution.
+- [Use Consumable Preparation to Reduce Failure Severity](PAT_use_consumable_preparation_to_reduce_failure_severity.md) - pattern; 0 design. Tags: consumables, failure, insurance, preparation, risk.
 - [Use Maintenance to Trade Present Effort for Future Reliability](PAT_use_maintenance_to_trade_present_effort_for_future_reliability.md) - pattern; 0 design. Tags: downtime, equipment, maintenance, reliability, resources, risk.
 - [Use Time to Structure Opportunity](PAT_use_time_to_structure_opportunity.md) - pattern; 0 design. Tags: action-economy, mechanics, pacing, time.
+  - Variants: `Cap Abstract Downtime Opportunities Independently of Elapsed Time` (context).

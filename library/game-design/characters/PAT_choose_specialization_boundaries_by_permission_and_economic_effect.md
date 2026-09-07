@@ -26,7 +26,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_bundle_identity_and_role_into_one_progression_package
+  variant_name: Bundle Identity and Role into One Progression Package
+  variant_basis: context
+  difference_from_foundation: Treat an identity and adventuring or professional role as one archetypal progression package with shared permissions, abilities, advancement, limits, and tradeoffs instead of exposing the two axes as independently recombinable choices.
+  when_to_use: The game intentionally wants a specific identity-role combination to be the meaningful archetype and values fast legibility, strong package identity, and reduced combinatorial load.
+  when_not_to_use: Players are expected to express the same identity through many professions or the same profession through many identities, because bundling would erase desired recombination.
+  absorbed_from_object_id: none
 ---
 
 # Choose Specialization Boundaries by Permission and Economic Effect
@@ -59,3 +66,5 @@ variants: []
 
 ## Notes
 Two character systems can contain nearly identical skill lists while producing very different play because one uses price differences and the other uses permission gates. Specialization architecture therefore belongs at the level of access and economics, not merely labels. Soft boundaries preserve broader participation while rewarding investment; hard boundaries can create stronger identity and exclusive world interfaces but also risk compulsory-role dependencies. Choose the boundary for the behavior it creates.
+
+Variant `game_design_variant_bundle_identity_and_role_into_one_progression_package` collapses two normally separate choice axes into one advancement package. It trades combinatorial freedom for a strongly legible archetype; use it only when the combined identity-role fantasy is intentional rather than a shortcut around supporting flexible combinations.

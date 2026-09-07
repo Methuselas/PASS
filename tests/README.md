@@ -28,7 +28,8 @@ the completion audit reports what a record omits.
 **`test_se_drill_support.py` — Software Engineering Drill administration.** The
 derived inventory covers every current SE Drill without becoming a second
 registry; the C++ pilot keeps taker and grader material separate; the Software
-Engineering release carries the Drill ceilings and contamination stop contract.
+Engineering release carries the field-test protocol, Drill ceilings, and
+contamination stop contract.
 
 ## What no suite here can prove
 

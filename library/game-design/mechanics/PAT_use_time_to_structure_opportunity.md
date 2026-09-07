@@ -32,7 +32,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_cap_abstract_downtime_opportunities_independently_of_elapsed_time
+  variant_name: Cap Abstract Downtime Opportunities Independently of Elapsed Time
+  variant_basis: context
+  difference_from_foundation: Represent downtime with a small fixed number of meaningful opportunity slots, limiting the total even when the fictional interval is much longer than the minimum time required for those actions.
+  when_to_use: The game needs downtime choices without allowing long calendar gaps to become unlimited optimization or requiring the table to simulate ordinary life week by week.
+  when_not_to_use: The exact amount of elapsed time is itself the main resource, long intervals should permit proportionally more projects, or the campaign needs detailed seasonal and logistical accounting.
+  absorbed_from_object_id: none
 ---
 
 # Use Time to Structure Opportunity
@@ -50,6 +57,8 @@ variants: []
 - Let world processes create temporal windows when appropriate, such as departures, seasons, patrols, tides, lunar phases, recovery periods, or other events that proceed independently of the player characters.
 - When a player tries to fit more work into less time, first use the game's existing difficulty, assistance, consequence, quality, or scope grammar before inventing a special rushed-action subsystem.
 - Preserve recognizable real-world units when they communicate the cost cleanly; "four hours" or "three days" can be mechanically meaningful without requiring hour-by-hour procedure.
+- Aggregate repeated interval checks across long spans when no meaningful decision occurs between them. Preserve the intended hazard pressure at the coarser scale instead of servicing identical rolls merely because several clock intervals passed.
+- When characters or groups commit to activities of unequal duration, track their local campaign dates separately until they can actually meet, coordinate, or resynchronize; a shared calendar need not imply everyone is available at the same moment.
 
 ## Don't
 - Treat time as meaningful merely because the fiction can be measured in seconds, hours, days, or months.
@@ -65,11 +74,14 @@ variants: []
 - Time pressure can be expressed through existing resolution grammar, reduced scope, added risk, or another deliberate consequence rather than an unexplained exception.
 - At least one interval that carries no meaningful competition or consequence can be safely abstracted.
 - Any scheduled world event changes access, value, risk, or state in a way the players can plan around rather than existing only as decorative calendar detail.
+- Repeated hazard checks have been collapsed to the coarsest interval that still preserves intervening decisions and meaningful changes in state.
+- If parallel characters or groups can occupy different campaign dates, their next point of interaction is determined from explicit temporal state rather than assumed simultaneity.
 
 ## Notes
 Time is both a familiar fictional measure and a flexible game resource. Its smallest formal expression is often the combat round: participants have a bounded window and must decide what can fit inside it. The same structure scales upward. "What can I do this round?" and "What can I do in the next four hours?" ask the same underlying question at different resolutions. Time becomes especially useful as a pressure test because reducing the available window can expose whether repair, healing, crafting, movement, training, assistance, difficulty, and other mechanics integrate cleanly. The design goal is not to maximize timekeeping; it is to make opportunity legible when elapsed time changes what players can do.
 
 **Task duration.** An action may consume minutes, hours, days, or longer without requiring a separate time subsystem. Duration becomes mechanical when it competes with another activity, deadline, resource, recovery window, or opportunity.
 
-**Training and advancement.** Learning or improving a capability can consume campaign time as well as experience, money, instructors, or facilities. This converts advancement from an instantaneous purchase into an opportunity-cost decision when other activities compete for the same interval.
+**Training and advancement.** Learning or improving a capability can consume campaign time as well as experience, money, instructors, or facilities. This converts advancement from an instantaneous purchase into an opportunity-cost decision when other activities compete for the same interval. Variant `game_design_variant_cap_abstract_downtime_opportunities_independently_of_elapsed_time` deliberately decouples a small number of significant downtime choices from the full calendar interval so a long gap does not become unlimited productive capacity.
 
+In persistent campaigns, time can also separate actors who are normally treated as one party. Research, recovery, travel, training, or separate expeditions may leave characters at different dates; retaining that asynchronous state preserves the opportunity cost until enough fictional time passes for them to interact again.

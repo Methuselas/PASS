@@ -50,12 +50,14 @@ variants: []
 - Let scarcity sometimes be solved through costly relationships rather than simple denial; access obtained from a patron can create future obligations and scenarios.
 - Use multiple constraint currencies when they create distinct decisions—money, access, time, social exposure, maintenance, bodily risk, or another independently meaningful bottleneck.
 - When capability depends on connectivity, automation, remote access, or network integration, treat the resulting **attack surface and evidence trail** as possible persistent costs rather than pure convenience.
+- When the ongoing cost is a behavioral obligation, keep the forbidden action available but let violations create explicit persistent pressure that raises the risk or consequence of invoking the associated privilege until that pressure is discharged.
 
 ## Don't
 - Rename an optimization budget with thematic language and assume the theme now creates behavior.
 - Price every drawback as if every build values the affected capability equally.
 - Let a character keep the benefit of a refunded drawback after another purchase or campaign condition has made the drawback irrelevant.
 - Make all costs one-time and then expect the upgrade to keep generating tension indefinitely.
+- Enforce a behavioral obligation only through hidden facilitator approval when the player needs to know what conduct creates mechanical exposure.
 
 ## Checklist
 - The capability has at least one cost that persists after the purchase when persistent compromise is part of the design goal.
@@ -63,6 +65,7 @@ variants: []
 - At least one cost can generate future play rather than only subtract currency.
 - Dependencies and vulnerabilities are visible enough for players to plan around them.
 - Removing the ongoing cost would materially change the behavior or identity produced by the option.
+- If a behavioral obligation is mechanized, the triggering conduct and its accumulated consequence are legible enough for the player to choose whether violating it is worth the risk.
 
 ## Notes
-A tradeoff exists only while both sides remain valuable. Persistent costs are especially powerful when they leave something in the world: a creditor, employer, maintenance need, damaged relationship, surveillance exposure, supply dependency, attack surface, forensic trace, or new technological vulnerability. Capability can therefore entangle the character more deeply with the campaign instead of making acquisition synonymous with independence. Voluntary output escalation and later progression that reduces those burdens are separate decisions with their own owners; this Pattern owns the initial question of whether capability gain should leave a persistent cost in the character or world at all.
+A tradeoff exists only while both sides remain valuable. Persistent costs are especially powerful when they leave something in the world: a creditor, employer, maintenance need, damaged relationship, surveillance exposure, supply dependency, attack surface, forensic trace, or new technological vulnerability. Capability can therefore entangle the character more deeply with the campaign instead of making acquisition synonymous with independence. Voluntary output escalation and later progression that reduces those burdens are separate decisions with their own owners; this Pattern owns the initial question of whether capability gain should leave a persistent cost in the character or world at all. Behavioral obligations can remain genuine choices instead of absolute prohibitions when violations accumulate visible exposure tied back to the privilege they constrain; this keeps the cost causal and persistent without requiring the system to author the character's conduct.

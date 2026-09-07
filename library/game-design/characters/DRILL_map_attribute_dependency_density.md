@@ -51,7 +51,7 @@ Use a complete representative character sheet and the rules that derive skills, 
 3. Mark each dependency by expected cadence and consequence. A dependency used every combat round weighs differently from one used once per campaign.
 4. Mark multiplicative dependencies separately from additive ones. If an attribute increases the number of times full downstream procedures can be invoked, trace the multiplied attacks, defenses, state writes, and spotlight cost rather than recording only the initiative bonus.
 5. Mark feedback loops. Note when acting first improves the chance to wound an opponent, which then reduces the opponent's future initiative or competence, or when one attribute also lowers future costs for skills that use the same attribute.
-6. Mark **double-leverage dependencies** where one rating controls both resource capacity and spend potency, both a fixed bonus and the size of its random component, or both a specialist ceiling and the breadth/strength of options beneath that ceiling.
+6. Mark **double-leverage dependencies** where one rating controls both resource capacity and spend potency, both a fixed bonus and the size of its random component, or both a specialist ceiling and the breadth/strength of options beneath that ceiling. Also mark cases where a persistent rating sets the refreshed capacity of a second pool, because permanent loss to the first then reduces recurring future bandwidth.
 7. Record any free build resources, derived pools, caps, or advancement efficiencies generated from the attribute rather than only tests that roll it.
 8. Compare a one-step increase in each attribute against representative narrower purchases that could produce similar outcomes.
 9. Repeat the graph for at least two campaign ecologies, such as combat-heavy and social/investigative play, to expose environment-dependent value.
@@ -62,6 +62,7 @@ Use a complete representative character sheet and the rules that derive skills, 
 - Every foundational attribute has a named downstream dependency set rather than a skill-count total alone.
 - Cadence and consequence are recorded for the major dependencies.
 - At least one indirect or feedback dependency is included.
+- Any rating that sets another pool's recurring capacity is counted as a compounding dependency edge rather than a one-time derived-value link.
 - Any action-quantity dependency is expanded through its downstream procedures rather than counted as one ordinary edge.
 - An attribute with many low-value dependencies is distinguished from one with fewer but high-cadence/high-consequence dependencies.
 - At least one counterweight is tested rather than merely listed.

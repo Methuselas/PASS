@@ -28,8 +28,8 @@ cross_links:
 - rel: related_to
   target_object_id: PAT_use_in_world_information_as_a_scenario_interface
 reference:
-  source_title: "Twilight: 2000 (1st Edition) and Twilight: 2000 Version 2.2"
-  author: "Frank Chadwick; David Nilsen, Loren Wiseman, and Lester Smith"
+  source_title: 'Twilight: 2000 (1st Edition) and Twilight: 2000 Version 2.2'
+  author: Frank Chadwick; David Nilsen, Loren Wiseman, and Lester Smith
 confidence: high
 references: []
 variants: []
@@ -50,12 +50,14 @@ variants: []
 - Reuse the same generated element differently when the party arrives with different needs.
 - Prefer causal pressure from already stored enemies, debts, injuries, obligations, reputation, public visibility, evidence trails, faction motives, damaged assets, compromised identities, owed favors, or resource needs over arbitrary danger added only to maintain tone.
 - Treat aftermath as future scenario material when one completed operation leaves unresolved economic, medical, social, legal, or logistical state that can activate later.
+- Persist location state across revisits: mapping, depletion, cleared inhabitants, occupation, damage, repaired defenses, destroyed access, and later repopulation should survive unless an in-world process changes them.
 
 ## Don't
 - Treat a random encounter table as a sandbox engine when its results have no durable relationship to party state.
 - Generate a mandatory quest response when a settlement problem, resource opportunity, or actor with a motive would create sufficient pressure.
 - Expose every internal territory or faction category as a player-facing label when discovery is part of play.
 - Assume survival pressure alone supplies long-term direction when players have no meaningful reasons to care about generated opportunities.
+- Reset a revisited location invisibly to its original encounter state when prior player actions should have altered what exists there.
 
 ## Checklist
 - At least one persistent player need can make the generated element matter differently from another party state.
@@ -64,6 +66,9 @@ variants: []
 - Players can infer changing conditions from fictional evidence.
 - The procedure produces usable pressure without requiring the referee to invent the entire situation from scratch.
 - The design distinguishes scenario ingredients from campaign automation: if the referee must choose which dormant hook or faction activates next, that synthesis workload is named rather than assumed away.
+- A revisited location can be compared to its prior state and every major change has either persisted or been replaced by a named world process.
 
 ## Notes
 A sandbox can generate situations without generating stories. A repair yard means little to a well-supplied group and can become the most important location on the map after a vehicle loses a critical component. A field hospital, fixer, buyer, trainer, checkpoint, or damaged safehouse changes meaning according to the party's current injuries, shortages, relationships, legal exposure, and goals. The useful procedural loop is generated world state multiplied by persistent player need; completed adventures can supply that state by leaving repair bills, wounds, favors, compromised identities, hunted loot, forensic traces, public attention, or other unresolved consequences behind.
+
+Persistent locations become scenario generators when prior clearing, mapping, occupation, damage, resource removal, or abandonment changes what later actors can do there. Repopulation is strongest when it is a world-state transition rather than an invisible reset to the original encounter package.

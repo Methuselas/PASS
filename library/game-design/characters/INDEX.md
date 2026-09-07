@@ -7,23 +7,38 @@
 - [Attach Persistent Costs to Capability Gains](PAT_attach_persistent_costs_to_capability_gains.md) - pattern; 0 design. Tags: augmentation, characters, costs, dependencies, tradeoffs.
 - [Audit Character Economy Exchange Rates Across Creation and Advancement](PAT_audit_character_economy_exchange_rates_across_creation_and_advancement.md) - pattern; 0 design. Tags: advancement, characters, economy, optimization.
 - [Balance Character Roles by Consequential Contribution](PAT_balance_character_roles_by_consequential_contribution.md) - pattern; 0 design. Tags: agency, balance, characters, specialization.
+  - Variants: `Constrain Overwhelming Capability with a Narrow Mission Mandate` (constraint).
 - [Choose Character Capability Granularity by Play Distinctions](PAT_choose_character_capability_granularity_by_play_distinctions.md) - pattern; 0 design. Tags: characters, complexity, granularity, skills.
 - [Choose Specialization Boundaries by Permission and Economic Effect](PAT_choose_specialization_boundaries_by_permission_and_economic_effect.md) - pattern; 0 design. Tags: characters, costs, permissions, specialization.
+  - Variants: `Bundle Identity and Role into One Progression Package` (context).
 - [Define Roles by Distinct World Interfaces](PAT_define_roles_by_distinct_world_interfaces.md) - pattern; 0 design. Tags: agency, characters, roles, scenario-ecology, specialization.
 - [Derive Character Capabilities from Expected Play](PAT_derive_character_capabilities_from_expected_play.md) - pattern; 0 design. Tags: abilities, characters, gameplay, roles.
 - [Design Character Roles and Options](AP_design_character_roles_and_options.md) - ap; 0 design. Tags: advancement, balance, characters, options, roles.
 - [Express Advancement as Greater Operating Fluency When That Is the Fantasy](PAT_express_advancement_as_greater_operating_fluency_when_that_is_the_fantasy.md) - pattern; 0 design. Tags: advancement, characters, fluency, mastery.
+- [Gate Capstone Transitions with Demonstrated Mastery](PAT_gate_capstone_transitions_with_demonstrated_mastery.md) - pattern; 0 design. Tags: advancement, capstone, characters, mastery, progression.
 - [Keep Persistent Capability Dependencies Local and Explicit](PAT_keep_persistent_capability_dependencies_local_and_explicit.md) - pattern; 0 design. Tags: advancement, bookkeeping, characters, dependencies.
 - [Keep Specialist Play Coupled to Shared Team Decisions](PAT_keep_specialist_play_coupled_to_shared_team_decisions.md) - pattern; 0 design. Tags: agency, characters, participation, specialists.
+- [Let Advancement Open New Scales of Agency](PAT_let_advancement_open_new_scales_of_agency.md) - pattern; 0 design. Tags: advancement, authority, campaign-scale, characters, progression.
+- [Make Character Background Mechanically Causal](PAT_make_character_background_mechanically_causal.md) - pattern; 0 design. Tags: advancement, background, careers, characters, equipment.
 - [Make Character Creation Preview Recurring Play](PAT_make_character_creation_preview_recurring_play.md) - pattern; 0 design. Tags: characters, creation, learning, onboarding.
 - [Map Attribute Dependency Density](DRILL_map_attribute_dependency_density.md) - drill; 0 design. Tags: attributes, balance, cadence, dependencies, optimization.
+- [Model Collective Identity as Shared Mechanical State](PAT_model_collective_identity_as_shared_mechanical_state.md) - pattern; 0 design. Tags: characters, groups, resources, shared-state, teamwork.
+- [Preserve Advancement Headroom Across the Intended Progression Horizon](PAT_preserve_advancement_headroom_across_the_intended_progression_horizon.md) - pattern; 0 design. Tags: advancement, characters, headroom, progression, scaling.
+  - Variants: `Redirect Post-Cap Growth into a Narrower Progression Track` (method_sequence).
 - [Preserve Counterpressure When Progression Reduces Ongoing Costs](PAT_preserve_counterpressure_when_progression_reduces_ongoing_costs.md) - pattern; 0 design. Tags: advancement, characters, costs, progression.
 - [Price Character Options by Mechanical Leverage](PAT_price_character_options_by_mechanical_leverage_and_constraint.md) - pattern; 0 design. Tags: balance, characters, costs, point-economy.
 - [Price Drawbacks by the Constraint They Actually Impose](PAT_price_drawbacks_by_the_constraint_they_actually_impose.md) - pattern; 0 design. Tags: characters, costs, drawbacks, incentives.
+- [Reduce Initial Choice Load Without Erasing Later Option Space](PAT_reduce_initial_choice_load_without_erasing_later_option_space.md) - pattern; 0 design. Tags: characters, choice-load, onboarding, progression, random-generation.
+  - Variants: `Reward Accepting a Generated Start` (constraint).
 - [Reuse Capability Effect Grammar Across Fictional Sources](PAT_reuse_capability_effect_grammar_across_fictional_sources.md) - pattern; 0 design. Tags: abilities, characters, reuse, sources.
 - [Scale Voluntary Output with Escalating Current Risk](PAT_scale_voluntary_output_with_escalating_current_risk.md) - pattern; 0 design. Tags: characters, escalation, risk, tradeoffs.
 - [Separate Advancement Price, Permission, and Fictional Cause](PAT_separate_advancement_price_permission_and_fictional_cause.md) - pattern; 0 design. Tags: advancement, characters, permissions, training.
+  - Variants: `Derive Transition Price from Shared Traits` (method_sequence).
+- [Separate Persistent Identity from Replaceable Embodiment](PAT_separate_persistent_identity_from_replaceable_embodiment.md) - pattern; 0 design. Tags: action-economy, characters, embodiment, identity, state.
+  - Variants: `Distribute One Identity Across Multiple Embodiments` (constraint).
 - [Trace a Character Option Into Play](DRILL_trace_a_character_option_into_play.md) - drill; 0 design. Tags: balance, characters, playtesting, specialization.
 - [Treat Near-Mandatory Role Options as Role Infrastructure](PAT_treat_near_mandatory_role_options_as_role_infrastructure.md) - pattern; 0 design. Tags: characters, infrastructure, optimization, roles.
+- [Treat Overlapping Progression Packages as Reachable Ceilings](PAT_treat_overlapping_progression_packages_as_reachable_ceilings.md) - pattern; 0 design. Tags: advancement, careers, mastery, progression, stacking.
 - [Turn Character History into Scenario-Addressable State](PAT_turn_character_history_into_scenario_addressable_state.md) - pattern; 0 design. Tags: backstory, campaign-state, characters, hooks, lifepath.
+- [Turn Completed Long-Term Goals into Character Succession](PAT_turn_completed_long_term_goals_into_character_succession.md) - pattern; 0 design. Tags: campaign-continuity, characters, goals, retirement, succession.
 - [Use Editable Templates as Onboarding Scaffolds](PAT_use_editable_templates_as_onboarding_scaffolds.md) - pattern; 0 design. Tags: characters, composition, onboarding, templates.

@@ -38,6 +38,7 @@ variants: []
 
 ## Do
 - Place inhabitants where their goals, needs, duties, territory, resources, or relationships make their presence useful and understandable.
+- For roaming or randomly selected inhabitants, establish enough local context to answer where they came from, where they are going, what they are doing, or what nearby faction, route, settlement, hazard, or resource explains their presence.
 - Give hazards a cause, trigger, footprint, or environmental relationship that can inform player decisions when discovered.
 - Place rewards and useful resources where ownership, history, security, scarcity, or practical use explains why they are there.
 - Let local motives and conditions change behavior when players negotiate, withdraw, alter the environment, remove a leader, expose a secret, or change another relevant state.
@@ -57,6 +58,7 @@ variants: []
 - Local state changes can alter encounter behavior where the fiction says they should.
 - Added setting detail earns its cost by informing an encounter decision or consequence.
 - Interactive elements can coexist in one situation without requiring unrelated assumptions for each keyed entry.
+- Random or roaming encounters can be connected to the surrounding world with at least one actionable origin, destination, activity, or local relationship when that context matters.
 
 ## Notes
 Encounter coherence is not a demand for exhaustive simulation. It is a demand for enough causality that the facilitator can answer the next reasonable question. Why is this opponent here? What happens if the alarm is disabled? Who owns the reward? Why does the hazard affect this area? When the answers connect to the fictional situation, players can investigate and manipulate the encounter instead of merely discovering a sequence of isolated designer-authored obstacles.

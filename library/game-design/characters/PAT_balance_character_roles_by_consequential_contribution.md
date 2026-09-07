@@ -36,7 +36,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_constrain_overwhelming_capability_with_a_narrow_mission_mandate
+  variant_name: Constrain Overwhelming Capability with a Narrow Mission Mandate
+  variant_basis: constraint
+  difference_from_foundation: Preserve a large capability gap while giving the stronger role a narrower success condition or mandate that makes direct solution of every shared problem contrary to that role's objective.
+  when_to_use: Mixed-power characters must share a scenario and the more capable character can remain interesting through observation, protection, containment, supervision, limited intervention, or another mission whose success leaves consequential work to others.
+  when_not_to_use: The mandate is hidden, arbitrary, unenforced, or leaves the powerful player with no meaningful decisions; use direct capability balancing when all roles are meant to solve the same problems on comparable terms.
+  absorbed_from_object_id: none
 ---
 
 # Balance Character Roles by Consequential Contribution
@@ -70,3 +77,5 @@ variants: []
 
 ## Notes
 Character balance is about comparable opportunity for consequential contribution, not identical output or equal spotlight minutes. Different roles can achieve radically different effects and still be balanced when each has meaningful strengths, limitations, and situations where its investment matters. Niche protection can coexist with adjacent overlap; specialization is weakened only when alternatives become effectively equivalent rather than merely possible.
+
+Variant `game_design_variant_constrain_overwhelming_capability_with_a_narrow_mission_mandate` balances contribution through objectives rather than equalized statistics. The stronger role receives a known and consequential mandate that makes restraint part of successful play; this works only when the mandate still gives that player real decisions and leaves other roles genuine ownership of outcomes.

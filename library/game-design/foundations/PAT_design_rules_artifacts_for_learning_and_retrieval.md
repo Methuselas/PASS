@@ -28,7 +28,28 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_preserve_stable_reference_topology_across_staged_expansions
+  variant_name: Preserve Stable Reference Topology Across Staged Expansions
+  variant_basis: method_sequence
+  difference_from_foundation: Organize later rule stages under the same recurring conceptual headings as earlier stages so users attach new material to an existing mental and reference map instead of learning a second document topology.
+  when_to_use: A rules line expands in stages while preserving the same core conceptual grammar and later users need to combine or cross-reference those stages frequently.
+  when_not_to_use: The later stage replaces the earlier conceptual model, the old topology is itself a usability defect, or parallel headings would force unrelated material into misleading categories.
+  absorbed_from_object_id: none
+- variant_id: game_design_variant_fade_instructional_scaffolding_as_competence_grows
+  variant_name: Fade Instructional Scaffolding as Competence Grows
+  variant_basis: method_sequence
+  difference_from_foundation: Begin with guided participation, worked decisions, and explicit prompts, then remove those supports as the learner can operate the same real procedure independently while preserving direct reference access.
+  when_to_use: The learner must acquire a complex role or procedure through actual use and early guidance can be withdrawn without changing the underlying rules.
+  when_not_to_use: The simplified teaching procedure differs materially from normal operation, the learner cannot safely practice the real task, or continued prompts are part of the permanent interface.
+  absorbed_from_object_id: none
+- variant_id: game_design_variant_reindex_a_mature_rules_corpus_around_reference_tasks
+  variant_name: Reindex a Mature Rules Corpus Around Reference Tasks
+  variant_basis: method_sequence
+  difference_from_foundation: Consolidate a staged or multi-volume rules corpus for experienced use by grouping related rules around lookup tasks and subjects rather than preserving the order in which those rules were originally taught or published.
+  when_to_use: Experienced users already understand the operating model, related rules are dispersed across stages or volumes, and repeated retrieval is a larger cost than first-exposure sequencing.
+  when_not_to_use: New users still depend on prerequisite teaching order, later stages replace the earlier conceptual model, or consolidation would hide operationally important scope boundaries or omit required dependencies without explicit signaling.
+  absorbed_from_object_id: none
 ---
 
 # Design Rules Artifacts for Learning and Retrieval
@@ -69,3 +90,9 @@ variants: []
 
 ## Notes
 Learning and reference are two access modes over the same rules. A teaching sequence often benefits from dependency order and worked examples; repeated play benefits from cheap direct retrieval of procedures and exceptions. The two structures can share an artifact, but they should not be mistaken for the same navigation problem. The same content can also impose different retrieval costs across print, searchable PDF, phone-sized, or virtual tabletop surfaces, so format transfer requires its own usability check. A simplified teaching model is useful only when the learner knows it is simplified and can transition to the exact procedure without discovering that earlier behavior was secretly replaced.
+
+Variant `game_design_variant_preserve_stable_reference_topology_across_staged_expansions` keeps recurring categories in predictable places as a staged rules line grows. Use it when later material extends the same conceptual model; preserving topology lets users expand a known map rather than relearn where every class of rule lives.
+
+Variant `game_design_variant_fade_instructional_scaffolding_as_competence_grows` treats guidance as temporary support around the real procedure. Early steps can be narrated or prompted heavily, but those cues should recede as competence becomes observable; the reference surface remains available even after tutorial support is removed.
+
+Variant `game_design_variant_reindex_a_mature_rules_corpus_around_reference_tasks` treats consolidation as a change of access architecture rather than a neutral concatenation. Once users already know the game, material that entered through different learning stages can be regrouped by the questions users repeatedly ask at the table. The consolidated reference should still state its scope and exclusions explicitly so improved retrieval does not blur which operational regimes are actually supported.

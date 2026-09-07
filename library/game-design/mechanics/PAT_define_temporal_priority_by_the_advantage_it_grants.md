@@ -26,7 +26,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_use_side_owned_activation_slots
+  variant_name: Use Side-Owned Activation Slots
+  variant_basis: method_sequence
+  difference_from_foundation: Initiative establishes ordered activation opportunities owned by a side; when one of that side's slots occurs, the side chooses which eligible member consumes it instead of binding the slot to the participant who generated its position.
+  when_to_use: Team sequencing and coordination should be an explicit tactical resource while initiative still determines how many activation opportunities each side receives and when those opportunities occur.
+  when_not_to_use: Individual initiative is meant to guarantee a particular character's personal turn placement, or choosing the acting member later would erase intended commitment, uncertainty, or information constraints.
+  absorbed_from_object_id: none
 ---
 
 # Define Temporal Priority by the Advantage It Grants
@@ -58,4 +65,4 @@ variants: []
 - A first-strike advantage has been checked for whether it compounds by reducing the opponent's later opportunity to act.
 
 ## Notes
-Initiative is not one universal mechanic. Different systems roll for order, use fixed attributes, compare weapon or action speed, alternate sides, declare before resolving, resolve simultaneously, allow delay and interrupts, or split a round into multiple passes. Those methods matter because priority grants something. The design decision begins by naming that benefit, then choosing an ordering method that creates the intended tactical and informational structure without accidentally bundling acting first, acting more often, and reacting more often into one unexamined advantage.
+Initiative is not one universal mechanic. Different systems roll for order, use fixed attributes, compare weapon or action speed, alternate sides, declare before resolving, resolve simultaneously, allow delay and interrupts, or split a round into multiple passes. Those methods matter because priority grants something. The design decision begins by naming that benefit, then choosing an ordering method that creates the intended tactical and informational structure without accidentally bundling acting first, acting more often, and reacting more often into one unexamined advantage. Variant `game_design_variant_use_side_owned_activation_slots` separates the timing of a team opportunity from the identity of the teammate who uses it, turning activation assignment itself into a cooperative sequencing decision.

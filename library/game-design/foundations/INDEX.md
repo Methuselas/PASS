@@ -5,22 +5,28 @@
 ## Objects
 
 - [Account for the Intended Play Environment Before Freezing the Design](PAT_account_for_the_intended_play_environment_before_freezing_the_design.md) - pattern; 0 design. Tags: components, controls, environment, medium.
+- [Add a Bounded Repair Valve to Random Generation](PAT_add_a_bounded_repair_valve_to_random_generation.md) - pattern; 0 design. Tags: character-creation, random-generation, repair, usability, variance.
 - [Align Repeated and Rewarded Behavior with Intended Outcomes](PAT_align_repeated_and_rewarded_behavior_with_intended_outcomes.md) - pattern; 0 design. Tags: outcomes, player-behavior, practice, rewards.
 - [Allocate Simulation Detail by Expected Persistence](PAT_allocate_simulation_detail_by_expected_persistence.md) - pattern; 0 design. Tags: complexity, persistence, progressive-detail, representation, simulation.
 - [Choose a Game Foundation by the Experience It Must Support](PAT_choose_a_game_foundation_by_the_experience_it_must_support.md) - pattern; 0 design. Tags: adaptation, architecture, framework, novelty.
 - [Classify Playtest Evidence Before Revising](PAT_classify_playtest_evidence_before_revising.md) - pattern; 3 rough. Tags: diagnosis, evidence, feedback, playtesting.
 - [Control Playtest Conditions Before Attributing Behavior to the Design](PAT_control_playtest_conditions_before_attributing_behavior_to_the_design.md) - pattern; 3 rough. Tags: environment, evidence, facilitation, playtesting.
+- [Convert Catastrophic Failure Protection into a Changed Survivable State](PAT_convert_catastrophic_failure_protection_into_a_changed_survivable_state.md) - pattern; 0 design. Tags: continuity, defeat, failure, recovery, survival.
+  - Variants: `Nullify the Immediate Terminal Result but Preserve Repeated Exposure` (constraint).
 - [Cover Required Production Functions with Explicit Ownership](PAT_cover_required_production_functions_with_explicit_ownership.md) - pattern; 0 design. Tags: collaboration, ownership, production, tools.
 - [Curate Modular Rules for Safe Onboarding](PAT_curate_modular_rules_for_safe_onboarding.md) - pattern; 0 design. Tags: modules, onboarding, optionality, usability.
+  - Variants: `Unlock Optional Complexity After Core Familiarity` (method_sequence).
 - [Define a Game Foundation and Scope](AP_define_a_game_foundation_and_scope.md) - ap; 0 design. Tags: architecture, audience, foundations, production, scope.
 - [Define Design Completion Against Current-Version Fundamentals](PAT_define_completion_against_a_living_game_design_document.md) - pattern; 0 design. Tags: completion, gdd, iteration, scope.
 - [Define the Intended Player Before Designing for Them](PAT_define_the_intended_player_before_designing_for_them.md) - pattern; 0 design. Tags: audience, communication, complexity, experience.
 - [Describe the Game by Player Fantasy and Recurring Play](PAT_describe_the_game_by_player_fantasy_and_recurring_play.md) - pattern; 0 design. Tags: audience, communication, experience, positioning.
 - [Design Rules Artifacts for Learning and Retrieval](PAT_design_rules_artifacts_for_learning_and_retrieval.md) - pattern; 0 design. Tags: learning, reference, rules, usability.
+  - Variants: `Preserve Stable Reference Topology Across Staged Expansions` (method_sequence); `Fade Instructional Scaffolding as Competence Grows` (method_sequence); `Reindex a Mature Rules Corpus Around Reference Tasks` (method_sequence).
 - [Distinguish Future Hooks from Current Supported Functionality](PAT_distinguish_future_hooks_from_current_supported_functionality.md) - pattern; 0 design. Tags: capabilities, completeness, roadmap, scope.
 - [Evaluate Mechanics by the Decisions and Agency They Create](PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create.md) - pattern; 0 design. Tags: agency, decisions, mechanics, resolution.
 - [Expose Construction Grammar for Expected Downstream Authorship](PAT_expose_construction_grammar_for_expected_downstream_authorship.md) - pattern; 0 design. Tags: authorship, construction, extensibility, usability.
-  - Variants: `Use a Sample Adventure as an Executable Reference Implementation` (context).
+  - Variants: `Use a Sample Adventure as an Executable Reference Implementation` (context); `Encode Baseline Calibration in a Novice Generator` (method_sequence).
+- [Externalize Live Rules State at the Point of Use](PAT_externalize_live_rules_state_at_the_point_of_use.md) - pattern; 0 design. Tags: bookkeeping, components, interface, state, usability.
 - [Integrate Genre Blends Instead of Merely Stacking Them](PAT_integrate_genre_blends_instead_of_merely_stacking_them.md) - pattern; 0 design. Tags: coherence, genre, integration, worldbuilding.
 - [Keep Common-Path Procedures Inside the Declared Playable Core](PAT_keep_common_path_procedures_inside_the_declared_playable_core.md) - pattern; 0 design. Tags: completeness, core, modules, packaging.
 - [Keep the Current Game Design Specification Living](PAT_keep_game_design_specification_living_and_dependency_aware.md) - pattern; 0 design. Tags: gdd, revision, specification.
@@ -37,7 +43,9 @@
 - [Run a Simulation Budget Audit](AP_run_a_simulation_budget_audit.md) - ap; 2 block. Tags: HOPR, TBMD, cadence, complexity, resources, simulation.
 - [Run an Edition Delta Audit](AP_run_an_edition_delta_audit.md) - ap; 0 design. Tags: behavior, comparison, complexity, editions, refactoring, regression.
 - [Run an Evidence-Driven Playtest Revision Cycle](AP_run_an_evidence_driven_playtest_revision_cycle.md) - ap; 3 rough. Tags: evidence, feedback, playtesting, revision.
+- [Scope Starter Rules Around a Complete Play Loop](PAT_scope_starter_rules_around_a_complete_play_loop.md) - pattern; 0 design. Tags: foundations, learning, onboarding, scope, starter-rules.
 - [Scope the Game to Available Production Capability](PAT_scope_the_game_to_available_production_capability.md) - pattern; 0 design. Tags: feasibility, production, resources, scope.
+- [Set Advancement Cadence Before Budgeting Rewards](PAT_set_advancement_cadence_before_budgeting_rewards.md) - pattern; 0 design. Tags: advancement, campaign-design, foundations, pacing, rewards.
 - [Test Audience Fit with Representative External Players](PAT_test_audience_fit_with_representative_external_players.md) - pattern; 3 rough. Tags: audience, evaluation, playtesting, sampling.
 - [Test Recovery Loops for Repeatable Reset Incentives](PAT_test_recovery_loops_for_repeatable_reset_incentives.md) - pattern; 0 design. Tags: attrition, incentives, loops, recovery, resources, resting.
 - [Trace Foundational Design Changes Through Dependent Work](PAT_trace_foundational_design_changes_through_dependent_work.md) - pattern; 0 design. Tags: change-impact, dependencies, design, revision.

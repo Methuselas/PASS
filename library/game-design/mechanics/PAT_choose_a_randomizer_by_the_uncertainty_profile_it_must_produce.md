@@ -28,7 +28,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_use_orthogonal_outcome_channels
+  variant_name: Use Orthogonal Outcome Channels
+  variant_basis: method_sequence
+  difference_from_foundation: One resolution produces independently evaluated result channels, such as primary success, beneficial or negative side effects, time cost, effort cost, and exceptional triggers, so secondary consequences need not be inferred from or perfectly correlate with primary success.
+  when_to_use: Success with a cost, failure with an upside, or several distinct consequence dimensions should arise naturally from one resolution and each channel can change a later decision or state.
+  when_not_to_use: Each extra channel adds interpretation or handling without changing later play, or secondary consequences are intentionally supposed to correlate tightly with primary success.
+  absorbed_from_object_id: none
 ---
 
 # Choose a Randomizer by the Uncertainty Profile It Must Produce
@@ -67,4 +74,4 @@ variants: []
 - Any unusual randomizer requirement has a concrete experiential or mechanical payoff beyond novelty.
 
 ## Notes
-The randomizer determines what results can occur and how likely they are; the surrounding rules determine what those results mean. Percentile rolls, single-die targets, dice pools, step dice, advantage systems, cards, and other familiar structures are tools rather than markers of originality. Finite decks add an important axis because draws can change later odds, and a card can function simultaneously as randomizer, result, and rules payload. Mature design often innovates through integration, application, presentation, or refinement rather than by inventing a new way to generate uncertainty.
+The randomizer determines what results can occur and how likely they are; the surrounding rules determine what those results mean. Percentile rolls, single-die targets, dice pools, step dice, advantage systems, cards, and other familiar structures are tools rather than markers of originality. Finite decks add an important axis because draws can change later odds, and a card can function simultaneously as randomizer, result, and rules payload. Mature design often innovates through integration, application, presentation, or refinement rather than by inventing a new way to generate uncertainty. Variant `game_design_variant_use_orthogonal_outcome_channels` applies when a single resolution should answer several independent questions, such as whether the task succeeds and whether it also creates benefit, cost, delay, exertion, or an exceptional effect, without forcing those secondary outcomes to track the primary result.

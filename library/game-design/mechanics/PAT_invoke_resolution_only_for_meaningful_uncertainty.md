@@ -48,6 +48,8 @@ variants: []
 - Identify what failure will change before asking for a roll, draw, check, or other resolution procedure.
 - Let routine competent actions succeed when no pressure, hazard, opposition, scarcity, or meaningful consequence makes failure worth resolving. This applies to routine operation and acquisition as well as obvious skill checks: ordinary driving, ordinary shopping, ordinary device discovery, and similar procedures should usually stay off until time, legality, opposition, scarcity, concealment, or failure matters.
 - Replace unlimited repeat-until-success checks with the eventual outcome or with a meaningful time or resource cost when that is the real question.
+- State what makes another attempt meaningfully different: changed circumstances, additional time, a new tool or approach, cumulative progress, degraded position, consumed resources, escalating danger, or another real state change. When none applies, resolve the uncertainty once rather than inviting identical retries.
+- Use an explicit extended or accumulating procedure when repeated attempts are themselves the intended action, so progress and cost are visible instead of being simulated by independent do-over rolls.
 - Invoke resolution when the same ordinary action becomes consequential because of traps, deadlines, noise, fragile contents, pursuit, limited tools, hostile opposition, or similar pressure.
 - Make the distinct outcomes matter enough that the resolution concentrates tension rather than distributing friction.
 - When players ask about an ordinary perceptible detail omitted from the initial description, provide it without a check if access is not meaningfully uncertain; use resolution only when noticing, uncovering, interpreting, or obtaining the information can genuinely fail in a consequential way.
@@ -56,16 +58,18 @@ variants: []
 - Require a check merely because a character sheet contains a relevant skill or because the rules are capable of producing a number.
 - Require a perception or search check merely because a detail was not mentioned in the opening description when a character would plainly perceive it once the player asks.
 - Roll repeatedly until the already-inevitable success finally appears.
+- Permit an identical retry merely because the first result was inconvenient when the fiction, cost, position, tools, and uncertainty are unchanged.
 - Expose routine expertise to arbitrary exceptional failure when nothing in the situation makes that possibility meaningful.
 - Treat “nothing happens; try again” as a sufficient failure state when no cost, pressure, or state change accompanies it.
 
 ## Checklist
 - The consequence of failure can be named before resolution is invoked.
 - Success and failure lead to materially different states, costs, risks, or available choices.
-- Unlimited retries have either been removed or converted into meaningful time, resource, or danger pressure.
+- Unlimited retries have either been removed or converted into meaningful time, resource, danger, positional change, or explicit cumulative progress.
+- A second attempt can name what changed since the first, or the repeated effort is handled by one extended/accumulating procedure.
 - Routine professional competence is not repeatedly tested without stakes.
 - A check can be removed from at least one low-stakes case without changing meaningful play.
 - Plainly perceptible information is available through description or reasonable questions without unnecessary resolution; information checks remain attached to consequential uncertainty.
 
 ## Notes
-A mechanic can be broadly available without being constantly invoked. The same action may deserve no check in a safe context and a consequential check under pressure. Resolution is most useful when it answers a question the table actually cares about; otherwise it consumes attention without creating play. Skipping inevitable outcomes preserves table rhythm and makes the checks that remain more dramatic. The same rule applies to information access: omission from read-aloud text does not itself create uncertainty. If the character would plainly perceive the detail once asked, provide it; resolve only when access is genuinely uncertain and the difference matters. Once a resolution is warranted, `PAT_add_resolution_factors_only_when_they_expose_actionable_causes` owns whether additional situational factors deserve explicit mechanical representation rather than being folded into a coarse difficulty state.
+A mechanic can be broadly available without being constantly invoked. Retry policy is part of the consequence model: another roll should represent a new uncertainty, a materially changed state, or one step in an explicit accumulation procedure rather than a reset of the same unresolved moment. The same action may deserve no check in a safe context and a consequential check under pressure. Resolution is most useful when it answers a question the table actually cares about; otherwise it consumes attention without creating play. Skipping inevitable outcomes preserves table rhythm and makes the checks that remain more dramatic. The same rule applies to information access: omission from read-aloud text does not itself create uncertainty. If the character would plainly perceive the detail once asked, provide it; resolve only when access is genuinely uncertain and the difference matters. Once a resolution is warranted, `PAT_add_resolution_factors_only_when_they_expose_actionable_causes` owns whether additional situational factors deserve explicit mechanical representation rather than being folded into a coarse difficulty state.

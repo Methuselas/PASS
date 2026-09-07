@@ -32,6 +32,8 @@ decision:
 - runtime profile routing, vendoring, or completion contracts:
   `docs/EXECUTION_CONTRACT.md`;
 - skill consumption or drill administration: `docs/PASS_CONSUMPTION.md`;
+- software card field tests against human-written code:
+  `docs/SOFTWARE_CARD_FIELD_TESTS.md`;
 - Skillset Memory: `docs/MEMORY_SCHEMA.md`.
 
 Read a complete document only when the task genuinely spans its complete

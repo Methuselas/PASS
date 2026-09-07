@@ -41,6 +41,7 @@ variants: []
 - Give important outcome states recognizable trigger conditions so the facilitator can tell which prepared consequence applies.
 - Provide enough material to combine prepared states when play produces a mixed or unexpected result.
 - Let continuation hooks preserve rather than negate closure: later threats can grow from the ending without retroactively erasing the accomplishment that made the current arc satisfying.
+- Carry behavior-dependent relationship state forward when it can drive later play: trust, hostility, favors, debts, secrecy, obligations, faction attention, and unresolved interests can all be part of the executable ending.
 - After the climax, communicate changed state and consequences efficiently so the table understands what its actions meant before play releases or moves on.
 
 ## Don't
@@ -58,6 +59,7 @@ variants: []
 - Mixed outcomes can be combined or adapted without pretending the adventure reached a state it did not.
 - Continuation material opens later play without invalidating closure earned in the current arc.
 - The aftermath communicates the changed state clearly enough that the table knows what the result means.
+- Important NPC or faction attitudes that changed because of player behavior are recorded strongly enough to guide their next plausible action.
 
 ## Notes
 An adventure does not need a single canonical ending to have closure. It needs executable stopping states that tell the facilitator what the current play state means. A lost battle may honestly become retreat or resistance; a local victory may close the present arc while opening a later threat. The key is to preserve causality. In the *Volturnus* sequence, a conventional military setback can redirect play into guerrilla resistance until outside help changes the strategic situation. Continuing the campaign does not require pretending the lost battle was actually won.

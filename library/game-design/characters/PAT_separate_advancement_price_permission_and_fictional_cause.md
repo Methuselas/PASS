@@ -26,7 +26,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_derive_transition_price_from_shared_traits
+  variant_name: Derive Transition Price from Shared Traits
+  variant_basis: method_sequence
+  difference_from_foundation: Instead of authoring a pairwise transition-cost table, assign semantic traits to advancement packages and reduce the transition price when the current and destination packages share meaningful traits, while permission and fictional cause remain separately defined.
+  when_to_use: Many advancement packages share reusable similarity dimensions, pairwise graph maintenance would be costly, and broadly symmetric similarity is a reasonable basis for cheaper transitions.
+  when_not_to_use: Transitions are strongly asymmetric, bespoke, institutionally gated, or shared traits would make fictionally implausible changes mechanically cheap.
+  absorbed_from_object_id: none
 ---
 
 # Separate Advancement Price, Permission, and Fictional Cause
@@ -60,4 +67,4 @@ variants: []
 - Causal advancement records are as coarse or detailed as later play actually needs.
 
 ## Notes
-Persistent advancement contains three questions that often get collapsed into one purchase rule: **what is it worth, can I get it now, and how did my character actually get it?** Separating them prevents a price from becoming an accidental permission system and prevents fictional access from being mistaken for balance. It also lets campaigns care about training and institutions at the level of detail they actually use instead of turning believable advancement into exhaustive accounting.
+Persistent advancement contains three questions that often get collapsed into one purchase rule: **what is it worth, can I get it now, and how did my character actually get it?** Separating them prevents a price from becoming an accidental permission system and prevents fictional access from being mistaken for balance. It also lets campaigns care about training and institutions at the level of detail they actually use instead of turning believable advancement into exhaustive accounting. Variant `game_design_variant_derive_transition_price_from_shared_traits` changes only how transition **price** is derived: semantic overlap can replace a fully authored pairwise cost graph, while permission and fictional cause still require their own rules.

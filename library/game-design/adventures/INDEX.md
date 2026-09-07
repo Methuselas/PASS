@@ -4,8 +4,10 @@
 
 ## Objects
 
+- [Anchor High-Impact Content Before Randomizing the Remainder](PAT_anchor_high_impact_content_before_randomizing_the_remainder.md) - pattern; 0 design. Tags: adventures, authorship, procedural-generation, random-generation, scenario-design.
 - [Build Stake Weight Through Player Investment Before Threatening It](PAT_build_stake_weight_through_player_investment_before_threatening_it.md) - pattern; 0 design. Tags: adventures, consequences, investment, stakes.
 - [Calibrate Encounter Challenge to Purpose and Context](PAT_calibrate_encounters_to_their_purpose_challenge_and_response_space.md) - pattern; 0 design. Tags: adventures, challenge, difficulty, encounters.
+  - Variants: `Calibrate Flexible Parameters Around a Generated Encounter Premise` (method_sequence).
 - [Define Encounter Response Space by Intended Challenge](PAT_define_encounter_response_space_by_intended_challenge.md) - pattern; 0 design. Tags: adventures, agency, encounters, responses.
 - [Design a Playable Adventure](AP_design_a_playable_adventure.md) - ap; 0 design. Tags: adventures, encounters, information, outcomes, structure.
 - [Design Shared Problems with Multiple Solution Interfaces](PAT_design_shared_problems_with_multiple_solution_interfaces.md) - pattern; 0 design. Tags: adventures, agency, participation, roles, solutions.

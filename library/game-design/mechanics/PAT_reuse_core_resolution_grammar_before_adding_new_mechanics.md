@@ -54,6 +54,7 @@ variants: []
 - Treat repeated adapters, exception chains, or bespoke conversions as evidence that the underlying grammar may need refactoring.
 - Treat specialized subsystems as possible laboratories for general mechanics: when a local solution repeatedly transfers beyond its original domain, promote the reusable concept into shared grammar and remove duplicated infrastructure where that does not erase distinctive play.
 - When a specialized subsystem is justified, define how play enters it, what decisions it adds, how it resolves, and how its results return to the rest of the game.
+- When two capabilities answer the same uncertainty question but need distinct fictional identities, keep the shared attempt grammar where possible and differentiate them through permissions, inputs, consequence branches, recovery, or persistent state before inventing separate resolution engines.
 - Carry established grammar into downtime and extended tasks when the underlying uncertainty is the same; longer fictional duration alone does not justify a new mechanic.
 - When time pressure changes an existing task, first express that pressure through established difficulty, assistance, scope, quality, risk, or consequence language before inventing a rushed-task subsystem.
 - When a proposed replacement mainly translates information the current grammar already expresses, identify the decision, clarity, pacing, uncertainty profile, or other meaningful play benefit that the translation purchases before adopting it.
@@ -69,6 +70,7 @@ variants: []
 - Add a lookup or translation layer around a value the player already understands unless the new layer creates a meaningful difference in play.
 - Assume that reusing the same dice, modifiers, or damage vocabulary automatically produces a complete working resolution procedure.
 - Treat shared physical dice as proof of shared resolution grammar when the decisions, sequencing, interpretation, or output structure differ enough that learning one procedure does not teach the next.
+- Duplicate an entire attempt procedure merely because two fictional power sources need different backlash, cost, or consequence identities.
 
 ## Checklist
 - At least one unforeseen but ordinary situation can be resolved through the established grammar without a new rule.
@@ -81,6 +83,7 @@ variants: []
 - Any added translation layer can name what meaningful play it creates beyond restating information the current grammar already communicates.
 - A cross-domain extension preserves a recognizable decision-and-resolution sentence even when the inputs represent a different scale or actor type.
 - Existing resolution primitives have been checked for inexpensive additional meaning before a new randomizer, lookup family, or action subsystem is introduced.
+- Fictionally distinct capabilities that resolve the same uncertainty have been tested for a shared attempt grammar before separate resolution engines are accepted.
 
 ## Notes
 Coherent mechanics achieve coverage through generalization: a small vocabulary can absorb many fictional situations while preserving recognizable play. Consistency does not require one mechanic for literally everything. A tactical subsystem, vehicle procedure, magic system, or other specialized structure may earn its place when it creates meaningful decisions that a generic resolution cannot preserve economically. The important move is to test the existing grammar first and treat repeated patches as a refactoring signal rather than normal growth.

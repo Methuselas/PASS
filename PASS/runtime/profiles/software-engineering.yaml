@@ -1,6 +1,40 @@
 schema_version: 1
 profile_id: software-engineering
 consumer_instructions:
+- >-
+  Distinguish maintainer qualification from ordinary project application. A
+  maintainer asking to test cards uses the field-test protocol; an ordinary user
+  asking for help with software does not need a catalog or qualification run.
+  A demonstrated defect in the human review subject is useful evidence, not a
+  failed comparison.
+- >-
+  A field test against human-written software is not a Drill or control study.
+  Use one primary card, one coherent source slice, one proof of concept, and one
+  reviewer; inspect declarations, call sites, tests, build context, and failure
+  paths, compare engineering decisions rather than proxy counts, then report and
+  stop before another review.
+- >-
+  Declare why the review subject was selected: neutral external corpus,
+  project-relevant reference, or interest-led investigation. A ranking catalog
+  selects candidates but is not itself the code under review or a control arm.
+  Read a user-provided local source map when present; never inherit or infer
+  another user's source assignments.
+- >-
+  Do not require a catalog or ask the user to fill in a context template. Code
+  plus a practical goal is enough to begin a project-relevant field test. If a
+  neutral source must be chosen, accept a pasted catalog or offer to select a
+  reasonable public one, ask at most one plain-language setup question, and
+  record the resulting context for the user.
+- >-
+  Qualify the authored language module first and load core cards only when they
+  are prerequisites or the real code triggers them. Evidence for a core card in
+  one language supports that language only; do not claim verified coverage in
+  other languages until the decision survives those languages.
+- >-
+  Keep each cross-language decision in one shared core card even when it was
+  learned from a language-specific source or has evidence from only one language.
+  Language modules add realization, idioms, constraints, and exceptions; never
+  duplicate or fork the core library per language.
 - Before administering a Software Engineering Drill, declare whether the run is a portability probe, blind Drill sitting, deterministic regression, or comparative study. Do not treat one type as evidence for another.
 - An ordinary portability probe or Drill sitting uses one taker. A comparative pilot uses at most one treatment/control pair and at most two concurrent sub-agents. Any continuation requires approval naming the exact additional run count, model, maximum concurrency, and stopping condition, and each pair must be reported before another is launched.
 - Keep the taker packet separate from the grader packet, state that required artifacts must be produced rather than described, and freeze the answer before revealing the Success Check or mutation cases.

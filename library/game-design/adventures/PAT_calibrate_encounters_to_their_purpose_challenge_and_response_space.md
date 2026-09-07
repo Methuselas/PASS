@@ -48,7 +48,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_calibrate_flexible_parameters_around_a_generated_encounter_premise
+  variant_name: Calibrate Flexible Parameters Around a Generated Encounter Premise
+  variant_basis: method_sequence
+  difference_from_foundation: Let procedural generation establish the encounter premise, then calibrate only still-uncommitted flexible quantities or details around party capability, context, and purpose before those parameters become established play state.
+  when_to_use: A generated encounter is meant to preserve world uncertainty while values such as quantity, disposition, distance, or composition are explicitly left as referee-facing ranges or choices.
+  when_not_to_use: The generated details are already established to the players, the procedure promises uncushioned world-state results, or calibration would become reactive protection from an unwanted outcome.
+  absorbed_from_object_id: none
 ---
 
 # Calibrate Encounter Challenge to Purpose and Context
@@ -80,3 +87,5 @@ variants: []
 Encounters are broader challenge scenes rather than combat packets. Useful calibration can include combat, survival, information pressure, puzzle solving, recovery, resource management, social leverage, movement, and other focused situations. The key question is not whether both sides have equal numbers; it is whether this encounter's challenge conditions support its purpose for the actual players and characters who will face it. Adventure-wide challenge topology, risk telegraphing, role contribution, and climactic convergence are separate decisions owned elsewhere.
 
 Published adventures demonstrate a wide valid range. *The Keep on the Borderlands* uses a navigable difficulty gradient and gives weaker groups guidance without making every location equally dangerous. *Tomb of Horrors* deliberately calibrates toward extreme player-skill challenge, preparation, caution, and accepted failure. *Queen of the Demonweb Pits* expects expert high-level play through party composition, altered environmental rules, resource suppression, tactical opposition, and system mastery. These are different challenge bands serving different purposes, not deviations from one universal balance formula.
+
+Variant `game_design_variant_calibrate_flexible_parameters_around_a_generated_encounter_premise` preserves the generated premise while using only uncommitted parameters for calibration. The boundary matters: this is construction-time tuning, not permission to rewrite established challenge state after predicting an unfavorable result.

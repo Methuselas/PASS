@@ -18,6 +18,8 @@ FIXTURES = ROOT / "tests/fixtures/software_engineering_drills"
 PILOT = FIXTURES / "cpp/templatized-base-name-access"
 PROFILE = ROOT / "PASS/runtime/profiles/software-engineering.yaml"
 RECIPE = ROOT / "workspace/release-recipes/SkillForge_Software_Engineering.yaml"
+FIELD_TESTS = ROOT / "PASS/docs/SOFTWARE_CARD_FIELD_TESTS.md"
+FIELD_TEST_CONTEXT = ROOT / "PASS/templates/SOFTWARE_FIELD_TEST_CONTEXT_TEMPLATE.md"
 
 
 class DrillInventoryTests(unittest.TestCase):
@@ -94,9 +96,33 @@ class SoftwareEngineeringReleaseProfileTests(unittest.TestCase):
         self.assertEqual(recipe["runtime_profile"], "software-engineering")
         profile = yaml.safe_load(PROFILE.read_text(encoding="utf-8"))
         instructions = "\n".join(profile.get("consumer_instructions") or [])
+        self.assertIn("one primary card, one coherent source slice", instructions)
+        self.assertIn("ranking catalog", instructions)
         self.assertIn("at most two concurrent sub-agents", instructions)
         self.assertIn("Confirmed contamination", instructions)
         self.assertIn("never triggers an automatic retry", instructions)
+
+    def test_field_test_protocol_distinguishes_source_roles_and_stops(self) -> None:
+        protocol = FIELD_TESTS.read_text(encoding="utf-8")
+        self.assertIn("Neutral external corpus", protocol)
+        self.assertIn("Project-relevant reference", protocol)
+        self.assertIn("Interest-led investigation", protocol)
+        self.assertIn("Ready for a project trial", protocol)
+        self.assertIn("one reviewer and no automatic repetitions", protocol)
+        self.assertIn("The user does not need a catalog", protocol)
+        self.assertIn("ask one plain-language question", protocol)
+        self.assertIn("Qualification is not ordinary use", protocol)
+        self.assertIn("evidence **in that language only**", protocol)
+        self.assertIn("Finding a human defect", protocol)
+        self.assertIn("Keep exactly one canonical core card", protocol)
+        self.assertIn("Do not copy the core library", protocol)
+        self.assertNotIn("AROS", protocol)
+        self.assertNotIn("game repositories", protocol)
+        context = FIELD_TEST_CONTEXT.read_text(encoding="utf-8")
+        self.assertIn("model-maintained working file", context)
+        self.assertIn("Neutral external corpus", context)
+        self.assertIn("Project-relevant reference", context)
+        self.assertIn("Interest-led investigation", context)
 
 
 if __name__ == "__main__":

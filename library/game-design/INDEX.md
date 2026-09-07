@@ -4,9 +4,9 @@
 
 ## Topics
 
-- [Adventures](adventures/INDEX.md) - 20 object(s).
+- [Adventures](adventures/INDEX.md) - 21 object(s).
 - [Adversaries](adversaries/INDEX.md) - 7 object(s).
-- [Characters](characters/INDEX.md) - 23 object(s).
-- [Foundations](foundations/INDEX.md) - 39 object(s).
-- [Mechanics](mechanics/INDEX.md) - 32 object(s).
+- [Characters](characters/INDEX.md) - 32 object(s).
+- [Foundations](foundations/INDEX.md) - 44 object(s).
+- [Mechanics](mechanics/INDEX.md) - 44 object(s).
 - [Worldbuilding](worldbuilding/INDEX.md) - 6 object(s).

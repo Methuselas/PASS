@@ -46,6 +46,8 @@ variants: []
 - Make recovery and resupply consume meaningful route, time, money, access, exposure, scavenging effort, specialist capacity, or other planning resources when logistics are intended to matter.
 - Test the coupled system under pressure where at least two needs compete before the shared bottleneck refreshes or expands.
 - Let the fiction determine which exchanges are possible instead of forcing every pool into a universal market.
+- Include capacity coupling when one persistent pool or rating sets the refreshed size of another resource. Treat permanent loss to the first as recurring future loss to the second and test whether that compounding consequence is intentional.
+- When one named currency serves as both persistent standing or capacity and a spendable renewable reserve, record those states separately: temporary spending changes the current reserve, while permanent spending changes both the standing value and the future reserve envelope.
 
 ## Don't
 - Track several resources as isolated meters when the intended planning problem depends on them competing for the same capacity or effort.
@@ -53,6 +55,7 @@ variants: []
 - Add free or lossless conversion that makes nominally separate scarcity interchangeable in every important situation unless that fungibility is intentional.
 - Treat resupply as an automatic meter reset when the intended play depends on logistics, route choice, exposure, or specialist support.
 - Invent cross-resource interactions that the fiction and expected decisions do not support merely to make the economy appear interconnected.
+- Let ordinary temporary spending accidentally reduce rank, capacity, or other persistent standing when the design intends only the current reserve to fluctuate.
 
 ## Checklist
 - Every coupled pair shares a named bottleneck, substitution path, conversion path, or recovery constraint.
@@ -61,6 +64,10 @@ variants: []
 - Any substitution or conversion has an explicit opportunity cost or constraint unless free exchange is an intentional property of the setting.
 - Recovery or resupply changes at least one route, timing, access, money, exposure, labor, or specialist decision when logistics are meant to matter.
 - Removing the coupling would remove a planning tradeoff rather than merely reduce bookkeeping.
+- When one pool sets another pool's recurring capacity, permanent depletion of the source has been tested for the intended long-term reduction in renewable bandwidth.
+- If one currency has both permanent and current meanings, the sheet and procedures distinguish which expenditures regenerate and which reduce persistent capacity.
 
 ## Notes
 Several resource pools do not become strategically interesting simply by existing beside one another. Interaction emerges when they compete for something players cannot maximize simultaneously: cargo space, repair time, money, specialist labor, safe access, movement, or exposure. A fuel shortage and a medical shortage can remain mechanically distinct while still competing for the same cargo capacity or detour time. Likewise, one stock can support several uses without becoming a universal supply meter when choosing one use forecloses another. This Pattern owns **how distinct resources interact**; `PAT_compress_resource_contents_without_erasing_resource_constraints` owns how much internal detail each pool needs to retain.
+
+A shared bottleneck may be represented by one currency with two state records rather than two differently named pools. Persistent standing can define the renewable envelope while current reserve tracks temporary operating expenditure. The design still needs separate state transitions so routine use does not masquerade as permanent loss and permanent investment cannot regenerate accidentally.

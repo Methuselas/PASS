@@ -28,6 +28,8 @@ cross_links:
   target_object_id: PAT_budget_mechanical_operating_cost_by_decision_value_and_activation_cadence
 - rel: related_to
   target_object_id: DRILL_profile_serial_resolution_latency
+- rel: related_to
+  target_object_id: PAT_gate_consequential_injury_behind_a_recoverable_buffer
 reference:
   source_title: Cyberpunk 2020 (2.0.2.0 Version)
   author: Mike Pondsmith and R. Talsorian Games contributors
@@ -46,6 +48,7 @@ variants: []
 ## Do
 - Make misses, harmless failures, or other no-change outcomes terminate quickly.
 - Put location, severity, equipment interaction, impairment, or other detailed processing behind the event that makes those distinctions relevant.
+- A depletion threshold can serve as the trigger: keep routine buffer loss cheap, then activate richer injury or failure state only when the threshold is crossed, preserving overflow when it affects severity.
 - Stop resolving additional sub-events when they no longer change any decision-relevant final state, unless the remaining state is explicitly important to later recovery, ownership, or campaign consequences.
 - Test the state-changing branch at realistic maximum multiplicity when one declaration can generate several consequential results; if repeated consequence processing becomes the dominant cost, route compression to the procedure/state-compression owner rather than expanding this Pattern's scope.
 

@@ -6,8 +6,34 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+No changes yet.
+
+## 1.0.0-beta.3 - 2026-09-07
+
 ### Added
 
+- Added 27 Game Design Patterns from the completed D&D Basic source project:
+  one Adventure Pattern, nine Character Patterns, five Foundation Patterns, and
+  twelve Mechanics Patterns. They cover hybrid procedural construction,
+  advancement and succession, mechanically causal identity, onboarding,
+  persistent rules state, pressure and resource systems, causal randomness,
+  injury, time, resolution scale, and extended processes.
+- Added a Software Engineering card field-test protocol for reviewing one card
+  against one real human-code slice, building a proof of concept, comparing the
+  engineering decisions, gating active-project use, and stopping before another
+  review.
+- Distinguished neutral catalog-selected corpora, project-relevant references,
+  and interest-led investigations, with a blank local-context template so one
+  user's source choices cannot become public defaults or control data.
+- Made field-test setup model-guided: code plus a practical goal is sufficient,
+  catalogs are optional, and the model maintains any local context record.
+- Separated maintainer card qualification from ordinary project use, recognized
+  demonstrated defects in human review subjects as useful evidence, and scoped
+  single-language results instead of treating them as proof that a core card is
+  language-agnostic.
+- Clarified that verified language coverage does not change ownership: reusable
+  decisions remain in one shared core while language modules contain only their
+  language-specific realization and exceptions.
 - Added a dedicated Software Engineering Drill protocol that separates
   portability probes, blind sittings, deterministic regressions, and comparative
   studies.
@@ -15,6 +41,26 @@ skillsets may evolve independently.
   sub-agent concurrency and run ceilings for empirical work.
 - Added a derived SE Drill inventory command and a self-testing C++ Drill packet
   that exercises compile-success and expected-compile-failure evidence.
+
+### Changed
+
+- Revised 26 existing Game Design objects—five Adventure Patterns, one Character
+  AP, one Character Drill, five Character Patterns, five Foundation Patterns,
+  one Mechanics Drill, and eight Mechanics Patterns—to integrate the new
+  decisions into existing design, calibration, onboarding, progression,
+  resolution, and action-economy guidance.
+- Regenerated the affected Game Design indexes. The package now contains 159
+  validated objects.
+
+### Safety and evidence
+
+- Imported the returned Game Design project through the domain-only project
+  boundary. Shared documentation, tools, root instructions, runtime code, and
+  Python cache artifacts present in the archive were deliberately excluded as
+  stale or out of scope.
+- Reviewed the imported card delta after the archive passed card, reference,
+  index, and Skillset Memory validation. No repository files were deleted by the
+  import.
 
 ## 1.0.0-beta.2 - 2026-09-06
 

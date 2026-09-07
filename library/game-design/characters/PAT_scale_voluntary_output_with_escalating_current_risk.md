@@ -41,6 +41,7 @@ variants: []
 - Make the added cost increase with leverage strongly enough that the highest output is not the automatic default whenever the capability is available.
 - Use costs that matter in the current situation or in reliably connected future state: fatigue, heat, instability, evidence, depletion, injury risk, detection, or another live pressure.
 - Test several output levels to see whether the middle choices remain useful rather than collapsing into minimum-safe and maximum-output extremes.
+- For count-based pushing such as extra dice, actions, charges, targets, or similar units, calculate both the success curve and the backlash curve at each selectable setting; the tradeoff is only real when greater leverage changes both in ways the player can rationally compare.
 - Let context change the attractive output level; a risk that is tolerable in one scene should become expensive when reserves, exposure, or recovery capacity are already strained.
 - Keep the fiction and mechanics aligned so players can understand what pushing harder means before committing to it.
 
@@ -54,6 +55,7 @@ variants: []
 - The player can identify at least two materially different output/risk choices before acting.
 - Greater leverage creates greater current or reliably connected future exposure rather than a cosmetic cost increase.
 - At least one intermediate output level is rational in a representative situation.
+- When escalation is count-based, representative settings have been checked for both success probability and adverse-outcome probability rather than only for average output.
 - The risk changes with current state enough that the same output choice is not automatically correct in every scene.
 - Players can understand the consequence they are accepting well enough to treat escalation as a decision rather than a surprise tax.
 

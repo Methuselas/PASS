@@ -22,6 +22,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Cue Yourself With the Domain, Not With a Generic Problem-Solving Frame](PAT_use_domain_specific_cues_not_generic_problem_frames.md) - pattern; 0 design. Tags: deliberate_practice, problem_solving, retrieval, transfer.
 - [Decide Whether the Split or the Combine Does the Work](PAT_decide_whether_the_split_or_the_combine_does_the_work.md) - pattern; 0 design. Tags: algorithm_design, decomposition, performance, recursion.
 - [Define the Subproblems and Let Their Dependencies Set the Order](PAT_define_the_subproblems_and_let_their_dependencies_set_the_order.md) - pattern; 0 design. Tags: algorithm_design, decomposition, dynamic_programming, memory.
+- [Estimate a Count by Random Sampling When Enumeration Is Intractable](PAT_estimate_a_count_by_random_sampling_when_enumeration_is_intractable.md) - pattern; 0 design. Tags: algorithm_design, estimation, intractability, probabilistic.
 - [Fill the Table or Memoise the Recursion, by What You Actually Reach](PAT_fill_the_table_or_memoise_the_recursion_by_what_you_reach.md) - pattern; 0 design. Tags: algorithm_design, dynamic_programming, memoization, performance.
 - [Find a Defect by Hypothesis, Not by Guessing](AP_find_a_defect_by_hypothesis_not_by_guessing.md) - ap; 3 rough. Tags: debugging, defects, diagnosis, hypothesis.
 - [Find the Real Constraints Before Calling It Impossible](PAT_find_the_real_constraints_before_calling_it_impossible.md) - pattern; 0 design. Tags: assumptions, constraints, design, problem_solving.
@@ -30,7 +31,9 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Get a Usable Answer to an Intractable Problem](AP_get_a_usable_answer_to_an_intractable_problem.md) - ap; 0 design. Tags: algorithm_design, approximation, intractability, search.
 - [Make Only Forced Moves, So Failure Proves There Was No Solution](PAT_make_only_forced_moves_so_failure_proves_there_was_no_solution.md) - pattern; 0 design. Tags: algorithm_design, constraints, invariant, search.
 - [Move the Work Into a Cheaper Representation and Back](PAT_move_the_work_into_a_cheaper_representation_and_back.md) - pattern; 0 design. Tags: algorithm_design, performance, representation, transformation.
+- [Order the Search by an Admissible Cost Estimate](PAT_order_the_search_by_an_admissible_cost_estimate.md) - pattern; 0 design. Tags: algorithm_design, heuristics, optimization, search.
 - [Pick the Abstraction Level of Your Machine Model and Name What It Hides](PAT_reason_with_a_notional_machine_at_a_chosen_level.md) - pattern; 0 design. Tags: abstraction, mental_model, notional_machine, problem_solving.
+- [Prescreen With a Bounded False-Positive Filter](PAT_prescreen_with_a_bounded_false_positive_filter.md) - pattern; 0 design. Tags: algorithm_design, membership, performance, probabilistic.
 - [Prove a Greedy Rule Safe Before Calling It an Algorithm](PAT_prove_a_greedy_rule_safe_before_calling_it_an_algorithm.md) - pattern; 0 design. Tags: algorithm_design, correctness, greedy, optimization.
 - [Prune a Partial Candidate Before You Finish Building It](PAT_prune_a_partial_candidate_before_you_finish_building_it.md) - pattern; 0 design. Tags: algorithm_design, intractability, pruning, search.
 - [Reduce the Problem Until You Can Already Solve It](PAT_reduce_the_problem_until_you_can_already_solve_it.md) - pattern; 0 design. Tags: constraints, decomposition, getting_unstuck, problem_solving.
@@ -39,4 +42,5 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Sample a Split Point You Cannot Afford to Compute](PAT_sample_a_split_point_you_cannot_afford_to_compute.md) - pattern; 0 design. Tags: algorithm_design, expected_cost, randomization, recursion.
 - [State the Approximation Guarantee You Actually Have](PAT_state_the_approximation_guarantee_you_actually_have.md) - pattern; 0 design. Tags: algorithm_design, approximation, heuristics, honesty.
 - [Surface the Notional Machine Hiding in Your Team's Vocabulary](DRILL_surface_notional_machines_from_code_vocabulary.md) - drill; 1 skeleton. Tags: mental_model, notional_machine, problem_solving, vocabulary.
+- [Sweep Sorted Events and Compare Only Neighbors](PAT_sweep_sorted_events_and_compare_only_neighbors.md) - pattern; 0 design. Tags: algorithm_design, ordering, performance, search.
 - [Time-Box the Guess and Name the Fallback](PAT_time_box_the_guess_and_name_the_fallback.md) - pattern; 3 rough. Tags: brute_force, debugging, estimation, sunk_cost.

@@ -52,6 +52,7 @@ variants: []
 - Account for the library's own conditioning. A benchmarking harness typically discards the first iterations so the numbers settle, which removes cold-start effects — legitimate when the real code runs hot in a loop, misleading when the real code is called once and each call pays those costs.
 - Rebuild the state, not only the arguments. A function's inputs are the easy part; a larger fragment needs the surrounding state recreated, and how hard that is tells you something about the code's structure rather than about benchmarking.
 - Borrow the real compilation unit when the results move for no visible reason. If timings change in response to code that is compiled but never executed, a compiler heuristic is reacting to what else is in the file, and benchmarking the production unit directly sidesteps it.
+- Trim outliers and report a range, not a bare number. Discard the best and worst of a batch of repeated trials before averaging, and state a spread — a standard deviation, or the interval the true value falls in at a stated confidence — alongside the mean. A single figure with more digits of precision than the measurement supports invites a certainty the range does not actually support.
 
 ## Don't
 - Don't carry a micro-benchmark ranking into the program without re-measuring the program. An optimization can be real in isolation, beneficial on its own terms, and still leave the whole program unchanged or slower — that outcome is a new data point about where the time really goes, not a failure of the experiment.

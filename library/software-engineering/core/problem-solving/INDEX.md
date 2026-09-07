@@ -31,6 +31,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Make Only Forced Moves, So Failure Proves There Was No Solution](PAT_make_only_forced_moves_so_failure_proves_there_was_no_solution.md) - pattern; 0 design. Tags: algorithm_design, constraints, invariant, search.
 - [Move the Work Into a Cheaper Representation and Back](PAT_move_the_work_into_a_cheaper_representation_and_back.md) - pattern; 0 design. Tags: algorithm_design, performance, representation, transformation.
 - [Pick the Abstraction Level of Your Machine Model and Name What It Hides](PAT_reason_with_a_notional_machine_at_a_chosen_level.md) - pattern; 0 design. Tags: abstraction, mental_model, notional_machine, problem_solving.
+- [Prescreen With a Bounded False-Positive Filter](PAT_prescreen_with_a_bounded_false_positive_filter.md) - pattern; 0 design. Tags: algorithm_design, membership, performance, probabilistic.
 - [Prove a Greedy Rule Safe Before Calling It an Algorithm](PAT_prove_a_greedy_rule_safe_before_calling_it_an_algorithm.md) - pattern; 0 design. Tags: algorithm_design, correctness, greedy, optimization.
 - [Prune a Partial Candidate Before You Finish Building It](PAT_prune_a_partial_candidate_before_you_finish_building_it.md) - pattern; 0 design. Tags: algorithm_design, intractability, pruning, search.
 - [Reduce the Problem Until You Can Already Solve It](PAT_reduce_the_problem_until_you_can_already_solve_it.md) - pattern; 0 design. Tags: constraints, decomposition, getting_unstuck, problem_solving.

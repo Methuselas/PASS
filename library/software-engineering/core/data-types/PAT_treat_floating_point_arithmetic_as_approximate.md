@@ -48,6 +48,8 @@ variants: []
 - Don't compare two floating-point values with `==` because they were computed from the same inputs. The failure is not in the values but in the paths — a loop accumulating 0.1 passes through 0.30000000000000004 and 0.7999999999999999 on its way to 0.9999999999999999, and every intermediate is slightly wrong in a way the printed result may not show.
 - Don't assume seven or fifteen digits of accuracy is the same as exact. A 32-bit representation of one third comes out as 0.33333330, which is accurate enough for most purposes and inaccurate enough to trip you occasionally — and the occasional case is the one that ships.
 - Don't leave the accumulated error uncontrolled just because each individual operation looks harmless. Ordering is the cheapest lever available and costs nothing at runtime.
+- Don't expect a tolerance to rescue a decision that is really about the sign of a computed value rather than its closeness to another one — an orientation test, a collinearity check, any expression whose positive, negative, or zero result is itself the answer. Widening equality does nothing there, because the arithmetic can flip which side of zero the true value falls on: three points that are mathematically collinear can evaluate to a small positive number in one precision and a small negative number in another, reversing which way the algorithm decides they turn. That failure needs a technique that protects the sign specifically — evaluate in higher precision, restructure the expression to avoid the cancelling subtraction, or use an exact predicate — not a wider equality test.
+- Don't chain tolerance comparisons and expect them to behave like equality. Closeness is not transitive: x within delta of y and y within delta of z does not guarantee x is within delta of z, so grouping values by pairwise closeness can sort them into different groups depending on the order they are compared in.
 
 ## Checklist
 - Does any comparison of these values use exact equality?
@@ -55,6 +57,7 @@ variants: []
 - Are values of very different sizes being added, and if so in what order?
 - Is this quantity one that has to balance exactly, and if so why is it in a floating-point type?
 - Would a reader know from the type that this value is approximate?
+- Does this decision actually turn on a sign or direction rather than a magnitude — and if so, does a tolerance even apply?
 
 ## Notes
 The root cause is worth holding in one sentence, because every guideline here follows from it: many fractional decimal numbers have no exact representation in the ones and zeros a digital computer has to work with. Nonterminating values like one third or one seventh get approximately seven or fifteen digits, and the error is small, real, and cumulative. Nothing in the language warns you, because nothing has gone wrong by the language's standards.

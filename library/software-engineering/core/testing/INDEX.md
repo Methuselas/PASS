@@ -61,6 +61,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Split and Name Test Cases for the Behavior They Lock In](DRILL_name_test_cases_for_behavior.md) - drill; 4 final. Tags: failure_messages, refactoring, test_naming, unit_testing.
 - [Split Code Into Smaller Units to Make It Testable](PAT_split_code_to_make_it_testable.md) - pattern; 4 final. Tags: modularity, public_api, refactoring, unit_testing.
 - [Structure a Test Case as Arrange, Act, Assert](PAT_structure_tests_arrange_act_assert.md) - pattern; 4 final. Tags: arrange_act_assert, readability, test_structure, unit_testing.
+- [Test Against a Validity Property When the Answer Is Not Unique](PAT_test_against_a_validity_property_when_the_answer_is_not_unique.md) - pattern; 2 block. Tags: correctness, floating_point, nondeterminism, testing.
 - [Test Behaviors, Not Just Functions](PAT_test_behaviors_not_functions.md) - pattern; 4 final. Tags: behaviors, error_handling, test_coverage, unit_testing.
 - [Test Every Important Behavior, Even Beyond the Public API](PAT_test_important_behaviors_beyond_public_api.md) - pattern; 4 final. Tags: important_behaviors, public_api, side_effects, unit_testing.
 - [Test Just Below, Exactly On, and Just Above Every Boundary](PAT_test_three_cases_at_every_boundary.md) - pattern; 3 rough. Tags: boundary_analysis, defects, off_by_one, test_design, testing.

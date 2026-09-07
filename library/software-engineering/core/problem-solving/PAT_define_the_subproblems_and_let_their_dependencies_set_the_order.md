@@ -49,6 +49,7 @@ variants: []
 - Don't define the subproblems in terms of the answer you want. A subproblem has to be a question you could ask independently and look up, and one phrased as "the part of the best solution that lies here" cannot be evaluated without already knowing the solution.
 - Don't confuse a subproblem count with a running time. The count sets the table size; the running time is the count multiplied by what each one costs, and a decomposition with few subproblems that each scan everything can be the slower of two candidates.
 - Don't hold the entire table because it was convenient to allocate. Memory is the usual reason this technique is rejected in practice, and the value that must be retained is often a small frontier rather than the whole history.
+- Don't assume optimal substructure holds just because the subproblems are well-defined, acyclic, and individually solvable. A global constraint that spans the pieces being recombined can invalidate the combination even though nothing about the subproblems themselves looks wrong — the shortest path from a start to some intermediate vertex and the shortest path from that vertex onward are each genuinely optimal alone, and combine into a shortest overall path; the *longest simple* path does not have this property, because the two optimal-looking subpaths can share a vertex, and nothing local to either subpath can detect that. The recursion runs, looks correct on every example tried, and is silently wrong on the input that finally exercises the conflict.
 
 ## Checklist
 - Which of the standard shapes is your subproblem, and how many does that give?
@@ -56,6 +57,7 @@ variants: []
 - How many dependency edges are there, and what work happens per edge?
 - Which values can be discarded once the subproblems consuming them are done?
 - Do you record the choice as well as the cost, so the answer can be reported?
+- Could an optimal solution to one subproblem conflict with an optimal solution to a sibling subproblem under some constraint that spans both — and has that been ruled out rather than assumed away?
 
 ## Notes
 The dependency graph here is never handed to you. It is created by the definition you choose, its nodes are the subproblems you named, and its edges are the places one answer feeds another — which is why the definition is the design and everything after it is consequence. Two people solving the same problem this way can produce structures of completely different sizes, and the difference shows up as the running time.

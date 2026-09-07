@@ -187,6 +187,58 @@ alone has nothing to collide with, so it cannot reach that class of finding at
 all. Chain when the point is to find defects; take singly when the point is to
 score one capability.
 
+### Software-engineering Drill runs
+
+Software engineering has machine-checkable artifacts, but a compiler does not
+make every run the same kind of evidence. Declare one run type before preparing
+the task or launching a taker:
+
+- **Portability probe:** asks whether a core decision can be expressed naturally
+  in one language. It uses one taker and no control arm. Until that language has
+  an authored module, the result is a smoke test of the core card, not evidence
+  about a complete language skillset.
+- **Blind Drill sitting:** asks whether a taker can perform the capability under
+  one of the two cuts above. It uses one taker, freezes the answer, and scores the
+  Drill's own Success Check.
+- **Deterministic regression:** rebuilds or reruns an existing frozen fixture. It
+  needs no model unless the fixture itself must be revised.
+- **Comparative study:** asks whether access to a skillset caused a difference.
+  This is an empirical experiment, not ordinary Drill administration, and uses a
+  treatment/control pair only after explicit approval.
+
+For a code-producing sitting, keep the taker packet separate from the grader
+packet. The taker receives the visible task, permitted starter files, exact
+toolchain invocation, and the produce-not-describe rule. The grader retains the
+Success Check, deliberate misuse or mutation cases, and scoring instructions.
+Freeze the answer before the grader packet is exposed.
+
+Compile and run what the Drill asks for, and retain the tool's output. When the
+capability is enforcement, include a negative case: deliberately break or misuse
+the contract and observe the promised compile failure, test failure, or loud
+runtime failure. A passing build proves only that one program built. Counts of
+assertions, guards, comments, attributes, files, or lines may describe an
+artifact; none is a verdict that the engineering objective was achieved.
+
+Resource limits are part of validity, not an optimization:
+
+- An ordinary portability probe or Drill sitting has one taker.
+- A comparative pilot has at most one treatment/control pair and at most two
+  concurrent sub-agents.
+- Any continuation names the exact additional run count, model, maximum
+  concurrency, and stopping condition before approval. A range does not authorize
+  its upper bound. Complete and report one pair before launching another.
+- Suspected contamination pauses every new launch. Confirmed contamination or a
+  broken measurement cancels every active and queued sibling run, preserves the
+  artifacts for diagnosis, and invalidates the batch.
+- An invalidated batch never retries, replaces an arm, or starts a cleaner study
+  automatically. A new run requires a new plan and explicit approval.
+
+Classify a failure before changing canon: core-card scope, missing language
+specialization, taker retrieval or application, fixture/grader defect, toolchain
+failure, or contamination. Only the first category directly supports revising a
+core card. The others belong to their actual owner, and invalid runs remain
+training history rather than evidence about the capability.
+
 ## References and examples follow the medium
 
 Study the kind of precedent that actually helps the current craft:

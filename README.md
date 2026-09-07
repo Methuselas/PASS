@@ -324,6 +324,25 @@ Results from real attempts belong in Skillset Memory. They do not automatically
 rewrite a Drill, Pattern, or AP, and an invalid run never counts as evidence of a
 craft weakness.
 
+### Software-engineering Drills
+
+Software Drills distinguish portability probes, blind sittings, deterministic
+regressions, and comparative studies before work begins. Most use one taker and
+an independent compiler or test runner; only an explicitly approved comparative
+study receives a treatment/control pair. A negative case is required when the
+claimed capability is enforcement, because a successful build alone does not
+show that misuse is caught.
+
+Assertion, guard, comment, attribute, file, and line counts are diagnostics, not
+quality verdicts. Suspected contamination pauses a batch; confirmed contamination
+terminates its active and queued arms without an automatic retry. The exact
+packet separation, evidence rules, and sub-agent ceilings are in
+[`PASS/docs/PASS_CONSUMPTION.md`](PASS/docs/PASS_CONSUMPTION.md#software-engineering-drill-runs).
+Repository maintainers can generate the current inventory with
+[`PASS/tools/drill_inventory.py`](PASS/tools/drill_inventory.py) and inspect the
+small C++ administration pilot under
+[`tests/fixtures/software_engineering_drills/`](tests/fixtures/software_engineering_drills/).
+
 ### Teaching humans with AI later
 
 Drills are also the foundation for a future mode in which an AI teaches a human

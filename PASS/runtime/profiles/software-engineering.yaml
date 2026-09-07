@@ -1,0 +1,61 @@
+schema_version: 1
+profile_id: software-engineering
+consumer_instructions:
+- Before administering a Software Engineering Drill, declare whether the run is a portability probe, blind Drill sitting, deterministic regression, or comparative study. Do not treat one type as evidence for another.
+- An ordinary portability probe or Drill sitting uses one taker. A comparative pilot uses at most one treatment/control pair and at most two concurrent sub-agents. Any continuation requires approval naming the exact additional run count, model, maximum concurrency, and stopping condition, and each pair must be reported before another is launched.
+- Keep the taker packet separate from the grader packet, state that required artifacts must be produced rather than described, and freeze the answer before revealing the Success Check or mutation cases.
+- When a claimed capability is enforcement, retain compiler or test output from both a valid case and a deliberate misuse or breakage case. Counts of assertions, guards, comments, attributes, files, or lines are diagnostics and never determine the verdict.
+- Suspected contamination pauses new launches. Confirmed contamination or a broken measurement cancels every active and queued sibling run, preserves its artifacts for diagnosis, invalidates the batch, and never triggers an automatic retry or replacement arm.
+default_lane: skill
+lanes:
+  skill:
+    label: Domain execution
+  teach:
+    label: Teaching and learning
+lane_routing:
+  rules:
+  - lane: teach
+    reason: explicit teaching/coaching/learning request
+    when:
+      any_phrases:
+      - teach me
+      - coach me
+      - help me learn
+      - lesson plan
+      - practice plan
+      - learning progression
+      - assess my understanding
+default_mode: direct
+execution_modes:
+  direct:
+    aliases:
+    - direct
+    label: Direct Production
+    contract:
+      approval_gates: false
+      rollback_enabled: false
+      post_production_verification: true
+  staged:
+    aliases:
+    - staged
+    - process
+    label: Staged Production
+    contract:
+      approval_gates: true
+      rollback_enabled: true
+      post_production_verification: true
+routing:
+  rules:
+  - mode: staged
+    reason: explicit staged/process request
+    when:
+      any_phrases:
+      - staged
+      - step by step
+      - show the process
+      - iterative approval
+completion_gate:
+  required_checks:
+  - instruction_fidelity_check
+  - objective_check
+  require_all_risk_checks: true

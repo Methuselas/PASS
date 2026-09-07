@@ -6,7 +6,15 @@ skillsets may evolve independently.
 
 ## Unreleased
 
-No changes yet.
+### Added
+
+- Added a dedicated Software Engineering Drill protocol that separates
+  portability probes, blind sittings, deterministic regressions, and comparative
+  studies.
+- Added contamination stop conditions, single-pair checkpoints, and explicit
+  sub-agent concurrency and run ceilings for empirical work.
+- Added a derived SE Drill inventory command and a self-testing C++ Drill packet
+  that exercises compile-success and expected-compile-failure evidence.
 
 ## 1.0.0-beta.2 - 2026-09-06
 

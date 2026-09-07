@@ -75,6 +75,16 @@ The prose after each lead is this file's own.
   before the capability was exercised, record it in `training_history.jsonl` with
   a reason and attribute it to the tool, controller, or package that failed. It
   never counts toward a craft weakness. See `PASS/docs/MEMORY_SCHEMA.md`.
+- **Contamination terminates an empirical batch.** Confirmed exposure across
+  treatment and control, inherited answers, shared artifacts, or a broken
+  measurement stops every active and queued sibling run. Preserve the artifacts
+  for diagnosis, mark the batch invalid, and never retry it without new explicit
+  approval. Suspected contamination pauses new launches until it is resolved.
+- **Sub-agent work has a declared concurrency and run ceiling.** An ordinary
+  Drill uses one taker. A comparative pilot may use one treatment/control pair,
+  with at most two sub-agents running at once. More runs require approval that
+  names the exact additional count, model, maximum concurrency, and stopping
+  condition; finish and report each pair before launching another.
 
 ## Validation
 

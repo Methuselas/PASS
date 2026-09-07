@@ -7,4 +7,4 @@ description: >-
 modules:
   - software-engineering/core
   - software-engineering/languages/cpp
-runtime_profile: generic
+runtime_profile: software-engineering

@@ -6,7 +6,11 @@ skillsets may evolve independently.
 
 ## Unreleased
 
-No changes yet.
+### Changed
+
+- Required AI-authored merge and release commits to record what changed, what
+  was intentionally excluded or preserved, validation performed, and any known
+  issue left behind.
 
 ## 1.0.0-beta.3 - 2026-09-07
 

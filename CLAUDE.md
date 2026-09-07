@@ -85,6 +85,10 @@ The prose after each lead is this file's own.
   with at most two sub-agents running at once. More runs require approval that
   names the exact additional count, model, maximum concurrency, and stopping
   condition; finish and report each pair before launching another.
+- **AI-authored merge and release commits require explanatory notes.** The
+  commit body must state what changed, what was intentionally excluded or
+  preserved, which validation ran, and any known issue left behind. Do not use
+  an empty or title-only message for repository integration work.
 
 ## Validation
 

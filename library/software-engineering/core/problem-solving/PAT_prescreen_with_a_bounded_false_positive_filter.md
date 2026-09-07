@@ -33,7 +33,7 @@ variants: []
 # Prescreen With a Bounded False-Positive Filter
 
 ## Pattern Rule
-**IF** you need to rule out most negative membership queries cheaply before paying for an expensive definitive check — a disk-backed search, a network round trip, a full scan — and a query that wrongly says "maybe present" only costs a wasted check while one that wrongly says "definitely absent" would cost a missed answer
+**IF** every query is paying for an expensive lookup — a disk read, a network round trip, a full scan — and most of those lookups come back having found nothing
 **THEN** put a compact probabilistic structure in front of the expensive check, sized so its false-positive rate is a chosen design parameter, and let a negative result from the structure skip the expensive path entirely
 **ELSE** where a missed answer is tolerable, or the check it would guard is already cheap, the structure adds machinery without buying anything.
 

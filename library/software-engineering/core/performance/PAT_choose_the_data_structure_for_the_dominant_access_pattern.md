@@ -27,6 +27,8 @@ cross_links:
   target_object_id: PAT_estimate_the_order_before_you_run_it
 - rel: related_to
   target_object_id: PAT_choose_the_control_construct_that_fits_the_data
+- rel: related_to
+  target_object_id: PAT_prescreen_with_a_bounded_false_positive_filter
 reference:
   source_title: 'The Art of Writing Efficient Programs: An Advanced Programmer''s Guide to Efficient Hardware Utilization'
   author: Fedor G. Pikus

@@ -22,6 +22,8 @@ cross_links:
   target_object_id: PAT_externalize_intermediate_state_when_tracing
 - rel: prerequisite_for
   target_object_id: PAT_make_a_reasoning_model_determinate
+- rel: related_to
+  target_object_id: PAT_sweep_sorted_events_and_compare_only_neighbors
 reference:
   source_title: 'The Programmer''s Brain: What Every Programmer Needs to Know About Cognition'
   author: Felienne Hermans

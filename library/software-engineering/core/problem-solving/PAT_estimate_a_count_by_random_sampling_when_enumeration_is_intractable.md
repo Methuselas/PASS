@@ -39,7 +39,7 @@ variants: []
 
 ## Do
 - Find a random process whose expected outcome is provably tied to the quantity you want, before writing any code. Repeated sampling until a value recurs ties the expected number of draws to a population's size; a random walk down a tree ties a single path's branching to the tree's total size. The estimator is only as good as this relationship — get the relationship wrong and no amount of averaging fixes it.
-- Run many independent trials and average them. A single trial is not the estimate; the estimate is the average, and how far it can be trusted depends on how many trials produced it.
+- Run many independent trials and average them, and measure how far they spread. A single trial is not the estimate; the estimate is the average. How far that average can be trusted is not settled by the trial count alone — the count says how much you sampled, the spread across those trials says how much the answer actually moves, and only the second tells you whether the number is usable yet. A thousand trials of a wildly varying process can be worth less than fifty of a stable one.
 - Report the result as a statistical estimate, not as a bound. Unlike a proved approximation ratio, this carries no guarantee for any single run — only a distribution around the true value that narrows as trials increase.
 - Prefer this over exhaustive search specifically when the count is what's needed, not a witness or the enumerated set itself. If you also need to produce every counted element, sampling the count does not get you there.
 
@@ -51,7 +51,7 @@ variants: []
 ## Checklist
 - Is exact enumeration actually intractable here, not merely inconvenient to write?
 - Does the random process have a provable relationship to the quantity being estimated, stated before trials are run?
-- How many independent trials were run, and does the report say so alongside the estimate?
+- How many independent trials were run, how far apart did their results fall, and does the report carry that spread rather than only the count?
 - Is the result presented as a statistical estimate rather than as a computed bound?
 
 ## Notes

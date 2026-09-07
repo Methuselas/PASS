@@ -22,6 +22,8 @@ cross_links:
   target_object_id: PAT_prove_a_greedy_rule_safe_before_calling_it_an_algorithm
 - rel: related_to
   target_object_id: PAT_check_whether_the_problem_is_a_known_hard_one_in_disguise
+- rel: related_to
+  target_object_id: PAT_estimate_a_count_by_random_sampling_when_enumeration_is_intractable
 reference:
   source_title: Algorithms
   author: Sanjoy Dasgupta, Christos Papadimitriou, Umesh Vazirani

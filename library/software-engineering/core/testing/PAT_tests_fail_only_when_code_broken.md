@@ -20,6 +20,8 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_make_breakage_fail_compile_or_test
+- rel: related_to
+  target_object_id: PAT_test_against_a_validity_property_when_the_answer_is_not_unique
 reference:
   source_title: 'Good Code, Bad Code: Think Like a Software Engineer'
   author: Tom Long

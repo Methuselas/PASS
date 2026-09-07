@@ -22,6 +22,8 @@ cross_links:
   target_object_id: PAT_make_only_forced_moves_so_failure_proves_there_was_no_solution
 - rel: related_to
   target_object_id: PAT_check_whether_the_problem_is_a_known_hard_one_in_disguise
+- rel: related_to
+  target_object_id: PAT_order_the_search_by_an_admissible_cost_estimate
 reference:
   source_title: Algorithms
   author: Sanjoy Dasgupta, Christos Papadimitriou, Umesh Vazirani

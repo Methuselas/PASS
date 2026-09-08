@@ -36,6 +36,13 @@ variants:
   when_to_use: The game expects inexperienced or downstream referees to learn how its abstract rules and authoring guidance become actual playable material.
   when_not_to_use: The sample would substitute for explicit construction guidance, teach an atypical edge case as though it were the normal form, or require users to reverse-engineer hidden assumptions from the example.
   absorbed_from_object_id: none
+- variant_id: game_design_variant_graduate_from_runnable_examples_into_bounded_authored_blanks
+  variant_name: Graduate from Runnable Examples into Bounded Authored Blanks
+  variant_basis: method_sequence
+  difference_from_foundation: After a complete runnable example establishes the construction grammar, give the downstream author a bounded partially specified space whose anchors and required functions are fixed while its local content is theirs to complete, then widen authorship only as the earlier exercise becomes tractable.
+  when_to_use: New referees or content authors are expected to progress from running published material into building their own locations, encounters, maps, or campaign extensions.
+  when_not_to_use: The blank omits the very constraints the learner is supposed to practice, the example does not expose enough grammar to guide completion, or downstream authorship is not part of intended use.
+  absorbed_from_object_id: none
 - variant_id: game_design_variant_encode_baseline_calibration_in_a_novice_generator
   variant_name: Encode Baseline Calibration in a Novice Generator
   variant_basis: method_sequence
@@ -58,6 +65,7 @@ variants:
 - When setting expansion is expected, expose stable anchors and dependency rules strongly enough that new material can be integrated without hidden designer intent.
 - Provide enough baselines to calibrate novel work rather than forcing the user to infer the entire grammar from finished examples.
 - When adventure creation is an expected downstream task, pair the grammar with a representative runnable adventure so the documented pieces can be seen composing into actual play.
+- When novices are expected to grow into authorship, follow the complete example with bounded completion tasks that preserve stable anchors while transferring a limited part of the design to the learner.
 - Explain composition and exception behavior where user-authored elements can interact, overlap, or violate ordinary assumptions.
 
 ## Don't
@@ -73,8 +81,11 @@ variants:
 - Scaling and compatibility guidance cover the dimensions that can make a new instance unusable or disruptive.
 - When adventure creation is expected, at least one representative sample can be run directly and visibly demonstrates how the grammar composes into play.
 - Examples are recognizable as examples of reusable rules rather than the only place those rules can be inferred.
+- If authorship is taught progressively, each partial blank states enough fixed constraints and required functions to make the learner's responsibility clear without predetermining the answer.
 
 ## Notes
 Downstream authorship is a different responsibility from local referee judgment. A referee can improvise a one-off fictional ruling with broad authority and a few calibration rails; creating a new adversary family, adventure, spell list, setting institution, vehicle, or other reusable game object may require a stable grammar so the result continues to interact correctly with the rest of the game. The stronger the game promises user-created content, the less it can rely on reverse-engineering finished examples. A runnable sample is especially useful when it acts as a reference implementation of an already explicit grammar rather than as a substitute for one. Variant `game_design_variant_use_a_sample_adventure_as_an_executable_reference_implementation` applies that move when adventure authorship is part of expected use.
+
+Variant `game_design_variant_graduate_from_runnable_examples_into_bounded_authored_blanks` turns a representative example into the first rung of an authorship progression. After the learner has a complete instance to run and inspect, a bounded blank can transfer one layer of responsibility at a time: furnish an already specified building, populate a reserved region, extend a map from fixed connections, or complete another partially constrained component. The blank should preserve the constraints that make the exercise meaningful rather than forcing the learner to infer them.
 
 Variant `game_design_variant_encode_baseline_calibration_in_a_novice_generator` uses a bounded generator as embedded authoring expertise. It is useful when a novice must create calibrated material before intuition is trustworthy: the distribution preserves a baseline relationship while the surrounding guidance explains what that relationship is protecting and when deliberate override is appropriate.

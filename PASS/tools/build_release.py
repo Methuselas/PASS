@@ -27,6 +27,8 @@ SEMVER_RE = re.compile(
     r"(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
     r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
 )
+DOMAIN_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+SHA256_RE = re.compile(r"[0-9a-f]{64}")
 FORBIDDEN = {
     ".git", ".agents", ".claude", "__pycache__", ".pytest_cache",
     "workspace", "sources", "ledger", "ledgers", "worklogs", "trash",
@@ -34,6 +36,7 @@ FORBIDDEN = {
 }
 MEMORY_DIR = "memory"
 MEMORY_STORE = "skill_memory.yaml"
+RELEASE_MANIFEST_SCHEMA_VERSION = 2
 RELEASE_LEGAL_FILES = (
     "CONTRIBUTING.md",
     "LICENSE.md",
@@ -182,6 +185,134 @@ def included_objects(selected: set[str], by_id, owner):
     }
 
 
+def module_domain(name: str) -> str:
+    return name.split("/", 1)[0]
+
+
+def recipe_modules(spec: dict[str, Any]) -> list[str]:
+    entries = spec.get("modules")
+    if not isinstance(entries, list) or not entries or not all(
+        isinstance(name, str) and name.strip() for name in entries
+    ):
+        raise ValueError("release recipe modules must be a non-empty string list")
+    if len(entries) != len(set(entries)):
+        raise ValueError("release recipe modules must not contain duplicates")
+    return entries
+
+
+def object_closure(entry_ids: list[str], by_id, owner, domain: str) -> set[str]:
+    """Resolve one auxiliary group's card graph without selecting whole modules."""
+    selected = set(entry_ids)
+    changed = True
+    while changed:
+        changed = False
+        required: set[str] = set()
+        for object_id in selected:
+            data = by_id[object_id][1]
+            foundation = data.get("foundation_object_id")
+            if foundation and foundation != "none":
+                required.add(str(foundation))
+            for link in data.get("cross_links") or []:
+                if isinstance(link, dict) and link.get("target_object_id"):
+                    required.add(str(link["target_object_id"]))
+
+        for source_id, (_path, data) in by_id.items():
+            for link in data.get("cross_links") or []:
+                if (
+                    isinstance(link, dict)
+                    and link.get("rel") == "prerequisite_for"
+                    and link.get("target_object_id") in selected
+                ):
+                    required.add(source_id)
+
+        for required_id in sorted(required):
+            if required_id not in by_id:
+                raise ValueError(f"missing related object: {required_id}")
+            module = owner.get(required_id)
+            if not module:
+                raise ValueError(f"{required_id}: related object has no module")
+            required_domain = module_domain(module)
+            if required_domain not in {domain, "metaskills"}:
+                raise ValueError(
+                    f"auxiliary {domain}: {required_id} belongs to foreign domain "
+                    f"{required_domain}"
+                )
+            if required_id not in selected:
+                selected.add(required_id)
+                changed = True
+    return selected
+
+
+def parse_auxiliary_groups(
+    spec: dict[str, Any], library: Path, by_id, owner, owned_domains: set[str]
+) -> list[dict[str, Any]]:
+    raw_groups = spec.get("auxiliary")
+    if raw_groups is None:
+        raw_groups = []
+    if not isinstance(raw_groups, list):
+        raise ValueError("release recipe auxiliary must be a list")
+    groups: list[dict[str, Any]] = []
+    seen_domains: set[str] = set()
+    for index, raw in enumerate(raw_groups):
+        where = f"release recipe auxiliary[{index}]"
+        if not isinstance(raw, dict):
+            raise ValueError(f"{where} must be a mapping")
+        unknown = sorted(set(raw) - {"domain", "objects"})
+        if unknown:
+            raise ValueError(f"{where} has unknown keys: {', '.join(unknown)}")
+        domain = raw.get("domain")
+        if (
+            not isinstance(domain, str)
+            or not domain
+            or not DOMAIN_RE.fullmatch(domain)
+            or domain == "metaskills"
+        ):
+            raise ValueError(f"{where}.domain must name one non-metaskills top-level domain")
+        if domain in seen_domains:
+            raise ValueError(f"release recipe has duplicate auxiliary domain: {domain}")
+        if domain in owned_domains:
+            raise ValueError(f"release recipe cannot mark owned domain {domain} as auxiliary")
+        entries = raw.get("objects")
+        if not isinstance(entries, list) or not entries or not all(
+            isinstance(object_id, str) and object_id for object_id in entries
+        ):
+            raise ValueError(f"{where}.objects must be a non-empty string list")
+        if len(entries) != len(set(entries)):
+            raise ValueError(f"{where}.objects must not contain duplicates")
+        for object_id in entries:
+            if object_id not in by_id:
+                raise ValueError(f"{where}: unknown object_id {object_id}")
+            module = owner.get(object_id)
+            if not module:
+                raise ValueError(f"{where}: {object_id} has no owner module")
+            actual_domain = module_domain(module)
+            if actual_domain != domain:
+                raise ValueError(
+                    f"{where}: {object_id} belongs to {actual_domain}, not {domain}"
+                )
+        closure = object_closure(entries, by_id, owner, domain)
+        object_ids = sorted(
+            object_id
+            for object_id in closure
+            if module_domain(owner[object_id]) == domain
+        )
+        groups.append(
+            {
+                "domain": domain,
+                "entry_object_ids": sorted(entries),
+                "object_ids": object_ids,
+                "owner_modules": sorted({owner[object_id] for object_id in object_ids}),
+                "object_paths": {
+                    object_id: "library/"
+                    + by_id[object_id][0].relative_to(library).as_posix()
+                    for object_id in object_ids
+                },
+            }
+        )
+        seen_domains.add(domain)
+    return groups
+
+
 def remove_tree(path: Path, ignore_errors: bool = False) -> None:
     """Delete a tree that may contain the read-only files this builder writes.
 
@@ -201,17 +332,8 @@ def remove_tree(path: Path, ignore_errors: bool = False) -> None:
     shutil.rmtree(path, ignore_errors=ignore_errors)
 
 
-def release_domains(selected: set[str]) -> list[str]:
-    """Top-level library package for each selected module.
-
-    `art/subjects/figure` and `art/composition` are both the `art` domain, and
-    that is the name a memory directory carries.
-    """
-    return sorted({name.split("/", 1)[0] for name in selected})
-
-
-def stage_memory(staging: Path, memory_root: Path, selected: set[str]) -> list[str]:
-    """Copy the memory store of every domain this release ships.
+def stage_memory(staging: Path, memory_root: Path, owned_domains: set[str]) -> list[str]:
+    """Copy the memory store of every domain this release owns.
 
     Memory is domain-scoped exactly as the library is, so a release carries the
     stores of its own domains and nothing else. It stays outside `library/`:
@@ -220,7 +342,7 @@ def stage_memory(staging: Path, memory_root: Path, selected: set[str]) -> list[s
     dependency (`ARCHITECTURE.md` contract 20).
     """
     shipped: list[str] = []
-    for domain in release_domains(selected):
+    for domain in sorted(owned_domains):
         source = memory_root / domain
         if not (source / MEMORY_STORE).is_file():
             continue
@@ -240,6 +362,76 @@ def stage_legal_files(staging: Path) -> None:
         target = staging / name
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, target)
+
+
+def stage_auxiliary_groups(
+    staging: Path,
+    library: Path,
+    groups: list[dict[str, Any]],
+    by_id,
+) -> None:
+    """Copy only selected foreign cards and their declared local assets."""
+    for group in groups:
+        domain = group["domain"]
+        for object_id in group["object_ids"]:
+            source, data = by_id[object_id]
+            relative = source.relative_to(library)
+            target = staging / "library" / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, target)
+            for reference in data.get("references") or []:
+                if not isinstance(reference, dict) or not reference.get("image_path"):
+                    continue
+                declared = Path(str(reference["image_path"]))
+                if declared.is_absolute() or ".." in declared.parts:
+                    raise ValueError(f"{object_id}: unsafe auxiliary image_path {declared}")
+                try:
+                    asset_relative = declared.relative_to("library")
+                except ValueError as exc:
+                    raise ValueError(
+                        f"{object_id}: auxiliary image_path must start with library/: {declared}"
+                    ) from exc
+                if not asset_relative.parts or asset_relative.parts[0] != domain:
+                    raise ValueError(
+                        f"{object_id}: auxiliary image_path leaves owner domain {domain}: {declared}"
+                    )
+                asset_source = library / asset_relative
+                if not asset_source.is_file():
+                    raise ValueError(f"{object_id}: missing auxiliary asset {declared}")
+                asset_target = staging / "library" / asset_relative
+                asset_target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(asset_source, asset_target)
+                sidecar_source = Path(str(asset_source) + ".meta.json")
+                if not sidecar_source.is_file():
+                    raise ValueError(f"{object_id}: missing auxiliary asset sidecar {declared}")
+                shutil.copy2(sidecar_source, Path(str(asset_target) + ".meta.json"))
+
+
+def build_release_indexes(library: Path) -> None:
+    script = Path(__file__).resolve().parent / "build_index.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--library", str(library)],
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode:
+        detail = (result.stdout + "\n" + result.stderr).strip()
+        raise ValueError(f"release index generation failed:\n{detail}")
+
+
+def materialized_auxiliary_groups(
+    staging: Path, groups: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    for group in groups:
+        domain_root = staging / "library" / group["domain"]
+        files = [
+            path.relative_to(staging).as_posix()
+            for path in sorted(domain_root.rglob("*"))
+            if path.is_file()
+        ]
+        result.append({**group, "files": files})
+    return result
 
 
 def make_read_only(root: Path) -> list[str]:
@@ -403,8 +595,11 @@ def release_file_hashes(path: Path) -> dict[str, str]:
     }
 
 
-def release_graph_problems(library: Path) -> list[str]:
+def release_graph_problems(
+    library: Path, auxiliary_domains: set[str] | None = None
+) -> list[str]:
     """Check that a packaged library contains every relationship target."""
+    auxiliary_domains = auxiliary_domains or set()
     try:
         modules = discover(library)
         by_id, owner = object_index(library, modules)
@@ -422,8 +617,9 @@ def release_graph_problems(library: Path) -> list[str]:
                 problems.append(f"module {name}: missing required module {required}")
 
     known_ids = set(by_id)
-    for object_id, (_card_path, data) in by_id.items():
-        if object_id not in owner:
+    for object_id, (card_path, data) in by_id.items():
+        package = card_path.relative_to(library).parts[0]
+        if object_id not in owner and package not in auxiliary_domains:
             problems.append(f"{object_id}: object has no packaged module")
         foundation = data.get("foundation_object_id")
         if foundation and foundation != "none" and foundation not in known_ids:
@@ -437,14 +633,170 @@ def release_graph_problems(library: Path) -> list[str]:
     return sorted(set(problems))
 
 
+def auxiliary_manifest_problems(
+    path: Path,
+    manifest: dict[str, Any],
+    declared_modules: list[str],
+    packaged_objects,
+) -> list[str]:
+    problems: list[str] = []
+    owned = manifest.get("owned_domains")
+    if not isinstance(owned, list) or not all(isinstance(name, str) for name in owned):
+        return ["release manifest lacks a valid owned_domains list"]
+    if len(owned) != len(set(owned)):
+        problems.append("release manifest owned_domains contains duplicates")
+    expected_owned = sorted(
+        {module_domain(name) for name in declared_modules if module_domain(name) != "metaskills"}
+    )
+    if sorted(owned) != expected_owned:
+        problems.append("release manifest owned_domains does not match primary modules")
+
+    actual_object_paths = {
+        object_id: "library/" + card.relative_to(path / "library").as_posix()
+        for object_id, (card, _data) in packaged_objects.items()
+    }
+    declared_object_ids = manifest.get("object_ids")
+    if not isinstance(declared_object_ids, list) or not all(
+        isinstance(object_id, str) for object_id in declared_object_ids
+    ):
+        problems.append("release manifest lacks a valid object_ids list")
+    elif len(declared_object_ids) != len(set(declared_object_ids)):
+        problems.append("release manifest object_ids contains duplicates")
+    elif set(declared_object_ids) != set(actual_object_paths):
+        problems.append("release manifest object_ids does not match packaged cards")
+
+    raw_groups = manifest.get("auxiliary_groups")
+    if not isinstance(raw_groups, list):
+        return problems + ["release manifest lacks a valid auxiliary_groups list"]
+    group_domains: set[str] = set()
+    grouped_object_ids: set[str] = set()
+    for index, group in enumerate(raw_groups):
+        where = f"release manifest auxiliary_groups[{index}]"
+        if not isinstance(group, dict):
+            problems.append(f"{where} must be a mapping")
+            continue
+        domain = group.get("domain")
+        if not isinstance(domain, str) or not DOMAIN_RE.fullmatch(domain):
+            problems.append(f"{where}.domain is invalid")
+            continue
+        if domain == "metaskills" or domain in owned:
+            problems.append(f"{where}.domain is not auxiliary: {domain}")
+        if domain in group_domains:
+            problems.append(f"duplicate auxiliary domain in release manifest: {domain}")
+        group_domains.add(domain)
+
+        entry_ids = group.get("entry_object_ids")
+        object_ids = group.get("object_ids")
+        owner_modules = group.get("owner_modules")
+        object_paths = group.get("object_paths")
+        files = group.get("files")
+        if not isinstance(entry_ids, list) or not entry_ids or not all(
+            isinstance(object_id, str) for object_id in entry_ids
+        ):
+            problems.append(f"{where}.entry_object_ids must be a non-empty string list")
+            entry_ids = []
+        if len(entry_ids) != len(set(entry_ids)):
+            problems.append(f"{where}.entry_object_ids contains duplicates")
+        if not isinstance(object_ids, list) or not object_ids or not all(
+            isinstance(object_id, str) for object_id in object_ids
+        ):
+            problems.append(f"{where}.object_ids must be a non-empty string list")
+            object_ids = []
+        if len(object_ids) != len(set(object_ids)):
+            problems.append(f"{where}.object_ids contains duplicates")
+        if not set(entry_ids).issubset(set(object_ids)):
+            problems.append(f"{where}.entry_object_ids is not contained in object_ids")
+        overlap = grouped_object_ids & set(object_ids)
+        if overlap:
+            problems.append(f"auxiliary object IDs occur in multiple groups: {', '.join(sorted(overlap))}")
+        grouped_object_ids.update(object_ids)
+        if not isinstance(owner_modules, list) or not all(
+            isinstance(name, str) and module_domain(name) == domain for name in owner_modules
+        ):
+            problems.append(f"{where}.owner_modules must stay in {domain}")
+            owner_modules = []
+        if len(owner_modules) != len(set(owner_modules)):
+            problems.append(f"{where}.owner_modules contains duplicates")
+        if not isinstance(object_paths, dict) or not all(
+            isinstance(object_id, str) and isinstance(name, str)
+            for object_id, name in (object_paths.items() if isinstance(object_paths, dict) else [])
+        ):
+            problems.append(f"{where}.object_paths must be a string mapping")
+            object_paths = {}
+        if set(object_paths) != set(object_ids):
+            problems.append(f"{where}.object_paths does not match object_ids")
+        for module in owner_modules:
+            prefix = f"library/{module}/"
+            if not any(str(name).startswith(prefix) for name in object_paths.values()):
+                problems.append(f"{where}: owner module contains no declared object: {module}")
+        for object_id in object_ids:
+            expected_path = actual_object_paths.get(object_id)
+            if expected_path is None:
+                problems.append(f"{where}: missing packaged object {object_id}")
+            elif object_paths.get(object_id) != expected_path:
+                problems.append(f"{where}: wrong path for {object_id}")
+            elif not expected_path.startswith(f"library/{domain}/"):
+                problems.append(f"{where}: {object_id} is outside {domain}")
+            elif not any(
+                expected_path.startswith(f"library/{module}/")
+                for module in owner_modules
+            ):
+                problems.append(f"{where}: no owner module contains {object_id}")
+
+        if not isinstance(files, list) or not all(isinstance(name, str) for name in files):
+            problems.append(f"{where}.files must be a string list")
+            files = []
+        if len(files) != len(set(files)):
+            problems.append(f"{where}.files contains duplicates")
+        domain_root = path / "library" / domain
+        actual_files = {
+            item.relative_to(path).as_posix()
+            for item in domain_root.rglob("*")
+            if item.is_file()
+        } if domain_root.is_dir() else set()
+        if set(files) != actual_files:
+            problems.append(f"{where}.files does not match packaged auxiliary files")
+        hashes = manifest.get("files_sha256")
+        if isinstance(hashes, dict):
+            for name in files:
+                if name not in hashes:
+                    problems.append(f"{where}: auxiliary file lacks hash: {name}")
+
+    actual_auxiliary_domains = {
+        card.relative_to(path / "library").parts[0]
+        for card, _data in packaged_objects.values()
+        if card.relative_to(path / "library").parts[0] not in {*owned, "metaskills"}
+    }
+    if group_domains != actual_auxiliary_domains:
+        problems.append("release manifest auxiliary domains do not match packaged cards")
+    memory_domains = manifest.get("memory_domains") or []
+    if isinstance(memory_domains, list):
+        foreign_memory = sorted(set(memory_domains) - set(owned))
+        if foreign_memory:
+            problems.append(
+                "auxiliary domains must not ship memory: " + ", ".join(foreign_memory)
+            )
+    if raw_groups:
+        skill = path / "SKILL.md"
+        if skill.is_file() and "## Auxiliary fallbacks" not in skill.read_text(encoding="utf-8"):
+            problems.append("SKILL.md does not route auxiliary fallback authority")
+    return problems
+
+
 def manifest_problems(path: Path, manifest: dict[str, Any]) -> list[str]:
     problems: list[str] = []
+    if manifest.get("schema_version") != RELEASE_MANIFEST_SCHEMA_VERSION:
+        problems.append(
+            f"release manifest schema_version must be {RELEASE_MANIFEST_SCHEMA_VERSION}"
+        )
     pass_version = manifest.get("pass_version")
     if not isinstance(pass_version, str) or not SEMVER_RE.fullmatch(pass_version):
         problems.append("release manifest lacks a valid pass_version")
     expected_hashes = manifest.get("files_sha256")
     if not isinstance(expected_hashes, dict) or not all(
-        isinstance(name, str) and isinstance(digest, str)
+        isinstance(name, str)
+        and isinstance(digest, str)
+        and SHA256_RE.fullmatch(digest)
         for name, digest in expected_hashes.items()
     ):
         problems.append("release manifest lacks valid files_sha256")
@@ -481,6 +833,9 @@ def manifest_problems(path: Path, manifest: dict[str, Any]) -> list[str]:
                 problems.append("release manifest lacks a drill_runner boolean")
             elif manifest["drill_runner"] != expected_drill_runner:
                 problems.append("release manifest drill_runner does not match packaged cards")
+            problems.extend(
+                auxiliary_manifest_problems(path, manifest, declared, packaged_objects)
+            )
     return problems
 
 
@@ -499,6 +854,8 @@ def write_skill(
     runtime_profile: str,
     has_drills: bool,
     memory_domains: list[str] | None = None,
+    owned_domains: list[str] | None = None,
+    auxiliary_groups: list[dict[str, Any]] | None = None,
 ) -> None:
     front = yaml.safe_dump(
         {"name": skill_name, "description": description},
@@ -544,6 +901,25 @@ def write_skill(
         "`RELEASE_MANIFEST.json` lists every bundled module; do not preload that list or "
         "the complete library.\n"
     )
+    if auxiliary_groups:
+        domains = ", ".join(f"`{group['domain']}`" for group in auxiliary_groups)
+        owned = ", ".join(f"`{domain}`" for domain in (owned_domains or [])) or "none"
+        body += (
+            "\n## Auxiliary fallbacks\n\n"
+            f"This release owns {owned} and carries bounded fallback groups for "
+            f"{domains}. Auxiliary status belongs to `RELEASE_MANIFEST.json`; the "
+            "cards remain owned by the domains in their `library/<domain>/` paths. "
+            "Do not activate an auxiliary group merely because it is present.\n\n"
+            "Before using an auxiliary group, inspect the manifests of the SkillForge "
+            "skills active for this task. Prefer one complete compatible owner provider "
+            "for that group and suppress the fallback as a whole. Never mix provider and "
+            "fallback cards within one group. If no owner manifest is discoverable, use "
+            "this release's self-contained fallback. Differing active fallback hashes or "
+            "multiple owners are a preflight failure, not a priority choice.\n\n"
+            "Where Python is available, run `scripts/skillforge_runtime.py authority` "
+            "with repeated `--manifest <RELEASE_MANIFEST.json>` arguments for the active "
+            "skills. With no arguments it checks this release alone.\n"
+        )
     if has_drills:
         body += (
             "\n## Blind Drill administration\n\n"
@@ -704,6 +1080,14 @@ def runtime_release_problems(path: Path) -> list[str]:
     if result.returncode:
         detail = (result.stdout + "\n" + result.stderr).strip()
         return [f"runtime doctor failed: {detail}"]
+    result = subprocess.run(
+        [sys.executable, str(resolver), "authority"],
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode:
+        detail = (result.stdout + "\n" + result.stderr).strip()
+        return [f"runtime authority check failed: {detail}"]
     drill_cards: list[str] = []
     try:
         _modules = discover(path / "library")
@@ -816,13 +1200,32 @@ def build(
     modules = discover(lib)
     by_id, owner = object_index(lib, modules)
     spec = read_yaml(recipe)
-    entries = spec.get("modules") or []
-    if not entries:
-        raise ValueError("release recipe has no modules")
+    entries = recipe_modules(spec)
+    owned_domains = {
+        module_domain(name) for name in entries if module_domain(name) != "metaskills"
+    }
     selected = resolve(entries, modules, by_id, owner)
+    unexpected_domains = {
+        module_domain(name) for name in selected
+    } - {*owned_domains, "metaskills"}
+    if unexpected_domains:
+        raise ValueError(
+            "primary module closure crossed skill domains: "
+            + ", ".join(sorted(unexpected_domains))
+        )
+    auxiliary_groups = parse_auxiliary_groups(
+        spec, lib, by_id, owner, owned_domains
+    )
     objects = included_objects(selected, by_id, owner)
+    auxiliary_ids = {
+        object_id
+        for group in auxiliary_groups
+        for object_id in group["object_ids"]
+    }
     has_drills = any(
-        data.get("object_type") == "drill" for _path, data in objects.values()
+        data.get("object_type") == "drill"
+        for object_id, (_path, data) in by_id.items()
+        if object_id in set(objects) | auxiliary_ids
     )
     display_name = str(spec.get("name") or recipe.stem)
     skill_name = str(spec.get("skill_name") or slugify(display_name))
@@ -854,9 +1257,15 @@ def build(
             dst = staging / "library" / name
             shutil.copytree(src, dst, dirs_exist_ok=True, ignore=ignore_nested_modules)
 
+        stage_auxiliary_groups(staging, lib, auxiliary_groups, by_id)
+        build_release_indexes(staging / "library")
+        shipped_auxiliary_groups = materialized_auxiliary_groups(
+            staging, auxiliary_groups
+        )
+
         vendor_runtime(staging, runtime_profile, deployment_profile, has_drills)
         stage_legal_files(staging)
-        memory_domains = stage_memory(staging, mem, selected) if mem.is_dir() else []
+        memory_domains = stage_memory(staging, mem, owned_domains) if mem.is_dir() else []
 
         quality = (
             {"status": "UNSAFE_SKIPPED"}
@@ -868,12 +1277,17 @@ def build(
         )
 
         manifest = {
-            "schema_version": 1,
+            "schema_version": RELEASE_MANIFEST_SCHEMA_VERSION,
             "pass_version": read_pass_version(),
             "name": display_name,
             "skill_name": skill_name,
             "description": description,
             "modules": sorted(selected),
+            "owned_domains": sorted(owned_domains),
+            "auxiliary_groups": shipped_auxiliary_groups,
+            "object_ids": sorted(
+                object_index(staging / "library", discover(staging / "library"))[0]
+            ),
             "memory_domains": memory_domains,
             "runtime_profile": runtime_profile,
             "drill_runner": has_drills,
@@ -882,7 +1296,7 @@ def build(
         }
         write_skill(
             staging, skill_name, display_name, description, runtime_profile, has_drills,
-            memory_domains,
+            memory_domains, sorted(owned_domains), shipped_auxiliary_groups,
         )
         # Freeze before hashing, so the manifest describes files in the state the
         # release actually ships them in.
@@ -897,7 +1311,10 @@ def build(
             scan_tree(staging)
             + asset_problems(staging)
             + skill_metadata_problem(staging)
-            + release_graph_problems(staging / "library")
+            + release_graph_problems(
+                staging / "library",
+                {group["domain"] for group in shipped_auxiliary_groups},
+            )
             + memory_release_problems(staging, memory_domains)
             + legal_release_problems(staging)
             + read_only_problems
@@ -944,10 +1361,10 @@ def check(path: Path) -> None:
         scan_tree(path)
         + asset_problems(path)
         + skill_metadata_problem(path)
-        + release_graph_problems(path / "library")
         + runtime_release_problems(path)
         + legal_release_problems(path)
     )
+    manifest: dict[str, Any] | None = None
     manifest_path = path / "RELEASE_MANIFEST.json"
     if not manifest_path.is_file():
         problems.append("missing RELEASE_MANIFEST.json")
@@ -976,6 +1393,12 @@ def check(path: Path) -> None:
                         problems.append(f"release manifest does not record passed {gate}")
         except (json.JSONDecodeError, ValueError) as exc:
             problems.append(f"invalid RELEASE_MANIFEST.json: {exc}")
+    auxiliary_domains = {
+        group.get("domain")
+        for group in ((manifest or {}).get("auxiliary_groups") or [])
+        if isinstance(group, dict) and isinstance(group.get("domain"), str)
+    }
+    problems.extend(release_graph_problems(path / "library", auxiliary_domains))
     if not (path / "library" / "metaskills" / "MODULE.yaml").is_file():
         problems.append("missing mandatory metaskills")
     deployment_file = path / "runtime" / "deployment_profile.yaml"

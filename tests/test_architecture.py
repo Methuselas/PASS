@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "library"
 MEMORY = ROOT / "memory"
 BUILDER = ROOT / "PASS/tools/build_release.py"
+RUNTIME = ROOT / "PASS/runtime/skillforge_runtime.py"
 VALIDATOR = ROOT / "PASS/tools/validate.py"
 RECIPES = ROOT / "workspace/release-recipes"
 CANONICAL_RECIPES = tuple(sorted(RECIPES.glob("SkillForge_*.yaml")))
@@ -104,6 +105,76 @@ def isolated_library() -> tempfile.TemporaryDirectory:
     ):
         shutil.copy2(ROOT / name, root / name)
     return tmp
+
+
+def write_fixture_pattern(
+    source: Path,
+    target: Path,
+    object_id: str,
+    library_path: list[str],
+    *,
+    cross_links: list[dict[str, str]] | None = None,
+    references: list[dict[str, str]] | None = None,
+) -> None:
+    _empty, front, body = source.read_text(encoding="utf-8").split("---\n", 2)
+    data = yaml.safe_load(front)
+    data["object_id"] = object_id
+    name = object_id.replace("PAT_", "").replace("_", " ").title()
+    data["name"] = name
+    data["library_path"] = library_path
+    data["foundation_object_id"] = "none"
+    data["cross_links"] = cross_links or []
+    data["references"] = references or []
+    data["variants"] = []
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        "---\n"
+        + yaml.safe_dump(data, sort_keys=False)
+        + "---\n"
+        + re.sub(r"(?m)^# .+$", f"# {name}", body, count=1),
+        encoding="utf-8",
+    )
+
+
+def write_authority_manifest(
+    path: Path,
+    skill_name: str,
+    *,
+    owned_domains: list[str] | None = None,
+    object_ids: list[str] | None = None,
+    fallback_digest: str | None = None,
+) -> None:
+    auxiliary_groups = []
+    files_sha256 = {}
+    if fallback_digest is not None:
+        object_path = "library/writing/PAT_fixture_shared.md"
+        auxiliary_groups.append(
+            {
+                "domain": "writing",
+                "entry_object_ids": ["PAT_fixture_shared"],
+                "object_ids": ["PAT_fixture_shared"],
+                "owner_modules": ["writing/foundations"],
+                "object_paths": {"PAT_fixture_shared": object_path},
+                "files": [object_path],
+            }
+        )
+        files_sha256[object_path] = fallback_digest
+    path.write_text(
+        json.dumps(
+            {
+                "schema_version": 2,
+                "pass_version": "1.0.0-beta.5",
+                "skill_name": skill_name,
+                "owned_domains": owned_domains or [],
+                "object_ids": object_ids or [],
+                "auxiliary_groups": auxiliary_groups,
+                "files_sha256": files_sha256,
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 class SourceAndStateIndependenceTests(unittest.TestCase):
@@ -369,6 +440,248 @@ class ReleaseIntegrityTests(unittest.TestCase):
             self.assertIn("zip output path inside or above the repository", result.stderr)
             self.assertFalse(zip_out.exists())
             self.assertNotEqual(run("build", SOFTWARE_ENGINEERING_RECIPE, ROOT / "sub").returncode, 0)
+
+
+class AuxiliaryReleaseTests(unittest.TestCase):
+    """Cross-skill release composition stays bounded and fail-closed."""
+
+    def test_auxiliary_release_materializes_exact_card_asset_and_relationship_closure(self) -> None:
+        with isolated_library() as tmp, tempfile.TemporaryDirectory() as dest:
+            root = Path(tmp)
+            library = root / "library"
+            primary = library / "fixture-primary"
+            auxiliary = library / "fixture-aux/test"
+            primary.mkdir()
+            auxiliary.mkdir(parents=True)
+            (primary / "MODULE.yaml").write_text(
+                "name: fixture-primary\nrequires: []\n", encoding="utf-8"
+            )
+            (auxiliary / "MODULE.yaml").write_text(
+                "name: fixture-aux/test\nrequires: []\n", encoding="utf-8"
+            )
+
+            source_card = (
+                library
+                / "art/foundations/form-construction/PAT_build_gesture_into_clear_masses.md"
+            )
+            source_data = frontmatter(source_card)
+            source_reference = dict(source_data["references"][0])
+            source_asset = root / source_reference["image_path"]
+            fixture_asset = auxiliary / "assets/fixture.png"
+            fixture_asset.parent.mkdir(parents=True)
+            shutil.copy2(source_asset, fixture_asset)
+            shutil.copy2(
+                Path(str(source_asset) + ".meta.json"),
+                Path(str(fixture_asset) + ".meta.json"),
+            )
+            source_reference["image_path"] = "library/fixture-aux/test/assets/fixture.png"
+
+            entry = auxiliary / "PAT_fixture_aux_entry.md"
+            prerequisite = auxiliary / "PAT_fixture_aux_prerequisite.md"
+            write_fixture_pattern(
+                source_card,
+                entry,
+                "PAT_fixture_aux_entry",
+                ["fixture-aux", "test"],
+                references=[source_reference],
+            )
+            write_fixture_pattern(
+                source_card,
+                prerequisite,
+                "PAT_fixture_aux_prerequisite",
+                ["fixture-aux", "test"],
+                cross_links=[
+                    {"rel": "prerequisite_for", "target_object_id": "PAT_fixture_aux_entry"}
+                ],
+            )
+            (root / "memory/fixture-aux").mkdir(parents=True)
+            (root / "memory/fixture-aux/skill_memory.yaml").write_text(
+                "this would be invalid if packaged: true\n", encoding="utf-8"
+            )
+            recipe = root / "recipes/Auxiliary_Fixture.yaml"
+            recipe.write_text(
+                yaml.safe_dump(
+                    {
+                        "name": "Auxiliary Fixture",
+                        "skill_name": "auxiliary-fixture",
+                        "modules": ["fixture-primary"],
+                        "runtime_profile": "generic",
+                        "auxiliary": [
+                            {"domain": "fixture-aux", "objects": ["PAT_fixture_aux_entry"]}
+                        ],
+                    },
+                    sort_keys=False,
+                ),
+                encoding="utf-8",
+            )
+
+            out = Path(dest) / "release"
+            build = subprocess.run(
+                [
+                    sys.executable,
+                    str(root / "PASS/tools/build_release.py"),
+                    "build",
+                    str(recipe),
+                    str(out),
+                    "--library",
+                    str(library),
+                    "--memory",
+                    str(root / "memory"),
+                ],
+                text=True,
+                capture_output=True,
+                cwd=root,
+            )
+            self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
+            manifest = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["schema_version"], 2)
+            self.assertEqual(manifest["owned_domains"], ["fixture-primary"])
+            self.assertEqual(len(manifest["auxiliary_groups"]), 1)
+            group = manifest["auxiliary_groups"][0]
+            self.assertEqual(group["domain"], "fixture-aux")
+            self.assertEqual(group["entry_object_ids"], ["PAT_fixture_aux_entry"])
+            self.assertEqual(
+                group["object_ids"],
+                ["PAT_fixture_aux_entry", "PAT_fixture_aux_prerequisite"],
+            )
+            self.assertEqual((out / group["object_paths"]["PAT_fixture_aux_entry"]).read_bytes(), entry.read_bytes())
+            self.assertEqual(
+                (out / "library/fixture-aux/test/assets/fixture.png").read_bytes(),
+                fixture_asset.read_bytes(),
+            )
+            self.assertTrue((out / "library/fixture-aux/test/assets/fixture.png.meta.json").is_file())
+            self.assertFalse((out / "library/fixture-aux/test/MODULE.yaml").exists())
+            self.assertFalse((out / "memory/fixture-aux").exists())
+            index = (out / "library/fixture-aux/test/INDEX.md").read_text(encoding="utf-8")
+            self.assertIn("PAT_fixture_aux_entry.md", index)
+            self.assertIn("PAT_fixture_aux_prerequisite.md", index)
+            skill = out / "SKILL.md"
+            self.assertIn("## Auxiliary fallbacks", skill.read_text(encoding="utf-8"))
+            self.assertLessEqual(skill.stat().st_size, 8 * 1024)
+            self.assertEqual(
+                subprocess.run(
+                    [sys.executable, str(root / "PASS/tools/build_release.py"), "check", str(out)],
+                    text=True,
+                    capture_output=True,
+                    cwd=root,
+                ).returncode,
+                0,
+            )
+            authority = subprocess.run(
+                [sys.executable, str(out / "scripts/skillforge_runtime.py"), "authority"],
+                text=True,
+                capture_output=True,
+                cwd=out,
+            )
+            self.assertEqual(authority.returncode, 0, authority.stderr)
+            self.assertEqual(json.loads(authority.stdout)["decisions"][0]["authority"], "auxiliary")
+
+            manifest["auxiliary_groups"][0]["object_ids"].pop()
+            (out / "RELEASE_MANIFEST.json").write_text(
+                json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+            )
+            broken = subprocess.run(
+                [sys.executable, str(root / "PASS/tools/build_release.py"), "check", str(out)],
+                text=True,
+                capture_output=True,
+                cwd=root,
+            )
+            self.assertNotEqual(broken.returncode, 0)
+            self.assertIn("object_paths does not match object_ids", broken.stderr)
+
+    def test_auxiliary_recipe_rejects_an_object_from_the_wrong_domain(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as dest:
+            recipe = Path(tmp) / "bad.yaml"
+            recipe.write_text(
+                "name: bad\nmodules: [game-design/adventures]\n"
+                "auxiliary:\n  - domain: art\n"
+                "    objects: [writing_choose_diction_to_serve_purpose_and_tone]\n",
+                encoding="utf-8",
+            )
+            result = run("build", recipe, Path(dest) / "out")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("belongs to writing, not art", result.stderr)
+
+            recipe.write_text(
+                "name: bad\nmodules: [game-design/adventures]\nauxiliary: {}\n",
+                encoding="utf-8",
+            )
+            malformed = run("build", recipe, Path(dest) / "out-two")
+            self.assertNotEqual(malformed.returncode, 0)
+            self.assertIn("release recipe auxiliary must be a list", malformed.stderr)
+
+    def test_authority_prefers_one_complete_owner_and_falls_back_from_an_incomplete_one(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            fallback = root / "fallback.json"
+            owner = root / "owner.json"
+            write_authority_manifest(fallback, "game-design", fallback_digest="a" * 64)
+            write_authority_manifest(
+                owner,
+                "writing",
+                owned_domains=["writing"],
+                object_ids=["PAT_fixture_shared"],
+            )
+            result = subprocess.run(
+                [sys.executable, str(RUNTIME), "authority", "--manifest", str(fallback), "--manifest", str(owner)],
+                text=True,
+                capture_output=True,
+                cwd=ROOT,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            decision = json.loads(result.stdout)["decisions"][0]
+            self.assertEqual((decision["authority"], decision["provider_skill"]), ("owner", "writing"))
+
+            write_authority_manifest(owner, "writing", owned_domains=["writing"])
+            result = subprocess.run(
+                [sys.executable, str(RUNTIME), "authority", "--manifest", str(fallback), "--manifest", str(owner)],
+                text=True,
+                capture_output=True,
+                cwd=ROOT,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(json.loads(result.stdout)["decisions"][0]["authority"], "auxiliary")
+
+    def test_authority_coalesces_identical_fallbacks_and_rejects_different_revisions(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first = root / "first.json"
+            second = root / "second.json"
+            write_authority_manifest(first, "game-design", fallback_digest="a" * 64)
+            write_authority_manifest(second, "worldbuilding", fallback_digest="a" * 64)
+            command = [
+                sys.executable,
+                str(RUNTIME),
+                "authority",
+                "--manifest",
+                str(first),
+                "--manifest",
+                str(second),
+            ]
+            same = subprocess.run(command, text=True, capture_output=True, cwd=ROOT)
+            self.assertEqual(same.returncode, 0, same.stderr)
+            self.assertEqual(len(json.loads(same.stdout)["decisions"]), 2)
+
+            write_authority_manifest(second, "worldbuilding", fallback_digest="b" * 64)
+            different = subprocess.run(command, text=True, capture_output=True, cwd=ROOT)
+            self.assertNotEqual(different.returncode, 0)
+            self.assertIn("conflicting auxiliary fallback", different.stderr)
+
+    def test_authority_rejects_multiple_active_owners(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first = root / "first.json"
+            second = root / "second.json"
+            write_authority_manifest(first, "writing-one", owned_domains=["writing"])
+            write_authority_manifest(second, "writing-two", owned_domains=["writing"])
+            result = subprocess.run(
+                [sys.executable, str(RUNTIME), "authority", "--manifest", str(first), "--manifest", str(second)],
+                text=True,
+                capture_output=True,
+                cwd=ROOT,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("multiple active owner providers", result.stderr)
 
 
 class ValidatorScopeTests(unittest.TestCase):

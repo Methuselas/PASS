@@ -31,8 +31,10 @@ If no, the runtime does not depend on it.
    hash, receipt, or attestation, and it must execute after the work it was
    learned from is gone.
 6. **Skill domains are independent.** Every package under `library/` other than
-   `metaskills` is authored, validated, and built without the others. Domains
-   share a library, not an authoring process.
+   `metaskills` is authored and validated without the others. Its canonical
+   package build remains independent; a named product release may compose
+   finished foreign-domain material only through the bounded auxiliary-fallback
+   contract below. Domains share a library, not an authoring process.
 7. Cards may reference cards in their own domain, plus the shared `metaskills`
    package. Any other cross-package edge is a domain coupling and fails.
 8. Every SkillForge release includes `metaskills`.
@@ -141,6 +143,30 @@ replaces duplication, not verification.
 
 This is runtime/distribution metadata about finished packages. It is not retired
 authoring bureaucracy, and the prohibition below does not cover it.
+
+That prerequisite shape is preferred when the deployment can guarantee the
+separate foundation package. The auxiliary-fallback case below serves portable
+releases that must remain useful when no separate provider is available; those
+releases carry the bounded closure they need.
+
+### Cross-skill releases use bounded auxiliary fallbacks
+
+A finished skill may need a narrow capability owned by another domain even when
+the owner skill is not installed. The accepted composition model preserves
+domain-independent authoring while allowing a release recipe to carry a bounded,
+demonstrated foreign-domain closure as an auxiliary fallback.
+
+Canonical ownership never moves, card bytes are not retagged, and cross-domain
+card references remain invalid. An available complete owner skill suppresses the
+fallback as a whole; conflicting owners or differing active fallback revisions
+fail preflight instead of competing inside model context. The complete decision,
+including offline, repository, manifest, Drill, and memory boundaries, is in
+[`PASS/docs/CROSS_SKILL_COMPOSITION.md`](PASS/docs/CROSS_SKILL_COMPOSITION.md).
+
+The builder, recipe schema, release checker, generated router, and optional
+runtime authority resolver implement this decision. No production recipe uses
+an auxiliary group yet, and the change does not retroactively alter existing
+SkillForge releases.
 
 ### Maturity is declared by the user, never inferred
 

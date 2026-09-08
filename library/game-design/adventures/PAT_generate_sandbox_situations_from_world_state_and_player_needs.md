@@ -51,6 +51,7 @@ variants: []
 - Prefer causal pressure from already stored enemies, debts, injuries, obligations, reputation, public visibility, evidence trails, faction motives, damaged assets, compromised identities, owed favors, or resource needs over arbitrary danger added only to maintain tone.
 - Treat aftermath as future scenario material when one completed operation leaves unresolved economic, medical, social, legal, or logistical state that can activate later.
 - Persist location state across revisits: mapping, depletion, cleared inhabitants, occupation, damage, repaired defenses, destroyed access, and later repopulation should survive unless an in-world process changes them.
+- When intelligent opposition survives or receives credible reports, let it adapt to observed methods through plausible countermeasures such as changed watches, new alarms, copied tactics, altered routes, relocation, alliances, or deceptive responses, bounded by what it knows, can afford, and has time to prepare.
 
 ## Don't
 - Treat a random encounter table as a sandbox engine when its results have no durable relationship to party state.
@@ -58,6 +59,7 @@ variants: []
 - Expose every internal territory or faction category as a player-facing label when discovery is part of play.
 - Assume survival pressure alone supplies long-term direction when players have no meaningful reasons to care about generated opportunities.
 - Reset a revisited location invisibly to its original encounter state when prior player actions should have altered what exists there.
+- Give opposition counters to tactics it could not observe, infer, or learn about, or let it conjure resources and preparation time solely because the players succeeded before.
 
 ## Checklist
 - At least one persistent player need can make the generated element matter differently from another party state.
@@ -67,8 +69,9 @@ variants: []
 - The procedure produces usable pressure without requiring the referee to invent the entire situation from scratch.
 - The design distinguishes scenario ingredients from campaign automation: if the referee must choose which dormant hook or faction activates next, that synthesis workload is named rather than assumed away.
 - A revisited location can be compared to its prior state and every major change has either persisted or been replaced by a named world process.
+- When surviving opposition adapts, the new behavior can be traced to information it plausibly obtained plus resources and time it actually possesses.
 
 ## Notes
 A sandbox can generate situations without generating stories. A repair yard means little to a well-supplied group and can become the most important location on the map after a vehicle loses a critical component. A field hospital, fixer, buyer, trainer, checkpoint, or damaged safehouse changes meaning according to the party's current injuries, shortages, relationships, legal exposure, and goals. The useful procedural loop is generated world state multiplied by persistent player need; completed adventures can supply that state by leaving repair bills, wounds, favors, compromised identities, hunted loot, forensic traces, public attention, or other unresolved consequences behind.
 
-Persistent locations become scenario generators when prior clearing, mapping, occupation, damage, resource removal, or abandonment changes what later actors can do there. Repopulation is strongest when it is a world-state transition rather than an invisible reset to the original encounter package.
+Persistent locations become scenario generators when prior clearing, mapping, occupation, damage, resource removal, or abandonment changes what later actors can do there. Repopulation is strongest when it is a world-state transition rather than an invisible reset to the original encounter package. Intelligent opposition can make the same persistence visible behaviorally: survivors may add warning devices, move guards, borrow a tactic the players demonstrated, seek allies, abandon exposed rooms, or bluff with a threat that worked before. That adaptation should remain causal rather than omniscient; the opposition only reacts to information it could obtain and with means it can actually bring to bear.

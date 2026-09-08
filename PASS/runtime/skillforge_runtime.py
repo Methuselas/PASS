@@ -19,6 +19,9 @@ What it actually provides:
   checks also writes the record, and Python never independently sees the artifact.
 - ``doctor`` validates that a profile and the library's activation manifests are
   internally consistent and that every object reference resolves to a real card.
+- ``authority`` compares the release manifests of the skills active for one task
+  and resolves each auxiliary group to either one complete owner provider or its
+  packaged fallback. Conflicting owners or fallback revisions fail closed.
 
 Honoring the returned contract is the consuming skill's responsibility. APs own
 goal-directed craft control flow; Patterns own the individual decisions. The
@@ -37,6 +40,15 @@ from typing import Any
 import yaml
 
 SCHEMA_VERSION = 1
+RELEASE_MANIFEST_SCHEMA_VERSION = 2
+DOMAIN_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+SHA256_RE = re.compile(r"[0-9a-f]{64}")
+SEMVER_RE = re.compile(
+    r"(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"(?:-((?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)"
+    r"(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*))?"
+    r"(?:\+([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?"
+)
 
 
 def read_yaml(path: Path) -> dict[str, Any]:
@@ -44,6 +56,166 @@ def read_yaml(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise ValueError(f"{path}: expected YAML mapping")
     return data
+
+
+def read_manifest(path: Path) -> dict[str, Any]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError(f"{path}: expected JSON object")
+    if data.get("schema_version") != RELEASE_MANIFEST_SCHEMA_VERSION:
+        raise ValueError(
+            f"{path}: release manifest schema_version must be "
+            f"{RELEASE_MANIFEST_SCHEMA_VERSION}"
+        )
+    for key in ("skill_name", "pass_version"):
+        if not isinstance(data.get(key), str) or not data[key]:
+            raise ValueError(f"{path}: release manifest {key} must be a non-empty string")
+    if not SEMVER_RE.fullmatch(data["pass_version"]):
+        raise ValueError(f"{path}: release manifest pass_version is not Semantic Versioning")
+    for key in ("owned_domains", "object_ids", "auxiliary_groups"):
+        if not isinstance(data.get(key), list):
+            raise ValueError(f"{path}: release manifest {key} must be a list")
+    if not all(isinstance(object_id, str) for object_id in data["object_ids"]):
+        raise ValueError(f"{path}: release manifest object_ids must contain strings")
+    if len(data["object_ids"]) != len(set(data["object_ids"])):
+        raise ValueError(f"{path}: release manifest object_ids must not contain duplicates")
+    return data
+
+
+def _pass_major(version: str) -> int:
+    match = re.match(r"^(0|[1-9]\d*)\.", version)
+    if not match:
+        raise ValueError(f"invalid PASS version in release manifest: {version!r}")
+    return int(match.group(1))
+
+
+def resolve_authority(manifests: list[tuple[Path, dict[str, Any]]]) -> dict[str, Any]:
+    """Resolve active release manifests without choosing between disagreements."""
+    skill_names = [str(manifest["skill_name"]) for _path, manifest in manifests]
+    if len(skill_names) != len(set(skill_names)):
+        raise ValueError("duplicate active skill_name in release manifests")
+    owners: dict[str, list[tuple[Path, dict[str, Any]]]] = {}
+    for path, manifest in manifests:
+        owned = manifest.get("owned_domains") or []
+        if not all(
+            isinstance(domain, str) and DOMAIN_RE.fullmatch(domain) for domain in owned
+        ):
+            raise ValueError(f"{path}: owned_domains must contain non-empty strings")
+        if len(owned) != len(set(owned)):
+            raise ValueError(f"{path}: owned_domains must not contain duplicates")
+        for domain in owned:
+            owners.setdefault(domain, []).append((path, manifest))
+    duplicate_owners = {
+        domain: entries for domain, entries in owners.items() if len(entries) > 1
+    }
+    if duplicate_owners:
+        domain = sorted(duplicate_owners)[0]
+        skills = ", ".join(
+            str(manifest["skill_name"]) for _path, manifest in duplicate_owners[domain]
+        )
+        raise ValueError(f"multiple active owner providers for {domain}: {skills}")
+
+    decisions: list[dict[str, Any]] = []
+    active_fallback_hashes: dict[tuple[str, str], tuple[str, str]] = {}
+    for path, manifest in manifests:
+        requester = str(manifest["skill_name"])
+        request_major = _pass_major(str(manifest["pass_version"]))
+        seen_auxiliary_domains: set[str] = set()
+        for index, group in enumerate(manifest.get("auxiliary_groups") or []):
+            where = f"{path}: auxiliary_groups[{index}]"
+            if not isinstance(group, dict):
+                raise ValueError(f"{where} must be a mapping")
+            domain = group.get("domain")
+            object_ids = group.get("object_ids")
+            object_paths = group.get("object_paths")
+            files = group.get("files")
+            if not isinstance(domain, str) or not DOMAIN_RE.fullmatch(domain):
+                raise ValueError(f"{where}.domain must be a non-empty string")
+            if domain in seen_auxiliary_domains:
+                raise ValueError(f"{path}: duplicate auxiliary domain {domain}")
+            if domain in set(manifest.get("owned_domains") or []):
+                raise ValueError(f"{where}.domain is also owned by {requester}")
+            seen_auxiliary_domains.add(domain)
+            if not isinstance(object_ids, list) or not object_ids or not all(
+                isinstance(object_id, str) for object_id in object_ids
+            ):
+                raise ValueError(f"{where}.object_ids must be a non-empty string list")
+            if len(object_ids) != len(set(object_ids)):
+                raise ValueError(f"{where}.object_ids must not contain duplicates")
+            if not isinstance(object_paths, dict) or set(object_paths) != set(object_ids):
+                raise ValueError(f"{where}.object_paths must map every object_id")
+            if not isinstance(files, list) or not all(isinstance(name, str) for name in files):
+                raise ValueError(f"{where}.files must be a string list")
+            if len(files) != len(set(files)):
+                raise ValueError(f"{where}.files must not contain duplicates")
+            if not set(object_paths.values()).issubset(set(files)):
+                raise ValueError(f"{where}.files must contain every object path")
+            if not all(name.startswith(f"library/{domain}/") for name in files):
+                raise ValueError(f"{where}.files must stay in {domain}")
+
+            provider_entries = owners.get(domain) or []
+            provider = provider_entries[0][1] if provider_entries else None
+            provider_complete = False
+            if provider is not None:
+                provider_ids = provider.get("object_ids") or []
+                provider_complete = (
+                    all(isinstance(object_id, str) for object_id in provider_ids)
+                    and set(object_ids).issubset(set(provider_ids))
+                    and _pass_major(str(provider["pass_version"])) == request_major
+                )
+            if provider_complete:
+                decisions.append(
+                    {
+                        "requesting_skill": requester,
+                        "domain": domain,
+                        "authority": "owner",
+                        "provider_skill": provider["skill_name"],
+                        "object_ids": sorted(object_ids),
+                    }
+                )
+                continue
+
+            hashes = manifest.get("files_sha256")
+            if not isinstance(hashes, dict):
+                raise ValueError(f"{path}: files_sha256 must be a mapping")
+            for object_id in object_ids:
+                object_path = object_paths.get(object_id)
+                digest = hashes.get(object_path) if isinstance(object_path, str) else None
+                if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
+                    raise ValueError(f"{where}: missing hash for {object_id}")
+            for file_path in files:
+                if file_path.endswith("/INDEX.md"):
+                    continue
+                digest = hashes.get(file_path)
+                if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
+                    raise ValueError(f"{where}: missing hash for {file_path}")
+                key = (domain, file_path)
+                previous = active_fallback_hashes.get(key)
+                if previous is not None and previous[0] != digest:
+                    raise ValueError(
+                        f"conflicting auxiliary fallback file {file_path}: "
+                        f"{previous[1]} != {requester}"
+                    )
+                active_fallback_hashes[key] = (digest, requester)
+            decisions.append(
+                {
+                    "requesting_skill": requester,
+                    "domain": domain,
+                    "authority": "auxiliary",
+                    "provider_skill": requester,
+                    "object_ids": sorted(object_ids),
+                    "reason": (
+                        "no active owner provider"
+                        if provider is None
+                        else "active owner provider is incomplete or incompatible"
+                    ),
+                }
+            )
+    return {
+        "schema_version": 1,
+        "active_skills": [manifest["skill_name"] for _path, manifest in manifests],
+        "decisions": decisions,
+    }
 
 
 def normalize_text(value: str) -> str:
@@ -660,6 +832,14 @@ def default_paths(script: Path) -> tuple[Path, Path]:
     return repo / "PASS" / "runtime" / "profiles" / "generic.yaml", repo / "library"
 
 
+def default_release_manifest(script: Path) -> Path | None:
+    if script.parent.name == "scripts":
+        manifest = script.parent.parent / "RELEASE_MANIFEST.json"
+        if manifest.is_file():
+            return manifest
+    return None
+
+
 def main() -> int:
     script = Path(__file__).resolve()
     default_profile, default_library = default_paths(script)
@@ -692,9 +872,39 @@ def main() -> int:
         "doctor",
         help="check profile and library activation manifests for internal consistency",
     )
+    authority = sub.add_parser(
+        "authority",
+        help="resolve owner providers and auxiliary fallbacks from active release manifests",
+    )
+    authority.add_argument(
+        "--manifest",
+        action="append",
+        type=Path,
+        help=(
+            "RELEASE_MANIFEST.json for one active skill; repeat for every active skill. "
+            "A vendored resolver defaults to its own release manifest."
+        ),
+    )
     args = parser.parse_args()
 
     try:
+        if args.cmd == "authority":
+            manifest_paths = args.manifest or []
+            if not manifest_paths:
+                default_manifest = default_release_manifest(script)
+                if default_manifest is None:
+                    raise ValueError("authority requires at least one --manifest")
+                manifest_paths = [default_manifest]
+            unique_paths: list[Path] = []
+            seen_paths: set[Path] = set()
+            for manifest_path in manifest_paths:
+                resolved = manifest_path.resolve()
+                if resolved not in seen_paths:
+                    unique_paths.append(resolved)
+                    seen_paths.add(resolved)
+            manifests = [(path, read_manifest(path)) for path in unique_paths]
+            print(json.dumps(resolve_authority(manifests), indent=2) + "\n", end="")
+            return 0
         profile = read_yaml(args.profile.resolve())
         library = args.library.resolve()
         if args.cmd == "doctor":

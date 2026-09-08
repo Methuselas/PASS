@@ -1,0 +1,154 @@
+schema_version: 1
+profile_id: game-design
+consumer_instructions:
+  - >-
+    Resolve productive Game Design work AP-first and with bounded retrieval. Keep
+    one coherent artifact state for the task; breadth of applicable Patterns,
+    variants, modules, or metaskills never authorizes execution fan-out by itself.
+  - >-
+    An ordinary Game Design production task, Drill sitting, or production
+    benchmark uses one taker by default. Do not spawn parallel designers merely
+    because the brief contains several components such as town, wilderness,
+    dungeon, encounters, factions, maps, rewards, or rules. Those components are
+    parts of one design problem and must share the same evolving state. A
+    comparative study may use only the explicitly approved treatment/control
+    structure and concurrency ceiling declared by the repository contract.
+  - >-
+    Bind each run to the concrete substrate named by the brief and to capabilities
+    actually available in the active skill closure or supplied context. If the
+    user asks for Basic D&D, Shadowrun, a particular videogame genre, or another
+    named rules environment, solve that instance rather than speculatively
+    branching into other systems. Unsupported concrete branches are out of scope,
+    not invitations to improvise parallel tests. Never silently substitute a
+    different ruleset when exact compatibility cannot be established.
+  - >-
+    A broad or system-independent card must be instantiated against one concrete
+    design problem before execution. Ambiguity is resolved by narrowing to the
+    user's brief and available capabilities, not by multiplying workers,
+    alternative systems, or hypothetical implementations.
+  - >-
+    Integrated production briefs may naturally exercise many cards. Do not turn
+    the task into card-coverage theater and do not manufacture content merely to
+    touch additional Patterns. Apply only the knowledge demanded by the artifact;
+    after a benchmark artifact is frozen, the evaluator may map observed design
+    decisions back to whichever canonical cards actually became relevant.
+  - >-
+    Distinguish a canonical blind Drill sitting from an ad hoc production
+    benchmark. A sitting administered by skillforge_drill.py follows its blind
+    packet, freeze, reveal, grading, and candidate-event lifecycle. A free-form
+    brief without a canonical Drill card may still be used as a production
+    benchmark, but must not be reported as though the deterministic Drill runner
+    administered it.
+  - >-
+    For any evaluative production benchmark, freeze the submitted artifact before
+    revealing or constructing the evaluation against it. Grade the frozen work;
+    do not revise the artifact after seeing the rubric and then score the revised
+    version as the original sitting.
+  - >-
+    Required deliverables must be produced rather than described. If the brief
+    asks for a playable adventure, maps, tables, rules text, character material,
+    handouts, files, or a packaged project, create those artifacts when the host
+    supports them and verify that the package contains what the brief requires.
+  - >-
+    Auxiliary skills such as Writing, Cartography, Layout, Art, or Software
+    Engineering are capability providers, not implicit sub-agents. When an
+    auxiliary skill is available and relevant, it may improve the same coherent
+    artifact, but Game Design retains semantic authority over mechanics,
+    incentives, challenge, state transitions, scenario topology, and other game
+    behavior. Any auxiliary edit that changes those decisions must be rechecked
+    against Game Design before completion.
+  - >-
+    Attribute defects to the capability that actually failed. When an auxiliary
+    skill is absent, do not treat weak prose polish, illustration, cartographic
+    aesthetics, or layout craft as proof that Game Design itself is weak. Game
+    Design may still be accountable for whether prose, maps, tables, and layout
+    expose the decisions and state needed to play the game.
+  - >-
+    Practice history and benchmark observations belong in Skillset Memory, never
+    in canonical cards. Do not write memory automatically from a production run;
+    preserve the run evidence and route any candidate training event through the
+    repository's memory review and validation process.
+default_lane: skill
+lanes:
+  skill:
+    label: Game Design execution
+  teach:
+    label: Game Design teaching and learning
+lane_routing:
+  rules:
+    - lane: teach
+      reason: explicit teaching/coaching/learning request
+      when:
+        any_phrases:
+          - teach me
+          - coach me
+          - help me learn
+          - lesson plan
+          - practice plan
+          - learning progression
+          - assess my understanding
+          - explain how to design
+          - walk me through
+
+default_mode: direct
+execution_modes:
+  direct:
+    aliases: [direct]
+    label: Direct Production
+    contract:
+      approval_gates: false
+      rollback_enabled: false
+      post_production_verification: true
+  staged:
+    aliases: [staged, process]
+    label: Staged Production
+    contract:
+      approval_gates: true
+      rollback_enabled: true
+      post_production_verification: true
+routing:
+  rules:
+    - mode: staged
+      reason: explicit staged/process request
+      when:
+        any_phrases:
+          - staged
+          - step by step
+          - show the process
+          - iterative approval
+          - approval gate
+          - approve each stage
+risk_rules:
+  - id: evaluative_run_integrity
+    when:
+      any_phrases:
+        - drill
+        - benchmark
+        - skill test
+        - test the skill
+        - production test
+        - blind sitting
+        - comparative study
+    checks:
+      - single taker or explicitly approved comparative structure
+      - concrete substrate bound before productive execution
+      - one coherent artifact state preserved across the run
+      - applicable-card breadth did not trigger speculative execution fan-out
+      - run type correctly identified as canonical Drill or ad hoc production benchmark
+      - evaluated artifact frozen before rubric-based grading or revision
+  - id: integrated_production_integrity
+    when:
+      any_regex:
+        - '(?i)\b(write|design|create|build|produce|make|package)\b.{0,80}\b(adventure|module|scenario|campaign|game|ruleset|mechanic|system|encounter|character|world|setting)\b'
+        - '(?i)\b(complete project|playable adventure|finished module|game design)\b'
+    checks:
+      - requested deliverables were produced rather than merely described
+      - concrete rules or system constraints were preserved where available
+      - components share coherent state and do not contradict one another
+      - auxiliary-skill work did not silently alter Game Design decisions
+      - post-production verification checked instruction fidelity and play-facing usability
+completion_gate:
+  required_checks:
+    - instruction_fidelity_check
+    - objective_check
+  require_all_risk_checks: true

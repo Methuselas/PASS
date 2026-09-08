@@ -6,9 +6,40 @@ requirements in `MODULE.yaml`. A named release recipe selects its entry module(s
 prerequisites, runs the release quality gates, then materializes the complete
 closure under `library/` inside the release.
 
-A domain release packages that domain without loading any other. Closure follows
-module and object prerequisites inside the domain, plus the shared `metaskills`
-package. It never requires closure across another skill domain.
+A recipe's primary `modules` are one owned domain plus the shared `metaskills`
+package. Their module and object closure stays inside that domain. A recipe may
+also select bounded foreign-domain card closures as auxiliary fallbacks while
+preserving canonical domain ownership and the prohibition on cross-domain card
+references. The authority, conflict, Drill, and memory rules are normative in
+[`CROSS_SKILL_COMPOSITION.md`](CROSS_SKILL_COMPOSITION.md).
+
+Auxiliary entries use stable object IDs grouped by their canonical owner domain:
+
+```yaml
+modules:
+  - game-design/adventures
+auxiliary:
+  - domain: writing
+    objects:
+      - writing_ap_revise_creative_draft_from_diagnosis_to_final_proof
+  - domain: art
+    objects:
+      - AP_project_plan_and_elevation_into_perspective
+```
+
+The example demonstrates syntax only; those entries are not a qualified Game
+Design recipe. `auxiliary` is optional. Each domain may occur once, every entry
+must belong to the declared foreign domain, and an owned domain cannot also be
+auxiliary. Unknown keys, duplicate domains or objects, missing IDs, and ownership
+mismatches fail before materialization.
+
+The builder resolves each auxiliary entry at card granularity through
+`foundation_object_id`, every canonical `cross_links` target, and the reverse
+side of `prerequisite_for`. It copies those canonical card bytes, declared assets
+and review sidecars under their original `library/<domain>/...` paths. It does
+not copy the foreign domain's canonical `MODULE.yaml`; instead, the release
+manifest records each card's owner module. Release-local indexes are regenerated
+from the cards that actually ship.
 
 The release preserves canonical `library/...` paths. This is deliberate: trained
 cards may contain local asset paths such as `library/art/.../assets/foo.png`, and
@@ -43,12 +74,17 @@ states otherwise. A release missing any licensing or attribution file fails
 
 ## Skillset Memory in a release
 
-A release ships the memory store of every domain it bundles, and no other. The
-domain is the top-level package name of a selected module, so `art/composition`
-and `art/subjects/animals` both mean `memory/art/`. Stores land at
+A release ships the memory store of every domain owned by its primary modules,
+and no other. The domain is the top-level package name of a selected module, so
+`art/composition` and
+`art/subjects/animals` both mean `memory/art/`. Stores land at
 `memory/<domain>/` in the release root — beside `library/`, never inside it.
 Packaging memory must not turn an observation into a card (`ARCHITECTURE.md`
 contract 20).
+
+Auxiliary cards do not cause their owner domain's memory to ship. Cross-skill
+memory composition is outside the accepted decision and requires separate
+authorization.
 
 Memory is not a build dependency. A domain with no store contributes nothing,
 and a build with `memory/` deleted entirely succeeds and declares

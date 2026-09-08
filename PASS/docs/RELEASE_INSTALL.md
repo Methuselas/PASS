@@ -63,6 +63,22 @@ work, load the barriers and prefer the resolver's bounded result; read the full
 profile directly when the resolver is unavailable or when inspecting the runtime
 contract itself.
 
+Releases that carry auxiliary fallbacks include an additional router section.
+When several SkillForge skills are active for one task, compare their manifests
+before loading the fallback cards:
+
+```text
+python scripts/skillforge_runtime.py authority \
+  --manifest <first-release>/RELEASE_MANIFEST.json \
+  --manifest <second-release>/RELEASE_MANIFEST.json
+```
+
+The command selects one complete owner provider when available, otherwise the
+requesting release's fallback. It refuses multiple owners and differing active
+fallback payloads. Running `authority` without `--manifest` inside an extracted
+release checks that release alone. A host without Python follows the same rules
+from `RELEASE_MANIFEST.json`; no network service is required.
+
 If the release contains canonical Drill cards, it also vendors the optional
 model-neutral `scripts/skillforge_drill.py` administrator. It discovers only the
 release-local `library/`, prepares either canonical blind cut, freezes the taker

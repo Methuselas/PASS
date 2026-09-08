@@ -20,6 +20,8 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_preserve_player_control_of_protagonist_response_in_adventure_text
+- rel: related_to
+  target_object_id: PAT_design_scenario_progression_as_a_redundant_node_network
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
@@ -41,6 +43,7 @@ variants: []
 - Escalate to hard boundaries or explicit forced transitions only when the premise, act structure, or supported scope genuinely requires them.
 - Make constraints arise from established geography, obligations, threats, time pressure, access, or other understandable situation state rather than inventing a new obstruction whenever players deviate.
 - Preserve consequential choice inside constrained structure through route, tactics, relationships, information, resources, risks, timing, or the state in which the next required point is reached.
+- When scene order is fixed, concentrate agency in **approach** and **consequence**: players may not choose which prepared scene comes next, but they should still be able to decide how to engage it and carry the resulting allies, injuries, spent resources, hostility, information, promises, position, or other changed state forward.
 - State a hard scope boundary plainly when pretending unlimited freedom would only create unsupported play.
 
 ## Don't
@@ -49,6 +52,7 @@ variants: []
 - Require one exact protagonist decision when the actual structural requirement is only that play reach a later state or location.
 - Treat every constraint as illegitimate; premises, boundaries, and transitions can be honest parts of the adventure contract.
 - Use stronger force than the structure needs when a lighter prompt would preserve the same supported scope.
+- Reset resources, relationships, injuries, alarms, reputation, or other earned state solely so the next authored scene begins in the condition the designer expected.
 
 ## Checklist
 - Each required boundary or transition has a concrete structural reason.
@@ -56,6 +60,7 @@ variants: []
 - Strong constraints are legible as consequences of the established situation or explicit supported scope.
 - Player decisions still change at least one consequential aspect of how the next required point is reached.
 - No apparent branch is silently collapsed by discarding the state created by the player's choice.
+- In a deliberately linear section, at least one meaningful consequence of player approach can survive into later play unless a clear in-fiction recovery process removes it.
 
 ## Notes
-Directed adventures can constrain direction without nullifying agency. The practical question is not whether structure exists, but how much force is required to keep the authored material executable and whether choices inside that structure still matter. Use the lightest reliable guidance first; reserve hard boundaries and forced transitions for genuine structural requirements rather than authorial preference.
+Directed adventures can constrain direction without nullifying agency. Choice of destination is only one form of agency; choice of approach and persistent consequence can remain strong even when the scene sequence is fixed. The practical question is not whether structure exists, but how much force is required to keep the authored material executable and whether choices inside that structure still matter. Use the lightest reliable guidance first; reserve hard boundaries and forced transitions for genuine structural requirements rather than authorial preference.

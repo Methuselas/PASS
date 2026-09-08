@@ -207,6 +207,15 @@ The canonical resolver has one source of truth. Release builds vendor a tiny cop
 into each self-contained skill rather than assuming one installed skill can
 import executable code from another.
 
+Manifest schema 2 also lets that vendored resolver perform an explicit
+`authority` preflight over the `RELEASE_MANIFEST.json` files of the SkillForge
+skills active for a task. One complete compatible owner provider suppresses its
+auxiliary fallback as a whole. Identical fallback payloads may coexist;
+conflicting payload hashes or multiple active owners fail closed. With no
+additional manifest paths, a portable release resolves against its own manifest
+and remains usable offline. The helper only reports the authority decision; the
+host or consuming model remains responsible for honoring it.
+
 Deployment constraints are separate from execution semantics and authoring health.
 A recipe may name a `deployment_profile`, and `build_release.py` then reads
 `PASS/runtime/deployment_profiles/<name>.yaml` to check package size at the

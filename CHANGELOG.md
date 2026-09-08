@@ -6,6 +6,30 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.5 - 2026-09-08
+
+### Added
+
+- Added bounded cross-skill auxiliary fallback groups to release recipes. The
+  builder resolves card-level relationship closure, preserves canonical card and
+  asset bytes, regenerates release-local indexes, and excludes foreign-domain
+  Skillset Memory.
+- Added deterministic authority resolution for active release manifests: one
+  complete owner provider wins, identical fallbacks coalesce, and differing
+  fallbacks or multiple owners fail closed.
+
+### Changed
+
+- Advanced `RELEASE_MANIFEST.json` to schema 2 with owned domains, complete
+  packaged object IDs, and explicit auxiliary group membership and paths.
+- Made release checks validate auxiliary ownership, object and file membership,
+  hashes, generated routing instructions, and owned-only memory.
+
+### Validation
+
+- Passed all 166 repository tests, including five new auxiliary packaging and
+  authority-resolution tests plus every canonical release build and check.
+
 ## 1.0.0-beta.4 - 2026-09-07
 
 ### Added

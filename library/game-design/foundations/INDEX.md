@@ -25,7 +25,7 @@
 - [Distinguish Future Hooks from Current Supported Functionality](PAT_distinguish_future_hooks_from_current_supported_functionality.md) - pattern; 0 design. Tags: capabilities, completeness, roadmap, scope.
 - [Evaluate Mechanics by the Decisions and Agency They Create](PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create.md) - pattern; 0 design. Tags: agency, decisions, mechanics, resolution.
 - [Expose Construction Grammar for Expected Downstream Authorship](PAT_expose_construction_grammar_for_expected_downstream_authorship.md) - pattern; 0 design. Tags: authorship, construction, extensibility, usability.
-  - Variants: `Use a Sample Adventure as an Executable Reference Implementation` (context); `Encode Baseline Calibration in a Novice Generator` (method_sequence).
+  - Variants: `Use a Sample Adventure as an Executable Reference Implementation` (context); `Graduate from Runnable Examples into Bounded Authored Blanks` (method_sequence); `Encode Baseline Calibration in a Novice Generator` (method_sequence).
 - [Externalize Live Rules State at the Point of Use](PAT_externalize_live_rules_state_at_the_point_of_use.md) - pattern; 0 design. Tags: bookkeeping, components, interface, state, usability.
 - [Integrate Genre Blends Instead of Merely Stacking Them](PAT_integrate_genre_blends_instead_of_merely_stacking_them.md) - pattern; 0 design. Tags: coherence, genre, integration, worldbuilding.
 - [Keep Common-Path Procedures Inside the Declared Playable Core](PAT_keep_common_path_procedures_inside_the_declared_playable_core.md) - pattern; 0 design. Tags: completeness, core, modules, packaging.

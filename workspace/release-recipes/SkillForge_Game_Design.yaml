@@ -11,4 +11,4 @@ modules:
   - game-design/foundations
   - game-design/mechanics
   - game-design/worldbuilding
-runtime_profile: generic
+runtime_profile: game-design

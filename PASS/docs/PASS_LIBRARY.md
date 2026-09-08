@@ -106,9 +106,11 @@ The metaskill is the universal process baseline. Domain modules extend it; they 
 ## Independent skill domains
 
 Every package under `library/` other than `metaskills` is an independent lane.
-Each is authored, validated, and built without the others. A card may reference
-other cards in its own package, plus `metaskills`; any other cross-package
-reference is a domain coupling and fails validation.
+Each is authored and validated without the others, and its canonical package
+build remains independent. A named product release may compose finished material
+only through the bounded auxiliary-fallback contract. A card may reference other
+cards in its own package, plus `metaskills`; any other cross-package reference is
+a domain coupling and fails validation.
 
 Instructional knowledge stays in the domain it belongs to. `lane_fit: teach`
 marks a card as instructional within its own domain — it does not route the card
@@ -149,7 +151,9 @@ Do not ship:
 - authoring scratch notes;
 - workspace-only tooling;
 - build caches;
-- unrelated skill families;
+- unrelated skill families (a bounded auxiliary fallback demonstrated under
+  [`CROSS_SKILL_COMPOSITION.md`](CROSS_SKILL_COMPOSITION.md) is related release
+  material recorded in the release manifest);
 - absolute paths or `../` dependencies back into PASS.
 
 The workspace is the factory. The release is the product.

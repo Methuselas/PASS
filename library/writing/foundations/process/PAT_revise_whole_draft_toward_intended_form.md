@@ -27,6 +27,13 @@ reference:
 confidence: high
 references: []
 variants:
+  - variant_id: writing_variant_compress_by_function_before_line_trimming
+    variant_name: Compress by Function Before Line Trimming
+    variant_basis: method_sequence
+    difference_from_foundation: When a draft must become shorter or denser, preserve a recoverable version, identify what the draft must accomplish, remove low-function setup, repetition, background, explanation, and decorative passages at section or paragraph scale first, then tighten the surviving sentences.
+    when_to_use: Length or density is a named mismatch and the draft contains material whose contribution can be tested against the intended effect.
+    when_not_to_use: Accumulation, repetition, breadth, or deliberate slowness creates the intended effect, or cutting would remove necessary orientation, evidence, voice, movement, sensory force, causality, or reader experience.
+    absorbed_from_object_id: none
   - variant_id: writing_poetry_variant_release_prescribed_meter_that_no_longer_fits
     variant_name: Release a Prescribed Meter That No Longer Fits
     variant_basis: constraint
@@ -80,15 +87,18 @@ variants:
 - Expect composition to march once from opening to conclusion without circling back through earlier decisions.
 - Keep material merely because it was difficult to produce or felt powerful during composition.
 - Let easy local improvements conceal an unresolved mismatch in the work's larger design.
+- Continue revising merely because the draft still feels imperfect after consequential mismatches have been resolved.
 
 ## Checklist
 - The desired effect or emerging form is clear enough to compare with the existing text.
 - Major inclusions and exclusions support an observable pattern of development.
 - Global changes and their local consequences agree rather than pulling the piece in different directions.
-- Another pass either reduces a named mismatch or confirms that no consequential one remains.
+- Another pass names the consequential mismatch it will reduce; when no such mismatch can be named, the draft moves to finalization or outside evaluation rather than preference-swapping.
 
 ## Notes
-Experienced writers approach redrafting holistically and recursively. Discovery may require moving backward, repeating a decision, or changing something established earlier; messiness is not proof that the process has failed. Context changes which strategy is practical, but not the need to reconsider the work before declaring it finished.
+Experienced writers approach redrafting holistically and recursively. Discovery may require moving backward, repeating a decision, or changing something established earlier; messiness is not proof that the process has failed. Context changes which strategy is practical, but not the need to reconsider the work before declaring it finished. Persistence also needs an exit condition: once further changes cannot be tied to a consequential mismatch, dissatisfaction alone is not evidence that another revision pass will improve the work.
+
+`writing_variant_compress_by_function_before_line_trimming` treats compression as a structural revision problem before it becomes a sentence-trimming problem. Preserve a recoverable version, name what the draft must still accomplish, remove whole passages or sections that do little necessary work, then tighten the language that survives. Restore material when comparison exposes a named loss in orientation, evidence, voice, movement, sensory force, causality, or reader experience; a lower word count is not itself proof of improvement.
 
 `writing_poetry_variant_release_prescribed_meter_that_no_longer_fits` tests a constrained poem by recasting it in free verse when meter or rhyme has stopped serving the emerging work. Use the comparison to release mere formality while preserving any formal elements that still carry useful energy; do not discard a constraint that remains essential or required.
 

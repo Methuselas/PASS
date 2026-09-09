@@ -27,7 +27,14 @@ reference:
   author: David Starkey
 confidence: high
 references: []
-variants: []
+variants:
+  - variant_id: writing_fiction_variant_build_compromised_character_from_regret_capability_and_code
+    variant_name: Build a Compromised Character from Regret, Capability, and Code
+    variant_basis: method_sequence
+    difference_from_foundation: Start from one consequential past mistake, loss, or failure, trace a present capability and liability back to lived history, then define the value or personal code the character still protects so current pressure can reactivate the past without reducing the person to damage.
+    when_to_use: A morally bruised, cynical, compromised, or redemption-capable character needs a past that generates present choices rather than decorative tragedy.
+    when_not_to_use: The story depends on innocence, opacity, or a present-tense conflict that does not need explanatory history, or the proposed past would overdetermine every current decision.
+    absorbed_from_object_id: none
 ---
 
 # Build Round Characters from Contradiction and Desire
@@ -65,3 +72,5 @@ variants: []
 Roundness is not the number of facts known about a person. It is the sense that desire, defect, virtue, and pressure can combine in more than one plausible way. Fiction often becomes active when a person wants something enough to choose badly and must then live inside the result.
 
 Desire does not have to be conscious or accurately named by the character, but it must be designed clearly enough that conduct supplies the missing knowledge. Apparently anti-goal behavior need not be random: nearing success can threaten belonging, safety, identity, or the excuse that has organized a life, and attaining a proxy goal can expose the unmet need beneath it. Preparing that conflict preserves surprise without sacrificing coherence.
+
+`writing_fiction_variant_build_compromised_character_from_regret_capability_and_code` enters through consequential history rather than present desire alone. Choose one past mistake, loss, or failure that the character regrets or still pays for; trace at least one present capability to the life that produced it; name one liability, relationship, debt, fear, or temptation that can bring that history back into current action; and define the value, obligation, or personal code the character still protects when easier choices would violate it. A vice, coping habit, attraction, or avoidance earns space only when it can alter a present choice or relationship. The past should create live pressure, not explain every trait or guarantee redemption.

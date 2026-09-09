@@ -7,13 +7,16 @@
 - [Annotate Exploratory Sketches With Decision Cues](PAT_annotate_exploratory_sketches_with_decision_cues.md) - pattern; 0 design. Tags: annotation, communication, decisions, ideation, sketching.
   - Variants: `Pair Concept Notes With Thumbnail Memory Cues` (context).
 - [Bias Line Weight Toward Shade and Underside for Depth](PAT_bias_line_weight_toward_shade_and_underside_for_depth.md) - pattern; 3 rough. Tags: depth, form, lighting, line_weight, sketching.
-  - Variants: `Assign Line Weight by Spatial Edge Role` (emphasis); `Anchor Line Weight to Primary Light and Scene Continuity` (context).
+  - Variants: `Assign Line Weight by Spatial Edge Role` (emphasis); `Anchor Line Weight to Primary Light and Scene Continuity` (context); `Assign Line Weight by Semantic Structural Priority` (emphasis).
 - [Calibrate Product Redesign With a Reference Underlay](PAT_calibrate_product_redesign_with_reference_underlay.md) - pattern; 0 design. Tags: ergonomics, proportion, redesign, scale, sketching, underlay.
   - Variants: `Reopen Design Decisions With a 3D Model Underlay` (method_sequence); `Overlay Prototype Photos for Ergonomic Review` (context).
 - [Communicate Product Scale With a Familiar Reference](PAT_communicate_product_scale_with_familiar_reference.md) - pattern; 2 block. Tags: comparison, context, product_scale, size, sketching.
   - Variants: `Imply Scale With Detail Size and Density` (emphasis).
 - [Construct Centered Bilateral Product From One Solved Half](PAT_construct_centered_bilateral_product_from_one_solved_half.md) - pattern; 2 block. Tags: centerline, construction, product_design, sketching, symmetry.
   - Variants: `Alternate Sides Around the Centerline During Freehand Symmetry` (method_sequence).
+- [Construct Curled Banner From Readable Panel and Overlapping Returns](PAT_construct_curled_banner_from_readable_panel_and_overlapping_returns.md) - pattern; 2 block. Tags: banner, construction, fold, overlap, parchment, prop, ribbon, scroll.
+- [Construct Framed Plank Crate From Outer Box, Frame, and Infill Boards](PAT_construct_framed_plank_crate_from_outer_box_frame_and_infill_boards.md) - pattern; 2 block. Tags: construction, crate, interior-map, plank, prop, top-down, wood.
+- [Construct Open Soft Container From Body, Rim, and Occluded Contents](PAT_construct_open_soft_container_from_body_rim_and_occluded_contents.md) - pattern; 2 block. Tags: construction, container, fabric, interior-map, overlap, prop, sack, top-down.
 - [Construct Product Rounding From Surface Transition Boundaries](PAT_construct_product_rounding_from_surface_transition_boundaries.md) - pattern; 2 block. Tags: construction, fillets, product_design, rounding, sketching, surface_transition.
 - [Cover Product Information With Complementary Views](PAT_cover_product_information_with_complementary_views.md) - pattern; 0 design. Tags: communication, multiple_views, product_information, sketching, viewpoint.
   - Variants: `Simplify a Local Connection Then Check It With a Truthful View` (method_sequence).

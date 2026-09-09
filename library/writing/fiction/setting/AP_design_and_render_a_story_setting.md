@@ -24,6 +24,8 @@ cross_links:
   - rel: supports
     target_object_id: writing_fiction_build_institutional_settings_as_rule_bound_social_worlds
   - rel: supports
+    target_object_id: writing_fiction_build_communities_as_interdependent_social_worlds
+  - rel: supports
     target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
   - rel: related_to
     target_object_id: writing_fiction_drill_map_setting_for_spatial_continuity
@@ -52,7 +54,7 @@ Choose, establish, and render a story's time and place so geography remains cred
 
 ## Steps / Flow
 1. **Name the setting's story job.** State which character relation, conflict, action limit, opportunity, or atmosphere the time and place must intensify. Preserve that pressure and the scene's required movements as invariants. **Advance gate:** replacing the setting with a generic room or town would remove a named effect.
-2. **Choose the consequential time and place.** Activate `writing_fiction_choose_setting_to_intensify_character_and_conflict`. Test how history, season, hour, weather, enclosure, distance, and social use alter what characters can do. When a workplace or institution regulates access, belonging, or consequence, activate `writing_fiction_build_institutional_settings_as_rule_bound_social_worlds` and establish the operating order the character must navigate. If localization only decorates the premise, return to the conflict and choose a condition that bears on it.
+2. **Choose the consequential time and place.** Activate `writing_fiction_choose_setting_to_intensify_character_and_conflict`. Test how history, season, hour, weather, enclosure, distance, and social use alter what characters can do. When a workplace or institution regulates access, belonging, or consequence, activate `writing_fiction_build_institutional_settings_as_rule_bound_social_worlds` and establish the operating order the character must navigate. When a town, neighborhood, settlement, or other community must function as an inhabited social world rather than a backdrop, activate `writing_fiction_build_communities_as_interdependent_social_worlds`; establish a bounded network of residents whose independent relationships, routines, institutions, and local pressures can affect the story and persist when the place recurs. If localization only decorates the premise, return to the conflict and choose a condition that bears on it.
 3. **Ground the design.** Activate `writing_fiction_ground_real_and_imagined_settings_in_accurate_detail`. Research consequential facts for real places and borrow coherent physical or cultural particulars for invented ones. Separate what must be accurate for action from attractive information the story does not need.
 4. **Establish spatial continuity.** Use `writing_fiction_drill_map_setting_for_spatial_continuity` for recurring or action-dependent locations. Trace entrances, exits, sightlines, distances, and travel time. **Advance gate:** every consequential movement is possible and repeated locations retain stable relations.
 5. **Choose the perceptual filter.** Coordinate `writing_fiction_choose_point_of_view_by_access_distance_and_effect` with `writing_fiction_filter_setting_through_character_consciousness`. Decide who notices the place, what familiarity makes invisible, and what fear, desire, knowledge, or class makes salient. Route an authorial inventory back through the active observer.

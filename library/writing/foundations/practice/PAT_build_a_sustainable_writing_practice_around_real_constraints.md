@@ -42,7 +42,7 @@ variants: []
 
 ## Do
 - Inventory immovable obligations and realistic attention windows before choosing a cadence.
-- Set a minimum session small enough to repeat and concrete enough to verify by an action such as generating new language, extending a scene, or testing an image.
+- Set a minimum session small enough to repeat and concrete enough to verify by an action such as generating new language, extending material, diagnosing a known defect, or completing a bounded revision pass.
 - Pair one distant project milestone with a near-term target measured by the work that currently matters: completion of a task, a number of sessions, or an amount of new material.
 - Revise a repeatedly missed target downward until it supports continuity; increase it only after actual sessions show spare capacity, and review both levels as the project changes.
 - Test times, locations, tools, sounds, and entry cues to discover which combination reduces friction for this writer.
@@ -54,7 +54,8 @@ variants: []
 - Wait for inspiration before becoming available to write.
 - Copy another writer's schedule or ritual without testing whether it fits present obligations and attention.
 - Treat one missed session as proof that the routine or the writer has failed.
-- Count planning, equipment changes, or ritual maintenance as writing when they repeatedly replace new material.
+- Count planning, equipment changes, or ritual maintenance as writing when they repeatedly replace work that advances the project.
+- Treat flat or negative word-count movement during necessary revision as proof that the session was unproductive.
 - Demand an identical daily duration when a different repeatable cadence would better survive real constraints.
 
 ## Checklist
@@ -63,10 +64,10 @@ variants: []
 - Near-term targets identify an observable task, session cadence, or amount of material and connect to a revisable project milestone.
 - At least several trials have produced evidence about which conditions help entry and continuation.
 - Off-desk incubation feeds later writing without requiring unsafe or intrusive capture.
-- The routine produces language or usable material often enough to justify keeping it.
+- The routine advances the project through new language, usable material, diagnosis, correction, or bounded revision often enough to justify keeping it.
 - A disrupted session leads to a specific adjustment rather than abandonment or self-punishment.
 
 ## Notes
-A writing habit courts discovery by making the writer repeatedly available to it. Constancy matters because entry becomes more familiar and material remains active between sessions, but constancy need not mean a long daily appointment. A short recurring practice, several protected sessions per week, or another stable cadence can serve when it survives the writer's actual life and produces work.
+A writing habit courts discovery and completion by making the writer repeatedly available to the work. Some productive sessions add language; others cut, reconnect, diagnose, or correct existing material, so word-count growth is not a universal measure of progress. Constancy matters because entry becomes more familiar and material remains active between sessions, but constancy need not mean a long daily appointment. A short recurring practice, several protected sessions per week, or another stable cadence can serve when it survives the writer's actual life and produces work.
 
 Rituals and locations are experiments, not prerequisites or signs of seriousness. Keep a cue when it helps attention settle; discard it when maintaining the cue becomes more elaborate than writing. Use `writing_recover_block_by_lowering_hurdle` when an established session still stalls, and use `writing_separate_generative_and_evaluative_writing_modes` when external judgment or premature correction interrupts production.

@@ -7,7 +7,8 @@
 - [Build a Full Tonal Drawing From a Value Sketch and Relational Checks](DRILL_build_full_tonal_drawing_from_value_sketch_and_relational_checks.md) - drill; 4 final. Tags: general_to_specific, relational_check, rendering, tonal_range, value_sketch.
   - Variants: `Bracket Observed Values With Neutral Extreme Anchors` (method_sequence); `Low-Pass the Source Without Softening the Output` (method_sequence).
 - [Build Black-to-Light Line Transitions With Feathering and Crosshatching](DRILL_build_black_to_light_line_transitions_with_feathering_and_crosshatching.md) - drill; 3 rough. Tags: crosshatching, edge_control, feathering, inking, mark_density, rendering, value_transition.
-- [Control Brush-Ink Tone With Moisture and Pressure](PAT_control_brush_ink_tone_with_moisture_and_pressure.md) - pattern; 4 final. Tags: brush_ink, dry_brush, pressure, value.
+- [Control Brush-Ink Tone With Dilution, Load, and Pressure](PAT_control_brush_ink_tone_with_moisture_and_pressure.md) - pattern; 4 final. Tags: brush_ink, dilution, dry_brush, pressure, value, wash.
+  - Variants: `Build Transparent Ink Tone With Diluted Layered Washes` (method_sequence).
 - [Control Colored-Pencil Surface State With Layering and Burnishing](PAT_control_colored_pencil_surface_state_with_layering_and_burnishing.md) - pattern; 4 final. Tags: burnishing, colored_pencil, layering, opacity, paper_tooth, pressure, texture.
 - [Pair Directional Line and Mass Marks as Complementary Roles](PAT_pair_directional_line_and_mass_marks_as_complementary_roles.md) - pattern; 4 final. Tags: chance, edge_control, line, mark, mass, mixed_marks, patch, texture.
   - Variants: `Assign Mixed Media Distinct Line, Mass, and Accent Roles` (method_sequence); `Define Billowing Smoke With Black Mass and Negative Space` (medium).

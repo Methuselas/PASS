@@ -53,15 +53,17 @@ variants:
 ## Do
 - Read to another person when possible so the listener's presence shifts attention toward how the words arrive outside the writer's private understanding.
 - In the absence of an audience, voice the text to an empty room or wall rather than abandoning the test.
-- Return to passages that became strange, awkward, or newly questionable when heard and decide what level of change they require.
+- Mark passages that sound inflated, long-winded, awkward, or newly questionable, and keep reading through the full diagnostic pass before repairing them.
+- After the pass, return to the marks and decide what level of change each requires.
 
 ## Don't
 - Assume that another silent pass will expose everything that familiarity has taught the eye to glide over.
 - Cancel the exercise because no qualified critic is available; hearing the language is itself the change of perspective.
+- Stop after every rough phrase to micro-edit it when the purpose of the pass is to hear the whole draft without repeatedly resetting your ear.
 
 ## Checklist
 - The complete target passage was spoken rather than silently skimmed.
-- Places that sounded different from their intended effect were captured for reconsideration.
+- Places that sounded different from their intended effect, including inflated or tongue-resistant phrasing, were captured for reconsideration without turning the diagnostic read into line-by-line editing.
 - Each marked problem was routed to revision, editing, or proofreading according to its scale.
 
 ## Notes

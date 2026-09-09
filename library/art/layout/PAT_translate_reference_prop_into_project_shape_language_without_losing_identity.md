@@ -28,7 +28,21 @@ reference:
   author: Mark T. Byrne
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: VAR_derive_stylized_object_signature_from_recurring_reference_cues
+  variant_name: Derive Stylized Object Signature From Recurring Reference Cues
+  variant_basis: method_sequence
+  difference_from_foundation: When a historical, cultural, or period-specific prop needs a recognizable stylized read rather than literal reconstruction, compare multiple relevant references, identify recurring silhouette, structural, and ornamental cues, then carry only the cues that remain useful at the target scale into the translated design.
+  when_to_use: Use when reference examples vary but the object still needs to evoke a recognizable historical, cultural, or period family in a simplified or stylized image.
+  when_not_to_use: Do not turn recurring sample cues into exhaustive historical laws, rely on unsupported stereotypes, or use this shortcut when exact reconstruction is the actual task.
+  absorbed_from_object_id: none
+- variant_id: VAR_expose_recognition_cue_hidden_by_strict_projection
+  variant_name: Expose Recognition Cue Hidden by Strict Projection
+  variant_basis: context
+  difference_from_foundation: In a schematic, map-like, top-down, or otherwise simplified projection, permit a small local visibility cheat when strict projection would hide a recognition-critical or story-bearing cue; expose only enough of that cue to communicate the object while preserving its footprint, orientation, structural identity, and spatial relationship to the scene.
+  when_to_use: Use when a literal projection suppresses an important cue such as a flame, opening, handle, sign, or other feature whose absence would make the object less readable or less useful to the image.
+  when_not_to_use: Do not use this in documentary, technical, or measurement-critical views, and do not let the visibility cheat change navigable footprint, functional geometry, orientation, or the larger spatial facts the image must communicate.
+  absorbed_from_object_id: none
 ---
 
 # Translate Reference Prop Into Project Shape Language Without Losing Identity
@@ -59,4 +73,7 @@ variants: []
 - The result feels translated, not merely traced or arbitrarily distorted.
 
 ## Notes
+`VAR_derive_stylized_object_signature_from_recurring_reference_cues` adds a comparative-reference route for stylized historical or cultural props. Look across multiple relevant examples for recurring large-form and identifying cues, select only those that survive the target scale and support recognition, and allow documented variation rather than forcing every example into one rigid template.
+
 Byrne's comparison of a real object, a straightforward illustration, and a deliberately cartooned version isolates the durable operation: keep the recognizable object and function while translating its form through the production's visual language. The principle is shared across animation layout, comics, and other designed sequential worlds.
+`VAR_expose_recognition_cue_hidden_by_strict_projection` permits a bounded projection cheat in schematic or map-like views: reveal only enough of a normally hidden recognition or story cue to keep the object legible, while preserving its actual footprint, orientation, function, and scene relationship.

@@ -38,6 +38,13 @@ variants:
     when_to_use: A memory error can create pressure or discovery because the character acts on it and later evidence can revise its meaning fairly.
     when_not_to_use: The twist depends on withholding all counterevidence, the correction changes nothing, or a truth-bound narrator would present invention as recovered fact.
     absorbed_from_object_id: none
+  - variant_id: writing_fiction_variant_build_fair_misdirection_from_plausible_inference
+    variant_name: Build Fair Misdirection from Plausible Inference
+    variant_basis: method_sequence
+    difference_from_foundation: Foreground true or defensible details that support a plausible but incomplete hypothesis, preserve quieter counterevidence that could have challenged it, and later disclose information that makes readers reinterpret the same evidence rather than discover that the text simply hid the answer.
+    when_to_use: Mystery, suspense, or a later reversal benefits from readers actively forming a hypothesis that can be revised without breaking trust.
+    when_not_to_use: The effect requires narrator-neutral falsehood, impossible silence about facts the viewpoint would naturally supply, removal of all counterevidence, or a misleading detour that produces no later consequence.
+    absorbed_from_object_id: none
 ---
 
 # Stage Disclosure to Sustain Reader Inference
@@ -74,3 +81,5 @@ variants:
 Disclosure controls the reader's changing relation to the story. Mystery asks why something happened or what it means; suspense asks what may happen; exposition supplies the world and history needed to interpret both. The useful rhythm is neither maximum concealment nor maximum clarity. It gives readers enough evidence to work while timing each additional fact so knowledge itself becomes part of the narrative movement.
 
 `writing_fiction_variant_correct_false_memory_through_consequential_evidence` makes recollection part of the disclosure schedule. Establish the remembered version and the present choice it motivates, then place at least two forms of friction around it: another account, an object, a date, a behavioral contradiction, a missing detail, or a material consequence. Decide whether readers should suspect the error before the character or revise their understanding alongside that character. Deliver correction through evidence with a credible route into the scene, and require the new knowledge to alter conduct or trust rather than functioning as a detachable surprise.
+
+`writing_fiction_variant_build_fair_misdirection_from_plausible_inference` uses attention rather than concealment as the primary lever. Place, repeat, specify, or culturally frame one true cue strongly enough that readers can reasonably overweight it, while leaving at least one quieter detail that supports another interpretation. The later disclosure should make the earlier evidence look newly legible, not fraudulent. Distinguish a character's motivated deception from authorial steering: a character may lie when the viewpoint and situation permit it, but neutral narration should not state false facts merely to protect a surprise. Do not make every vivid cue a trap; straightforward signals are part of the trust that lets occasional misdirection work.

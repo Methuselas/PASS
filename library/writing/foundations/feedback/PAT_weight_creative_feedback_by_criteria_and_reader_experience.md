@@ -45,18 +45,22 @@ variants:
 - Ask the evaluator to restate what the genre, assignment, or intended audience requires when expectations remain implicit.
 - Notice when an experienced reader recognizes a familiar premise or recurring weakness that less widely read peers may mistake for novelty.
 - Compare comments against the evaluator's aesthetic preferences, such as a tendency toward traditional or experimental work.
+- Separate evidence about the reader's experience or a craft problem from the remedy the reader proposes; a sound diagnosis does not make one suggested revision mandatory.
+- Prefer comments that name a concrete passage, effect, criterion, or observable consequence over redesign impulses that supply a replacement without explaining the problem.
 
 ## Don't
 - Treat enthusiastic peer approval as conclusive evidence that the draft has no serious problems.
 - Treat one reader's judgment as taste-free or assume that a mismatched reading proves the work cannot succeed for its intended audience.
+- Adopt a proposed rewrite, restructure, or deletion automatically merely because the underlying criticism is useful.
 
 ## Checklist
 - The criteria behind consequential feedback are explicit enough to examine.
 - Each major comment is classified as evidence about craft, audience response, or aesthetic preference.
 - The chosen revision serves the work's intended goal rather than merely pleasing the loudest reader.
 - Valuable experience is respected without surrendering judgment about the piece's purpose.
+- For consequential advice, the observed problem and the proposed fix can be accepted, adapted, or rejected separately.
 
 ## Notes
-Creative writing is assessed through informed human judgment, so disagreement is expected. Experience can reveal stale premises, genre mismatches, and technical weaknesses that beginning readers overlook; taste can also shape what any evaluator notices or values. Useful revision begins by understanding which kind of judgment a comment represents.
+Creative writing is assessed through informed human judgment, so disagreement is expected. Experience can reveal stale premises, genre mismatches, and technical weaknesses that beginning readers overlook; taste can also shape what any evaluator notices or values. Useful revision begins by understanding which kind of judgment a comment represents. A critic can reveal a real weakness while offering the wrong repair, and a suggestion that is ultimately declined can still be valuable when it forces a clearer examination of the work's purpose and mechanics.
 
 `writing_variant_adjudicate_editorial_feedback_under_publication_constraints` adds a publication constraint to the same weighting decision. First ask what problem the editor observed and what reader or venue consequence it creates; then distinguish that diagnosis from the suggested fix. Clarify whether the request is optional, a condition of acceptance, or a house requirement. Take experienced impact judgments seriously without assuming the proposed remedy is the only repair, and make the accepted change yourself so the resulting work remains coherent rather than becoming a stack of instructions.

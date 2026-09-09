@@ -39,11 +39,13 @@ variants:
 
 ## Pattern Rule
 **IF** a work is meant for readers beyond the private or insider audience that already shares its context, or its distribution may carry it beyond that audience
-**THEN** identify what intended and plausibly secondary readers cannot be assumed to know and adjust allusions, explanations, genre signals, and accessibility to the destination and likely circulation
+**THEN** identify the audience roles the work must pass through, what each cannot be assumed to know, and adjust context, genre signals, usability, and accessibility to the destination, likely circulation, and handoffs between those roles
 **ELSE** preserve insider references that serve the work's deliberately private purpose
 
 ## Do
 - Decide whether the piece is personal, classroom-facing, public, or intended for a particular editorial market before accepting advice about accessibility.
+- Distinguish readers who select, interpret, perform, deliver, or implement the work from people who experience only the downstream result, and state what success requires for each role.
+- Reduce friction for an upstream selector or operator without stripping away the experience, evidence, or effect the downstream audience needs.
 - Trace how the actual format can travel: printed copy, shared file, workshop platform, post, performance, or publication may reach readers outside the stated first audience.
 - Mark references that depend on shared people, places, events, or prior texts and supply enough context for the chosen readers.
 - Learn the explicit and implicit expectations of the genre and venue without treating them as a ban on experimentation.
@@ -54,15 +56,17 @@ variants:
 - Explain every private reference for a hypothetical broad public when intimacy and shared knowledge are part of the actual purpose.
 - Break a genre's defining expectation accidentally and expect novelty alone to replace the promised experience.
 - Assume a classroom, workshop, or direct electronic exchange will remain private merely because its initial audience is limited.
+- Treat the person directly reading the manuscript as the entire audience when another person must select, interpret, perform, deliver, or implement it for someone else.
 
 ## Checklist
 - The intended readership and destination can be stated concretely.
+- Where mediation exists, the distinct audience roles, their different needs, and the handoff between them can be stated without forcing them into a fixed number of layers.
 - Plausible forwarding, reposting, performance, or publication has been considered where broader circulation would change context or consequence.
 - Necessary context is available to those readers without explaining material they can reasonably infer.
 - Departures from genre or venue expectations are conscious choices rather than accidental mismatches.
 - The work either fulfills its central reader promise or establishes a deliberate alternative before withholding it.
 
 ## Notes
-Writing is a social act: the writer's responsibilities change with who will read the piece, why, and through which route. A reference that works perfectly for a close friend may be opaque to a class or public audience, while an electronically shared draft can escape the intimate context that first made it legible or safe. Publication adds another layer because editors and agents sort work by genre and apply standards even when those standards are not fully articulated. Convention can be a reader contract without becoming a formula: familiar genres often derive pleasure from recognizable promises executed through new characters, obstacles, voices, or settings, and strong work can borrow across categories while remaining clear about the experience it offers.
+Writing is a social act: the writer's responsibilities change with who will read the piece, why, through which route, and whether one reader mediates the work for another. The number of audience layers is contextual; the durable move is to map the chain rather than assume a fixed taxonomy. A reference that works perfectly for a close friend may be opaque to a class or public audience, while an electronically shared draft can escape the intimate context that first made it legible or safe. Publication adds another layer because editors and agents sort work by genre and apply standards even when those standards are not fully articulated. Convention can be a reader contract without becoming a formula: familiar genres often derive pleasure from recognizable promises executed through new characters, obstacles, voices, or settings, and strong work can borrow across categories while remaining clear about the experience it offers.
 
 `writing_variant_write_for_high_volume_evaluative_reader` treats reader attention as a constrained resource without treating novelty as the evaluation criterion. Establish the document's specific human or practical relevance early, supply only the context an unfamiliar evaluator needs, and make each transition easy to follow. A common experience can remain compelling through exact perception and consequence; a strange detail fails when it is detachable, confusing, or unsupported. The test is whether the reader can quickly enter and accurately assess the work, not whether the opening performs the loudest stunt in the comparison set.

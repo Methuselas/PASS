@@ -51,6 +51,13 @@ variants:
   when_not_to_use: Do not force physical continuity when the image intentionally changes lighting for dramatic effect, and
     do not let the primary-light shorthand override a clearly designed local value pattern.
   absorbed_from_object_id: none
+- variant_id: VAR_assign_line_weight_by_semantic_structural_priority
+  variant_name: Assign Line Weight by Semantic Structural Priority
+  variant_basis: emphasis
+  difference_from_foundation: Use line weight as an information hierarchy rather than a lighting cue, assigning the strongest weight to primary enclosing or separating boundaries, medium weight to major descriptive structures, and finer weight to subordinate detail. Establish the heavy and medium structural hierarchy before committing the finest local definition; keep primary heavy boundaries selective so most descriptive lines remain lighter, and reserve the finest weight for intricate detail after the larger ink structure already reads.
+  when_to_use: Use in line-led drawings, diagrams, maps, or similar work where structural or informational priority must read clearly even without a lighting-based contour system, especially when a broad-to-fine inking sequence will keep detail from competing with primary structure.
+  when_not_to_use: Do not let semantic weighting contradict a stronger established lighting or depth hierarchy, and do not make every important element equally heavy until the hierarchy collapses.
+  absorbed_from_object_id: none
 ---
 
 # Bias Line Weight Toward Shade and Underside for Depth
@@ -84,3 +91,5 @@ A product sketch can begin describing light before marker or pencil shading is a
 `VAR_olofsson_assign_line_weight_by_spatial_edge_role` is the non-lighting branch. A line can gain weight because it marks contact with the ground or a free edge separating the object from open space, while interior descriptive edges stay lighter. When several depth planes need separation, foreground contours may carry more weight than middle-ground contours and background contours may be finer still, provided this spatial hierarchy does not contradict an established light hierarchy.
 
 `VAR_martin_anchor_line_weight_to_primary_light_and_scene_continuity` keeps one primary light as the causal anchor when secondary sources or sequential panels would otherwise make contour weight drift. The same head or form can reverse its heavy/light contour logic under a genuinely different source direction; the weight is evidence of the chosen light, not a fixed anatomy formula.
+
+`VAR_assign_line_weight_by_semantic_structural_priority` is the information-hierarchy branch. It assigns the strongest line to primary enclosing or separating structures, medium weight to major descriptive forms, and finer weight to subordinate detail when semantic priority needs to read without relying on light direction. Build that hierarchy broad-to-fine: establish the primary and major structures first, keep the heaviest boundaries selective, and add the finest local definition only after the larger line structure reads clearly.

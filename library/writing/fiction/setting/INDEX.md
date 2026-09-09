@@ -4,14 +4,17 @@
 
 ## Objects
 
+- [Build Communities as Interdependent Social Worlds](PAT_build_communities_as_interdependent_social_worlds.md) - pattern; 0 design. Tags: community, fiction, recurring_cast, relationships, setting, social_world.
+  - Variants: `Anchor a Community in a Social-Hinge Character` (method_sequence); `Accumulate Place Attachment through Recurring Social Return` (method_sequence).
 - [Build Institutional Settings as Rule-Bound Social Worlds](PAT_build_institutional_settings_as_rule_bound_social_worlds.md) - pattern; 0 design. Tags: fiction, hierarchy, institutions, setting, workplaces.
 - [Choose Setting to Intensify Character and Conflict](PAT_choose_setting_to_intensify_character_and_conflict.md) - pattern; 0 design. Tags: character, conflict, fiction, place, setting, time.
+  - Variants: `Choose Setting from Governing Actions` (method_sequence); `Intensify Conflict through Public Visibility` (constraint); `Define Pressure through Scarcity and Nonmaterial Currency` (constraint); `Escalate a Hostile Setting through Cumulative Attrition` (constraint).
 - [Control Setting Detail Density by Story Need](PAT_control_setting_detail_density_by_story_need.md) - pattern; 3 rough. Tags: compression, description, fiction, pacing, revision, setting.
 - [Design and Render a Story Setting](AP_design_and_render_a_story_setting.md) - ap; 0 design. Tags: continuity, description, fiction, place, setting.
 - [Filter Setting through Character Consciousness](PAT_filter_setting_through_character_consciousness.md) - pattern; 2 block. Tags: character, description, fiction, perception, setting, viewpoint.
   - Variants: `Rewrite the Same Place under Contrasting Emotional Pressure` (method_sequence).
 - [Ground Real and Imagined Settings in Accurate Detail](PAT_ground_real_and_imagined_settings_in_accurate_detail.md) - pattern; 0 design. Tags: accuracy, credibility, fiction, research, setting, worldbuilding.
-  - Variants: `Saturate Historical Imagination with Period Writing` (method_sequence).
+  - Variants: `Expand Worldbuilding from the Active Story Radius` (method_sequence); `Saturate Historical Imagination with Period Writing` (method_sequence).
 - [Infer an Absent Character from a Domestic Space](DRILL_infer_an_absent_character_from_a_domestic_space.md) - drill; 1 skeleton. Tags: character, deliberate_practice, fiction, possessions, setting.
 - [Map Setting for Spatial Continuity](DRILL_map_setting_for_spatial_continuity.md) - drill; 0 design. Tags: continuity, fiction, floor-plan, map, practice, setting.
 - [Research a Workplace and Draft Its Social Rules](DRILL_research_a_workplace_and_draft_its_social_rules.md) - drill; 0 design. Tags: deliberate_practice, fiction, interview, setting, workplace.

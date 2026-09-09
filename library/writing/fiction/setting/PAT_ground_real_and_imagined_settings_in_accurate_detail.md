@@ -30,6 +30,13 @@ reference:
 confidence: high
 references: []
 variants:
+  - variant_id: writing_fiction_variant_expand_worldbuilding_from_active_story_radius
+    variant_name: Expand Worldbuilding from the Active Story Radius
+    variant_basis: method_sequence
+    difference_from_foundation: Build the private world model first around the places, institutions, and causal systems touched by current action plus the first layer of consequences needed for coherence, then expand outward only when later action reaches or depends on more.
+    when_to_use: Worldbuilding can expand indefinitely and planning has begun outrunning the story's actual needs.
+    when_not_to_use: A distant region, history, institution, or system already exerts consequences on the current narrative and therefore must be established now.
+    absorbed_from_object_id: none
   - variant_id: writing_fiction_variant_saturate_historical_imagination_with_period_writing
     variant_name: Saturate Historical Imagination with Period Writing
     variant_basis: method_sequence
@@ -68,5 +75,7 @@ variants:
 
 ## Notes
 Believability grows from a handful of details that are accurate, out of the ordinary, and exactly suited to the story. Real and invented settings differ in factual obligation, but both fail when concrete particulars contradict one another. Research supports the fictional frame; it is not the frame's artistic purpose.
+
+`writing_fiction_variant_expand_worldbuilding_from_active_story_radius` bounds private construction without requiring the visible prose to carry everything the writer knows. Establish the part of the world current action touches, add the nearby consequences necessary for consistency, leave unrelated regions and histories unresolved, and expand the model when the narrative reaches or causally depends on them. The private world should exceed the prose when useful, but it need not become encyclopedic by default.
 
 The variant `writing_fiction_variant_saturate_historical_imagination_with_period_writing` keeps period atmosphere available during composition by reading fiction, journalism, letters, diaries, and other contemporary language before and alongside the draft. Use it when isolated fact checks cannot supply ordinary habits and textures; stop when continued reading postpones the story or gathered detail begins to colonize it.

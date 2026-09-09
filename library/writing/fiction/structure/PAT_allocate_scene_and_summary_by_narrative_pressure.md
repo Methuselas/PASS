@@ -63,11 +63,12 @@ variants:
 - Dramatize waking, eating, travelling, greetings, or other connective business merely because it happened.
 - Summarize a climax or irreversible exchange when exact behavior and timing create its force.
 - Inflate an insignificant incident with vivid detail that falsely promises later consequence.
+- Assume a passage is fast merely because characters move, argue, flee, or fight; expanded activity that changes no consequential condition can consume narrative space while the story treads water.
 - Replace scene with abstract emotional labels when readers need evidence from which to infer the state.
 - Unload a character's full history in one block when smaller deposits can enter through present pressure.
 
 ## Checklist
-- Changes in narrative speed correspond to changes in consequence, pressure, or required reader attention.
+- Changes in narrative speed correspond to changes in consequence, pressure, or required reader attention rather than to surface activity alone.
 - Every expanded scene supplies an effect that summary would weaken or erase.
 - Every compressed passage preserves the orientation and causal change readers need.
 - Selected details invite inference without crowding the reader with explanation or decorative abundance.

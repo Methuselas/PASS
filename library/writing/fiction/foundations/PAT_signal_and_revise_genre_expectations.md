@@ -23,6 +23,10 @@ cross_links:
     target_object_id: writing_calibrate_context_to_audience_and_venue
   - rel: related_to
     target_object_id: writing_fiction_shape_style_as_response_to_story_situation
+  - rel: related_to
+    target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
+  - rel: related_to
+    target_object_id: writing_fiction_portray_characters_beyond_direct_experience_with_accountable_imagination
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
@@ -50,6 +54,7 @@ variants:
 - Compare several successful works in the intended genre for scale, viewpoint pattern, plot-versus-character emphasis, structural divisions, sentence texture, descriptive density, and the way their central promises are fulfilled.
 - Audit the opening for cues carried by setting, diction, narrator stance, character roles, information gaps, imagery, pace, and likely conflict.
 - Fulfill the genre's central promise through particular people and pressures rather than copying its most visible stock events.
+- When genre conventions draw on real cultures, traditions, or histories, separate reader-facing convention from factual knowledge; research the social, religious, linguistic, historical, and material particulars the story actually depends on.
 - Combine genres by deciding which contract governs and what distinct job each secondary convention performs.
 - Redirect an expectation only after readers have enough evidence to recognize both the initial promise and the consequential reason for departure.
 - Remove accidental cues whose tonal or structural promise the rest of the story cannot support.
@@ -60,6 +65,7 @@ variants:
 - Announce a genre label and assume the prose no longer needs to establish its contract.
 - Treat one bestseller, one current trend, or a broad plot-versus-character tendency as a compulsory formula for the whole genre.
 - Copy characteristic plots, character types, settings, or phrases without transforming them through the story's specific situation.
+- Treat a recognizable cultural stereotype as sufficient research, or collapse distinct peoples, traditions, or histories because a genre convention blends them.
 - Break a central promise merely to prove the story is unpredictable.
 
 ## Checklist
@@ -67,11 +73,12 @@ variants:
 - Claims about customary scale, viewpoint, structure, and prose are supported by comparison across multiple works rather than one model.
 - Opening cues support that promise across more than one craft channel.
 - Each familiar convention is made particular through character, situation, voice, or consequence.
+- Culturally specific cues can be identified as convention, invention, or researched particular rather than functioning accidentally as all three.
 - Mixed signals create purposeful tension rather than accidental confusion.
 - Any fulfillment, variation, or redirection remains legible and consequential.
 - Removing a retained genre cue changes reader expectation in a named way.
 
 ## Notes
-Genre is a communication system between writer and reader, not a formula imposed after drafting. Readers recognize clusters of cues and begin predicting what kind of attention, tension, knowledge, and resolution the story will offer. Deliberate variation can produce pleasure because the convention is understood before it is changed; accidental mismatch spends reader trust without replacing the abandoned promise.
+Genre is a communication system between writer and reader, not a formula imposed after drafting. Readers recognize clusters of cues and begin predicting what kind of attention, tension, knowledge, and resolution the story will offer. Deliberate variation can produce pleasure because the convention is understood before it is changed; accidental mismatch spends reader trust without replacing the abandoned promise. Genre fluency does not confer cultural knowledge: a convention may be legible as fiction while remaining inaccurate as history or lived practice, so keep the signaling job distinct from the research obligation.
 
 `writing_fiction_variant_seed_secondary_genre_expectation_without_converting_whole_story` borrows one limited expectation from another genre. Establish a cue that affects how readers interpret current evidence, let the resulting anticipation pressure the primary story, and either fulfill or credibly reinterpret it. The variant succeeds when the borrowed signal changes experience without taking over the work; it fails when readers are recruited for a story the draft never intends to tell.

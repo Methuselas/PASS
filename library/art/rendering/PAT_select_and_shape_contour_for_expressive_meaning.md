@@ -68,6 +68,13 @@ variants:
   when_not_to_use: Do not force contour dropout where closure becomes ambiguous, make every exterior edge equally heavy, or
     reject deliberate dead-weight contour when a rigid graphic treatment is actually the intended style.
   absorbed_from_object_id: none
+- variant_id: VAR_choose_fixed_or_pressure_variable_inking_tool_by_line_behavior
+  variant_name: Choose Fixed or Pressure-Variable Inking Tool by Line Behavior
+  variant_basis: medium
+  difference_from_foundation: Choose a comparatively fixed-width pen when an even mechanical contour is wanted, or a pressure-responsive brush or calligraphic tool when the contour should vary organically in thickness through hand pressure.
+  when_to_use: Use when tool behavior itself materially affects whether the final contour should stay even or carry visible width variation.
+  when_not_to_use: Do not choose a pressure-responsive tool merely for prestige when the desired line is intentionally uniform, and do not force fixed-width tools to imitate broad pressure variation they cannot produce directly.
+  absorbed_from_object_id: none
 ---
 
 # Select and Shape Contour for Expressive Meaning
@@ -105,3 +112,5 @@ Separate mechanically correct contour placement from interpretation, selection, 
 `VAR_martin_match_contour_character_to_source_pencils` adds the finishing/collaboration case: hold the underlying drawing fixed, then choose a coherent contour family whose stroke-weight placement, smoothness or angularity, and exterior/interior hierarchy fit the source pencils and intended finish rather than applying one signature line to everything. Before normalizing an unfamiliar mark, check whether it recurs as part of the source artist's visual grammar; style-bearing idiosyncrasy is not automatically a construction error.
 
 `VAR_martin_keep_cartoon_contours_bold_but_fluid` specializes that choice for lively cartoon line art: make the holding contour strong enough to organize the silhouette and survive reduction, but preserve variable-width motion and allow selective open contour where perceptual closure still recovers the form. Background line character should remain compatible with the same finish system rather than becoming mechanically disconnected from the figures.
+
+`VAR_choose_fixed_or_pressure_variable_inking_tool_by_line_behavior` makes tool choice part of contour design: fixed-width pens favor a steadier mechanical line, while pressure-responsive brush or calligraphic tools allow thickness to change within the stroke for a more organic contour.

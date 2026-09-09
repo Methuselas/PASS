@@ -25,7 +25,14 @@ cross_links:
   target_object_id: PAT_repeat_with_variation_to_balance_coherence_and_interest
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: VAR_extend_faceted_spire_range_with_angular_rocky_foothills
+  variant_name: Extend Faceted Spire Range With Angular Rocky Foothills
+  variant_basis: context
+  difference_from_foundation: Replace the usual rounded foothill silhouette with smaller sharp-topped angular forms that preserve the adjacent faceted-spire family while remaining subordinate in scale and visual weight.
+  when_to_use: Use when foothills should read as the lower continuation of a deliberately angular rocky spire range rather than as a separate rounded hill class.
+  when_not_to_use: Do not use for ordinary hill fields or foothills that need the normal rounded silhouette to remain clearly distinct from nearby mountains.
+  absorbed_from_object_id: none
 ---
 
 # Build Pictorial Hill Groups As Subordinate Terrain Chains
@@ -56,3 +63,5 @@ variants: []
 
 ## Notes
 Hills can bridge mountains into lower terrain or form their own chains. Their identity comes from relative scale, rounded pictorial shape, grouping, and subordinate relief treatment rather than from a required numeric size ratio or fixed C- or S-shaped arrangement.
+
+`VAR_extend_faceted_spire_range_with_angular_rocky_foothills` is a compatibility branch for an angular spire family. Keep the hill chain smaller and subordinate, but preserve sharp rocky tops so the foothills taper the same terrain language into the landscape.

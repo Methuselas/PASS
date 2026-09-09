@@ -6,15 +6,24 @@
 
 - [Build Map Label Hierarchy by Semantic Class](PAT_build_map_label_hierarchy_by_semantic_class.md) - pattern; 0 design. Tags: cartography, hierarchy, labels, semantic-classes, typography.
 - [Build Pictorial Hill Groups As Subordinate Terrain Chains](PAT_build_pictorial_hill_groups_as_subordinate_terrain_chains.md) - pattern; 1 skeleton. Tags: cartography, foothills, hierarchy, hills, pictorial-symbols, terrain.
+  - Variants: `Extend Faceted Spire Range With Angular Rocky Foothills` (context).
 - [Choose Map Lettering Style to Support Culture, Tone, and Legibility](PAT_choose_map_lettering_style_to_support_culture_tone_and_legibility.md) - pattern; 0 design. Tags: cartography, culture, labels, legibility, lettering, tone, typography.
+- [Construct a Fantasy Map From Geographic Framework to Finished Art](AP_construct_fantasy_map_from_geographic_framework_to_finished_art.md) - ap; 0 design. Tags: cartography, digital, fantasy-map, geography, inking, layout, painting, typography, workflow.
+- [Construct Compass Rose With Clear Directional Hierarchy and Orientation Cues](PAT_construct_compass_rose_with_clear_directional_hierarchy_and_orientation_cues.md) - pattern; 4 final. Tags: cartography, compass-rose, hierarchy, orientation, symbols.
 - [Construct Fortified Pictorial City Icon From Perimeter And Layered Interior](PAT_construct_fortified_pictorial_city_icon_from_perimeter_and_layered_interior.md) - pattern; 2 block. Tags: architecture, cartography, cities, fortification, icons, settlements.
+- [Construct Pictorial Chasm From Opposing Cliff Rims and Deepening Interior](PAT_construct_pictorial_chasm_from_opposing_cliff_rims_and_deepening_interior.md) - pattern; 2 block. Tags: cartography, chasm, cliff, depth, fissure, pictorial-symbols, terrain.
 - [Construct Pictorial Forest From Area Footprint And Grouped Tree Symbols](PAT_construct_pictorial_forest_from_area_footprint_and_grouped_tree_symbols.md) - pattern; 1 skeleton. Tags: area-encoding, cartography, forest, pictorial-symbols, terrain, woods.
+  - Variants: `Encode Wooded Swamp With Overlapping Canopies Flared Roots and Water Marks` (context); `Render Top-Down Conifer Tree Symbols With Radial Branch Direction` (style); `Build Layered Forest With Canopy Ridges and Partial Treetops` (method_sequence); `Exaggerate Tree Symbol Scale for Recognition While Preserving Terrain Hierarchy` (constraint).
 - [Construct Pictorial Fortification By Expanding Keep Into Castle](PAT_construct_pictorial_fortification_by_expanding_keep_into_castle.md) - pattern; 2 block. Tags: architecture, cartography, castles, fortifications, icons, keeps.
 - [Construct Pictorial Mountain Range Along Guided Chain](PAT_construct_pictorial_mountain_range_along_guided_chain.md) - pattern; 1 skeleton. Tags: cartography, construction, mountains, pictorial-symbols, range, terrain.
+  - Variants: `Render Mountain Chain With Narrow Light Rim and Flat Shadow Mass` (style); `Render Mountain Range as Tall Faceted Angular Spires` (style).
+- [Construct Pictorial Sea Arch From Projecting Cliff and Inset Opening](PAT_construct_pictorial_sea_arch_from_projecting_cliff_and_inset_opening.md) - pattern; 2 block. Tags: cartography, cliff, coast, depth, pictorial-symbols, sea-arch, terrain.
 - [Construct Pictorial Town Icon From Compact Building Cluster](PAT_construct_pictorial_town_icon_from_compact_building_cluster.md) - pattern; 2 block. Tags: architecture, cartography, icons, pictorial-symbols, settlements, towns.
 - [Construct Simple Heraldry From Recombinable Field Divisions and Devices](PAT_construct_simple_heraldry_from_recombinable_field_divisions_and_devices.md) - pattern; 2 block. Tags: cartography, emblems, factions, heraldry, shields, symbols.
   - Variants: `Differentiate Related Houses With Controlled Heraldic Changes` (context); `Add External Heraldic Embellishment to Encode Exceptional Status or Role` (context).
+- [Construct Top-Down Cave Entrance From Cliff Inset and Recessed Darkness](PAT_construct_top_down_cave_entrance_from_cliff_inset_and_recessed_darkness.md) - pattern; 2 block. Tags: cartography, cave, cliff, depth, pictorial-symbols, terrain.
 - [Encode Open Water With Repeated Shore-Adjacent Wave Marks](PAT_encode_open_water_with_repeated_shore_adjacent_wave_marks.md) - pattern; 3 rough. Tags: cartography, encoding, lake, ocean, texture, water, wave-marks.
+  - Variants: `Wrap Water Marks Through and Behind Coastal Forms` (context); `Signal Moving Surface Object With Displaced Water Marks` (context).
 - [Encode Pictorial Marshland With Grouped Grass and Water Marks](PAT_encode_pictorial_marshland_with_grouped_grass_and_water_marks.md) - pattern; 3 rough. Tags: cartography, marks, marsh, terrain, texture, wetland.
 - [Encode Political Boundaries With Limited Subordinate Line Vocabulary](PAT_encode_political_boundaries_with_limited_subordinate_line_vocabulary.md) - pattern; 3 rough. Tags: boundaries, cartography, line-language, politics, regions.
   - Variants: `Encode Political Boundaries With Subtle Translucent Color Bands` (context).
@@ -24,8 +33,13 @@
 - [Encode Route Classes With Consistent Connection Roles and Line Treatments](PAT_encode_route_classes_with_consistent_connection_roles_and_line_treatments.md) - pattern; 3 rough. Tags: cartography, line-language, paths, roads, routes, sea-routes.
 - [Encode Settlement Class With Relative Icon Scale and Shape Family](PAT_encode_settlement_class_with_relative_icon_scale_and_shape_family.md) - pattern; 2 block. Tags: cartography, hierarchy, icons, politics, settlements, symbol-language.
   - Variants: `Encode Political Affiliation With Shared Settlement Icon Family` (context).
+- [Establish Rectangular Map Neatline Before Building Border Treatment](PAT_establish_rectangular_map_neatline_before_building_border_treatment.md) - pattern; 3 rough. Tags: border, cartography, framing, neatline, perimeter.
 - [Fit Area Geographic Label to Feature Extent and Contour](PAT_fit_area_geographic_label_to_feature_extent_and_contour.md) - pattern; 3 rough. Tags: areas, cartography, labels, regions, terrain, typography.
 - [Fit Linear Geographic Label to Feature Path](PAT_fit_linear_geographic_label_to_feature_path.md) - pattern; 3 rough. Tags: cartography, labels, linear-features, rivers, typography.
+- [Integrate Corner Flourish With Neatline and Map Field](PAT_integrate_corner_flourish_with_neatline_and_map_field.md) - pattern; 4 final. Tags: border, cartography, corners, flourish, ornament.
+  - Variants: `Expand Corner Flourish With Longer Multiarm Illustrative Structure` (emphasis).
+- [Integrate Map Corner Motif With Neatline and Border](PAT_integrate_simple_map_corner_motif_with_neatline_and_border.md) - pattern; 4 final. Tags: border, cartography, corners, framing, ornament.
+  - Variants: `Build Complex Map Corner From Geometric Scaffold and Layered Organic Detail` (emphasis).
 - [Match Route Network Density to Settlement and Travel Intensity](PAT_match_route_network_density_to_settlement_and_travel_intensity.md) - pattern; 0 design. Tags: cartography, density, networks, roads, routes, travel.
 - [Place Heraldic Shields By Geographic Scope and Association](PAT_place_heraldic_shields_by_geographic_scope_and_association.md) - pattern; 0 design. Tags: cartography, cities, heraldry, placement, politics, regions.
 - [Place Point-Location Labels As Straight Icon-Associated Text](PAT_place_point_location_labels_as_straight_icon_associated_text.md) - pattern; 3 rough. Tags: cartography, hierarchy, icons, labels, point-locations, typography.
@@ -35,8 +49,12 @@
   - Variants: `Major City Siting Emphasizes Trade, Water, and Ports` (context).
 - [Refine Coastline From Broad Framework to Clear Boundary](PAT_refine_coastline_from_broad_framework_to_clear_boundary.md) - pattern; 1 skeleton. Tags: bays, cartography, coastline, inlets, islands, lakes, landmass, refinement.
 - [Reinforce Coastline With Simplified Offset Shoreline Echoes](PAT_reinforce_coastline_with_simplified_offset_shoreline_echoes.md) - pattern; 3 rough. Tags: cartography, coastline, contour, decoration, shoreline, water.
+- [Reserve Frame and Integrate Map Information Panel With Surrounding Border](PAT_reserve_frame_and_integrate_map_legend_panel_with_surrounding_border.md) - pattern; 3 rough. Tags: border, cartography, framing, information-panel, legend.
+  - Variants: `Use Compact Subordinate Information Box` (emphasis).
 - [Route Pictorial River Network As Converging Flow to Coast](PAT_route_pictorial_river_network_as_converging_flow_to_coast.md) - pattern; 0 design. Tags: cartography, delta, hydrography, rivers, topology, tributaries.
+  - Variants: `Construct Delta as Hierarchical Distributary-Island Network` (context); `Route Low-Gradient River as Alternating Meanders With Cutoff Potential` (context).
 - [Route Political Boundaries Along Natural Geographic Dividers When Plausible](PAT_route_political_boundaries_along_natural_geographic_dividers_when_plausible.md) - pattern; 0 design. Tags: boundaries, cartography, geography, mountains, politics, rivers, worldbuilding.
+- [Select and Arrange Map Legend Information by Explanatory Need and Hierarchy](PAT_select_and_arrange_map_legend_information_by_explanatory_need_and_hierarchy.md) - pattern; 0 design. Tags: cartography, hierarchy, information, legend, symbols, typography.
 - [Site Fortifications By Defensive Role And Protected Feature](PAT_site_fortifications_by_defensive_role_and_protected_feature.md) - pattern; 0 design. Tags: cartography, castles, defense, fortifications, placement, terrain.
 - [Switch From Pictorial to Simplified Settlement Icons When Map Scale or Density Demands It](PAT_switch_from_pictorial_to_simplified_settlement_icons_when_map_scale_or_density_demands_it.md) - pattern; 0 design. Tags: abstraction, cartography, density, icons, scale, settlements.
 - [Use Bespoke Pictorial Landmarks for Story-Significant Locations](PAT_use_bespoke_pictorial_landmarks_for_story_significant_locations.md) - pattern; 2 block. Tags: cartography, landmarks, locations, pictorial-symbols, story.

@@ -79,6 +79,13 @@ variants:
   when_to_use: Use in transparent watercolor when light, slender, interlocking, or complicated positive forms are cleaner to preserve and define by darkening the surrounding field.
   when_not_to_use: Do not use when the positive form needs opaque reconstruction later, when wet integration across the boundary is the intended effect, or when the negative pass would create an artificial halo.
   absorbed_from_object_id: none
+- variant_id: VAR_modulate_digital_layer_opacity_to_adjust_visible_contribution
+  variant_name: Modulate Digital Layer Opacity to Adjust Visible Contribution
+  variant_basis: medium
+  difference_from_foundation: Uses software opacity to weaken or strengthen a digital mark or layer while preserving its contents and allowing lower layers to remain visible through it.
+  when_to_use: Use when linework, color, or another digital layer should contribute more or less strongly without repainting or deleting its existing contents.
+  when_not_to_use: Do not lower opacity when the layer is intended to cover what lies beneath completely.
+  absorbed_from_object_id: none
 references: []
 ---
 # Control Color Layering With Transparency, Opacity, and Ground
@@ -97,7 +104,7 @@ references: []
 - Resolve form and value before glazing when the glaze is intended as color modification rather than structural repair.
 
 ## Don't
-- Treat transparency as merely reducing software opacity without considering the underlying color and light path.
+- Do not assume software opacity and physical transparent media produce the same kind of layer interaction.
 - Expect a glaze to repair unresolved drawing, form, or value organization.
 - Preserve the ground everywhere when clean coverage is required for the intended material or focal statement.
 
@@ -119,3 +126,4 @@ Layered color is a two-part result: the applied layer and what remains optically
 `VAR_schmid_preserve_transparent_darks_with_selective_opaque_lights` now allows the transparent statement itself to remain the finish when additional opacity would not improve it. `VAR_schmid_carve_light_forms_by_subtracting_tacky_transparent_wash` uses selective removal from a responsive transparent layer to construct light shapes and value structure by revealing the ground, then protects the successful field and adds opaque paint only where the final statement needs it.
 
 `VAR_garcia_define_light_positive_shapes_by_darkening_surrounding_negative_washes` preserves a lighter positive state first, then deepens the spaces around and between it with transparent negative washes. Recheck both sides of the boundary after every pass so the method defines shape by value contrast rather than turning the preserved light into an outlined cutout.
+`VAR_modulate_digital_layer_opacity_to_adjust_visible_contribution` is the digital-opacity branch. Adjust the layer or mark opacity when its existing contents should remain intact but contribute more weakly or strongly to the composite; keep full opacity when that layer is meant to cover what lies beneath. Software opacity is a digital compositing control, not a claim that physical transparent paint behaves identically.

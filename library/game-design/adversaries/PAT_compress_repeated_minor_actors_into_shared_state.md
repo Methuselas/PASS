@@ -20,9 +20,6 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_preserve_decision_relevant_state_while_compressing_resolution_procedure
-reference:
-  source_title: Designing TTRPGs For Dummies
-  author: Martin Buinicki
 confidence: high
 references: []
 variants: []
@@ -32,10 +29,11 @@ variants: []
 
 ## Pattern Rule
 **IF** many similar low-decision actors participate in the same scene or are controlled by the same participant
-**THEN** factor repeated state and procedures into shared group-level handling while preserving individual distinctions only where they change meaningful targeting, risk, capability, or consequence
+**THEN** first decide what function the group performs in the scene, then choose the least detailed representation that preserves meaningful targeting, risk, capability, consequence, and choice
 **ELSE** keep actors individually represented when their separate state creates decisions the scene actually uses.
 
 ## Do
+- Decide whether the group functions as individually targetable actors, shared state, a collective threat, an obstacle or terrain condition, a pressure source, background scale, or a mixture that changes over the scene.
 - Identify which values are invariant across the group, such as initiative handling, common resources, repeated damage conventions, or other state that would otherwise be serviced identically for every actor.
 - Keep separate state only where individual identity, position, condition, equipment, capability, or consequence changes a decision.
 - Apply the same compression test to player-owned or player-commanded drones, summons, pets, hirelings, and helpers; controller identity does not by itself justify full individual fidelity.
@@ -49,6 +47,7 @@ variants: []
 - Compress a group by replacing meaningful decisions with an opaque aggregate that no longer exposes what changed.
 
 ## Checklist
+- The group's scene function is explicit enough to justify whether it needs individual actors, shared state, collective handling, environmental pressure, or background representation.
 - Repeated values that do not create individual decisions are handled once rather than serviced separately for every actor.
 - Any state kept per actor has a named decision or consequence that requires the distinction.
 - A representative scene with several similar actors has been checked for reduced bookkeeping, lookup, or serial handling.
@@ -56,4 +55,4 @@ variants: []
 - An actor can be expanded cleanly if later play makes its individual state consequential.
 
 ## Notes
-Uniform mechanics do not require uniform state servicing. A scene with many similar actors can preserve the distinctions that matter while sharing repeated initiative, resource, damage, or other handling that would otherwise multiply without adding decisions. The test is not whether an actor is friendly or hostile, but whether its individual state changes what participants can meaningfully decide.
+A large group does not automatically need to be represented as many independently resolving actors. Its useful fidelity depends first on what the mass is doing in the scene, then on which individual distinctions create decisions. Shared initiative, resources, damage, movement, or other handling can preserve scale while removing repeated servicing work, and an individual can be expanded whenever play makes that identity consequential.

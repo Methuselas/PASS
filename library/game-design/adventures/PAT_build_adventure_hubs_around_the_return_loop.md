@@ -27,9 +27,6 @@ cross_links:
   target_object_id: PAT_make_preparation_change_problem_topology
 - rel: related_to
   target_object_id: PAT_generate_sandbox_situations_from_world_state_and_player_needs
-reference:
-  source_title: The Keep on the Borderlands
-  author: Gary Gygax
 confidence: high
 references: []
 variants: []
@@ -48,6 +45,7 @@ variants: []
 - Let preparation in the hub alter the next excursion through information, equipment, retainers, credentials, transportation, healing, specialist services, or other causal support.
 - Let expedition results flow back into the hub. Rescues, recovered evidence, trophies, losses, debts, reputation, faction changes, new wealth, or public failures should be able to change what the hub offers or how it responds.
 - Concentrate detail on high-frequency locations and NPCs that support the return loop; leave rarely queried spaces lighter until play makes them important.
+- When recurrence, belonging, or local attachment matters, develop recognizable people, relationships, local concerns, and setting details strongly enough that players can remember and voluntarily seek them out across visits.
 - Make the hub safe enough to support recurrence only to the degree the intended loop requires. Laws, security, obligations, rivals, social consequences, or local threats can still make conduct there matter.
 
 ## Don't
@@ -62,8 +60,9 @@ variants: []
 - At least one hub decision can materially alter the next excursion rather than merely add flavor.
 - At least one expedition result can change access, information, relationships, support, prices, security, or another hub state.
 - High-frequency hub locations are more operationally developed than decorative low-frequency spaces.
+- When social continuity is part of the intended campaign, players can identify at least one recurring person, place, relationship, or local concern worth revisiting without requiring the facilitator to reintroduce the hub from scratch.
 - The hub's safety, authority, and consequences are explicit enough that players can make informed choices there.
 - The adventure remains playable if characters use the hub differently from the author's expected sequence.
 
 ## Notes
-A recurring hub earns its page space by exchanging state with the dangerous play around it. It can turn treasure into equipment, casualties into recovery needs, rescued people into relationships, rumors into route choices, reputation into access, and losses into changed local pressure. This makes the hub part of the adventure loop rather than a decorative town between expeditions. The exact functions depend on the game: a frontier keep, orbital station, fixer bar, mobile command vehicle, safehouse, or village can all serve the same structural role.
+A recurring hub earns its page space by exchanging state with the dangerous play around it. It can turn treasure into equipment, casualties into recovery needs, rescued people into relationships, rumors into route choices, reputation into access, and losses into changed local pressure. In campaigns where recurrence matters, the same people and places can also accumulate familiarity, attachment, and informal information networks that make returning valuable even when no immediate mechanical service is required. The exact balance between operational utility and social continuity depends on the intended play loop.

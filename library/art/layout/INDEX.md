@@ -5,6 +5,7 @@
 ## Objects
 
 - [Build Repeat Pan From Seamless Cycle And Nonrevealing Landmarks](PAT_build_repeat_pan_from_seamless_cycle_and_nonrevealing_landmarks.md) - pattern; 0 design. Tags: animation, background, cycling, layout, repeat_pan, seam.
+- [Construct Hand Lettering With Temporary Top, Middle, and Baseline Guides](PAT_construct_hand_lettering_with_temporary_top_middle_and_baseline_guides.md) - pattern; 3 rough. Tags: consistency, guides, hand-lettering, layout, lettering, typography.
 - [Create Motion Parallax By Separating Panning Layers By Depth And Speed](PAT_create_motion_parallax_by_separating_panning_layers_by_depth_and_speed.md) - pattern; 0 design. Tags: animation, background, depth, layout, panning, parallax.
   - Variants: `Plan Multiplane Motion From A Master Action Level` (method_sequence).
 - [Decompose Animation Scene Into Registered Level Stack For Independent Control](PAT_decompose_animation_scene_into_registered_level_stack_for_independent_control.md) - pattern; 2 block. Tags: animation, compositing, layers, layout, registration, scene_planning.

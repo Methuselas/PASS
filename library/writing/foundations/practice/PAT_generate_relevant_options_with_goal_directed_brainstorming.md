@@ -60,6 +60,13 @@ variants:
     when_to_use: The writer prefers orderly lists and can name a broad life category but cannot yet choose or develop a specific episode within it.
     when_not_to_use: Continuous associative prose or spatial relations are producing stronger discoveries, or the chosen event already has enough concrete material to draft.
     absorbed_from_object_id: none
+  - variant_id: writing_variant_mine_familiar_subject_matter_for_transferable_structure
+    variant_name: Mine Familiar Subject Matter for Transferable Structure
+    variant_basis: context
+    difference_from_foundation: Start from a field the writer genuinely knows, isolate a role, institution, exchange, routine, pressure, or detail field that gives it structure, then generate fictional possibilities by transferring that function rather than copying surface facts.
+    when_to_use: A scene, setting, institution, occupation, or recurring activity needs grounded specificity and the writer has deep familiarity with a real or studied domain that can supply workable relationships and procedures.
+    when_not_to_use: The familiar material is being included mainly to display expertise, its real-world structure does not serve the current writing problem, or direct copying would crowd out the work's own causal and tonal needs.
+    absorbed_from_object_id: none
   - variant_id: writing_variant_introduce_random_environmental_constraint
     variant_name: Introduce a Random Environmental Constraint
     variant_basis: method_sequence
@@ -109,5 +116,7 @@ Collaborative brainstorming works best when the group can respond to a tractable
 `writing_variant_branch_associations_during_generation_then_freewrite` uses visible links as part of generation rather than adding them afterward. Put one cue at the center, attach each new word or phrase to the node that elicited it, follow that branch until it stalls, and then return to the center or another live node. When one association carries concrete detail, tension, surprise, or verbal energy, stop mapping and write continuously about that node. The branch records a route into material; it does not prove a psychological or symbolic interpretation.
 
 `writing_variant_cascade_story_titles_into_concrete_detail_lists` moves from breadth to depth through successive lists. Generate brief titles for several possible personal episodes under a broad cue, choose one that carries live action or meaning, then list remembered setting, sensation, conduct, emotion, objects, and speech without deciding which details will survive. If one submoment remains thin, make it the heading of another detail list. Stop when the selected episode has both enactable particulars and a question or pressure worth developing; list length is not the completion test.
+
+`writing_variant_mine_familiar_subject_matter_for_transferable_structure` uses lived or studied familiarity as a constrained source of invention. Instead of importing a hobby, workplace, historical practice, or specialist field whole, identify what makes it function: who depends on whom, what moves between them, what routines recur, where pressure accumulates, what information matters, and what concrete details reveal those relationships. Translate only the useful structure into the work, then reshape names, stakes, scale, and consequences for the destination. Familiarity should make invention more specific and causally plausible, not turn the draft into a demonstration of expertise.
 
 `writing_variant_introduce_random_environmental_constraint` interrupts an option set that has become too self-confirming. Draw one concrete element the writer did not choose—a change of weather, nearby object, unexpected visitor, overheard phrase, delay, sound, or location condition—and ask what it makes a character notice, want, avoid, do, or revise. Keep it only when its consequences become native to the scene; reject it when novelty remains detachable.

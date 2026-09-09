@@ -34,6 +34,7 @@
 - [Match Information Precision to Decision Precision](PAT_match_information_precision_to_decision_precision.md) - pattern; 0 design. Tags: decisions, information, precision, usability.
 - [Match Practiced Behavior to the Intended Outcome](PAT_match_practiced_behavior_to_the_intended_outcome.md) - pattern; 0 design. Tags: learning, outcomes, player-behavior, training.
 - [Match the Cost of Failure to the Player's Prior Investment](PAT_match_the_cost_of_failure_to_the_players_prior_investment.md) - pattern; 0 design. Tags: failure, investment, recovery, stakes.
+- [Mine Familiar Domains for Transferable Play Structure](PAT_mine_familiar_domains_for_transferable_play_structure.md) - pattern; 0 design. Tags: inspiration, structures, systems, transfer, worldbuilding.
 - [Preserve Behavioral Compatibility When Replacing Inherited Mechanics](PAT_preserve_behavioral_compatibility_when_replacing_inherited_mechanics.md) - pattern; 0 design. Tags: compatibility, editions, migration, systems.
 - [Preserve Established Interface Conventions When They Carry User Meaning](PAT_preserve_established_interface_conventions_when_they_carry_user_meaning.md) - pattern; 0 design. Tags: compatibility, presentation, systems, terminology.
 - [Project Reward Currency Mix Across Role Advancement](PAT_project_reward_currency_mix_across_role_advancement.md) - pattern; 0 design. Tags: advancement, balance, campaign-economy, currencies, rewards.

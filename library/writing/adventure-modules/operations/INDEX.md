@@ -4,7 +4,9 @@
 
 ## Objects
 
+- [Structure Encounter Entries for Live Retrieval](PAT_structure_encounter_entries_for_live_retrieval.md) - pattern; 2 block. Tags: adventure_modules, encounters, information_architecture, live_use, retrieval.
 - [Write a Generative Frame for Unscripted Adventure Scenes](PAT_write_generative_frame_for_unscripted_scenes.md) - pattern; 2 block. Tags: adventure_modules, game_master, improvisation, scene_generation, setting.
-  - Variants: `Make a Mobile Key NPC Runnable through Schedule and Connections` (method_sequence).
+  - Variants: `Make a Mobile Key NPC Runnable through Schedule and Connections` (method_sequence); `Write Wilderness as a Generative Environmental Frame` (context).
+- [Write a Key Antagonist as a Runnable Behavior Profile](PAT_write_key_antagonist_as_runnable_behavior_profile.md) - pattern; 2 block. Tags: adventure_modules, antagonists, game_master, live_use, villains.
 - [Write a Reactive Location as a Stateful Response System](PAT_write_reactive_location_as_stateful_response_system.md) - pattern; 2 block. Tags: adventure_modules, alerts, infiltration, locations, state_tracking.
   - Variants: `Carry Adaptation Across Repeated Visits` (context).

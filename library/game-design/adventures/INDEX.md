@@ -16,6 +16,7 @@
 - [Design Occupied Sites Around Inhabitant Operations](PAT_design_occupied_sites_around_inhabitant_operations.md) - pattern; 0 design. Tags: adventures, defenses, ecology, locations, logistics, topology.
 - [Design Scenario Progression as a Redundant Node Network](PAT_design_scenario_progression_as_a_redundant_node_network.md) - pattern; 0 design. Tags: adventures, agency, clues, nodes, scenarios, topology.
 - [Design Shared Problems with Multiple Solution Interfaces](PAT_design_shared_problems_with_multiple_solution_interfaces.md) - pattern; 0 design. Tags: adventures, agency, participation, roles, solutions.
+- [Distribute Adventure Opportunities Across Player Preferences](PAT_distribute_adventure_opportunities_across_player_preferences.md) - pattern; 0 design. Tags: adventures, engagement, participation, players, preferences.
 - [Encode Stable Spatial State on the Map](PAT_encode_stable_spatial_state_on_the_map.md) - pattern; 0 design. Tags: adventures, cartography, maps, referee-interface, retrieval, spatial-state.
 - [Establish Adventure Entry Premise Without Prescribing Personal Motivation](PAT_establish_adventure_entry_premise_without_prescribing_personal_motivation.md) - pattern; 0 design. Tags: adventures, agency, entry, premise.
 - [Generate Sandbox Situations from World State and Player Needs](PAT_generate_sandbox_situations_from_world_state_and_player_needs.md) - pattern; 0 design. Tags: agency, encounters, resources, sandbox, situations, world-state.

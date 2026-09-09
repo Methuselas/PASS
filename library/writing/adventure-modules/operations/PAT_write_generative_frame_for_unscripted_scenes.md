@@ -32,6 +32,13 @@ variants:
     when_to_use: A key NPC moves through several locations or routines and the timing, privacy, witnesses, or route by which the characters approach that person can materially change the scene.
     when_not_to_use: The NPC's appearance is intentionally tied to one fixed trigger, the schedule would add bookkeeping without meaningful choice, or wider events make the person's routine too unstable to serve as a useful default.
     absorbed_from_object_id: none
+  - variant_id: writing_adventure_modules_variant_write_wilderness_as_generative_environmental_frame
+    variant_name: Write Wilderness as a Generative Environmental Frame
+    variant_basis: context
+    difference_from_foundation: Specialize the generative frame for open outdoor travel by pairing a simple objective with season and climate, specific terrain, locally plausible flora and fauna, weather pressures, and mutable route features so the operator can stage grounded travel scenes without needing every mile prewritten.
+    when_to_use: Outdoor travel or exploration is part of the adventure's playable texture and the operator may need to expand, compress, or improvise scenes while keeping them consistent with the same landscape.
+    when_not_to_use: Travel is only connective tissue, the route is intentionally fixed and fully specified, or environmental detail would add description without helping the operator stage another compatible scene.
+    absorbed_from_object_id: none
 ---
 
 # Write a Generative Frame for Unscripted Adventure Scenes
@@ -68,3 +75,5 @@ variants:
 Prepared encounters solve only known moments. A generative frame makes the surrounding situation writable at the table by describing relationships and recurring activity from which further moments can be inferred. A moving community, for example, becomes more useful when the module explains who travels with it, what happens while it moves, what happens when it stops, what the characters are responsible for, what people want, and which kinds of trouble repeatedly arise. Examples then teach the grammar of the situation rather than serving as the only permissible content.
 
 `writing_adventure_modules_variant_make_mobile_key_npc_runnable_through_schedule_and_connections` applies the same generative logic to an important moving person. Give the operator a default routine rather than a guaranteed scene: where the NPC usually goes, which relationships or duties create those movements, when the person is public or isolated, and what circumstances plausibly change the routine. Player action can then intersect the NPC at different times and places without requiring the author to script every meeting in advance.
+
+`writing_adventure_modules_variant_write_wilderness_as_generative_environmental_frame` treats an outdoor route as more than blank space between fixed encounters. Start from the trip's objective, then give the operator a compact environmental grammar: the season and expected weather, a few researched terrain and species particulars, recurring obstacles or exposures, and landscape features that can plausibly change how a scene unfolds. Use exact local details selectively so each improvised scene feels as though it belongs to the same place. The frame should make another compatible travel scene easy to stage, not require a scripted event for every stretch of road or an inventory of scenery that never enters play.

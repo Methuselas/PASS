@@ -52,14 +52,16 @@ Choose a rough whose main hierarchy is already established. Build a representati
 3. Check the required identifier, title, dominant image mass, silhouette, and major value/color separation.
 4. Identify one major variable that is failing: scale, value grouping, hue/chroma contrast, negative space, title weight, silhouette, or another large relationship.
 5. Change only that major variable enough to test the hypothesis.
-6. Return the revision to the same competitive field and compare again.
-7. Repeat until the required first read survives while the design still fits the work rather than becoming merely louder than its neighbors.
+6. Ask at least one representative viewer what reads first and what subject, tone, or promise the cover implies before explaining the intended answer.
+7. Return the revision to the same competitive field and compare again.
+8. Repeat until the required first read survives while the design still fits the work rather than becoming merely louder than its neighbors.
 
 ## Success Check
 - The required title, identifier, or dominant visual read survives at the intended display size.
 - The design remains recognizable when surrounded by strong neighbors.
 - Improvements come from controlled changes to major hierarchy variables rather than indiscriminate addition of contrast.
 - The final rough still promises the actual work instead of becoming misleading simply to win attention.
+- Representative viewers infer a subject and tone compatible with the intended publication before being coached toward the answer.
 
 ## Common Failures
 - Judging the cover only against a neutral workspace or full-screen enlargement.
@@ -67,6 +69,7 @@ Choose a rough whose main hierarchy is already established. Build a representati
 - Increasing saturation, contrast, or type size everywhere instead of fixing the hierarchy that actually failed.
 - Choosing deliberately weak comparison neighbors that make the design look stronger than it will in use.
 - Winning the shelf or thumbnail test by misrepresenting the work.
+- Asking only whether viewers like the cover instead of testing what they actually read and infer from it.
 
 ## Notes
-Place a cover or jacket rough on its intended object and judge it among strong competing designs. Competitive display can expose hierarchy and recognition failures that remain invisible when the design is evaluated alone.
+Place a cover or jacket rough on its intended object and judge it among strong competing designs. Competitive display can expose hierarchy and recognition failures that remain invisible when the design is evaluated alone. Representative-viewer readback adds a separate check: a cover can be visually strong and still communicate the wrong subject, tone, or promise.

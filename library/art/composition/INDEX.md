@@ -46,10 +46,11 @@
 - [Hunt Linear Compositions with Viewfinder Thumbnails](DRILL_hunt_linear_compositions_with_viewfinder_thumbnails.md) - drill; 0 design. Tags: composition, negative_space, observation, shape_design, thumbnails, viewfinder.
   - Variants: `Compare Multiple Crops of One Reference With Quick Value Trials` (method_sequence).
 - [Imply Large Numbers With Representative Visual Samples](PAT_imply_large_numbers_with_representative_visual_samples.md) - pattern; 0 design. Tags: composition, crowds, economy, repetition.
-- [Integrate Embedded Illustration with the Surrounding Layout](PAT_integrate_embedded_illustration_with_surrounding_layout.md) - pattern; 0 design. Tags: composition, hierarchy, illustration, layout, negative_space, page_design.
-  - Variants: `Make the Title Primary on a Title-Led Cover or Jacket` (context); `Judge Lettering as a Tonal Mass Before Reading It as Text` (emphasis); `Group Explanatory Segments With Local Backplates` (context).
+- [Integrate Embedded Illustration with the Surrounding Layout](PAT_integrate_embedded_illustration_with_surrounding_layout.md) - pattern; 0 design. Tags: composition, hierarchy, illustration, layout, negative_space, page_design, typography.
+  - Variants: `Make the Title Primary on a Title-Led Cover or Jacket` (context); `Judge Lettering as a Tonal Mass Before Reading It as Text` (emphasis); `Group Explanatory Segments With Local Backplates` (context); `Integrate Type and Image Through Formal Correspondence or Opposition` (method_sequence).
 - [Isolate and Recombine Depth Cues on One Scene](DRILL_isolate_and_recombine_depth_cues_on_one_scene.md) - drill; 0 design. Tags: atmosphere, composition, deliberate_practice, depth, spatial_cues.
   - Variants: `Reawaken Depth Sensation by Alternating Monocular and Binocular View` (method_sequence).
+- [Make Image Juxtaposition Semantically Intentional](PAT_make_image_juxtaposition_semantically_intentional.md) - pattern; 0 design. Tags: composition, imagery, juxtaposition, meaning, sequence, visual_relationship.
 - [Motivate Camera Movement From Story Action Or Information](PAT_motivate_camera_movement_from_story_action_or_information.md) - pattern; 0 design. Tags: animation, camera_move, staging, storytelling.
   - Variants: `Use Camera Shake As A Brief Directional Impact Accent` (context); `Tune Camera-Move Speed To The Emotional Beat` (context).
 - [Precompose Locked Camera For All Required Action States](PAT_precompose_locked_camera_for_all_required_action_states.md) - pattern; 0 design. Tags: blocking, composition, locked_camera, storyboarding.
@@ -60,7 +61,7 @@
 - [Preserve Visual Tone And World Consistency Across Sequence](PAT_preserve_visual_tone_and_world_consistency_across_sequence.md) - pattern; 0 design. Tags: continuity, sequence, tone, visual_storytelling.
 - [Propagate Group Behavior Through Unequal Responses and Roles](PAT_propagate_group_behavior_through_unequal_responses_and_roles.md) - pattern; 0 design. Tags: acting, action_reaction, animation, character_relationship, crowd, group_behavior, roles, staging.
 - [Protect Critical Content from Physical Production Boundaries](PAT_protect_critical_content_from_physical_production_boundaries.md) - pattern; 0 design. Tags: composition, fabrication, large_format, production, seams, trim.
-  - Variants: `Simplify Display Contours for Cutting, Support, and Stability` (constraint); `Adapt Applied Design to the Host Material and Surface` (medium).
+  - Variants: `Simplify Display Contours for Cutting, Support, and Stability` (constraint); `Adapt Applied Design to the Host Material and Surface` (medium); `Protect Bound-Spread Detail From Gutter and Spine` (context).
 - [Recompose an Existing Layout as Value and Space Blocks](DRILL_recompose_existing_layout_as_value_and_space_blocks.md) - drill; 0 design. Tags: composition, design_practice, layout, negative_space, value_pattern.
 - [Reduce Composition To Abstract Value Shape Statement](PAT_reduce_composition_to_abstract_value_shape_statement.md) - pattern; 0 design. Tags: composition, shape, thumbnail, value.
 - [Reduce Master Compositions to Two-Value Mass Maps](DRILL_reduce_master_compositions_to_two_value_mass_maps.md) - drill; 0 design. Tags: composition, deliberate_practice, master_study, notan, simplification, value_pattern.

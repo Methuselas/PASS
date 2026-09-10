@@ -51,6 +51,13 @@ variants:
   when_not_to_use: Do not imitate historical craft limitations when current materials or fabrication methods do not require
     them; preserve only constraints that belong to the actual host and process.
   absorbed_from_object_id: none
+- variant_id: VAR_lupton_protect_bound_spread_detail_from_gutter_and_spine
+  variant_name: Protect Bound-Spread Detail From Gutter and Spine
+  variant_basis: context
+  difference_from_foundation: Applies physical-boundary planning to facing book pages by treating the gutter and spine as a visibility interruption that can swallow inner-margin text or split precision-dependent image details even when the flat digital spread appears intact.
+  when_to_use: Use when text, images, diagrams, or other information approach or cross the inner margins of a bound publication.
+  when_not_to_use: Do not create an exaggerated safe zone when the actual binding opens flat or when a deliberate broad image crossing can tolerate the interruption.
+  absorbed_from_object_id: none
 ---
 
 # Protect Critical Content from Physical Production Boundaries
@@ -85,3 +92,5 @@ Map physical divisions before final placement and keep joins away from small fac
 `VAR_loomis_simplify_display_contours_for_cutting_support_and_stability` extends the same production-aware thinking from internal seams to the manufactured silhouette itself: cut, folded, mounted, or free-standing forms must remain buildable and stable under the actual fabrication method.
 
 `VAR_dow_adapt_applied_design_to_host_material_and_surface` broadens that production awareness to the material and host surface themselves: an applied design may need its line, mass, spacing, scale, or detail redistributed so the idea survives fabrication and belongs to the object carrying it.
+
+`VAR_lupton_protect_bound_spread_detail_from_gutter_and_spine` applies the same rule to books and other bound publications. Judge an open spread as the reader will receive it: the gutter is a physical interruption, so small type and precision-dependent image details should not depend on a perfectly flat opening.

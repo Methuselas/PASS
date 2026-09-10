@@ -18,6 +18,7 @@ tags:
 - illustration
 - negative_space
 - hierarchy
+- typography
 cross_links:
 - rel: related_to
   target_object_id: PAT_design_vignette_as_open_composition_with_page_space
@@ -64,6 +65,20 @@ variants:
   when_not_to_use: Do not give every segment an equal box or equal contrast when their explanatory importance differs; that
     recreates the rigid grid this method is meant to avoid.
   absorbed_from_object_id: none
+- variant_id: VAR_samara_integrate_type_and_image_through_formal_correspondence_or_opposition
+  variant_name: Integrate Type and Image Through Formal Correspondence or Opposition
+  variant_basis: method_sequence
+  difference_from_foundation: >-
+    Integrates typography and imagery by explicitly comparing their shared formal attributes—light and dark, linear movement, volume, contour,
+    open and closed space, and rhythm—then creating either a correspondence or a deliberate opposition. Placement inside, adjacent to, or
+    crossing an image boundary is chosen to control whether type and image read as one field, separate but related units, or a spatially linked overlap.
+  when_to_use: >-
+    Use when text and imagery share a publication spread, cover, poster, or other layout and merely keeping both legible does not establish a
+    convincing visual relationship between them.
+  when_not_to_use: >-
+    Do not force decorative overlap when the text must remain clearly separate for reading, when image information would be obscured, or when
+    correspondence would create a false semantic relationship.
+  absorbed_from_object_id: none
 ---
 
 # Integrate Embedded Illustration with the Surrounding Layout
@@ -100,3 +115,5 @@ Treat an embedded illustration as one unit inside a larger page design by coordi
 `VAR_dow_judge_lettering_as_tonal_mass_before_reading_as_text` treats lettering as part of the page value design before fine typographic character is judged. Step back and compare the density created by letter size, stroke thickness, inter-letter spacing, and surrounding space, while preserving the legibility and hierarchy the text still needs.
 
 `VAR_olofsson_group_explanatory_segments_with_local_backplates` organizes a dense sheet by placing backing fields only behind related clusters. Let group size and contrast follow explanatory importance, and preserve enough unboxed page space that the composition does not collapse into a uniform panel matrix.
+
+`VAR_samara_integrate_type_and_image_through_formal_correspondence_or_opposition` adds a publication-oriented method for making type and imagery coexist as designed forms rather than independent rectangles. Compare the two materials through value, direction, contour, volume, open/closed space, and rhythm; either reinforce a useful correspondence or heighten a deliberate opposition. Their boundary relation also matters: type inside an image joins its field, adjacent type stays more independent, and type crossing the edge can bind image and surrounding page space into one spatial event.

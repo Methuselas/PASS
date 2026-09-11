@@ -46,7 +46,7 @@ variants: []
 - Separate the three roles the mechanism gives you: a source that issues the request, tokens that observe it, and callbacks that fire when it is issued. They share one stop state, and the tokens are cheap to copy.
 - Hand the token to whatever is doing the work, not to a particular kind of thread. It reaches a plain thread, a joining thread, an asynchronously launched task, or a worker driven through a promise equally well — which makes this a general signalling mechanism rather than a feature of one thread type.
 - Poll the token at points where stopping is safe, which is the design work this pushes onto you and is the point. The work chooses where it can be interrupted, so it is never interrupted while an invariant is broken.
-- Wait on a condition variable in its interruptible form when the work can block. The overload taking a stop token returns on either a notification or a stop request and tells you which, so a waiting thread is not a thread that has stopped listening.
+- When work can block on a condition variable, use the C++20 stop-token overloads of `std::condition_variable_any`. They wake for notification, predicate satisfaction, or a stop request; `std::condition_variable` does not provide those stop-token overloads.
 
 ## Don't
 - Don't expect the request to affect work that has already finished. Signalling after completion does nothing and the registered callback does not run, so a protocol that assumes every request is observed will silently skip the cases where it arrived late.
@@ -56,7 +56,7 @@ variants: []
 ## Checklist
 - Does the work have points where stopping would leave state consistent, and does it poll there?
 - Does every entity that might need stopping hold a token?
-- Can the work block, and if so does it block in a form that a stop request can end?
+- Can the work block, and if so is it using a wait operation that actually accepts a stop token, such as `std::condition_variable_any`'s C++20 overload?
 - Is the request issued while the work could still be running, rather than after joining it?
 - Does anything assume a request is always observed?
 

@@ -45,11 +45,11 @@ variants: []
 - Match the operation to the requirement rather than reaching for the full sort by reflex. Splitting a range by a predicate needs a partition; finding the element at a rank, or the best few in no particular order, needs the selection operation; the best few *in order* needs the partial sort; everything in order needs the full sort.
 - Use the selection operation for more than the top few, since it generalizes better than its name suggests. Positioning the middle element gives you the median; positioning at a computed offset gives you any percentile.
 - Reach for the stable variants only when equal elements must retain their relative order, and know which exist: the full sort and the partition have stable counterparts, the partial sort and the selection operation do not.
-- Check the iterators the operation demands against the container you have. The sorting and selection operations need random access, so they do not apply to linked lists; partitioning needs only bidirectional iterators and works on any standard sequence.
+- Check the iterator and callable requirements against the range you have. `sort`, `stable_sort`, `partial_sort`, and `nth_element` require random-access iterators; C++20 `partition` and `stable_partition` accept forward iterators, with implementation cost depending on the available category and memory.
 - Go indirect when a linked list needs an operation it cannot support — copy into a random-access container, or build a container of iterators into the list and order that.
 
 ## Don't
-- Don't choose among these on performance grounds. Choose on what the job needs, and the performance follows, because the operation that does only what you asked is generally both the clearest statement of intent and the cheapest way to get it.
+- Don't choose solely from a memorized performance ranking. First select operations whose postconditions satisfy the consumer, then measure meaningful alternatives on the actual range, element type, and implementation.
 - Don't expect any of the weaker operations to say anything about elements it did not have to order. The selection operation guarantees only that the element at your position is the one that belongs there and that nothing before it follows it in the ordering — the arrangement within those groups is not yours to predict.
 - Don't sort a container that maintains its own ordering. The ordered associative containers are sorted at all times by construction, and applying a sorting operation to one is at best redundant.
 
@@ -60,7 +60,7 @@ variants: []
 - Is a full sort being used where a partition or a selection would answer the question?
 
 ## Notes
-The graded set, ordered by the work each does, runs: partition, stable partition, selection by rank, partial sort, sort, stable sort. That ordering is worth knowing not to optimize by but to recognize how much of the set sits *below* the full sort — which is where most code lands by default.
+The operations form a useful semantic ladder—partition, stable partition, selection by rank, partial ordering, full ordering—but not one universal cost ordering. Stability, iterator category, allocation, projections, and element operations affect the implementation. The durable lesson is how much of the problem space needs less than a full sort.
 
 The reason the advice is to choose by need rather than by cost is that the two agree here, and that is unusual enough to be worth relying on. Asking for a split when you need a split produces code that reads as a split and happens to be the fastest way to get one; asking for a full sort produces code whose reader has to work out that only the partition mattered.
 

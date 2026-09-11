@@ -32,7 +32,14 @@ reference:
   author: Josh McCrowell and Warren D.
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_combine_scheduled_and_discretionary_event_streams
+  variant_name: Combine Scheduled and Discretionary Event Streams
+  variant_basis: method_sequence
+  difference_from_foundation: Use a fixed timetable for state changes that should advance with elapsed play time, alongside a separate pool of discretionary incidents the facilitator can introduce when useful; keep both streams live so their events can overlap and create simultaneous demands without requiring one monolithic scripted sequence.
+  when_to_use: A bounded location or situation should feel active over a sustained interval, some developments need to occur on a reliable clock, and other complications are better paced flexibly by the facilitator.
+  when_not_to_use: Event timing is not consequential, all developments are direct consequences of player action, or discretionary insertions would make outcomes feel arbitrary rather than responsive to the current situation.
+  absorbed_from_object_id: none
 ---
 
 # Layer Dynamic Events over Static Location State
@@ -71,3 +78,5 @@ variants: []
 
 ## Notes
 A keyed location answers what is normally here. Exploration often also needs an answer to what happens while the characters spend time moving through it. A dynamic event layer supplies that second answer without forcing the facilitator to simulate every footstep of every inhabitant. Its strongest use is not randomness for its own sake, but pressure and recombination: a patrol encountered in a shrine, a warning heard near a dangerous route, or dwindling light during a detour produces a different scene from either the room key or the event entry alone.
+
+Variant `game_design_variant_combine_scheduled_and_discretionary_event_streams` separates two kinds of dynamic pressure. Put developments that should advance regardless of facilitator taste on an explicit timetable, and keep optional incidents in a separate discretionary pool. Because both streams remain active, an arrival, transaction, disease progression, social demand, or other timed change can coincide with a complication introduced from the discretionary pool, producing a denser situation without pretending every beat has to be scripted. Use the split only when the distinction matters: if all events are equally flexible or equally clock-bound, one procedure is simpler.

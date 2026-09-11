@@ -41,14 +41,15 @@ variants: []
 
 ## Pattern Rule
 **IF** a callable has to be stored somewhere that fixes its type — a container element, a data member, a lookup table
-**THEN** choose the storage by whether the callable carries context and by whether the storage must own it — a plain function pointer where it carries none, a polymorphic function wrapper where it does, and a non-owning reference wrapper only where something visibly keeps the callable alive for as long as the holder
+**THEN** choose storage by context, ownership, and copyability — a function pointer for stateless compatible functions, `std::function` for owned copyable type erasure, and a template parameter when the concrete callable type can remain visible
 **ELSE** where the callable is handed straight to a template that accepts it as a deduced parameter, no storage decision arises — the template holds the callable's own type, and a function, a functor, and a lambda are all equally acceptable there.
 
 ## Do
 - Start from whether anything is captured, because that is the whole of the decision. A lambda capturing nothing converts to a function pointer; a lambda capturing anything has its own unique type and does not convert, so a table of function pointers cannot hold it no matter how trivial its body looks.
 - Read the resulting compile error as information rather than as an obstacle. It is telling you the callable carries state, and the two usual ways of forcing it back into a function pointer — hoisting the captured variable to a global, or dropping it and recomputing the value inside the body — are both worse than widening the storage to something that can hold state.
-- Reach for the wrapper when the things stored together come from different places. A free function, a capturing lambda, and a member function bound to a particular object have nothing in common as types, and the wrapper's purpose is to give them one so they can sit in the same container or the same member.
-- Read a non-owning reference wrapper as a borrow with a deadline rather than as a cheaper wrapper. It stores a pointer to the callable and a thunk and nothing else, so storing one makes the referent's lifetime a precondition of every later call — and the ordinary way of constructing one, passing a lambda written inline at the call site, hands it a temporary that dies at the end of that full-expression. The holder is then referring to a callable that no longer exists, from the moment it is built.
+- Reach for `std::function` parameterized by the call signature when heterogeneous copyable callables need one owning type. A free function, capturing lambda, and function object have no common concrete type; type erasure is what lets them share a container or member.
+- Under C++23, use `std::move_only_function` parameterized by the call signature when owned type erasure must accept move-only callables. On the C++20 path, use a deliberate project wrapper or redesign the ownership; do not imply `std::function` can store a non-copyable target.
+- Treat a non-owning type-erased callable view as a borrow with a deadline. C++20 and C++23 do not provide a standard `function_ref`; if a project or third-party equivalent is used, the referent's lifetime is a precondition of every call. `std::reference_wrapper` is standard but is not heterogeneous type erasure by itself.
 - Let the signature be the thing they share, and choose it deliberately. The wrapper is parameterised on the call signature rather than on the callable, so everything stored under one wrapper type must accept the same arguments and return the same thing — which is a design constraint on the whole table, not an implementation detail of any one entry.
 - Prefer a template parameter where the type can be settled when the code is compiled. It stores the callable as itself, with nothing erased and nothing indirected, and it is available whenever the storage is a class you are writing rather than a container of heterogeneous entries.
 
@@ -64,6 +65,7 @@ variants: []
 - Do the callables stored together come from more than one kind of origin?
 - Could a template parameter hold this instead, and is anything actually being erased?
 - Does this storage own the callable or borrow it, and if it borrows, what keeps the callable alive for the holder's whole life?
+- If type erasure is required, must the target be copyable, move-only, or merely borrowed, and does the selected standard actually provide that wrapper?
 - Does anything captured by reference need to outlive the stored callable?
 
 ## Notes

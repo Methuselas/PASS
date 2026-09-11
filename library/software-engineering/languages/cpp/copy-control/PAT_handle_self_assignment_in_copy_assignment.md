@@ -38,8 +38,9 @@ variants: []
 **THEN** make it safe when the source and target are the same object, because aliasing — `a[i] = a[j]`, `*px = *py`, a base reference bound to a derived object — means self-assignment really happens.
 
 ## Do
+- Prefer the Rule of Zero so tested standard value and ownership types supply self-assignment behavior. Write a custom copy assignment operator only when the class owns semantics its members cannot express.
 - Order the statements so the new resource is acquired before the old one is freed: remember the original pointer, point to a fresh copy of the source's resource, then delete the original.
-- Add an identity test (return early when this equals the source's address) only when you expect self-assignment often enough to justify the branch, or use copy-and-swap.
+- Add an identity test only when it avoids material work or is required by the chosen algorithm. Copy-and-swap and carefully ordered memberwise assignment can be naturally self-safe without a dedicated branch.
 
 ## Don't
 - Don't delete the current resource and then copy from the source; if the source is the same object, you have destroyed the very thing you were about to copy, leaving a pointer to freed memory.
@@ -50,4 +51,4 @@ variants: []
 - Is the operator exception-safe, which usually makes it self-assignment-safe too?
 
 ## Notes
-The classic bug (a `Widget` owning a `Bitmap*`) deletes `pb` and then copies from the source — fatal when they are the same object. The identity test at the top fixes self-assignment but not exception safety; reordering to copy-before-delete fixes both, and copy-and-swap is the idiomatic third option. Aiming for exception safety usually yields self-assignment safety for free, so it is increasingly common to solve the exception problem and let self-assignment fall out.
+The classic bug (a class directly owning a raw allocation) deletes its resource and then copies from the source — fatal when the two objects are the same. The identity test fixes self-assignment but not exception safety; preparing replacement state before releasing the old state fixes both, and copy-and-swap is another transactional option. A modern design first asks whether direct ownership can move into a standard value or smart-pointer member, eliminating the custom operation. When it cannot, aim for the exception guarantee and make self-assignment one tested aliasing case rather than a special afterthought.

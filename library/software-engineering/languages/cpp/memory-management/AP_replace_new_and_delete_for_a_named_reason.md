@@ -33,7 +33,7 @@ cross_links:
 - rel: supports
   target_object_id: PAT_write_a_well_behaved_new_handler
 - rel: supports
-  target_object_id: PAT_provide_class_specific_new_handler_via_crtp
+  target_object_id: PAT_do_not_emulate_class_specific_new_handler_with_global_state
 - rel: related_to
   target_object_id: PAT_match_new_and_delete_forms
 - rel: related_to
@@ -59,15 +59,15 @@ Substitute your own allocation functions for the compiler's, at global or class 
 
 3. **Decide the scope: global, or one class.** Global replacement affects every allocation in the program including the library's; class-specific replacement affects one type and everything derived from it. The obligations in steps 4 to 7 apply to both, but the blast radius of getting them wrong does not.
 
-4. **Meet the conventions the language expects.** `PAT_follow_new_delete_conventions` owns the three that are easiest to omit: the loop that calls the new-handler rather than failing immediately, returning something valid for a zero-byte request, and forwarding a wrong-sized request to the global version rather than serving it from a class-specific pool sized for the base.
+4. **Meet the conventions the language expects.** `PAT_follow_new_delete_conventions` owns failure and zero-size behavior, alignment, delegation to matching global forms, and forwarding a wrong-sized request rather than serving it from a fixed class pool.
 
-5. *Gate.* **Re-expose the standard forms your declaration just hid.** Declaring any allocation function in a class hides all the global ones — normal, placement, and nothrow — so clients who never asked for your allocator stop compiling. `PAT_dont_hide_standard_new_forms` owns the repair, typically a base class carrying the standard forms plus a using declaration.
+5. *Gate.* **Define the overload family your declaration just hid.** Declaring any class allocation function changes lookup for normal, nothrow, placement, alignment-aware, sized, and possibly array forms. `PAT_dont_hide_standard_new_forms` owns the inventory and matching-deallocation review.
 
 6. **Pair every extra-parameter form with its matching release.** `PAT_pair_placement_new_with_placement_delete` owns this, and the cost of skipping it is silent: the constructor throws, no matching release exists, and the allocation leaks with nothing to indicate it. Keep the ordinary release form alongside.
 
-7. **Branch — for allocation-failure behavior specific to this class.** `PAT_write_a_well_behaved_new_handler` owns what a handler must do to avoid an endless retry, and `PAT_provide_class_specific_new_handler_via_crtp` owns the mixin that gives one class its own handler without disturbing the global one.
+7. **Branch — for allocation-failure behavior.** `PAT_write_a_well_behaved_new_handler` owns a genuinely process-wide handler. For a class-local policy, `PAT_do_not_emulate_class_specific_new_handler_with_global_state` routes the design to an allocator, memory resource, factory, or explicit fallible result instead of swapping global state.
 
-8. **Verify against the forms nobody wrote a test for.** Allocate an array, allocate zero bytes, allocate an object of a derived class larger than the base, throw from a constructor after a placement form, and allocate through a client path that uses no custom form at all.
+8. **Verify against the forms nobody wrote a test for.** Exercise zero-size direct calls where relevant, over-aligned storage, a derived size if inheritance is permitted, nothrow behavior, a constructor throwing after a placement form, and every supported sized/aligned delete route.
 
 9. **Completion check.** The stated reason is measurably served; every standard form still compiles for clients; every extra-parameter form has its counterpart; failure behavior terminates; and a derived class does not receive base-sized memory.
 

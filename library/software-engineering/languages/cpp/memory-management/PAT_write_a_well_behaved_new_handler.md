@@ -20,7 +20,7 @@ tags:
 - allocation
 cross_links:
 - rel: related_to
-  target_object_id: PAT_provide_class_specific_new_handler_via_crtp
+  target_object_id: PAT_do_not_emulate_class_specific_new_handler_with_global_state
 - rel: related_to
   target_object_id: PAT_offer_an_exception_safety_guarantee
 - rel: related_to
@@ -42,7 +42,7 @@ variants: []
 ## Do
 - Free memory the handler reserved at startup, or install a more capable handler, so the next allocation attempt inside operator new can succeed.
 - Otherwise deinstall the handler by passing null (letting operator new throw), throw bad_alloc yourself, or terminate with abort or exit when recovery is impossible — the last of those only from code that is entitled to end the program.
-- Settle whether you may install a global handler at all before writing one. There is a single handler for the whole program, so installing one replaces whatever was there and gives it back to nobody; two components that each want one cannot both have it, and the loser is whichever ran first. That makes it a decision belonging to whoever owns the program, and a library that takes it has quietly overridden a policy its host may depend on. Where the code wanting the behaviour is a library, a component, or a plugin, the class-specific route is the one that composes — `PAT_provide_class_specific_new_handler_via_crtp` owns it.
+- Settle whether you may install a global handler at all before writing one. There is a single handler for the whole program, and `set_new_handler` returns the handler it replaced. Two components cannot safely treat that process-wide slot as private policy. A library, component, or plugin should use a local allocator or fallible factory instead; `PAT_do_not_emulate_class_specific_new_handler_with_global_state` owns that boundary.
 - Restore what you replaced if you install one temporarily. Passing a handler in returns the previous one, and that return value is the only record of it that exists; discarding it means the original cannot be put back even by code that knows it should.
 
 ## Don't

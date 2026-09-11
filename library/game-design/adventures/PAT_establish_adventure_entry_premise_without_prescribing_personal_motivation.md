@@ -21,12 +21,21 @@ cross_links:
   target_object_id: PAT_preserve_player_control_of_protagonist_response_in_adventure_text
 - rel: related_to
   target_object_id: PAT_start_adventures_at_the_first_actionable_change
+- rel: related_to
+  target_object_id: PAT_turn_character_history_into_scenario_addressable_state
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_personalize_entry_through_player_authored_character_stakes
+  variant_name: Personalize Entry through Player-Authored Character Stakes
+  variant_basis: method_sequence
+  difference_from_foundation: Ask players for relevant facts about why their characters are present and what relationships, responsibilities, possessions, goals, or local ties belong to them, then intersect the same live situation with those player-authored facts so each character receives a concrete reason to engage without the adventure dictating the character's internal response.
+  when_to_use: The adventure needs to connect a shared threat or opportunity to characters with different backgrounds, especially when the group does not begin with a strong preexisting bond.
+  when_not_to_use: The premise already supplies sufficient participation, the players prefer impersonal hooks, or using a volunteered character fact would convert player-owned history into an involuntary emotion, decision, or loss the player did not consent to place in scope.
+  absorbed_from_object_id: none
 ---
 
 # Establish Adventure Entry Premise Without Prescribing Personal Motivation
@@ -55,3 +64,5 @@ variants: []
 
 ## Notes
 A shared premise is a participation contract, not a complete character biography. When participation must be chosen rather than assumed, the premise also needs player-visible value: something to gain, protect, discover, fulfill, prevent, or otherwise care about in play. That offer does not authorize the adventure to decide which motive a protagonist adopts. Some adventures legitimately begin with the party already employed, assigned, trapped, shipwrecked, enlisted, or otherwise involved. That can establish why play starts without deciding how each protagonist feels about it. The useful boundary is between **required situation** and **player-owned motivation**.
+
+Variant `game_design_variant_personalize_entry_through_player_authored_character_stakes` starts from facts the players supply rather than motives the adventure assigns. Ask what places, people, duties, possessions, travel reasons, or current goals already put each character near the situation, then let the same external threat touch those facts in different ways. Several personalized intersections can converge into one shared opening, allowing the adventure itself to create a common problem without deciding what any protagonist must feel about it.

@@ -37,20 +37,22 @@ variants: []
 
 ## Pattern Rule
 **IF** you write your own operator new or operator delete
-**THEN** follow the required conventions: operator new loops calling the new-handler, returns a valid pointer even for a zero-byte request, and forwards wrong-sized requests to the global version; operator delete does nothing on a null pointer and forwards wrong-sized blocks to the global version.
+**THEN** prefer delegating to the matching global allocation function, preserve its failure and zero-size contract, honor requested alignment, and provide the deallocation signatures that can be selected for every supported allocation form.
 
 ## Do
-- In operator new, loop: attempt the allocation, and on failure call the current new-handler (obtained via set_new_handler), throwing bad_alloc only when the handler pointer is null; treat a zero-byte request as a one-byte request.
+- Delegate ordinary storage acquisition to `::operator new(size)` and aligned acquisition to `::operator new(size, alignment)` unless the custom allocator itself has a measured reason to replace those semantics. Delegation preserves `new_handler`, `bad_alloc`, zero-size, and alignment behavior.
+- If implementing storage acquisition directly, return non-null suitably aligned storage or throw, and reproduce the replaceable allocation function's `new_handler` retry contract rather than returning null from a throwing form.
 - In a class-specific operator new, forward any request whose size differs from the class size to the global operator new (this also covers the zero-byte case, since a class size is never zero), and mirror the forwarding in operator delete.
 
 ## Don't
 - Don't forget that a base class operator new is inherited, so it can be asked for a derived object's larger size; check the size and hand the wrong sizes to the global version.
-- Don't omit the virtual destructor on a base class; without it the size_t value passed to operator delete can be wrong.
+- Don't use deletion through a non-virtual base as a size-routing technique. Deleting a derived object through such a base pointer is undefined behavior regardless of allocator bookkeeping.
+- Don't discard alignment or assume the unsized delete overload is the only deallocation function an implementation may select.
 
 ## Checklist
-- Does operator new loop on the new-handler, handle zero bytes, and always return a valid pointer or throw?
+- Does delegation or the direct implementation preserve `new_handler`, zero-size, failure, and alignment behavior?
 - Do class-specific new and delete forward wrong-sized requests to the global versions?
-- Do base classes have virtual destructors so operator delete receives the correct size?
+- Are the matching unsized, sized, aligned, and placement deallocation paths present where the supported new expressions can select them?
 
 ## Notes
-A conforming operator new returns a valid pointer even for zero bytes (treat it as one), loops calling the new-handler, and throws bad_alloc only when the handler is null. Because operator new is inherited, a base version may be handed a derived object's size, so forward any size that is not the class's own to the global operator new — a test that also subsumes the zero-byte case. operator delete must be null-safe and forward wrong-sized blocks; and a missing virtual destructor can make the size passed to delete wrong.
+The easiest conforming allocation function is a thin wrapper around the corresponding global function: it inherits the language-required failure handling, zero-size behavior, and alignment. A direct allocator assumes those obligations itself. Because a class allocation function can be found for a derived allocation, a fixed-size pool must reject or forward a size it does not own. Modern deallocation lookup may select sized and alignment-aware signatures, so the tested interface must match the actual supported new-expression forms rather than the three overloads remembered from pre-alignment-aware C++.

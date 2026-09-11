@@ -26,7 +26,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_bookend_adventure_with_demanding_risk_peaks
+  variant_name: Bookend an Adventure with Demanding Risk Peaks
+  variant_basis: method_sequence
+  difference_from_foundation: Place a demanding opening challenge that establishes the adventure's expected caution, coordination, or tactical standard, allow the middle to vary in pressure, then return to a major risk peak at the climax rather than making every encounter equally lethal.
+  when_to_use: The intended experience benefits from an early capability check and a dangerous culmination, and the opening still permits informed play, retreat, recovery, or retry rather than arbitrary loss.
+  when_not_to_use: The audience needs a gradual onboarding ramp, early catastrophic loss would erase disproportionate investment, or the opening danger cannot be made legible enough for players to respond intelligently.
+  absorbed_from_object_id: none
 ---
 
 # Shape Adventure Challenge Progression Deliberately
@@ -56,3 +63,5 @@ variants: []
 
 ## Notes
 Encounter calibration asks whether one challenge fits its purpose and context. Challenge progression asks how several such challenges relate across an adventure. A useful progression may form a navigable gradient, include optional extreme threats, or interleave danger and recovery. The important property is that the larger challenge landscape is deliberate rather than every encounter being normalized to one band.
+
+Variant `game_design_variant_bookend_adventure_with_demanding_risk_peaks` uses an early danger peak as a tone-and-capability gate, then lets the adventure breathe before another major peak at the culmination. The opener should demand caution, coordination, preparation, or another intended form of skilled play while preserving a fair way to recognize danger, withdraw, recover, or try again when that fits the game. Use the structure when an early test helps teach the adventure's real challenge contract; avoid it when players need a gentler learning ramp or when one bad opening result would erase more investment than the experience can support.

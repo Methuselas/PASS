@@ -2,7 +2,7 @@
 object_id: DRILL_write_a_conforming_operator_new
 object_type: drill
 name: Write a Conforming Class-Specific operator new and delete
-target_skill: Following the new/delete conventions — new-handler loop, zero-byte, wrong-size forwarding
+target_skill: Preserving allocation contracts across size, failure, alignment, and deallocation forms
 library_path:
 - software-engineering
 - languages
@@ -36,28 +36,29 @@ variants: []
 Write a class-specific operator new and operator delete that follow the required conventions.
 
 ## Target Skill
-Implementing the new-handler loop, zero-byte handling, and wrong-size forwarding.
+Implementing a class-specific allocation family without losing global failure, alignment, or matching-deallocation behavior.
 
 ## Setup
 No special setup required.
 
 ## Instructions
-- In operator new, loop: attempt allocation, call the current new-handler on failure, and throw bad_alloc only when the handler pointer is null. Account for each way the loop ends — allocation succeeding, the handler being null, or a throw.
-- Handle a zero-byte request, exercise it, and say what it was turned into.
+- Delegate the ordinary form to `::operator new` so the global `new_handler`, zero-size, and `std::bad_alloc` contract is preserved; instrument around the delegation rather than reimplementing it.
+- Add and exercise the alignment-aware form for an over-aligned instance, verifying the returned address satisfies the requested alignment.
 - Forward any request whose size is not the class size to the global operator new, and exercise a wrong-sized request showing it reach the global version.
-- In operator delete, return immediately on a null pointer and forward wrong-sized blocks to the global operator delete. Call it with a null pointer and with a wrong-sized block, and show both safe.
-- Give the class (used as a base) a virtual destructor so operator delete receives the correct size, and state the consequence when it is not virtual: the size handed to the delete is wrong, which routes a valid block to the global version and corrupts the accounting without any visible failure.
+- Provide matching unsized, sized, aligned, and sized-aligned delete forms required by the supported allocation paths, each delegating to its corresponding global form. Record which overloads the test toolchain actually selects without assuming every implementation chooses the same optional sized form.
+- Either make the pooled class `final` or exercise a larger derived allocation and demonstrate the wrong-size request is forwarded. If deletion occurs through a base pointer, make the destructor virtual; otherwise the program is undefined before allocator accounting can rescue it.
 
 ## Success Check
-- The loop is checked for what ends it: allocation succeeding, the handler being null, or a throw. Each pass is accounted for, because a loop that spins forever once the handler stops freeing memory is the defect this shape is prone to.
-- The zero-byte request is exercised and the run says what it was turned into, rather than recording that it was handled.
+- The ordinary form delegates to the global form, and the run demonstrates the intended allocation and failure path rather than duplicating the global handler loop.
+- An over-aligned allocation is exercised and its address is checked against the requested alignment.
 - A wrong-sized request is exercised and shown reaching the global version. This path appears only under inheritance, which is exactly why it goes untested.
-- Deletion is called with a null pointer and with a wrong-sized block and both are shown safe. Null-safety concluded from reading the first line is how the wrong-size path gets skipped.
-- The destructor is virtual, and the run states the consequence when it is not: the size handed to the delete is wrong, which routes a valid block to the global version and corrupts the accounting without any visible failure.
+- Matching deallocation overloads are present for every exercised allocation form, and instrumentation records which one the toolchain selects.
+- Inheritance is either prohibited with `final` or tested with wrong-size forwarding and a virtual destructor for polymorphic deletion.
 
 ## Common Failures
-- Omitting the new-handler loop or the zero-byte handling.
+- Reimplementing the global new-handler loop unnecessarily and getting its progress or failure behavior wrong.
+- Omitting the alignment-aware form for an over-aligned type.
 - Forgetting that inheritance can call the base operator new with a derived object's larger size.
 
 ## Notes
-This drills Item 51: the size test that forwards wrong-sized requests also subsumes the zero-byte case, since a class size is never zero, and a virtual destructor keeps the delete size correct.
+This drills the modern allocation overload family. Delegation preserves standard failure behavior; the class-specific work is the measured customization plus truthful handling of size, alignment, inheritance, and every deallocation path the supported expressions may select.

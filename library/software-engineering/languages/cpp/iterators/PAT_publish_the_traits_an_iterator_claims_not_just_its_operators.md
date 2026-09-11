@@ -39,14 +39,15 @@ variants: []
 
 ## Pattern Rule
 **IF** you are writing a type that other code will drive as an iterator
-**THEN** publish the trait aliases that say what it is — what dereferencing yields, how distances between positions are spelled, which category of movement it supports — alongside the operators that make it work, because a range-based loop needs only the operators while every algorithm interrogates the traits
+**THEN** make it model the intended C++20 iterator concept and publish truthful associated types and compatibility traits, because a range-based loop exercises only a small operation set while algorithms and ranges validate a richer protocol
 **ELSE** where the type will only ever be driven by a loop in the same file, the operators alone are sufficient and the aliases are ceremony.
 
 ## Do
-- Know that there are two tiers and which one you have satisfied. A range-based loop expands to a begin, an end, a not-equal comparison, a prefix increment, and a dereference — five operations and no questions. An algorithm asks the type about itself before it does anything, and a type that answers nothing is not an iterator as far as the algorithm is concerned, however well it drives a loop.
+- Know that there are two tiers and which one you have satisfied. A range-based loop needs only traversal, comparison with its sentinel, and dereference. A C++20 ranges algorithm checks iterator and sentinel concepts, while classic algorithms consult `iterator_traits` and category tags.
 - Expect the first tier to pass silently and the second to fail late. The type iterates correctly from the day it is written, so nothing suggests it is incomplete; the first algorithm call may come months later, and the diagnostic arrives as a cascade from inside the library naming instantiations rather than naming the omission.
 - Treat variation between implementations as the hazard rather than an inconvenience. How much a library checks, and which aliases it consults, differs by implementation and by version — so the same iterator compiles under one toolchain and fails under another with nothing in your code having changed, and the toolchain that accepted it taught you the wrong lesson.
-- Name the category honestly, because it is the one alias that is a claim rather than a formality. An algorithm selects its strategy from the category — stepping or jumping, one pass or several — so claiming a stronger category than the operators support yields code that compiles and then behaves wrongly, which is worse than the failure you were trying to fix.
+- Name `iterator_concept` honestly for the C++20 model and provide a compatible `iterator_category` where classic algorithms must consume the type. Claiming a stronger category or concept than the operations and semantic guarantees support can make a selected algorithm behave wrongly.
+- Verify the declaration directly with a `static_assert` on the intended iterator concept, then exercise both a `std::ranges` algorithm and any classic algorithm the type must support.
 - Put the aliases at the top of the public interface where they read as the type's declaration of what it is. Buried among the operators they are easy to omit, and an omission is invisible until something interrogates them.
 
 ## Don't
@@ -56,9 +57,9 @@ variants: []
 
 ## Checklist
 - Will anything other than a loop in this file drive this type?
-- Are the value type, the difference type, and the category all published?
+- Are `value_type`, `difference_type`, and the appropriate C++20 concept/category declarations available and truthful?
 - Is the declared category one the operator set actually supports, or the one that made the error go away?
-- Has this been compiled against more than one standard library implementation?
+- Do concept assertions, a ranges algorithm, and required classic algorithms all accept it on supported standard libraries?
 
 ## Notes
 The idea underneath this is that an iterator is a protocol rather than a kind of pointer. Nothing requires one to point at stored memory, which is precisely why an adapter can present the interface while inserting into a container, and why a generator can present it while computing values that were never stored anywhere. The syntax was modelled on pointers so that algorithms would work on raw buffers as well as containers, but the resemblance is a convenience and not a constraint.

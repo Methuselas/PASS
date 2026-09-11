@@ -36,28 +36,29 @@ variants: []
 Given a `Lock` class that locks a mutex in its constructor and unlocks it in its destructor, decide what copying should mean and implement it.
 
 ## Target Skill
-Picking among prohibit, reference-count, deep-copy, and transfer, then implementing the choice correctly.
+Picking among move-only, shared, and deep-copy ownership, then implementing and testing the choice correctly.
 
 ## Setup
 No special setup required.
 
 ## Instructions
-- List the four copying options, give a reason for and against each in this specific case, and argue which fits a mutex lock.
+- Compare move-only, reference-counted sharing, and deep copy, give a reason for and against each in this specific case, and argue which fits a mutex lock guard.
 - Write out concretely what the compiler-generated copy would do — the same handle released twice — and say whether that would be caught at compile time, at run time, or not at all.
-- Implement the chosen behavior: prohibit copying via Uncopyable, or reference-count via a shared pointer holding the mutex with an unlock function as its deleter.
-- Exercise it by actually copying the object, and observe the release happening exactly once across every copy made.
+- Implement the guard as move-only: delete both copy operations, implement or default correct move operations, and leave a moved-from guard safe to destroy.
+- Compile a deliberate copy attempt and retain the rejection. Then move the guard and observe one unlock across both object lifetimes.
 - Name the rejected option closest to the choice, along with the condition that would flip the decision.
 
 ## Success Check
-- All four options are stated with a reason for and against each in this specific case, rather than the chosen one accompanied by three names.
+- All three ownership options are stated with a reason for and against each in this specific case, rather than the chosen one accompanied by two names.
 - What the compiler-generated copy would do is written out concretely — the same handle released twice — and the run says whether that would be caught at compile time, at run time, or not at all.
-- The chosen behaviour is implemented and exercised by actually copying the object, not established by declaring the intent.
-- The release is observed to happen exactly once across every copy made. This is the property the whole exercise exists to establish, and it is the one most often argued rather than watched.
+- Copying is rejected by the compiler, and the diagnostic is retained as evidence.
+- Moving is exercised, the source becomes harmless, and exactly one unlock is observed across both lifetimes.
 - The rejected option closest to the choice is named, along with the condition that would flip the decision, so the choice is bounded rather than absolute.
 
 ## Common Failures
 - Leaving the compiler-generated copy in place, so the mutex is released more than once.
-- Reference-counting with a deleter that deletes the mutex instead of unlocking it.
+- Deleting copy operations but forgetting that declaring a destructor can suppress implicit moves.
+- Moving the handle without clearing the source's ownership state.
 
 ## Notes
-This drills Item 14: the resource's own sharing semantics decide the class's copy semantics, and the reference-count route needs a custom deleter so release, not deletion, happens at count zero.
+This drills the modern form of the ownership decision. A mutex lock guard normally has one active responsibility, so transfer is a move and copying is rejected. If the application instead needs multiple handles to one shared lock state, that is a different abstraction whose final owner performs the unlock.

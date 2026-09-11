@@ -2,6 +2,11 @@ schema_version: 1
 profile_id: software-engineering
 consumer_instructions:
 - >-
+  Honor a C++ project's declared language standard and supported toolchains. If
+  the project declares none, use C++20 as the default floor. Present C++23
+  facilities only as clearly labeled options, retain a C++20 path, and verify
+  both compiler and standard-library support before relying on them.
+- >-
   Distinguish maintainer qualification from ordinary project application. A
   maintainer asking to test cards uses the field-test protocol; an ordinary user
   asking for help with software does not need a catalog or qualification run.

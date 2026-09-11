@@ -35,19 +35,21 @@ variants: []
 
 ## Pattern Rule
 **IF** you declare any operator new in a class
-**THEN** know that it hides all the standard global forms — normal, placement, and nothrow — and re-expose the ones clients need, typically via a base class holding the standard forms plus using declarations.
+**THEN** treat the class allocation functions as an overload family: declare and test every normal, nothrow, placement, aligned, sized, and array form the class intentionally supports, with a matching deallocation path for each allocation path.
 
 ## Do
-- Provide a base class defining the normal, placement, and nothrow forms of operator new and delete, each forwarding to the global version, and inherit from it with using declarations to make them visible.
-- Add your custom forms alongside the re-exposed standard ones, pairing each operator new with its operator delete.
+- Keep the overload family beside the class or in a deliberately reviewed allocation base, and forward uncustomized forms to the matching global function.
+- Include `std::align_val_t` forms when over-aligned instances may reach the class allocator, and include matching sized/aligned delete overloads required by the supported toolchains and calling forms.
+- Pair each placement form's extra parameter list with the corresponding placement delete so constructor failure can release the storage.
 
 ## Don't
-- Don't declare a class operator new and assume clients still have the normal or nothrow forms; a class-scope name hides the outer-scope ones, so plain new or nothrow new stops compiling for that class.
+- Don't declare one class operator new and assume global overloads remain candidates; class-scope allocation lookup hides them.
+- Don't copy the old three-form recipe unchanged. Alignment-aware allocation added another dimension to the overload family.
 
 ## Checklist
 - Does declaring a class operator new hide standard forms clients still expect?
-- Are the needed standard forms re-exposed via a base class of standard forms and using declarations?
+- Are normal, nothrow, placement, alignment-aware, sized, and array cases either supported or intentionally rejected?
 - Does each re-exposed or custom operator new have a matching operator delete?
 
 ## Notes
-Member names hide same-named names in enclosing scopes (Item 33), so a single class operator new hides the three standard global forms — normal, placement, and nothrow — making plain new or nothrow new fail to compile for that class. The clean fix is a StandardNewDeleteForms base whose members forward to the global versions; a class then inherits it, brings the forms in with using declarations, and adds its own custom forms, each paired with a matching delete.
+Member names hide same-named names in enclosing scopes, so one class allocation declaration changes lookup for the whole family. The historical recipe counted normal, placement, and nothrow forms. Modern code must also account for alignment-aware and sized deallocation signatures, plus arrays if the class permits them. The safest default is not to replace class allocation at all; when a measured requirement justifies it, make the supported family explicit and test each new-expression form rather than relying on a memorized list.

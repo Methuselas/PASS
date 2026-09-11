@@ -48,21 +48,27 @@ No special setup required.
 - Have the wrapper call the private virtual, adding before-work (check invariants and preconditions) and after-work (verify postconditions).
 - Decide whether the wrapper may also hold a lock across the dispatch, and write down which case you are in: it may where every override lives in this component and its locking is visible to you, and it may not where an override could be supplied by a caller. Where it does hold one, enumerate every override that can run under it.
 - Override `doHealthValue` in a derived class and observe the wrapper's before-work and after-work running around it.
-- Attempt both wrong forms — a client calling the virtual, a derived class overriding the wrapper — and record the compiler's rejections.
+- Attempt three wrong forms separately and preserve what the compiler or runtime actually does: a client calling the non-public virtual, a derived function declaring the wrapper with `override`, and the same derived declaration without `override`. State which form is overriding and which is only hiding, and compare calls through the derived and base static types.
+- Add a derived-only overload of `healthValue`, then compile calls to that overload and to the inherited wrapper on the same derived object. Repair any hidden overload set and preserve the before/after compile evidence.
+- Make one hook delegate to a second hook overload. Run one client call and record how many times the wrapper's before-work and after-work execute.
 - Decide the virtual's access level against whether overrides call the base version, stating the reason rather than taking the default.
-- Name what the idiom costs — an extra function per customization point and a pair of names to keep aligned.
+- Name what the idiom costs — an extra function per customization point, a pair of names to keep aligned, and any derived-class declarations needed to preserve an inherited overload set.
 
 ## Success Check
-- Clients can call only the wrapper and derived classes can override only the virtual, checked by attempting both wrong forms and recording the compiler's rejections.
-- The wrapper's before-work and after-work are observed running around an override supplied by a derived class, rather than concluded from how the code is arranged.
+- A client call to the non-public hook is rejected, and a derived declaration marked `override` is rejected when it names the non-virtual wrapper. The same declaration without `override` is also compiled and identified as name hiding; a run claiming the wrapper's name is protected merely because it is non-virtual misses the C++ lookup failure.
+- The wrapper's before-work and after-work are observed running around an override supplied by a derived class, and a forwarding path executes each exactly once. A hook that calls the public wrapper and produces nested context has routed delegation through the wrong layer.
+- A derived-only overload is exercised together with the inherited wrapper on the same object. If the overload hides the base set, a `using` declaration restores it and the successful calls are captured; testing only through a base reference does not expose this failure.
 - If the wrapper holds a lock across the dispatch, every override that can run under it is enumerated and each one is inside this component; if any could come from a caller, the lock is outside the dispatch instead. An unanswered question here is a deadlock that appears only once somebody else supplies an override.
 - The virtual's access level is decided against whether overrides call the base version, with the reason stated rather than the default taken.
-- The run names what the idiom costs — an extra function per customization point and a pair of names to keep aligned — so it is priced rather than adopted wholesale.
+- The run names what the idiom costs — an extra function per customization point, a pair of names to keep aligned, and a `using` declaration where a derived overload would hide the inherited wrapper — so it is priced rather than adopted wholesale.
 
 ## Common Failures
 - Leaving the virtual public, so clients bypass the wrapper's context.
 - Assuming a private virtual cannot be overridden — it can; only calling it is restricted.
 - Locking a mutex in the wrapper without asking where the overrides come from. The wrapper fixes when the virtual runs, not what it does, and an override supplied from outside the component can take locks of its own.
+- Treating non-virtual as unhideable. A same-named derived function without `override` compiles and changes lookup through the derived static type.
+- Adding a derived overload with the wrapper's name without restoring the base overload set, so ordinary calls on the derived object stop finding the inherited wrapper.
+- Forwarding from a hook back through a public wrapper, so one logical call runs the wrapper's context more than once.
 
 ## Notes
-This drills Item 35's NVI idiom (a Template Method form): derived classes control how via the private virtual, the base controls when via the wrapper.
+This drills Item 35's NVI idiom (a Template Method form): derived classes control how via the private virtual, the base controls when via the wrapper. In C++, non-virtual prevents overriding but not name hiding. `override`, `using` declarations for inherited overload sets, and hook-to-hook delegation keep those separate language mechanisms aligned with the idiom.

@@ -49,10 +49,10 @@ variants: []
 
 ## Do
 - Start from the guarantee they all share, because it is the reason to use any of them: each binds its mutex on construction and releases it on destruction, so the release happens on every path out of the scope including the one an exception takes.
-- Take all the mutexes you need in one step when you need more than one. The multi-mutex guard acquires them as a single operation, which means the acquisition order stops mattering — it removes the cycle condition by construction rather than by everyone remembering a convention.
+- Take all required mutexes through one `std::scoped_lock` when possible. Its multi-mutex constructor uses a deadlock-avoidance algorithm; it does not make acquisition physically atomic, but it avoids the opposing fixed-order lock sequence the caller might otherwise write.
 - Reach for the shared guard where the access pattern is many readers and few writers. Any number of readers may hold it at once while a writer excludes them all, which does not remove contention but does stop readers queueing behind each other.
 - Measure the shared guard against the exclusive one rather than assuming it wins, because its own machinery is heavier and can cost more than the queueing it removes. Ten readers and one writer over a table of some ninety thousand entries — a read-to-write ratio of about a hundred to one, which is as favourable as this gets — measured only about fifteen percent faster than exclusive locking on one Linux build, and about twice as slow on one Windows build. The access pattern argues for the shared guard; whether it pays is a property of the implementation you are running on.
-- Reserve the flexible lock for the capabilities that distinguish it, and know what they are: constructing without a mutex, constructing without locking, locking and unlocking repeatedly, deferring the lock, attempting it with a timeout, and moving it. It is more expensive than the plain guard, so those capabilities should be ones you are using.
+- Reserve `std::unique_lock` for capabilities that distinguish it: deferred/adopted/try locking, repeated lock/unlock, movable lock ownership, condition-variable integration, or timed operations supported by the mutex. Prefer the simpler guard when those states are unnecessary; do not invent a universal cost difference without measurement.
 - Use a steady clock for any timed attempt. A clock that can be adjusted makes a timeout mean something different depending on what happened to the system time while you waited.
 
 ## Don't
@@ -71,6 +71,6 @@ variants: []
 ## Notes
 The four constructs are usually presented as a feature list, which makes the choice look like a matter of taste. Read as a ladder of capability with a cost attached to each rung, it becomes a decision with an obvious default: the plain guard, until something specific forces you upward.
 
-The multi-mutex guard deserves particular attention because it does more than save typing. Acquiring several mutexes atomically is the mechanism that removes the classic ordering deadlock — two threads taking the same two mutexes in opposite orders — without requiring a global acquisition convention that every future contributor has to know about and honour. Where it applies, it is strictly better than the convention.
+The multi-mutex guard deserves particular attention because it does more than save typing. It applies a deadlock-avoidance algorithm across the supplied mutexes, addressing the classic two-thread opposing-order cycle without requiring each call site to hand-code retries. It still relies on the caller supplying the complete distinct mutex set and not already owning a non-recursive member of it.
 
 Reader-writer locking is worth being clear-eyed about. It does not solve contention; it narrows it, by letting the operations that cannot interfere with each other proceed together. Whether that is a gain depends on the read-to-write ratio, and on a workload that writes often it can cost more than the plain exclusive lock it replaced.

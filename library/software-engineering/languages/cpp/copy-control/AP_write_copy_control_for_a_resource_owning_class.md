@@ -59,13 +59,13 @@ Take a class that owns something — memory, a handle, a lock, anything with a r
 
 ## Steps / Flow
 
-1. **Settle what copying is supposed to mean before writing a line.** Prohibited, reference counted, deeply copied, or ownership transferred — the four are different classes with different clients, not implementation variants. `PAT_choose_raii_copying_behavior_deliberately` owns the decision, and the rest of this flow is different depending on which one it produced.
+1. **Settle the ownership semantics before writing a line.** Move-only exclusive ownership, reference-counted sharing, and deep-copy value semantics are different classes with different clients, not implementation variants. `PAT_choose_raii_copying_behavior_deliberately` owns the decision, and the rest of this flow is different depending on which one it produced.
 
 2. **Work out what the compiler is already giving you.** `PAT_know_compiler_generated_special_members` owns what appears on demand and the cases where the compiler refuses.
 
 3. *Gate.* **Work out what your own declarations suppress.** Declaring a destructor, a copy operation, or a move operation silently stops other members from being generated, which is how a class acquires an expensive copy where a move was intended. `PAT_understand_special_member_generation` owns the table; run it before writing, not after a performance surprise.
 
-4. **Branch — if copying should be prohibited, stop here.** `PAT_delete_the_functions_you_want_to_forbid` owns the mechanism, including the reason the deleted declaration is public rather than private. The class is finished, and steps 5 through 9 do not apply.
+4. **Branch — if ownership is exclusive, delete copying and finish the move contract.** `PAT_delete_the_functions_you_want_to_forbid` owns the copy prohibition. Then default or implement move construction and move assignment deliberately, including a harmless moved-from state. Steps 5 through 9 do not apply.
 
 5. **Branch — if copies should share until written to, take the counted route.** `PAT_share_a_representation_until_a_write_forces_a_copy` owns that design, and it replaces the deep copy the remaining steps assume rather than layering on top of it.
 

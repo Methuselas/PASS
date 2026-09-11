@@ -1,7 +1,7 @@
 ---
 object_id: PAT_adapt_rules_to_active_cpp_sublanguage
 object_type: pattern
-name: Adapt Your Rules to the Active C++ Sublanguage
+name: Adapt Rules to the Active C++ Language Profile
 library_path:
 - software-engineering
 - languages
@@ -29,25 +29,28 @@ references: []
 variants: []
 ---
 
-# Adapt Your Rules to the Active C++ Sublanguage
+# Adapt Rules to the Active C++ Language Profile
 
 ## Pattern Rule
-**IF** a "proper usage" rule of thumb you are applying in C++ seems to have exceptions
-**THEN** work out which of C++'s four sublanguages you are in — C, Object-Oriented C++, Template C++, or the STL — and follow that sublanguage's conventions, expecting to switch strategy when you cross a boundary.
+**IF** you are choosing or applying a C++ rule
+**THEN** establish the project's language standard, toolchain support, and the boundary the code crosses — C interop, object lifetime, templates, or library abstractions — then use the convention that fits that active language profile.
 
 ## Do
-- Program the C part (built-in types, arrays, pointers, the preprocessor) with C-era rules: no templates, exceptions, or overloading, and pass small built-ins by value.
-- Switch to pass-by-reference-to-const once you enter Object-Oriented C++, where user-defined constructors and destructors make copying expensive.
-- Fall back to pass-by-value for STL iterators and function objects, which are modeled on C pointers.
+- Read the build configuration and supported compiler matrix before recommending a facility. The project's declared standard wins; when no standard is declared, use C++20 as the default floor.
+- Treat C++23 facilities as supported alternatives, not silent requirements: label them, retain a C++20 path, and verify the actual compiler and standard library implement them.
+- Distinguish boundaries that impose different constraints. A C API may require pointers and counts; a value type may prefer value semantics; a template should express constraints; a ranges pipeline follows library concepts.
+- Reassess inherited rules against the active profile. Prefer modern ownership, constraints, ranges, and compile-time facilities when they solve the problem more directly than a pre-C++11 workaround.
 
 ## Don't
-- Don't assume a single rule holds everywhere: what is right for the C part can be wrong in Template C++, where you may not even know the object's type.
-- Don't drag template-metaprogramming rules into everyday code; they rarely interact with mainstream C++.
+- Don't preserve an older workaround merely because the source predates the facility that replaced it.
+- Don't equate inclusion in a language standard with availability in every supported compiler and standard library.
+- Don't force every decision into the historical four-sublanguage taxonomy; use the concrete interface, lifetime, genericity, and library constraints in front of you.
 
 ## Checklist
-- Which of the four sublanguages does the code in front of me belong to?
-- Does the rule I am about to apply change when I move to an adjacent sublanguage?
-- Am I using the parameter-passing convention that fits this sublanguage?
+- What C++ standard and toolchain matrix does this project declare?
+- If none is declared, am I using C++20 as the floor and labeling any C++23 option?
+- Which boundary or language mechanism changes the rule here?
+- Have I verified support instead of assuming that a standardized facility is available?
 
 ## Notes
-The federation-of-languages model is what makes C++'s contradictory advice cohere: within one sublanguage the rules are simple; the confusion comes from carrying a rule across a boundary. Meyers' anchor is parameter passing — value for C-like types, reference-to-const in the object-oriented and template worlds, then value again for STL iterators because they behave like pointers. Hold the four sublanguages in mind and the exceptions stop looking arbitrary.
+The historical federation-of-languages model remains useful because C interop, object-oriented code, templates, and the standard library do impose different constraints. Modern C++ adds another necessary axis: the project's selected standard and the facilities its toolchains actually implement. C++20 is this module's default when a project supplies no answer; it is not permission to override an explicit C++17 codebase or to assume that every implementation has complete support. Likewise, C++23 can simplify a design without becoming an accidental minimum requirement.

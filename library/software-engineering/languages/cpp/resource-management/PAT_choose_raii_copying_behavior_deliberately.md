@@ -39,20 +39,22 @@ variants: []
 
 ## Pattern Rule
 **IF** you write your own resource-managing (RAII) class rather than using a ready-made smart pointer
-**THEN** decide explicitly what copying an instance should mean, because the compiler-generated copy usually mishandles the underlying resource.
+**THEN** choose explicitly whether the owner is move-only, shares ownership, or performs a deep copy, because compiler-generated memberwise copying usually mishandles the underlying resource.
 
 ## Do
-- Prohibit copying when copies make no sense — a lock, for instance — by declaring the copy operations private or inheriting from Uncopyable.
+- Make the class move-only when exclusive ownership can be transferred: declare copy operations `= delete` and implement or default move operations that leave the source harmless.
 - Reference-count the resource when it should live until the last holder is gone: hold it in a shared pointer, supplying a custom deleter (such as an unlock function) so the count reaching zero triggers release rather than deletion.
-- Deep-copy the resource when independent copies are wanted, or transfer ownership when only one holder may exist.
+- Deep-copy the resource when callers genuinely need independent copies.
 
 ## Don't
 - Don't accept the compiler-generated copying functions for a resource-managing class unchecked; copying just the handle without copying or accounting for the resource yields double releases or leaks.
+- Don't encode ownership transfer as a copy operation. In modern C++, transfer is move construction or move assignment; a copy must preserve its source.
 
 ## Checklist
-- Have I chosen one of prohibit, reference-count, deep-copy, or transfer for this RAII class?
+- Have I chosen move-only ownership, shared ownership, or deep-copy value semantics for this RAII class?
 - Does the chosen behavior match how the underlying resource must be shared or duplicated?
 - If reference-counting, does the deleter release the resource rather than delete it?
+- If move-only, is copying rejected and is the moved-from object safe to destroy?
 
 ## Notes
-Every RAII author faces the question the `Lock`/`Mutex` example poses: what should copying do? The four grounded answers are prohibit (Item 6's private copy operations or Uncopyable), reference-count (a shared-pointer member with a custom deleter, so a mutex is unlocked rather than deleted at count zero), deep-copy (as some string implementations do), and transfer ownership (auto_ptr's meaning of copy). The copying behavior of the resource dictates the copying behavior of the class.
+Every RAII author faces the question the `Lock`/`Mutex` example poses: what should another owner mean? The modern answers are move-only exclusive ownership, reference-counted shared ownership, and a true deep copy. Old C++ encoded transfer as `auto_ptr` copy; modern C++ gives transfer its own operation, move, so copying never surprises the source by emptying it. The ownership semantics of the resource dictate the special members of the class.

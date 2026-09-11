@@ -1,7 +1,7 @@
 ---
 object_id: PAT_declare_single_argument_constructors_explicit
 object_type: pattern
-name: Declare Single-Argument Constructors Explicit
+name: Make Conversions Explicit Unless They Are the Interface
 library_path:
 - software-engineering
 - languages
@@ -32,25 +32,27 @@ references: []
 variants: []
 ---
 
-# Declare Single-Argument Constructors Explicit
+# Make Conversions Explicit Unless They Are the Interface
 
 ## Pattern Rule
-**IF** you are adding a constructor to a class that can be called with one argument, or a conversion operator that turns the class into some other type
-**THEN** mark the constructor so it cannot be used for conversion, and give the conversion operator an ordinary name instead, unless you have positively decided you want compilers inserting this conversion at call sites where no source code shows it happening
+**IF** a constructor or conversion operator could let the compiler change types without an explicit request at the call site
+**THEN** make it `explicit` unless substitutability is a deliberate part of the interface; use C++20 conditional `explicit` when that decision depends on a template property
 **ELSE** where the conversion really is the point — a wrapper meant to be interchangeable with what it wraps at every call — the implicit form is the design, and what you owe is a reason recorded next to it.
 
 ## Do
-- Count the constructors correctly. A constructor qualifies as a conversion whenever it *can* be called with one argument, which includes constructors declaring several parameters where everything after the first carries a default.
-- Replace a conversion operator with a named member function that does the same job, and require clients to call it. The standard string type takes exactly this route for its character-pointer form rather than declaring the operator, which is why printing a string never silently prints something else.
+- Review every non-copy, non-move constructor, not only one-parameter spellings. Since C++11, a non-explicit constructor can participate in conversion through copy initialization or list initialization even when it takes more than one argument.
+- Mark conversion operators `explicit` when the conversion is useful only when requested. Keep a named function when the operation is lossy, fallible, expensive, or semantically richer than a type conversion.
+- Use `explicit(bool-condition)` in C++20 template code when a wrapper conversion should be implicit exactly when the wrapped conversion is implicit.
+- Use `explicit operator bool` for truth testing when contextual conversion to bool is intended without opening general arithmetic conversions.
 - Where you must keep the conversion available for genuine construction while blocking it for argument matching, note that no legal conversion sequence contains more than one user-defined step — a fact you can build against deliberately, and the mechanism the pre-keyword workarounds all relied on.
 
 ## Don't
 - Don't assume a missing overload gives you a compile error. Faced with a call that does not match, compilers go looking for a conversion sequence that makes it match, and a one-argument constructor is exactly such a sequence; the call then succeeds and does something you never wrote.
 - Don't treat the resulting bug as rare because the conversion looks implausible. The classic instance is a dropped subscript — comparing a container to an element instead of element to element — which compiles into a comparison against a temporary container built from the element's value, constructed and destroyed once per loop iteration.
-- Don't leave a conversion operator in place on the grounds that no current call site abuses it. The abusive call site is the one nobody wrote yet, and its symptom is a wrong answer rather than a diagnostic.
+- Don't remove every conversion operator mechanically. An explicit conversion operator can provide a type-safe requested conversion; judge whether a named operation communicates important cost or failure semantics better.
 
 ## Checklist
-- Which constructors of this class can be called with exactly one argument, counting defaulted trailing parameters?
+- Which constructors can participate in copy or list initialization, including multi-argument converting constructors?
 - Does the class declare any conversion operator, and would a named function serve the same clients?
 - For each conversion left implicit, is there a recorded reason it should happen without appearing in the source?
 - If an argument of the wrong type were passed to a function taking this class, would that be a diagnostic or a silent temporary?
@@ -60,4 +62,4 @@ The reason this is worth a decision rather than a habit is that both mechanisms 
 
 Experience tends to push in one direction here. The more C++ a programmer has written, the more likely they are to have stopped writing conversion operators altogether, and the committee members who designed the standard library largely did the same.
 
-Before the language offered a keyword for this, the workaround was to introduce a small intermediate type and have the constructor take that instead, so reaching the class from the original argument type would require two user-defined conversions and therefore fail. That workaround is obsolete as a technique but not as an idea: it is the same interposed-object move that proxy classes are built on, applied to conversion rather than to access.
+Before the language offered `explicit`, code sometimes introduced an intermediate type so an unwanted conversion would require two user-defined steps and fail. That workaround is obsolete. Modern C++ can make constructors and conversion operators explicit directly, and C++20 can make explicitness conditional for generic wrappers without maintaining separate overload sets.

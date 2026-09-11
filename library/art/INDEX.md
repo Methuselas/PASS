@@ -77,7 +77,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 ## Topics
 
-- [Cartography](cartography/INDEX.md) - 40 object(s).
+- [Cartography](cartography/INDEX.md) - 46 object(s).
 - [Color](color/INDEX.md) - 26 object(s).
 - [Comics](comics/INDEX.md) - 8 object(s).
 - [Composition](composition/INDEX.md) - 58 object(s).

@@ -46,14 +46,14 @@ No special setup required.
 - Add a placement operator delete taking the same ostream parameter, and check that its parameters match the placement new's beyond the first.
 - Run the exception path again and show the matching delete executing.
 - Keep the normal operator delete for ordinary delete on the pointer, and exercise ordinary deletion separately.
-- Re-expose the standard new forms hidden by the class new, using a base class of standard forms and using declarations, then compile a call to each — plain and nothrow both.
+- Restore the ordinary and nothrow forms hidden by the class declaration, and include alignment-aware forms if the class may be over-aligned. Compile every supported form rather than treating a base-class `using` declaration as proof.
 
 ## Success Check
 - The leak is reproduced by making the constructor throw, with the absent release observed rather than reasoned about.
 - The placement delete's parameters are checked to match the placement new's beyond the first. A near-match is silently never called and reproduces the original leak exactly, with code that reads as correct.
 - The exception path is run again after the addition and the matching delete is shown to execute.
 - Ordinary deletion is exercised separately, because the placement pair and the normal path are different routes and repairing one routinely conceals the other.
-- The standard forms hidden by the class's own declaration are re-exposed and each is compiled, plain and nothrow both. The check is a call that compiles, not the presence of a using declaration.
+- The supported forms hidden by the class's own declaration are restored and each is compiled, including alignment-aware allocation when applicable.
 
 ## Common Failures
 - Declaring a placement new without its matching placement delete.

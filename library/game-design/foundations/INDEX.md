@@ -30,16 +30,18 @@
 - [Integrate Genre Blends Instead of Merely Stacking Them](PAT_integrate_genre_blends_instead_of_merely_stacking_them.md) - pattern; 0 design. Tags: coherence, genre, integration, worldbuilding.
 - [Keep Common-Path Procedures Inside the Declared Playable Core](PAT_keep_common_path_procedures_inside_the_declared_playable_core.md) - pattern; 0 design. Tags: completeness, core, modules, packaging.
 - [Keep the Current Game Design Specification Living](PAT_keep_game_design_specification_living_and_dependency_aware.md) - pattern; 0 design. Tags: gdd, revision, specification.
+- [Make Reversible Character Death Costly and Conditional](PAT_make_reversible_character_death_costly_and_conditional.md) - pattern; 0 design. Tags: continuity, death, recovery, resources, stakes.
 - [Make the Game Operable Without Hidden Designer Knowledge](PAT_make_the_game_operable_without_hidden_designer_knowledge.md) - pattern; 0 design. Tags: delegation, handoff, rules, usability.
 - [Match Information Precision to Decision Precision](PAT_match_information_precision_to_decision_precision.md) - pattern; 0 design. Tags: decisions, information, precision, usability.
 - [Match Practiced Behavior to the Intended Outcome](PAT_match_practiced_behavior_to_the_intended_outcome.md) - pattern; 0 design. Tags: learning, outcomes, player-behavior, training.
 - [Match the Cost of Failure to the Player's Prior Investment](PAT_match_the_cost_of_failure_to_the_players_prior_investment.md) - pattern; 0 design. Tags: failure, investment, recovery, stakes.
-- [Mine Familiar Domains for Transferable Play Structure](PAT_mine_familiar_domains_for_transferable_play_structure.md) - pattern; 0 design. Tags: inspiration, structures, systems, transfer, worldbuilding.
+- [Mine Familiar Domains for Transferable Play Structure](PAT_mine_familiar_domains_for_transferable_play_structure.md) - pattern; 0 design. Tags: ideation, research, structure, translation.
 - [Preserve Behavioral Compatibility When Replacing Inherited Mechanics](PAT_preserve_behavioral_compatibility_when_replacing_inherited_mechanics.md) - pattern; 0 design. Tags: compatibility, editions, migration, systems.
 - [Preserve Established Interface Conventions When They Carry User Meaning](PAT_preserve_established_interface_conventions_when_they_carry_user_meaning.md) - pattern; 0 design. Tags: compatibility, presentation, systems, terminology.
 - [Project Reward Currency Mix Across Role Advancement](PAT_project_reward_currency_mix_across_role_advancement.md) - pattern; 0 design. Tags: advancement, balance, campaign-economy, currencies, rewards.
 - [Repair the Smallest Correct Owner of a Confirmed Defect](PAT_repair_the_smallest_correct_owner_of_a_confirmed_defect.md) - pattern; 3 rough. Tags: defects, ownership, refactoring, revision.
 - [Retest Revisions Before Treating Them as Validated](PAT_retest_revisions_before_treating_them_as_validated.md) - pattern; 3 rough. Tags: playtesting, regression, revision, validation.
+- [Reuse Mechanical Function Under a New Fictional Skin](PAT_reuse_mechanical_function_under_new_fictional_skin.md) - pattern; 0 design. Tags: fiction, mechanics, novelty, reskinning, reuse.
 - [Reverse-Engineer a Game Through Play](DRILL_reverse_engineer_a_game_through_play.md) - drill; 0 design. Tags: analysis, mechanics, play, reverse-engineering.
 - [Run a Simulation Budget Audit](AP_run_a_simulation_budget_audit.md) - ap; 2 block. Tags: HOPR, TBMD, cadence, complexity, resources, simulation.
 - [Run an Edition Delta Audit](AP_run_an_edition_delta_audit.md) - ap; 0 design. Tags: behavior, comparison, complexity, editions, refactoring, regression.

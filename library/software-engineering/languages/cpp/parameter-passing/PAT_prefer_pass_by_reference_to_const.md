@@ -1,7 +1,7 @@
 ---
 object_id: PAT_prefer_pass_by_reference_to_const
 object_type: pattern
-name: Prefer Pass-by-Reference-to-const to Pass-by-Value
+name: Choose Read-Only Parameter Passing by Cost and Semantics
 library_path:
 - software-engineering
 - languages
@@ -33,30 +33,32 @@ references: []
 variants: []
 ---
 
-# Prefer Pass-by-Reference-to-const to Pass-by-Value
+# Choose Read-Only Parameter Passing by Cost and Semantics
 
 ## Pattern Rule
 **IF** you are deciding how a function that only reads its argument should take a parameter
-**THEN** pass a user-defined type by reference-to-const, which skips the copy-constructor and destructor calls that pass-by-value incurs and avoids slicing a derived argument down to its base — and pass a built-in, an STL iterator, or a function object by value, because those are cheap to copy and designed for it
+**THEN** pass by value when the type is deliberately cheap, small, and value-like; pass by reference-to-const when copying is material, identity matters, or a base parameter must preserve dynamic type
 **ELSE** where the function's job is to keep a copy of what it is given, passing by value can be right for reasons this rule does not cover; `PAT_pass_by_value_only_when_all_four_conditions_hold` owns that decision.
 
 ## Do
-- Declare the parameter as a reference to const, so no new object is constructed and the caller is still protected from modification.
-- Pass built-in types, and STL iterators and function objects, by value instead — they are cheap to copy and designed for it.
+- Pass scalar types and intentionally lightweight vocabulary types by value, so the callee receives an independent value without an indirection or aliasing concern.
+- Pass a larger or expensive-to-copy object by reference to const when the call only observes it.
+- Use a reference when the parameter type is a polymorphic base and derived behavior must survive; passing the base by value slices.
+- Judge iterators, views, and function objects by their actual type contract and size. Many are cheap values, but custom ones are not guaranteed to be pointer-sized merely because they model the same concept.
 
 ## Don't
-- Don't assume a small user-defined type is cheap by value; a small object can hold a pointer to a lot of data, its copy constructor can be costly, and its size can grow in a later release.
+- Don't classify a type from "built-in" versus "user-defined" alone. A user-defined span-like view may be an ideal value parameter, while a custom iterator or callable may own substantial state.
 - Don't pass a derived object by value through a base-type parameter — the base copy constructor slices off the derived part and later virtual calls resolve to the base.
 - Don't take a built-in by reference-to-const on the reasoning that a reference is always the cheaper way to pass something. A reference is the size of a pointer or larger, so nothing is saved on a type that fits in a register; the callee must load through it at each use rather than keeping the value in one; and because the reference is to const it binds to a temporary whenever the argument's type does not match exactly, so an index arriving as a different integer type materialises one on every call. This is the mirror image of the mistake the rule above prevents, and it is easy to reach by applying that rule past the types it was written for.
 
 ## Checklist
-- Is this a user-defined-type parameter passed by reference-to-const rather than by value?
-- Is this a built-in taken by reference-to-const, which is the rule applied past the types it covers?
+- Is this type intentionally cheap and value-like, or is its copy cost or identity material?
+- Would a reference introduce aliasing and indirection without avoiding meaningful work?
 - Could passing by value slice a derived argument here?
-- Is this one of the exceptions — built-in, iterator, function object — where by-value is right?
+- If this is an iterator, view, or callable, what does its concrete type actually store?
 
 ## Notes
-Passing a `Student` by value fired one Student, one Person, and four string copy constructors (and as many destructors); reference-to-const fires none. It also prevents slicing: a `WindowWithScrollBars` passed by value into a `Window` parameter loses its derived behavior and calls the base display(). The exceptions — built-ins, STL iterators, and function objects — are exactly the sublanguages where by-value is the convention (Item 1).
+Passing a large object by value may invoke every base and member copy constructor; reference-to-const avoids that work. It also prevents slicing when a derived object arrives through a base parameter. The old rule split built-ins from user-defined types and assumed iterators and function objects were always pointer-like. Modern code has cheap user-defined vocabulary values and potentially heavy custom models, so the decision belongs to the concrete type's value semantics and cost.
 
 The rule above answers the case where the function only reads its argument, which is the
 common one. Where the function's job is to *keep* a copy — a constructor storing a member, or

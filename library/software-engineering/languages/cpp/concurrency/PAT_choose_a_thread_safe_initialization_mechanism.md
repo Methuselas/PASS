@@ -45,19 +45,19 @@ variants: []
 
 ## Do
 - Ask first whether the initialization can happen before any thread exists. Initializing in the main thread before spawning anything is the cheapest correct answer and requires no mechanism at all — it is worth ruling out before reaching for the others.
-- Take compile-time evaluation where the value permits it, since a value computed by the compiler is thread-safe by construction with nothing to arrange at run time. A user-defined type qualifies when it has no virtual functions and no virtual base, its constructor is itself evaluable at compile time, and every base and non-static member is initialized.
+- Take constant initialization where the value permits it, since initialization completed before dynamic startup has no first-use race. For static or thread-storage objects, use C++20 `constinit` when the object may remain mutable but initialization must be static; use `constexpr` when the object itself is a constant expression. Let the compiler check the current language rules instead of maintaining an old literal-type checklist by hand.
 - Use a function-local static when the value must be computed at run time and you want it built on first use. The language guarantees that exactly one thread performs the initialization and the others wait, and the object is never built at all if nothing reaches it.
 - Reach for the call-once facility with its flag when the initialization is not naturally expressed as constructing one object — registering a handler, opening a connection, populating something that already exists. Exactly one of the functions registered against a given flag runs, no call returns before that one has completed, and if it throws, another registered function is selected on the next attempt.
 
 ## Don't
 - Don't hand-roll a check-then-lock-then-check sequence. It is the intuitive optimization, it is famously wrong without careful atomics and ordering, and every mechanism above supplies the same effect correctly with less code.
 - Don't guard the reads once the initialization is safe. If nothing writes after initialization, concurrent reads are not a race and the lock is pure cost on the path that dominates.
-- Don't assume compile-time evaluation is available because the initializer looks constant. The requirements on user-defined types are specific, and a type that fails one of them falls back to run-time initialization without saying so.
+- Don't assume static initialization merely because an initializer looks constant. Use `constinit` when falling back to dynamic initialization would violate the design; the declaration then fails instead of silently changing startup behavior.
 
 ## Checklist
 - Is this variable actually written only during initialization?
 - Could it be initialized before any thread is created?
-- Can the value be computed at compile time, and does its type meet the requirements?
+- Can the object be constant-initialized, and should `constinit` or `constexpr` make that requirement explicit?
 - If it is built on first use, is that a function-local static rather than a hand-written guard?
 - Is anything here implementing a check-lock-check sequence by hand?
 

@@ -1,7 +1,7 @@
 ---
 object_id: PAT_manually_initialize_builtin_objects
 object_type: pattern
-name: Manually Initialize Objects of Built-in Type Before Use
+name: Give Every Object a Defined Initial Value
 library_path:
 - software-engineering
 - languages
@@ -31,23 +31,27 @@ references: []
 variants: []
 ---
 
-# Manually Initialize Objects of Built-in Type Before Use
+# Give Every Object a Defined Initial Value
 
 ## Pattern Rule
-**IF** you declare a non-member object of built-in type (int, pointer, double, and the like)
-**THEN** give it an explicit initial value, because C++ only sometimes zero-initializes built-ins and reading an uninitialized one is undefined behavior.
+**IF** an object could be read before a successful write is guaranteed
+**THEN** initialize it at its declaration—prefer value initialization or a meaningful value—because default initialization of many scalar and aggregate objects leaves indeterminate state that cannot be read safely.
 
 ## Do
-- Initialize at the point of declaration: `int x = 0;`, `const char* text = "A C-style string";`, or "initialize" by reading a value in with `std::cin >> d;`.
-- Remember the sublanguage split: an array from the C part of C++ is not guaranteed to have its contents initialized, whereas an STL `vector` is — so initialize the array yourself.
+- Use value initialization such as `int count{};`, `double total{};`, and `Point origin{};` when zero or the type's value-initialized state is the intended default.
+- Give class members default member initializers when the same default applies across constructors, and override that default only where a constructor has a different value.
+- Treat input as a fallible assignment, not as initialization. Initialize the destination first or read into a temporary, test the stream state, and publish the value only after extraction succeeds.
+- Value-initialize arrays and aggregates with braces when all elements should begin in their zero/value-initialized state.
 
 ## Don't
-- Don't assume `int x;` or a struct of built-ins like `Point p;` comes out zeroed; whether it does depends on context, and guessing wrong hands you semi-random bits that pollute later reads and produce inscrutable bugs.
+- Don't assume `int x;` or `Point p;` comes out zeroed; the storage duration and initialization form decide that.
+- Don't use `std::cin >> value` as the first operation on an otherwise uninitialized scalar and then read it unconditionally. Failed extraction leaves the destination unchanged.
 
 ## Checklist
-- Does every built-in object receive an explicit value before its first read?
+- Does every object receive a defined value before its first read on every path?
 - Am I relying on a zero-initialization the standard does not actually guarantee in this context?
-- Is this an array (C part) I must initialize by hand rather than a vector (STL part)?
+- Can value initialization or a default member initializer express the intended default directly?
+- If input supplies the value, is failure checked before the destination is used?
 
 ## Notes
-C++ is deliberately inconsistent about initializing built-ins so it can avoid a runtime cost in the C-like part of the language — which is why the guarantee tracks the sublanguage (see the federation-of-languages rule). The safe habit is simply to always initialize before use: for non-member built-ins that means doing it by hand, since no constructor will do it for you. The cost of a missed initialization is undefined behavior, up to and including a program that halts on the read.
+C++ preserves default-initialization forms that do no work for performance and compatibility, so a declaration alone does not always produce a usable scalar value. Modern brace value initialization, default member initializers, and direct construction make the intended state explicit with little ceremony. The important boundary is not built-in versus library type but whether every path establishes a value before any read, including the failure path of an input operation.

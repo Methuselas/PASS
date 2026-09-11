@@ -32,7 +32,14 @@ reference:
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_build_adventure_context_around_a_focal_story_element
+  variant_name: Build Adventure Context Around a Focal Story Element
+  variant_basis: method_sequence
+  difference_from_foundation: Choose the actor, place, event, object, time pressure, cause, or method that most strongly defines the adventure, then answer supporting who, what, where, when, why, and how questions only far enough to make the present situation and likely consequences coherent in play.
+  when_to_use: A compact adventure or encounter has many possible background details and needs a clear organizing center that keeps worldbuilding relevant to what the table will actually engage.
+  when_not_to_use: Several coequal pressures intentionally define the adventure, the play structure is an open sandbox with no useful single center, or choosing one focal element would flatten important competing situations.
+  absorbed_from_object_id: none
 ---
 
 # Spend Worldbuilding Detail Where It Changes Play
@@ -65,3 +72,6 @@ variants: []
 
 ## Notes
 Worldbuilding becomes useful when players can inhabit it rather than merely read it. A richly documented setting and a compact scaffold can both work when their detail changes what characters understand, experience, or do. The appropriate information budget depends on how often a setting element reaches play and how much value that contact creates. Adventure backstory is especially efficient when it is derived from the present situation instead of written as an independent chronicle: the hidden harbor exists because the current smuggling operation needs a route, the trade relationship exists because it explains the contraband supply, and those facts immediately create investigative interfaces. More history can be added when play actually exposes a need for it. Encounter-level fictional grounding and preservation of deliberate negative space are separate decisions with their own owners.
+
+
+Variant `game_design_variant_build_adventure_context_around_a_focal_story_element` is a bounded way to generate relevant backstory instead of expanding every setting question equally. Pick the element that most strongly defines what the adventure is about in play, then use who, what, where, when, why, and how to explain the other pieces in relation to it. A location-centered exploration might begin from where the site is and why it exists; an actor-centered scenario might begin from who is driving the present pressure. Stop once the answers explain current actors, relationships, constraints, and consequences well enough to support decisions.

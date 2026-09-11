@@ -46,7 +46,7 @@ variants: []
 **ELSE** where the reader has been ordered after the writer by some other means — it was started by the writer, or joined to it, or woken through a synchronization primitive that already establishes the ordering — the observation has been established elsewhere and no loop is needed.
 
 ## Do
-- Read the guarantee with its antecedent attached, since the antecedent is the whole difficulty. Everything the writer did before its releasing store becomes visible after the reader's acquiring load *if* that store happens before that load. It is not a promise about the two annotations; it is a promise about what follows once one particular thing has occurred.
+- Read the guarantee with its antecedent attached. A release operation synchronizes with an acquire operation that reads the released value or a value from the relevant release sequence; the writer's earlier actions then happen before the reader's later actions. Merely executing the release earlier in wall-clock time is not the rule.
 - Supply the antecedent with a loop that spins until the flag reads as set. That loop is not a busy-wait bolted on for lack of a better mechanism — it is the construct that establishes the condition the guarantee depends on.
 - Look for the same shape wherever a thread checks a flag once and proceeds. A single unguarded load that finds the flag clear has not synchronized with anything, so the ordinary data it goes on to read is being read with no ordering at all — which for non-atomic data is a race and therefore undefined.
 - Prefer a facility that establishes the ordering for you where one fits. Waiting on the atomic itself, or on a condition variable, or joining the writing thread all create the relationship without a spin loop and without this trap.
@@ -65,6 +65,6 @@ variants: []
 ## Notes
 Grimm reports this as the trap his readers and students fall into most often, and the reason is that the correct and incorrect versions differ by one loop rather than by any annotation. Both name the releasing and acquiring orders, both look like textbook acquire-release publication, and only one of them establishes the condition under which the guarantee applies.
 
-The conditional structure is worth stating as a sentence you can check code against: the relationship exists between a particular store and a particular load, not between the two threads in general and not between the two annotations. Until the load has returned the stored value, the two threads have no ordering relative to each other at all, and "before" and "after" have no content between them.
+The conditional structure is worth stating as a sentence you can check code against: the relationship exists because a particular acquire observes the relevant release sequence, not merely because the two threads contain matching annotations. Until that observation or another synchronization edge occurs, the annotations alone establish no inter-thread ordering for the published data.
 
 That is also why the remedy so often looks like a busy-wait and should not be read as one. The loop is doing semantic work — repeating the load until the relationship is established — rather than merely passing time until the other thread gets round to it.

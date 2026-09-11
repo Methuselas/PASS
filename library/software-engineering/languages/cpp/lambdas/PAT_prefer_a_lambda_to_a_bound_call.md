@@ -23,7 +23,7 @@ cross_links:
 - rel: related_to
   target_object_id: PAT_name_every_lambda_capture
 - rel: related_to
-  target_object_id: PAT_limit_inlining_to_small_hot_functions
+  target_object_id: PAT_separate_inline_linkage_from_inlining_optimization
 - rel: related_to
   target_object_id: PAT_prefer_the_form_that_refuses_what_you_did_not_mean
 reference:

@@ -43,15 +43,17 @@ variants: []
 - Use RAII objects — a lock guard, a smart pointer — so resources are released even when an exception is thrown.
 - Reorder so you do not record that something happened until it actually has, such as incrementing a change counter only after the change succeeds.
 - Document the guarantee each function offers; it is part of the function's interface, chosen as deliberately as any other part.
+- Use `noexcept` when escaping exceptions are forbidden by the interface and the implementation can uphold that promise. Remember that violation calls `std::terminate`; the specifier does not manufacture recovery or make a fallible operation succeed.
 
 ## Don't
-- Don't offer a guarantee stronger than the weakest guarantee of the functions you call — a function is only as exception-safe as its callees.
-- Don't assume an empty exception specification means nothrow; the guarantee comes from the implementation, not the declaration.
+- Don't inherit a callee's weaker guarantee blindly. A transaction, temporary value, rollback guard, or caught-and-translated failure may let the caller provide a stronger observable guarantee; without such isolation or recovery, the callee's effects limit what the caller can promise.
+- Don't confuse a function with no `noexcept` specifier with a non-throwing contract, and don't confuse `noexcept` with the strong guarantee. The former permits propagation; the latter is a promise about state when an operation fails.
 
 ## Checklist
 - On a thrown exception, does this function leak a resource or leave data corrupted?
 - Which guarantee — basic, strong, or nothrow — does it offer, and is it the strongest practical one?
-- Is that guarantee no stronger than the weakest callee's, and is it documented?
+- If a callee has a weaker guarantee, what isolation, rollback, or recovery lets this function promise more?
+- Does any `noexcept` declaration match every path that can escape?
 
 ## Notes
-The naive `changeBackground` fails both requirements: if constructing the new image throws, the manually locked mutex leaks and `bgImage` is left dangling with the counter already bumped. RAII (a Lock) removes the leak; reordering removes the corruption. Then choose a guarantee deliberately — nothrow where you can, otherwise strong, otherwise basic — remembering that a function can be no stronger than its weakest callee, and that an exception specification says nothing about which guarantee holds.
+The naive `changeBackground` fails both requirements: if constructing the new image throws, the manually locked mutex leaks and `bgImage` is left dangling with the counter already bumped. RAII removes the leak; reordering or preparing a replacement before commit removes the corruption. Then choose a guarantee deliberately — non-throwing where the operation can uphold it, otherwise strong where transaction structure is practical, otherwise basic. A callee's guarantee constrains the design, but a caller can strengthen its own observable result by isolating tentative work, rolling it back, or translating the failure. `noexcept` separately controls whether an exception may escape; it does not name the basic or strong state guarantee.

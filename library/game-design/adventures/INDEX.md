@@ -7,18 +7,23 @@
 - [Anchor High-Impact Content Before Randomizing the Remainder](PAT_anchor_high_impact_content_before_randomizing_the_remainder.md) - pattern; 0 design. Tags: adventures, authorship, procedural-generation, random-generation, scenario-design.
 - [Assign Adventure Information to the Runtime Surface That Consumes It](PAT_assign_adventure_information_to_the_runtime_surface_that_consumes_it.md) - pattern; 0 design. Tags: adventures, information, retrieval, runtime, usability.
 - [Build Adventure Hubs Around the Return Loop](PAT_build_adventure_hubs_around_the_return_loop.md) - pattern; 0 design. Tags: adventures, campaign-state, expeditions, hubs, return-loop, services.
+- [Build Encounter Challenge from Interacting Elements](PAT_build_encounter_challenge_from_interacting_elements.md) - pattern; 0 design. Tags: adventures, encounters, environment, synergy, tactics.
+  - Variants: `Make a Common Countermeasure Amplify a Secondary Hazard` (constraint).
+- [Build Fear Through Delayed Revelation and Learned Threat Cues](PAT_build_fear_through_delayed_revelation_and_learned_threat_cues.md) - pattern; 0 design. Tags: adventures, horror, information, pacing, suspense.
 - [Build Stake Weight Through Player Investment Before Threatening It](PAT_build_stake_weight_through_player_investment_before_threatening_it.md) - pattern; 0 design. Tags: adventures, consequences, investment, stakes.
 - [Calibrate Encounter Challenge to Purpose and Context](PAT_calibrate_encounters_to_their_purpose_challenge_and_response_space.md) - pattern; 0 design. Tags: adventures, challenge, difficulty, encounters.
-  - Variants: `Calibrate Flexible Parameters Around a Generated Encounter Premise` (method_sequence).
+  - Variants: `Calibrate Flexible Parameters Around a Generated Encounter Premise` (method_sequence); `Audit Encounter Challenge Against the Party's Actual Capability Envelope` (method_sequence).
 - [Define Encounter Response Space by Intended Challenge](PAT_define_encounter_response_space_by_intended_challenge.md) - pattern; 0 design. Tags: adventures, agency, encounters, responses.
+- [Delegate Bounded Encounter-Space Authorship to Players](PAT_delegate_bounded_encounter_space_authorship_to_players.md) - pattern; 0 design. Tags: adventures, co-creation, maps, player-authorship, terrain.
 - [Design a Playable Adventure](AP_design_a_playable_adventure.md) - ap; 0 design. Tags: adventures, encounters, information, outcomes, structure.
 - [Design Exploration Spaces as Informed Route Networks](PAT_design_exploration_spaces_as_informed_route_networks.md) - pattern; 0 design. Tags: adventures, agency, exploration, maps, navigation, topology.
 - [Design Occupied Sites Around Inhabitant Operations](PAT_design_occupied_sites_around_inhabitant_operations.md) - pattern; 0 design. Tags: adventures, defenses, ecology, locations, logistics, topology.
 - [Design Scenario Progression as a Redundant Node Network](PAT_design_scenario_progression_as_a_redundant_node_network.md) - pattern; 0 design. Tags: adventures, agency, clues, nodes, scenarios, topology.
 - [Design Shared Problems with Multiple Solution Interfaces](PAT_design_shared_problems_with_multiple_solution_interfaces.md) - pattern; 0 design. Tags: adventures, agency, participation, roles, solutions.
-- [Distribute Adventure Opportunities Across Player Preferences](PAT_distribute_adventure_opportunities_across_player_preferences.md) - pattern; 0 design. Tags: adventures, engagement, participation, players, preferences.
+- [Distribute Adventure Opportunities Across Player Preferences](PAT_distribute_adventure_opportunities_across_player_preferences.md) - pattern; 0 design. Tags: adventures, engagement, players, preferences.
 - [Encode Stable Spatial State on the Map](PAT_encode_stable_spatial_state_on_the_map.md) - pattern; 0 design. Tags: adventures, cartography, maps, referee-interface, retrieval, spatial-state.
 - [Establish Adventure Entry Premise Without Prescribing Personal Motivation](PAT_establish_adventure_entry_premise_without_prescribing_personal_motivation.md) - pattern; 0 design. Tags: adventures, agency, entry, premise.
+  - Variants: `Personalize Entry through Player-Authored Character Stakes` (method_sequence).
 - [Generate Sandbox Situations from World State and Player Needs](PAT_generate_sandbox_situations_from_world_state_and_player_needs.md) - pattern; 0 design. Tags: agency, encounters, resources, sandbox, situations, world-state.
 - [Give High-Consequence Risks a Learnable Information Basis](PAT_give_high_consequence_risks_a_learnable_information_basis.md) - pattern; 0 design. Tags: adventures, fairness, information, risk.
 - [Give Prepared Scenes a Concrete Play Function](PAT_give_prepared_scenes_a_concrete_play_function.md) - pattern; 0 design. Tags: adventures, pacing, preparation, scenes, structure.
@@ -27,21 +32,29 @@
   - Variants: `Track Required Conclusions with a Revelation List` (method_sequence).
 - [Layer Adventure Information by How Players Can Access It](PAT_layer_adventure_information_by_how_players_can_access_it.md) - pattern; 0 design. Tags: adventures, discovery, information, perception.
 - [Layer Dynamic Events over Static Location State](PAT_layer_dynamic_events_over_static_location_state.md) - pattern; 0 design. Tags: adventures, dynamic-state, exploration, locations, random-encounters, time-pressure.
+  - Variants: `Combine Scheduled and Discretionary Event Streams` (method_sequence).
 - [Make Climaxes Converge Accumulated Play State](PAT_make_climaxes_converge_accumulated_play_state.md) - pattern; 0 design. Tags: adventures, climaxes, consequences, preparation.
 - [Make Misdirection Playable Rather Than Arbitrary](PAT_make_misdirection_playable_rather_than_arbitrary.md) - pattern; 0 design. Tags: adventures, deception, information, investigation, misdirection.
 - [Make Novel Interactables Learnable Through Experimentation](PAT_make_novel_interactables_learnable_through_experimentation.md) - pattern; 0 design. Tags: adventures, affordances, discovery, experimentation, exploration, interaction.
 - [Make Preparation Change Problem Topology](PAT_make_preparation_change_problem_topology.md) - pattern; 0 design. Tags: agency, infiltration, information, legwork, preparation.
+- [Match Adventure Rewards to Meaningful Risk](PAT_match_adventure_rewards_to_meaningful_risk.md) - pattern; 0 design. Tags: adventures, agency, rewards, risk, stakes.
+  - Variants: `Offer Tempting Player-Activated Risks` (context).
 - [Model Site Security with Explicit Response States](PAT_model_site_security_with_explicit_response_states.md) - pattern; 0 design. Tags: adventures, detection, dynamic-state, infiltration, security.
 - [Prepare Executable Adventure Outcome States](PAT_prepare_executable_adventure_outcome_states.md) - pattern; 0 design. Tags: adventures, consequences, endings, failure.
 - [Prepare Scenario Toolboxes Instead of Predicted Player Branches](PAT_prepare_scenario_toolboxes_instead_of_predicted_player_branches.md) - pattern; 0 design. Tags: adventures, agency, improvisation, preparation, situations.
+  - Variants: `Baseline a Scenario with an Unopposed Antagonist Plan` (method_sequence); `Keep Scenario Functions Alive After Key-Actor Loss` (constraint).
 - [Preserve Player Control of Protagonist Response in Adventure Text](PAT_preserve_player_control_of_protagonist_response_in_adventure_text.md) - pattern; 0 design. Tags: adventures, agency, narration, protagonists.
 - [Preserve Stable Challenge Conditions Against Reactive Difficulty Protection](PAT_preserve_stable_challenge_conditions_against_reactive_difficulty_protection.md) - pattern; 0 design. Tags: adventures, difficulty, fairness, progression.
 - [Run Consequential NPCs from Executable Social State](PAT_run_consequential_npcs_from_executable_social_state.md) - pattern; 0 design. Tags: adventures, improvisation, npcs, relationships, social-state.
 - [Separate Mobile Actors from Fixed Location State](PAT_separate_mobile_actors_from_fixed_location_state.md) - pattern; 0 design. Tags: adventures, adversaries, locations, referee-interface, rosters, state.
 - [Shape Adventure Challenge Progression Deliberately](PAT_shape_adventure_challenge_progression_deliberately.md) - pattern; 0 design. Tags: adventures, challenge, difficulty, progression.
+  - Variants: `Bookend an Adventure with Demanding Risk Peaks` (method_sequence).
 - [Shape Adventure Pace Through Consequential State Change](PAT_shape_adventure_pace_through_consequential_state_change.md) - pattern; 0 design. Tags: adventures, pacing, pressure, state-change, tempo.
+  - Variants: `Escalate Through Causal Setbacks Instead of Steady Success` (method_sequence).
+- [Spend Distinctive Content in Current Playable Scope](PAT_spend_distinctive_content_in_current_playable_scope.md) - pattern; 0 design. Tags: adventures, content, memorable-play, pacing, scope.
 - [Start Adventures at the First Actionable Change](PAT_start_adventures_at_the_first_actionable_change.md) - pattern; 0 design. Tags: adventures, agency, hooks, openings, pacing.
 - [Structure Adventure Progression with Milestones and Triggered Beats](PAT_structure_adventure_narratives_with_milestones_plot_beats_and_player_agency.md) - pattern; 0 design. Tags: adventures, agency, milestones, narrative.
 - [Use In-World Information as a Scenario Interface](PAT_use_in_world_information_as_a_scenario_interface.md) - pattern; 0 design. Tags: adventures, factions, hooks, information, uncertainty.
 - [Use Least-Force Constraints to Preserve Directed Adventure Scope](PAT_use_least_force_constraints_to_preserve_directed_adventure_scope.md) - pattern; 0 design. Tags: adventures, agency, constraints, scope, transitions.
+- [Use Persistent Fictional Assets as Rewards](PAT_use_persistent_fictional_assets_as_rewards.md) - pattern; 0 design. Tags: adventures, community, persistence, property, relationships, rewards.
 - [Write Keyed Locations as Executable Local State](PAT_write_keyed_locations_as_executable_local_state.md) - pattern; 0 design. Tags: adventures, location-keys, maps, referee-interface, retrieval, state.

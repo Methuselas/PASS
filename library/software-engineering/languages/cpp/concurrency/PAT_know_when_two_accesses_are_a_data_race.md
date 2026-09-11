@@ -62,7 +62,7 @@ variants: []
 ## Do
 - Check the condition against a *memory location* rather than against a variable name, because they are not the same thing. Each scalar object occupies its own location, but adjacent bit fields of non-zero length share one — so two threads writing two differently named bit fields in the same struct are writing the same location and are racing.
 - Reach for the second escape as often as the first. Establishing that one access happens before the other is what a mutex actually does: the synchronization primitives create these orderings, and the orderings then cover ordinary non-atomic data too. That is why locking a mutex around plain variables is sufficient and does not require the variables to be atomic.
-- Retrofit atomicity through a reference where you cannot change the object's type. A counter that is a plain member of a type you do not own, or an element of an array handed to you, can be accessed atomically by binding an atomic reference to it — provided every access for that period goes through one.
+- Retrofit atomicity through C++20 `std::atomic_ref` only when the referenced object meets its type, lifetime, and alignment requirements. While an atomic reference exists for that object, route potentially concurrent access through atomic references rather than mixing atomic and non-atomic operations.
 - Treat the absence of a race as the property to establish, not the presence of one to hunt for. A race is undefined behaviour, so the reasoning has to be a proof that it cannot occur rather than an observation that it has not yet.
 
 ## Don't

@@ -21,6 +21,8 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_know_compiler_generated_special_members
+- rel: related_to
+  target_object_id: PAT_constrain_a_template_so_the_error_lands_at_the_call
 reference:
   source_title: 'Effective C++, Third Edition: 55 Specific Ways to Improve Your Programs and Designs'
   author: Scott Meyers
@@ -33,10 +35,10 @@ variants: []
 
 ## Pattern Rule
 **IF** you want a class template such as a smart pointer to be constructible or assignable from every compatible instantiation of itself
-**THEN** provide a member function template — a generalized copy constructor or assignment — whose body compiles only for compatible types, while still declaring the ordinary copy constructor and copy assignment operator.
+**THEN** provide a constrained member function template — a generalized converting constructor or assignment — while still declaring the ordinary copy constructor and copy assignment operator.
 
 ## Do
-- Add a constructor template parameterized on a second type that initializes the held pointer from the other object's held pointer, so it compiles only when that underlying pointer conversion is legal.
+- Add a constructor template parameterized on a second type and constrain it at the declaration with the appropriate pointer-convertibility concept, then initialize the held pointer from the source. The incompatibility is rejected at the call boundary instead of later in the body.
 - Leave the generalized copy constructor non-explicit to mimic built-in pointer conversions, while keeping constructors from unrelated pointer or smart-pointer types explicit.
 - Where the class carries configuration parameters as well as a value type, build the conversion one parameter at a time: initialize each part of the target from the corresponding part of the source, and let each parameter decide for itself whether it accepts the other. A parameter admits a conversion by offering a constructor taking the other, or the source parameter offers an operator converting to it; if neither exists the conversion simply does not compile, which is the right outcome.
 
@@ -47,13 +49,13 @@ variants: []
 
 ## Checklist
 - Does the class need to convert from all compatible instantiations, and is that a member template?
-- Does the member template's body compile only for genuinely compatible types (via the underlying pointer conversion)?
+- Does the member template's declaration state the compatibility relation, with the underlying conversion still enforcing it in the initializer?
 - Have I also declared the normal copy constructor and copy assignment operator?
 - Does every configuration parameter get initialized from its counterpart rather than default-constructed and overwritten?
 - Can any permitted conversion change which ownership rule governs the object, and if so is it explicit and guarded?
 
 ## Notes
-Different instantiations of one template are unrelated types, so conversions between smart-pointer instantiations must be written explicitly. A member template — a generalized copy constructor over a second type parameter — generates the unlimited family of constructors needed, and initializing the held pointer from the source's held pointer restricts it to conversions the raw pointers allow. Crucially, a member template does not suppress the compiler-generated copy constructor and copy assignment (Item 5), so declare those explicitly when it matters, as tr1::shared_ptr does.
+Different instantiations of one template are unrelated types, so conversions between smart-pointer instantiations must be written explicitly. A member template generates the family of converting constructors needed; a C++20 constraint makes the permitted relation part of the interface, and initializing the held pointer from the source still checks the concrete conversion. Crucially, a member template does not suppress the ordinary copy constructor and copy assignment, so declare those explicitly when their behavior matters, as `std::shared_ptr` does.
 
 When the class is assembled from several configuration parameters rather than one value type, converting part by part scales where a hand-written list of permitted conversions does not: each parameter states its own compatibility once, and the set of legal conversions between whole instantiations follows from those statements instead of being enumerated. It also puts the decision where the knowledge is, since only the parameter concerned can say whether accepting the other preserves what it guarantees.
 

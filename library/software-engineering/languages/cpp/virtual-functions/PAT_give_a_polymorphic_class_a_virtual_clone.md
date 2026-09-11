@@ -40,32 +40,33 @@ variants: []
 
 ## Pattern Rule
 **IF** you hold objects through base-class pointers and need to copy one without knowing its real type, or need to create an object whose type is decided by input data rather than by the code
-**THEN** declare a virtual member that returns a new copy of whatever it was invoked on, and put the data-driven case in one static function that reads enough to decide which derived type to build
+**THEN** declare a virtual member that returns an owning `std::unique_ptr` specialized on the base type, and let the data-driven factory return the same ownership type
 **ELSE** where the set of types is fixed, tiny, and closed by design, holding a discriminated union and copying it directly is simpler and does not require every type to participate.
 
 ## Do
 - Make each override exactly one line: construct a new object of its own class from itself. The real copy constructor then defines what copying means, so whatever it does — shallow, deep, reference-counted, copy-on-write — the polymorphic version does automatically and cannot drift from it.
-- Declare each override as returning a pointer to its own class rather than to the base. The language permits the narrowing, so callers holding a derived pointer get a derived pointer back and need no cast, while callers holding a base pointer are unaffected.
+- Return `std::unique_ptr` specialized on the base type from every virtual override. Smart-pointer specializations are not covariant, so an override cannot narrow this to the derived specialization; provide a separately named, non-virtual typed-copy helper only when derived callers genuinely need one.
 - Let the owning class's copy constructor become a walk over its members, asking each one to copy itself. That replaces the usual alternative — a type tag and a chain of tests inside the container — with code that never needs editing when a new element type appears.
-- For the data-driven case, keep the decision in one place while the set of types is closed. A single static function that reads the input, determines the type, and returns a base pointer is the only code obliged to know the full set — which is the right trade for a fixed, small set and the wrong one for an open set, where that function becomes a file naming every type, rebuilt whenever any of them changes and edited whenever one is added. `PAT_let_each_type_register_itself_with_the_factory` owns the open case.
+- For the data-driven case, keep the decision in one place while the set of types is closed. A single static function that reads the input, determines the type, and returns the base-specialized `std::unique_ptr` is the only code obliged to know the full set — which is the right trade for a fixed, small set and the wrong one for an open set. `PAT_let_each_type_register_itself_with_the_factory` owns the open case.
 - Guard against the override that was never written. Nothing in the language lets you require that every further-derived class re-override a virtual function; an override in an intermediate class satisfies the compiler for everything below it forever. Make the copy entry point non-virtual, have it call a non-public virtual that does the work, and check that the result's dynamic type matches the original's before returning it.
 
 ## Don't
 - Don't attempt this by copying through a base-class object. Copying is performed by the copy constructor of the static type, so a derived object copied as a base loses its derived part entirely — the same slicing that afflicts passing by value, arriving here through a different door.
 - Don't let the virtual version and the real copy constructor be written independently. Two definitions of what it means to copy this type will eventually disagree, and the one that gets used will depend on whether the caller happened to know the dynamic type.
 - Don't assume a container of base pointers can be copied by the compiler-generated copy constructor. It duplicates the pointers, giving both containers the same objects, which is nearly never what "copy the container" was meant to mean.
+- Don't return a raw owning pointer and rely on every caller to remember deletion. The clone operation creates ownership, so its type should carry ownership.
 
 ## Checklist
 - Does each override construct an object of its own class and nothing else?
-- Does each override's return type name its own class rather than the base?
+- Does every clone override return the base-specialized `std::unique_ptr` and transfer ownership explicitly?
 - Is there exactly one function that knows which derived type corresponds to which input?
 - If a new derived class were added tomorrow, how many existing functions would need editing?
-- Does the base declare a virtual destructor, so the copies can be released through base pointers?
+- Does the base declare a virtual destructor, so the owned copies are destroyed correctly through the base type?
 
 ## Notes
 Constructors cannot be virtual, and the reason clarifies what this actually is. Virtual dispatch selects an implementation using an object that already exists and already has a dynamic type; a constructor runs precisely when neither is true. So what gets called a virtual constructor is not a constructor at all — it is an ordinary virtual function whose job is to create, which is why it can be dispatched normally.
 
-The narrowing of return types in overrides was a relatively late relaxation of the rules, and this is the use case that motivated it. Without it the override would have to advertise a base pointer even though it always produces a derived object, so every caller that knew better would need a cast to recover what the function already knew.
+Raw pointer and reference return types can be covariant, which historical clone interfaces used to narrow a base pointer return to a derived pointer. `std::unique_ptr` specializations are not covariant, so the virtual ownership interface returns the base specialization consistently. That loss of narrowing is a worthwhile trade for making deletion automatic and ownership explicit.
 
 The same shape answers a related problem: a free function that ought to behave virtually. Since a free function cannot be virtual and a member function would put the operands in the wrong order for operators like stream insertion, the working arrangement is a virtual member doing the work and a non-member — usually inline — that does nothing but call it.
 

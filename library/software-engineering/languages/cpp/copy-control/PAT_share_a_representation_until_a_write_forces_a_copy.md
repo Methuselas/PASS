@@ -46,19 +46,19 @@ variants: []
 ## Do
 - Put the count with the value rather than with the holder, because there is one count per value and not one per object. Nesting the value type privately inside the holder gives every member of the holder full access to it while denying access to everyone else, which is what you want and what a nested public type would not give you.
 - Split before the write and not after, and remember that the count itself decides: a holder about to modify a value that other holders share must first take its own copy, decrement the old count, and point at the new one.
-- Stop sharing permanently once you hand out a pointer or reference into a shared value. Mark that value unshareable from then on, because you have no way to know when the client will write through what you gave them, and no way to be notified when they do.
-- Encapsulate the count and its manipulation rather than spreading it. With the counting in a base class and the count adjustments in a pointer-like member, the holder's own copy constructor, assignment operator, and destructor can often be the compiler-generated ones, because the member does the work in each case.
+- Keep mutable aliases behind the abstraction. Prefer observers that return values or read-only views and mutations that re-enter the owner, where it can detach before exposing writable state. If compatibility forces a mutable pointer or reference to escape, detaching once cannot protect later copies; the representation must remain unshareable for the alias's possible lifetime, which is difficult to prove.
+- Encapsulate ownership bookkeeping in a tested value-like member rather than spreading manual increments and decrements through every special member. A standard shared owner can manage the control-block lifetime, but it does not implement detach-on-write or make access to the representation thread-safe.
 
 ## Don't
-- Don't ship the aliasing problem unaddressed. Of the three responses available — ignore it, document it as undefined, or track shareability — the first two are common in real libraries, and the failure they produce is one holder's value silently changing because somebody wrote through a reference obtained from a different holder.
-- Don't let the value type rely on a compiler-generated copy constructor. What the sharing machinery needs at the moment of splitting is a genuinely independent copy, and the generated version duplicates the pointer rather than what it addresses — which reintroduces exactly the sharing you were trying to end.
+- Don't expose mutable handles and then describe cross-holder mutation as merely a caller mistake. Either prevent the alias, keep the representation permanently private after escape under a sound lifetime rule, or choose ordinary eager value semantics.
+- Don't assume a defaulted copy produces an independent representation when the representation directly owns raw resources or contains aliases. Defaulted copying is correct for value-like members; otherwise give the representation explicit ownership semantics so detaching produces a semantically independent value.
 - Don't apply this where the objects can refer to one another. A group of objects holding references into each other keeps every count above zero even after nothing outside the group refers to any of them, and the whole group leaks; escaping that needs machinery this technique does not have.
 - Don't infer that the conditions hold. The ratio of objects to distinct values and the cost of constructing one are both measurable, and both have to be favorable — sharing a value that nothing else holds is pure overhead.
 
 ## Checklist
 - What is the measured ratio of live objects to distinct values?
 - Does any member hand out a pointer or reference into the shared value, and what happens to sharing when it does?
-- Does the value type have a copy constructor that copies what it points to?
+- Does detaching create a semantically independent representation under the value type's actual copy semantics?
 - Can objects of this type form a cycle of references?
 - After a write through one holder, is any other holder's value observably changed?
 
@@ -69,4 +69,4 @@ The reason a non-const subscript operator has to assume the worst is structural:
 
 This is now a technique for your own types rather than something to expect from the library. The standard string type was permitted to work this way when Meyers wrote, and the standard has since required behavior — around when references and iterators may be invalidated — that rules it out. The aliasing hazard above is a large part of why.
 
-One consideration absent from the original treatment and unavoidable now: the count is mutable state shared between holders, so if objects of the type can be copied or destroyed on more than one thread, every adjustment to it is a data race unless made atomic, and the atomic operations are not free.
+One consideration absent from the original treatment and unavoidable now: the ownership count and the represented value have separate concurrency requirements. A standard shared owner makes ownership changes on distinct handle objects safe according to its contract, but it does not make simultaneous reads and writes of the represented value safe. A home-grown count needs its own synchronization, and an atomic count alone does not protect detach-versus-write behavior.

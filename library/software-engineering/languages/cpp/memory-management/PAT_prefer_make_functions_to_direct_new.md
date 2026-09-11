@@ -41,15 +41,14 @@ variants:
   variant_basis: constraint
   difference_from_foundation: The object is still created with a direct `new`, but the
     smart pointer that will own it is constructed in its own statement, before the call
-    that consumes it, rather than inside the argument list.
+    that consumes it, rather than exposing the raw pointer across more code.
   when_to_use: A make function cannot be used — a custom deleter is required, a braced
     initializer must be passed, or the type has class-specific allocation functions that
-    a single-allocation make function would bypass. Compilers may not reorder operations
-    across statement boundaries, so the raw pointer cannot be stranded between the
-    allocation and its capture.
+    a single-allocation make function would bypass. Immediate construction keeps the
+    exceptional raw-ownership interval visible and minimal.
   when_not_to_use: A make function is available and none of those constraints apply. The
-    standalone statement prevents the leak and does nothing about the duplicated type
-    name or the second allocation.
+    standalone statement preserves explicit ownership and does nothing about the
+    duplicated type name or the second allocation.
   absorbed_from_object_id: PAT_store_newed_object_in_smart_pointer_standalone
 ---
 
@@ -61,11 +60,11 @@ variants:
 **ELSE** where the pointer needs a custom deleter, or the object must be initialized with a braced initializer, the make functions cannot express it and direct `new` is the answer — under the standalone-statement discipline below.
 
 ## Do
-- Take the leak first, because it is the reason this is a correctness rule and not a style one. Constructing a smart pointer from a `new` expression inside an argument list gives the compiler three operations to order — the allocation, the smart pointer's constructor, and the evaluation of the other arguments — and it is free to run the other argument between the first two. If that argument throws, the allocation has happened and nothing owns it.
-- Let the make function close the window rather than reasoning about the ordering. It performs the allocation and the capture as one call, so there is no interval in which a raw pointer exists unowned.
+- Use `std::make_unique` and `std::make_shared` to express creation and ownership in one operation, eliminate repeated type names, and avoid exposing a raw owning pointer.
 - Count the second benefit where shared ownership is involved: a make function for a shared pointer performs one allocation for the object and its control block together, where a direct `new` performs two. The result is smaller and faster code and one less trip to the allocator.
 - Stop writing the type twice. `new` names the type and so does the smart pointer being constructed, and the make function names it once — which matters most when the type is long and when it later changes.
-- Fall back to direct `new` deliberately where the make functions cannot serve, and then keep the allocation in its own statement. That is the older discipline, preserved here as `VAR_standalone_new_statement`, and it still prevents the leak.
+- Use the C++20 array overloads when array ownership is genuinely needed, and consider the `make_*_for_overwrite` forms only when skipped value-initialization is intentional and measured.
+- Fall back to direct `new` deliberately where the make functions cannot serve, and immediately construct the final smart pointer in its own statement. That bounded exception is preserved as `VAR_standalone_new_statement`.
 - Prefer passing a `new` expression directly to the smart pointer's constructor over passing a named raw pointer variable, in that fallback case. A named raw pointer invites a second smart pointer to be constructed from the same address, and two owners of one object each believe they must destroy it.
 
 ## Don't
@@ -75,15 +74,15 @@ variants:
 - Don't use a shared-pointer make function for a class with its own allocation functions. Those are written for objects of the class's size and the make function asks for a larger block containing the control block too.
 
 ## Checklist
-- Does any `new` expression here appear inside an argument list?
+- Does any direct `new` here have a documented reason that a make function cannot express?
 - Is the type named more than once at this creation site?
 - If a make function is not being used, which of the documented limitations applies?
 - Where direct `new` is unavoidable, is it in its own statement, and is the result passed straight to the smart pointer rather than through a named variable?
 - For shared ownership of a large object, will weak references keep its memory alive after the object is destroyed?
 
 ## Notes
-The predecessor to this rule addressed the same leak by a different route: put the allocation and the smart-pointer construction in a statement of their own, since compilers may not reorder across statement boundaries. That works, it remains correct, and it is preserved here as a variant for the cases the make functions cannot cover. What it does not do is remove the duplicated type name or the second allocation, and it leaves the programmer responsible for a discipline that the make functions make unnecessary. It is recorded as `VAR_standalone_new_statement`, and it is the right form whenever a custom deleter, a braced initializer, or a class-specific allocation function rules the make functions out.
+`VAR_standalone_new_statement` preserves the direct-allocation fallback. Its predecessor used a standalone smart-pointer construction to prevent an allocation from being stranded by another argument's exception. Since C++17, evaluations of function arguments do not interleave in that way, so this is no longer the correctness reason for preferring make functions under the C++20 baseline. The standalone form remains useful when a custom deleter, braced initializer, or class-specific allocation function rules a make function out: it makes the exceptional raw-ownership boundary small and explicit.
 
-The exception-ordering hazard is worth understanding rather than memorizing, because it recurs wherever a resource is acquired inside an argument list. The language does not specify the order in which a call's arguments are evaluated, only that each is complete before the call. Any acquisition that has happened but not yet been captured by an owner is exposed to whatever else the compiler chooses to run in between.
+Function arguments still have unspecified relative order, so code must not depend on which complete argument evaluation happens first. That is distinct from the pre-C++17 interleaving hazard: under the C++20 floor, another argument cannot run between a `new` expression and the smart-pointer constructor that contains it.
 
 The trade on the single allocation is the one place where the recommendation genuinely reverses, and it is worth stating precisely so it is not applied superstitiously. Combining the object and its control block is the source of the performance advantage and also means the block is freed only when both counts reach zero. Weak references keep the control block alive; with a separate allocation they keep only the control block alive, and with a combined one they keep the object's storage alive too.

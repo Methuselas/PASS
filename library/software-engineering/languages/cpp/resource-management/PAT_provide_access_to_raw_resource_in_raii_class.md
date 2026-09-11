@@ -35,19 +35,22 @@ variants: []
 
 ## Pattern Rule
 **IF** an RAII class wraps a resource that other APIs need in raw form
-**THEN** give clients a way to obtain the raw resource — an explicit accessor such as get(), or an implicit conversion operator — choosing between them on safety versus convenience.
+**THEN** expose a clearly non-owning view through an explicit accessor such as `get()` or `native_handle()`, and keep release or ownership transfer on a separately named operation.
 
 ## Do
-- Offer an explicit get() that returns the raw handle when you want to minimize accidental conversions; this is the safer default.
-- Offer an implicit conversion operator when frequent API calls make explicit get() calls onerous enough that clients might avoid the class and leak the resource instead.
+- Return the raw pointer or platform handle from a named observer without changing ownership. State how long that view remains valid and which operations invalidate it.
+- Provide `operator*` and `operator->` only when the wrapper intentionally models pointer-like access to an object. Those operators expose use of the pointee without making the owner implicitly convertible to a raw owning-looking value.
+- Use an explicit boolean conversion when clients need a validity test, and a named `release()`-style operation only when callers are allowed to assume the cleanup obligation.
 
 ## Don't
-- Don't treat an implicit conversion as risk-free: a client can accidentally obtain and copy the raw handle when they meant to copy the managing object, leaving a handle that dangles once the manager releases it.
+- Don't add an implicit conversion to the raw resource merely to shorten calls. It lets non-owning handles escape silently, participates in unrelated overload resolution, and hides the lifetime boundary at the call site.
+- Don't make `get()` transfer ownership. Observation and release must have visibly different operations and postconditions.
 
 ## Checklist
 - Can clients reach the raw resource when an API requires it?
-- Did I weigh explicit access (safer) against implicit conversion (more convenient) for this class's use?
-- Would an implicit conversion here let a raw handle escape by accident?
+- Is the returned handle explicitly documented as non-owning, with a clear validity interval?
+- Are observation, validity testing, and ownership transfer separate operations?
+- Would pointer-like operators accurately describe this wrapper rather than merely save spelling?
 
 ## Notes
-Real APIs demand raw resources, so an RAII class that hides its resource completely becomes unusable. Smart pointers show both routes: an explicit get() plus implicit access through operator-> and operator*. The `Font`/`FontHandle` example weighs a get() accessor against an implicit conversion operator; implicit wins on convenience but risks a stray handle (the `FontHandle f2 = f1` slip). RAII exists to guarantee release, not to encapsulate, so exposing the raw resource is not a design failure.
+Real APIs demand raw resources, so an RAII class that hides its resource completely becomes unusable. Standard smart pointers show the modern separation: `get()` observes, dereference operators provide pointer-like access, boolean conversion is explicit, and `release()`—where supported—transfers the cleanup obligation by name. Exposing a non-owning handle is not a design failure; making observation look like ownership or an unrestricted implicit conversion is the hazard.

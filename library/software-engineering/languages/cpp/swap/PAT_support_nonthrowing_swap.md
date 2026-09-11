@@ -37,23 +37,23 @@ variants: []
 
 ## Pattern Rule
 **IF** the default std::swap would be inefficient for your type — typically a pimpl type holding a pointer to its real data
-**THEN** provide a fast, non-throwing swap: a public swap member that exchanges the internals, a non-member swap in your type's namespace that calls it, and, for a class, a total specialization of std::swap that also calls it.
+**THEN** provide a fast `noexcept` member swap and an ADL-visible non-member or hidden-friend `swap` that calls it, then call swap unqualified after `using std::swap`.
 
 ## Do
 - Write a public member swap that exchanges the internal pointers and never throws.
 - Add a non-member swap in the same namespace that calls the member, so argument-dependent lookup finds it.
-- For a non-template class, also totally specialize std::swap to call the member, so even a qualified std::swap call gets the fast version.
 - When you call swap yourself, write `using std::swap;` and then call swap unqualified, so the best version is chosen.
+- Verify the standard nothrow-swappable trait for the type (and the corresponding concepts where used) so generic code can rely on the guarantee.
 
 ## Don't
-- Don't add a new overload or a partial specialization of swap inside namespace std; totally specializing an existing template there is allowed, but adding to std is undefined behavior.
+- Don't add overloads to namespace `std`, and don't require a `std::swap` specialization as part of the customization. The ADL-visible overload is the normal extension point and is also found by `std::ranges::swap`.
 - Don't let the member swap throw — the strong exception-safety guarantee in other code depends on it.
 
 ## Checklist
 - Is there a non-throwing member swap that exchanges only the internals?
 - Is there a non-member swap in the type's namespace that calls the member?
-- For a class, is std::swap totally specialized (not overloaded, not partially specialized)?
+- Is the non-member or hidden-friend swap visible to argument-dependent lookup?
 - Do my own swap calls use an unqualified swap after `using std::swap;`?
 
 ## Notes
-The default swap copies three whole objects, which is wasteful for a pimpl type where swapping the internal pointers suffices. The full recipe is: a non-throwing member swap; a namespace-level non-member swap that calls it (found by argument-dependent lookup); and, for non-template classes, a total specialization of std::swap that also calls it — because some misguided code writes `std::swap` qualified and would otherwise miss your version. You may totally specialize std templates but must never add new templates to std. The non-throwing guarantee on the member matters because exception-safe code relies on it.
+The generic swap operation uses moves, which may already be cheap for a well-designed pimpl type, but an explicit swap remains valuable when it is the primitive behind assignment and exception guarantees. The modern customization is an ADL-visible non-member—often a hidden friend—that delegates to a `noexcept` member. Generic callers use `using std::swap; swap(a, b);`, while ranges customization also respects the ADL operation. Code that hard-qualifies `std::swap` has intentionally bypassed that extension point and should not drive a namespace-`std` customization policy.

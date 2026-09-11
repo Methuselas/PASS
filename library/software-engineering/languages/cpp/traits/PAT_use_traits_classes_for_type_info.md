@@ -39,27 +39,30 @@ variants:
 # Use Traits Classes for Compile-Time Type Information
 
 ## Pattern Rule
-**IF** you need behavior that depends on properties of a type, and it must work for built-in types too
-**THEN** put the information in a traits class — a template with specializations, including one for pointers — and dispatch on it with overloaded worker functions, giving a compile-time if/else on types.
+**IF** generic code needs an associated type or a compile-time property that is not naturally expressed as an operation
+**THEN** expose it through a trait with a conservative primary template and supported specializations, then consume it with a C++20 constraint, `if constexpr`, or overload dispatch according to the shape of the decision.
 
 ## Do
-- Define a traits template exposing the information (an iterator's category), supplied by a nested typedef for user-defined types and by a pointer specialization for built-ins.
-- Dispatch by writing overloaded worker functions that each take a different traits tag, plus a master function that passes the trait so overload resolution picks the right worker during compilation.
+- Reuse standard traits and concepts before inventing one. For iterators, `std::iterator_traits` supplies associated types for class iterators and pointers, while C++20 iterator concepts usually express an operation requirement more directly than inspecting a category tag.
+- Use a trait when the output is itself a type, when a library must expose a user-specializable property, or when adapting a protocol whose associated information already lives in traits.
+- Choose the consumer deliberately. A named concept or `requires` clause states whether an operation is available; `if constexpr` keeps a short closed choice local; overload or tag dispatch remains useful for compatibility protocols and extensible implementation sets.
 - Use a trait to compute a *type* as well as to answer a question. Selecting how a parameter should be taken, stripping a qualifier, or picking a container's element type are all decisions generic code cannot make by hand, because the category of the type is exactly what it does not know.
 
 ## Don't
-- Don't branch on the type at runtime with a typeid if/else; it wastes runtime, bloats the executable, and can force code that is invalid for some types to be compiled.
-- Don't nest the information only inside the type; that fails for built-ins like pointers, so keep the traits external to the type.
+- Don't branch on a compile-time type property at runtime. It adds runtime machinery and an ordinary `if` still requires both branches to be well-formed.
+- Don't require a nested member from every participating type when non-class types or third-party types must work. Put the adapter in a trait or use a concept defined in terms of valid expressions.
+- Don't inspect a legacy category tag when a C++20 concept states the real requirement. Category dispatch is appropriate when interoperating with the classic iterator protocol, not as a substitute for constraints.
 
 ## Checklist
-- Is the type information exposed by a traits template with a specialization for pointers?
-- Is dispatch done by overloaded workers selected by a traits tag rather than a runtime typeid test?
-- Does the design work for built-in types as well as user-defined ones?
+- Does a standard trait or concept already express the information?
+- Is this genuinely associated information, or would a `requires` expression state the needed operation more directly?
+- Does the design work for non-class and third-party types as well as user-defined class types?
+- Is the consumer a constraint, `if constexpr`, or overload dispatch for a stated reason?
 - Where the trait yields a type rather than a flag, does that type stay legal for every argument the template accepts, including one that is already a reference or already qualified?
 
 ## Notes
-advance wants iterator arithmetic for random-access iterators and stepping otherwise — a decision about a type. Traits make that decision at compile time: iterator_traits exposes an iterator_category (via a nested typedef, and a pointer specialization for built-ins), and overloaded doAdvance workers tagged by category let overload resolution choose. The tag structs inherit (forward is-a input), so a worker written for the base tag also serves the derived category. This is the compile-time if/else that runtime typeid cannot match.
+Classic `advance` demonstrates the compatibility form: `std::iterator_traits` exposes an iterator category for class iterators and pointers, and overloaded workers selected by category tags choose only operations valid for that category. C++20 code can often state the same boundary more directly with iterator concepts and use `if constexpr` for the small closed implementation choice. The trait remains valuable for associated types and for protocols whose customization surface is intentionally a specialization.
 
 `VAR_branch_inside_one_function_with_if_constexpr` reaches the same compile-time if/else by writing it as an if/else. Where the foundation splits the work into tagged workers and lets overload resolution pick one, the variant keeps a single function and branches on a compile-time boolean, relying on the fact that the untaken branch is never instantiated — which is what permits a branch to dereference a parameter when it is only selected for pointers. Note what that does to this card's second Don't: the objection to a runtime `typeid` if/else was partly that it forces code invalid for some types to be compiled, and the compile-time branch supplies the readable if/else shape without reintroducing that problem. Use it for a small number of short alternatives selected by one property, where an overload set would exist purely to carry the dispatch. Keep the foundation where the trait computes a type rather than answering a question, where the alternatives are many or long, or where other authors must be able to extend the set — an overload set is open to additions from outside and a chain of branches inside one function is not.
 
-The same mechanism computes types, and that use is easy to miss because it does not look like a decision. Generic code cannot write `const T&` for every parameter and be right — a scalar is cheaper taken by value, and a type that is already a reference cannot take another one — so the parameter form is derived from the type's category rather than chosen. Traits that strip a qualifier, or select between two candidate types on a compile-time condition, are the same move: the answer is a type, and the code asking for it does not know enough to write that type down.
+The same mechanism computes types, and that use is easy to miss because it does not look like a decision. Standard transformation traits remove qualifiers, add references under defined rules, and select between candidate types. Prefer those vocabulary operations to home-grown cost heuristics such as assuming every scalar should be passed by value and every class by reference; parameter passing depends on semantics and measured cost, not merely on the type category.

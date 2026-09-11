@@ -4,4 +4,4 @@
 
 ## Objects
 
-- [Limit Inlining to Small, Frequently Called Functions](PAT_limit_inlining_to_small_hot_functions.md) - pattern; 3 rough. Tags: build, cpp, inlining, performance.
+- [Separate Inline Linkage from Inlining Optimization](PAT_separate_inline_linkage_from_inlining_optimization.md) - pattern; 3 rough. Tags: build, cpp, inlining, linkage, optimization.

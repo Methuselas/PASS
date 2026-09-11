@@ -42,7 +42,8 @@ variants: []
 
 ## Do
 - Learn the shape rather than the instance. Any comparison with a signed operand on one side and an unsigned one on the other is the shape, and the most common instance is a signed loop index tested against a container's size, which is unsigned.
-- Reach for the standard integer comparison functions where the mixture is unavoidable. They test the signedness of both operands first and only convert when the conversion cannot change the answer, which is precisely the reasoning you would otherwise have to write by hand at every site.
+- Reach for the C++20 comparison functions—`std::cmp_equal`, `std::cmp_less`, and their relatives—where the mixture is unavoidable. They account for signedness before comparing.
+- Use `std::ssize(range)` when a signed count is needed beside signed indices, rather than casting `range.size()` at every comparison.
 - Prefer removing the mixture at its source where you control both types. One type for one quantity is a smaller and more durable fix than a correct comparison between two types that should not have differed.
 - Know what the conversion actually does, because the magnitude is what makes the bug hard to believe. A small negative number does not become a small positive one — a signed value of negative three becomes, in thirty-two unsigned bits, something over four billion. The comparison is then not merely wrong but wrong in the opposite direction from the intuition that led you to write it.
 - Treat compiler warnings as a bonus rather than the mechanism. Some compilers warn here and many do not, and the ones that do will warn in the places you were already looking.

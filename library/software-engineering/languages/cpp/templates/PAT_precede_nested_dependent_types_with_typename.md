@@ -1,7 +1,7 @@
 ---
 object_id: PAT_precede_nested_dependent_types_with_typename
 object_type: pattern
-name: Precede Nested Dependent Type Names with typename
+name: Disambiguate Dependent Type Names with typename
 library_path:
 - software-engineering
 - languages
@@ -29,24 +29,25 @@ references: []
 variants: []
 ---
 
-# Precede Nested Dependent Type Names with typename
+# Disambiguate Dependent Type Names with typename
 
 ## Pattern Rule
-**IF** you refer to a nested dependent type name inside a template — a type nested in something that depends on a template parameter, such as C::const_iterator
-**THEN** precede it with the keyword typename, because the compiler otherwise assumes a nested dependent name is not a type.
+**IF** a qualified name inside a template depends on a template parameter and the surrounding grammar does not already establish that a type is required
+**THEN** precede the name with `typename` so the parser treats it as a type.
 
 ## Do
-- Write typename before the nested dependent type when declaring a variable of it, so the parser reads it as a type rather than a value.
-- Pair it with typedef for long traits names (typedef typename ... value_type value_type;) so you write the full name only once.
+- Write `typename` before a dependent qualified type in an ambiguous context, such as a `using value_type` alias to the dependent trait's `value_type` member.
+- Prefer a `using` alias for a long dependent type so the full qualified name and its disambiguation appear once.
+- Let C++20's type-only contexts do their job: when the grammar already requires a type, `typename` may be omitted. Keep it where ambiguity remains rather than applying or removing it mechanically.
 
 ## Don't
-- Don't put typename on a non-dependent name or on the template parameter itself (the C in a const C& parameter); typename is only for nested dependent type names.
+- Don't put `typename` on a non-dependent name or on the template parameter itself; it disambiguates a qualified dependent name.
 - Don't use typename in a base class list or a member initialization list, even for a nested dependent type name — it is disallowed in those two positions.
 
 ## Checklist
-- Is this a type nested inside something dependent on a template parameter, and is it preceded by typename?
+- Is this a qualified dependent name in a context where the parser cannot already know it is a type?
 - Am I wrongly adding typename to a non-dependent name or in a base-class-list or init-list position?
-- Have I used typedef typename to avoid repeating a long nested dependent type name?
+- Have I used a `using` alias to avoid repeating a long dependent type name?
 
 ## Notes
-Until the template parameter is known, the parser cannot tell whether C::const_iterator names a type or a static member being multiplied, so C++ assumes not-a-type by default; typename overrides that. The rule has one irksome exception — a base class list and a member initialization list forbid typename on the same names that otherwise require it. The typedef typename juxtaposition looks odd but follows directly from the rule.
+Until the template parameter is known, the parser may not know whether `C::const_iterator` names a type or a value, so `typename` resolves the ambiguity. A base-class list and a member-initializer list do not accept it, and C++20 recognizes additional type-only contexts where it is unnecessary. The stable rule is therefore semantic: use `typename` to disambiguate, not as punctuation before every dependent name.

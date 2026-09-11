@@ -29,7 +29,7 @@ cross_links:
 - rel: supports
   target_object_id: PAT_avoid_const_duplication_via_const_delegation
 - rel: supports
-  target_object_id: PAT_return_by_const_value_to_block_assignment
+  target_object_id: PAT_return_values_without_top_level_const
 - rel: related_to
   target_object_id: PAT_make_interfaces_hard_to_misuse
 reference:
@@ -47,7 +47,7 @@ Take a class whose interface does not distinguish between operations that observ
 
 ## Steps / Flow
 
-1. **Mark everything that should not change.** `PAT_apply_const_to_lock_invariants` owns the sweep across parameters, return values, locals, and pointer targets. Do this first and broadly: the compiler errors it produces are the inventory for everything below, and they are cheaper to read than a manual audit.
+1. **Mark everything that should not change.** `PAT_apply_const_to_lock_invariants` owns the sweep across parameters, locals, references, and pointer targets. Do this first and broadly: the compiler errors it produces are the inventory for everything below, and they are cheaper to read than a manual audit.
 
 2. *Gate.* **Decide constness by what a client can observe, not by what the bits do.** A member that touches a cache, a memoized result, or a validity flag while changing nothing a caller can see is conceptually an observer. `PAT_use_logical_constness_with_mutable` owns that judgement and the mechanism for expressing it. Taking this decision per member is what stops the sweep in step 1 from being reverted one function at a time.
 
@@ -57,7 +57,7 @@ Take a class whose interface does not distinguish between operations that observ
 
 5. *Recovery.* **When the two overloads have the same body, remove the duplication in one direction only.** `PAT_avoid_const_duplication_via_const_delegation` owns it: the non-const version calls the const one and casts the constness off the result. The reverse direction casts away a guarantee the caller relied on, and is not the same trade.
 
-6. **Decide what the return values permit.** `PAT_return_by_const_value_to_block_assignment` owns the case where a returned value has no business being assigned into, which closes a class of mistake at compile time rather than in review.
+6. **Separate protected access from produced values.** Return references or pointers to const when exposing existing state. `PAT_return_values_without_top_level_const` owns newly produced values: return them without top-level const and ref-qualify mutating operations that should work only on persistent lvalues.
 
 7. **Completion check.** Every observer is const; every const member is const for a reason you can state in terms of what a client sees; a const object supports everything a caller should be able to do with one; no pair of overloads duplicates a body; and two threads calling the same const member cannot corrupt each other.
 

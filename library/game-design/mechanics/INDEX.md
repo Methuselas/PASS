@@ -41,6 +41,7 @@
 - [Profile a Randomizer Before Committing to It](DRILL_profile_a_randomizer_before_committing_to_it.md) - drill; 0 design. Tags: mechanics, probability, randomizers, testing.
 - [Profile Serial Resolution Latency](DRILL_profile_serial_resolution_latency.md) - drill; 0 design. Tags: complexity, pacing, playtesting, throughput.
 - [Restore Meaningful Participation Before Full Fictional Recovery When Needed](PAT_restore_meaningful_participation_before_full_fictional_recovery_when_needed.md) - pattern; 0 design. Tags: campaign-cadence, consequences, participation, recovery.
+  - Variants: `Maintain Ready Alternate Characters for Expected Mortality` (context).
 - [Reuse Core Resolution Grammar Before Adding New Mechanics](PAT_reuse_core_resolution_grammar_before_adding_new_mechanics.md) - pattern; 0 design. Tags: architecture, mechanics, refactoring, resolution.
 - [Separate Purchase Price from Local Availability](PAT_separate_purchase_price_from_local_availability.md) - pattern; 0 design. Tags: access, availability, economy, scarcity, settlements.
 - [Separate Stabilization from Recovery](PAT_separate_stabilization_from_recovery.md) - pattern; 0 design. Tags: injury, medicine, persistent-state, recovery, time.

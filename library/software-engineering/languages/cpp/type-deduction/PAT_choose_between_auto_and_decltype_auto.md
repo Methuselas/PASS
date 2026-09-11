@@ -48,20 +48,20 @@ variants: []
 - Reach for `decltype(auto)` on a function whose return type must be whatever the underlying expression returns. A wrapper returning `c[i]` declared `auto` returns `int` where `c[i]` returned `int&`, so assigning through the call does not compile; declared `decltype(auto)`, it returns the reference and the wrapper is transparent.
 - Treat any extra parentheses around a returned name as a change of type, not of formatting. `decltype` on a name gives the declared type; on any other lvalue expression of type `T` it gives `T&`. So `return x;` deduces `int` while `return (x);` deduces `int&` — and in a function that means returning a reference to a local.
 - Remember that reference-ness is preserved when an array or function name is bound to a reference and lost otherwise. Passed by value, an array name decays to a pointer and its size is gone; bound to a reference parameter, the deduced type is the full array type including its extent, which is how a compile-time array-size function is written.
-- Verify a deduced type rather than assuming it, when it matters. Instantiating an undefined class template with the type produces an error message that names it exactly; a dedicated type-index library prints it accurately at run time.
+- Verify a deduced type rather than assuming it when correctness depends on the result. Prefer a focused `static_assert` with `std::same_as` or `std::is_same_v`; it checks the exact compile-time type, including references and cv-qualification, without depending on diagnostic formatting.
 
 ## Don't
-- Don't trust an IDE's type display or a run-time `typeid` name for anything subtle. Both routinely drop const and reference qualification, so the two properties that decide this choice are the two most likely to be missing from what the tool shows you.
+- Don't use a runtime `typeid` name to prove a deduced reference or top-level cv-qualification. `typeid` does not preserve those distinctions for this purpose; IDE displays are useful exploration but a compile-time assertion is the executable check.
 - Don't use `decltype(auto)` casually because it seems more precise. It preserves whatever the expression yields, including references to things that are about to be destroyed, and the failure is a dangling reference rather than a compile error.
 - Don't expect a plain `auto` parameter or return type to keep an argument's constness. By-value deduction drops const, so a copy of a const object is not const — which is correct, since the copy is a separate object, and surprising the first time it matters.
-- Don't reason about universal references as though they were rvalue references. A parameter declared `T&&` in a deduced context deduces `T` as an lvalue reference when the argument is an lvalue — the only situation in which `T` is deduced to be a reference at all.
+- Don't reason about forwarding references as though they were ordinary rvalue references. A parameter declared `T&&` in a deduced context deduces `T` as an lvalue reference when the argument is an lvalue — the only situation in which `T` is deduced to be a reference at all.
 
 ## Checklist
 - Should this name refer to the initializer, or hold a copy of it?
 - If this is a function return type, does a caller need to assign through the result?
 - Are there parentheses around the expression in a `decltype(auto)` return statement?
 - Could the expression's referent be destroyed before the deduced reference is used?
-- If the deduced type is in doubt, has it been printed by a tool that preserves const and reference qualification?
+- If the deduced type is in doubt, is there a focused compile-time assertion for the exact type?
 
 ## Notes
 The reason these two spellings exist is that deduction has to serve two different intentions, and one keyword cannot. Most of the time a declaration wants a value it owns, and dropping references and const is exactly right. Occasionally a declaration — most often a return type on a forwarding wrapper — needs to be transparent, passing through whatever the wrapped expression produced. `decltype(auto)` is that second intention made available in the places `auto` already worked.

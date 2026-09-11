@@ -39,19 +39,19 @@ variants: []
 # Reserve Capacity Up Front and Release It Deliberately
 
 ## Pattern Rule
-**IF** you are filling a growable container whose eventual size you can predict, or you have shrunk one far below the peak it reached
-**THEN** set the capacity before filling and give the excess back as its own explicit act, because growth proceeds by reallocations that invalidate everything pointing into the container, and removing elements never returns any memory at all
+**IF** you are filling a capacity-managed contiguous container such as `std::vector` whose eventual size you can predict, or it has shrunk far below a meaningful peak
+**THEN** reserve before filling and request excess-capacity reduction separately, because growth may reallocate and invalidate everything pointing into the elements while erasure or `clear()` does not reduce vector capacity
 **ELSE** where the container is small or lives briefly, the default growth policy costs a handful of reallocations and neither step earns the line it takes.
 
 ## Do
-- Keep the four steps of a reallocation in mind, since they are what you are paying for: fresh memory is allocated at some multiple of the current capacity, every element is moved across, the originals are destroyed, and the old block is released. Every iterator, pointer, and reference into the container dies at that moment.
+- Keep the reallocation work in mind: a larger block is allocated, elements are moved or copied according to their operations and the container's exception requirements, old elements are destroyed, and the old block is released. For `std::vector`, every iterator, pointer, and reference into the elements is invalidated when reallocation occurs.
 - Separate the four related member functions, which are easy to confuse. One reports how many elements are present; one reports how many the current allocation could hold; one changes the number of elements present, destroying or default-constructing as needed; and one changes only the capacity and never the element count.
 - Pick between the two strategies by what you know. If the final count is known or nearly so, ask for it once before filling. If only an upper bound is known, ask for that and trim afterwards.
-- Use the size-against-capacity comparison to predict invalidation, which is the part that is useful outside performance work. When the count is strictly below the capacity, appending cannot reallocate and therefore cannot invalidate anything.
+- Use the container's stated invalidation rules rather than a generic capacity slogan. For `std::vector`, appending while size is below capacity does not reallocate, though insertion can still invalidate iterators and references at or after the insertion point.
 - Release excess capacity with the request the container provides for it, and reach for the older copy-and-swap spelling only when working against an implementation that lacks it, or when you want to clear the container and release its memory in one move.
 
 ## Don't
-- Don't expect removing elements to give memory back. Erasing a range, or emptying the container entirely, reduces the element count and leaves the capacity where the high-water mark left it — so a container that briefly held a hundred thousand elements and now holds ten is still holding the memory for a hundred thousand.
+- Don't expect vector erasure or `clear()` to reduce capacity. Other containers have different storage models and may release nodes during erasure, so apply this card only to an interface that actually exposes size and capacity with the relevant guarantees.
 - Don't read a reservation as a guarantee that nothing will be invalidated. It removes reallocation as a cause; an insertion anywhere but the end still invalidates everything from the insertion point onward, because the elements after it have to move.
 - Don't treat a request to shrink as a command. Implementations may keep a minimum capacity or round it to a convenient size, so what you get is the smallest the implementation is willing to go given the current element count.
 - Don't reason about a string's allocations from its size alone. Short values are commonly stored inside the string object itself, so a string may perform no allocation at all until it grows past that threshold, and the threshold varies.

@@ -10,4 +10,5 @@
 - [Propagate World Assumptions Along Actual Dependencies](PAT_propagate_world_assumptions_along_actual_dependencies.md) - pattern; 0 design. Tags: causality, consequences, dependencies, worldbuilding.
   - Variants: `Derive Nonhuman Species through Ecological and Cultural Causality` (method_sequence).
 - [Spend Worldbuilding Detail Where It Changes Play](PAT_spend_worldbuilding_detail_where_it_changes_play.md) - pattern; 0 design. Tags: immersion, information-budget, relevance, worldbuilding.
+  - Variants: `Build Adventure Context Around a Focal Story Element` (method_sequence).
 - [Trace a Setting Assumption Into Play](DRILL_trace_a_setting_assumption_into_play.md) - drill; 0 design. Tags: adventure-design, consequences, dependencies, worldbuilding.

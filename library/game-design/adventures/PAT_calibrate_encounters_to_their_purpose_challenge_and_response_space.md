@@ -56,6 +56,13 @@ variants:
   when_to_use: A generated encounter is meant to preserve world uncertainty while values such as quantity, disposition, distance, or composition are explicitly left as referee-facing ranges or choices.
   when_not_to_use: The generated details are already established to the players, the procedure promises uncushioned world-state results, or calibration would become reactive protection from an unwanted outcome.
   absorbed_from_object_id: none
+- variant_id: game_design_variant_audit_encounter_challenge_against_the_partys_actual_capability_envelope
+  variant_name: Audit Encounter Challenge Against the Party's Actual Capability Envelope
+  variant_basis: method_sequence
+  difference_from_foundation: For a known party or fixed pregenerated roster, inventory the combined functional toolset that materially determines difficulty, stress-test the encounter against that capability envelope, and use unfamiliarity as part of effective difficulty without rewriting established challenge state after play begins.
+  when_to_use: The actual party is known in advance, pregenerated characters define the expected roster, or a consequential encounter needs calibration against concrete capabilities rather than level or rating alone.
+  when_not_to_use: The party is intentionally unknown, the scenario promises uncushioned world-state difficulty, or the audit would be used as permission to add or remove threats reactively after seeing who is winning.
+  absorbed_from_object_id: none
 ---
 
 # Calibrate Encounter Challenge to Purpose and Context
@@ -89,3 +96,5 @@ Encounters are broader challenge scenes rather than combat packets. Useful calib
 Published adventures demonstrate a wide valid range. *The Keep on the Borderlands* uses a navigable difficulty gradient and gives weaker groups guidance without making every location equally dangerous. *Tomb of Horrors* deliberately calibrates toward extreme player-skill challenge, preparation, caution, and accepted failure. *Queen of the Demonweb Pits* expects expert high-level play through party composition, altered environmental rules, resource suppression, tactical opposition, and system mastery. These are different challenge bands serving different purposes, not deviations from one universal balance formula.
 
 Variant `game_design_variant_calibrate_flexible_parameters_around_a_generated_encounter_premise` preserves the generated premise while using only uncommitted parameters for calibration. The boundary matters: this is construction-time tuning, not permission to rewrite established challenge state after predicting an unfavorable result.
+
+Variant `game_design_variant_audit_encounter_challenge_against_the_partys_actual_capability_envelope` calibrates against what a known group can actually do. Inventory party size, durability, spells or special abilities, equipment and consumables, defenses and immunities, movement, recovery, and habitual tactics, then test the encounter against the combined functional toolset rather than a nominal level label. A mirror-party comparison can be a diagnostic for overlooked strengths or weaknesses, but literal mirrored opposition is not required. Knowledge also changes effective difficulty: unfamiliar abilities, defenses, or vulnerabilities can consume actions and attention while players learn what works. Perform this audit during construction or adaptation; it does not override stable challenge conditions once the encounter's state has been established in play.

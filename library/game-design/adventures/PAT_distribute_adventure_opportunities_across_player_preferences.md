@@ -16,16 +16,15 @@ tags:
 - players
 - engagement
 - preferences
-- participation
 cross_links:
 - rel: related_to
   target_object_id: PAT_define_the_intended_player_before_designing_for_them
 - rel: related_to
-  target_object_id: PAT_define_encounter_response_space_by_intended_challenge
+  target_object_id: PAT_calibrate_encounters_to_their_purpose_challenge_and_response_space
 - rel: related_to
-  target_object_id: PAT_shape_adventure_pace_through_consequential_state_change
+  target_object_id: PAT_balance_character_roles_by_consequential_contribution
 reference:
-  source_title: "How To Write Adventure Modules That Don't Suck!"
+  source_title: "How to Write Adventure Modules That Don't Suck!"
   author: Mike Breault
 confidence: high
 references: []
@@ -35,34 +34,33 @@ variants: []
 # Distribute Adventure Opportunities Across Player Preferences
 
 ## Pattern Rule
-**IF** an adventure is meant for a group whose players seek meaningfully different kinds of satisfaction from play
-**THEN** treat those preferences as overlapping and changeable tendencies, then distribute meaningful opportunities across the adventure so each player repeatedly finds decisions, actions, discoveries, interactions, or rewards worth caring about
-**ELSE** when the group intentionally shares a narrow play preference, concentrate the adventure around that preference and verify the fit in play
+**IF** an adventure is meant to engage players who value different kinds of activity, payoff, or contribution
+**THEN** map prepared encounters and events against the preferences the intended group actually values, then distribute meaningful opportunities so no long stretch of play serves only one mode by default
+**ELSE** do not manufacture preference coverage when the audience deliberately wants a narrow, specialized experience.
 
 ## Do
-- Describe player preferences in actionable terms such as advancement or acquisition, exploration and discovery, interaction with fellow players, helping teammates, or destructive conflict instead of treating a named typology as a personality diagnosis.
-- Mark which prepared encounters and events offer each relevant preference something consequential to do, pursue, discover, decide, or gain, then review the whole adventure for long gaps.
-- Let one opportunity satisfy several preferences when its actions genuinely do so; a hidden location with a useful reward can serve discovery and acquisition without being split into separate content.
-- Use some decision points where different viable options appeal for different reasons, giving the group something substantive to negotiate rather than one obviously dominant route.
-- Give cooperative challenges enough shared pressure that players with different interests can still contribute toward the same immediate problem.
-- Revisit the preference map when actual play shows that a player's interests shift with mood, group composition, campaign state, or newly learned options.
+- Treat player preferences as overlapping, contextual, and capable of changing from session to session rather than as permanent identities.
+- Use any player-type taxonomy as a prompt for questions, not as proof that a person belongs to one fixed category.
+- Look for distinct reasons to care: discovery, mastery, advancement, acquisition, social interaction, tactical cooperation, competition, rescue, destruction, problem solving, or other rewards the actual group values.
+- Track the adventure at encounter or event scale and notice sequences where one participant repeatedly has little reason to contribute, choose, investigate, or anticipate a payoff.
+- Let some decision points offer alternatives that appeal for different reasons, so disagreement can arise from meaningful priorities rather than from one obviously superior route.
+- Vary encounter complexity and mode so demanding tactical or social scenes can be punctuated by simpler opportunities without making either form the universal default.
 
 ## Don't
-- Treat a player category as fixed identity or assume one person is always motivated by one kind of play.
-- Force every encounter to contain a token reward for every preference; whole-adventure coverage matters more than making each scene universal.
-- Design only around the designer's favorite activity and assume the rest of the table will remain engaged through proximity.
-- Count cosmetic flavor as engagement coverage when the player receives no meaningful decision, action, information, interaction, or reward from it.
-- Make preference tension deliberately hostile or zero-sum when ordinary disagreement over attractive options would create the intended table discussion.
+- Require every encounter to satisfy every player preference simultaneously.
+- Design only for the preferences the designer personally enjoys and assume the rest of the group will adapt.
+- Turn a descriptive preference model into a rigid personality label or a claim about what a player must enjoy tonight.
+- Add betrayal, player-versus-player conflict, or other disruptive behavior merely to check a preference box when the group has not chosen that form of play.
+- Count cosmetic participation as coverage when the player still has no meaningful decision, contribution, discovery, or payoff.
 
 ## Checklist
-- The intended group has been described by more than one relevant play preference when the table is actually mixed.
-- Each important preference has repeated opportunities across the adventure rather than one isolated concession.
-- No long sequence of prepared play leaves one participant with nothing they are likely to value or contribute to without a deliberate reason.
-- At least some multi-option decisions differ in what they offer, not only in cosmetic route or presentation.
-- Opportunities that claim to serve several preferences contain distinct reasons those players may care about them.
-- The preference map can be revised from observed play instead of being treated as a permanent label attached to each person.
+- The intended group has been described in terms of activities or payoffs they actually value rather than only demographic labels.
+- The adventure contains more than one meaningful mode of engagement when the audience itself is mixed.
+- No long mandatory sequence accidentally gives one preference all of the consequential decisions while others only observe.
+- At least some choices can be attractive for genuinely different reasons without making one option a disguised failure.
+- Preference coverage is audited across the adventure as a whole rather than forced into every individual scene.
 
 ## Notes
-A mixed table is not one average player. Different participants can value advancement, discovery, interaction with fellow players, helping the group, destructive conflict, or other satisfactions in different proportions, and the same person's mix can change from session to session. A useful design audit therefore asks what each prepared segment offers the actual group and looks for droughts, not for perfect numerical balance among abstract player types.
+Player preference models are most useful as design lenses. Their value is not in assigning permanent types but in reminding the designer that different people can approach the same adventure seeking different forms of satisfaction, and that one person can shift emphasis with mood, group composition, or circumstance.
 
-Preference differences can also create productive table interaction. When several routes or strategies are genuinely viable but appeal for different reasons, players have material to discuss, persuade around, and coordinate. That works only when the options are real; a cosmetic fork or a single dominant answer produces little negotiation no matter how many labels are attached to it.
+The adventure-level audit is deliberately coarse. A short scene can strongly favor one mode if the larger sequence gives other valued modes consequential room. The failure to avoid is a monolithic experience created because the designer never asked who each prepared situation gives something meaningful to do.

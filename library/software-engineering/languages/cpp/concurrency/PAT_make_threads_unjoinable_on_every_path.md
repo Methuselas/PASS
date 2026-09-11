@@ -46,14 +46,14 @@ variants: []
 
 ## Pattern Rule
 **IF** a thread object exists in a scope that can be left by an early return, a break, or an exception
-**THEN** guarantee it has been joined or detached before the scope ends, on every path, by giving that responsibility to an object whose destructor performs it
+**THEN** own it with `std::jthread` when possible, or another RAII type with an explicit shutdown policy, so destruction requests cooperative stop where supported and joins on every path
 **ELSE** where the thread object is destroyed immediately after a join that cannot be skipped, the guarantee already holds and no wrapper is needed.
 
 ## Do
 - Take the consequence seriously, because it is the harshest in the language's concurrency support: destroying a thread object that is still joinable terminates the program. Not undefined behaviour, not a leak — termination.
 - Understand why that was chosen, since it explains why no gentler default is coming. The two alternatives were both judged worse. An implicit join makes the destructor wait for a thread whose work is no longer wanted, producing a performance anomaly at a point in the code that contains no clue about it. An implicit detach severs the connection while the thread keeps running and keeps referring to the enclosing scope's variables, which is undefined behaviour that appears to work.
-- Wrap the thread in a type whose destructor joins or detaches according to a policy chosen at construction. That converts "every path out of this function" from a review obligation into a property of the type, which is the same move as any other resource.
-- Choose the policy deliberately rather than defaulting to join. Joining is safe and can block; detaching does not block and leaves a running thread referring to memory that is about to disappear. The right answer depends on whether the work is still wanted when the scope ends, which is a question about the program rather than the thread.
+- Prefer `std::jthread` for owned work in the C++20 baseline. Its destructor requests stop and joins, converting "every path out of this function" from a review obligation into a property of the type.
+- When `std::thread` is required, wrap it in an RAII owner whose join policy is explicit. Treat detachment as a separate lifetime design in which the thread owns or shares everything it touches, not as an easy destructor policy.
 - Declare thread data members last. Members are destroyed in reverse order of declaration, so a thread declared last is destroyed first — while the members its function may still be using are all intact.
 - Expect the same surprise from the other direction with futures. A future's destructor usually just destroys its members, but the last one referring to the shared state of a task launched asynchronously blocks until that task finishes. A destructor that sometimes blocks and sometimes does not is worth knowing about before it appears in a profile.
 
@@ -67,7 +67,7 @@ variants: []
 ## Checklist
 - Can this scope be left by an early return, a break, or an exception after the thread is created?
 - Is the join or detach performed by a destructor rather than by a statement?
-- Was the join-or-detach policy chosen, or inherited from whatever the wrapper does by default?
+- Is `std::jthread` suitable, and if not, is the alternative ownership and shutdown policy explicit?
 - Are thread members declared after the members their functions use?
 - Does any future here refer to an asynchronously launched task whose destructor may block?
 
@@ -78,6 +78,6 @@ The declaration-order point is small and worth keeping, because it is invisible 
 
 The future's blocking destructor belongs beside this rather than in a separate discussion, because both are the same category of surprise: an object whose destruction does something substantial and conditional. In both cases the fix is not to avoid the facility but to know which objects have destructors that wait, and to place them where waiting is acceptable.
 
-The library now supplies the wrapper, which changes what writing one yourself signifies. C++20's joining thread type does exactly what the hand-written version did — its destructor checks joinability and joins — so a new codebase should reach for it rather than reproduce the wrapper, and an existing hand-rolled one is a candidate for replacement rather than a thing to maintain.
+The library now supplies the usual wrapper. C++20's `std::jthread` checks joinability, requests stop, and joins in its destructor, so a new codebase should reach for it instead of reproducing that machinery. An existing hand-rolled wrapper remains justified only when its lifecycle policy differs in a way the program actually needs.
 
 Its destructor is worth reading, because it does one thing more than the hand-written version and that thing matters. It requests a stop before it joins. A wrapper that only joins will block for as long as the thread chooses to run, so a thread looping until told otherwise deadlocks the destructor; requesting the stop first gives the thread the signal it is waiting for, and then waits for it to act on it. That only helps for a thread written to check for the request — which is what makes the cooperative interruption facility part of the joining story rather than a separate feature.

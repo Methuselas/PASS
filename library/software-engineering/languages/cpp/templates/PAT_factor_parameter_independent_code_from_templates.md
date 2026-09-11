@@ -22,7 +22,7 @@ cross_links:
 - rel: related_to
   target_object_id: PAT_use_private_inheritance_judiciously
 - rel: related_to
-  target_object_id: PAT_limit_inlining_to_small_hot_functions
+  target_object_id: PAT_separate_inline_linkage_from_inlining_optimization
 reference:
   source_title: 'Effective C++, Third Edition: 55 Specific Ways to Improve Your Programs and Designs'
   author: Scott Meyers

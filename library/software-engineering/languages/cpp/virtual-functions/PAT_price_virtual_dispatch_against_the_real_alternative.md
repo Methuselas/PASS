@@ -27,7 +27,7 @@ cross_links:
 - rel: related_to
   target_object_id: PAT_optimize_for_what_the_compiler_can_prove
 - rel: related_to
-  target_object_id: PAT_limit_inlining_to_small_hot_functions
+  target_object_id: PAT_separate_inline_linkage_from_inlining_optimization
 - rel: related_to
   target_object_id: AP_design_a_customization_point
 reference:

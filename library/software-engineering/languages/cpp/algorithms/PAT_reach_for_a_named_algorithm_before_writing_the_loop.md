@@ -43,6 +43,7 @@ variants: []
 
 ## Do
 - Treat the algorithm names as a shared vocabulary rather than a catalogue to memorize. A reader meeting a call that transforms, or partitions, or replaces-if, knows the shape of what happens before reading a single argument; a reader meeting a `for` knows only that something repeats.
+- Prefer a C++20 `std::ranges` algorithm when passing the range directly, using a projection, or benefiting from constrained diagnostics. Keep the classic iterator-pair algorithm when its interface or compatibility better fits the project.
 - Let the named operation own the boundary conditions. Iteration bugs cluster at the ends of ranges and around elements being removed or inserted mid-traversal, which is exactly the code you are not writing when you call something that already handles it.
 - Move a long or complicated body into its own function even when you end up keeping the loop. Once it is a function, passing it to a per-element operation is usually a small further step, and the result reads better than either starting point.
 - Prefer the range-based loop over an iterator-driven one when no named operation fits. It removes the iterator bookkeeping that most loop bugs live in, without pretending to a name the library does not have.

@@ -1,8 +1,8 @@
 ---
 object_id: DRILL_implement_traits_based_dispatch
 object_type: drill
-name: Implement Traits-Based Compile-Time Dispatch
-target_skill: Selecting an implementation at compile time with traits and overloaded workers
+name: Compare Iterator Tag Dispatch with C++20 Concept Dispatch
+target_skill: Selecting an iterator implementation at compile time while distinguishing compatibility traits from C++20 operation constraints
 library_path:
 - software-engineering
 - languages
@@ -30,35 +30,35 @@ references: []
 variants: []
 ---
 
-# Implement Traits-Based Compile-Time Dispatch
+# Compare Iterator Tag Dispatch with C++20 Concept Dispatch
 
 ## Practice Task
-Implement an advance(iter, d) that uses iterator arithmetic for random-access iterators and iterative stepping for others, choosing the implementation at compile time.
+Implement an `advance(iter, d)` exercise twice: first with classic `std::iterator_traits` category dispatch, then with C++20 iterator concepts and `if constexpr`. Use iterator arithmetic for random-access iterators and valid stepping for the weaker cases.
 
 ## Target Skill
-Dispatching on a type's traits via overloaded worker functions instead of a runtime type test.
+Choosing compile-time dispatch from the actual protocol in use, and explaining when a compatibility trait or a C++20 concept is the right interface.
 
 ## Setup
 No special setup required.
 
 ## Instructions
-- Read the iterator's category from iterator_traits (its iterator_category), which is available during compilation, and say where the selection is established to happen before the program runs.
-- Write overloaded doAdvance workers, one per iterator category tag, each using only the operations valid for that category (+= for random access, stepping for bidirectional and input). Read each worker and check its operations against its category rather than trusting the tag in its signature.
-- Write the master advance that constructs the category tag from the traits and passes it, letting overload resolution pick the worker.
-- Compile the bidirectional case and show that it compiles.
-- Write the run-time version, or name its failure precisely — a branch that never executes must still compile — so the comparison the drill is built on actually takes place.
-- Confirm selection happens by overload resolution on the tag type, tested with an iterator whose category derives from a more refined one.
+- In the classic version, read `iterator_category` from `std::iterator_traits`, write overloaded workers, and pass the category tag from the entry point so overload resolution selects a worker during compilation.
+- Check each classic worker against its advertised operations: random access may use `+=`; bidirectional may step both directions; an input iterator may advance only forward.
+- In the C++20 version, constrain the entry point to an appropriate iterator/sentinel contract and choose the short implementation branch with `if constexpr` and standard iterator concepts.
+- Compile both versions for a pointer, a bidirectional standard iterator, and an input iterator. Include a negative-distance case only where the iterator contract permits it.
+- Write an ordinary runtime-`if` version or explain its failure precisely: a branch that is never executed must still be well-formed for the instantiated type.
+- Explain why classic tag inheritance selects a compatible weaker worker, and why the C++20 version should query the required operation rather than compare tags for equality.
 
 ## Success Check
-- The category is read during compilation and the run says where that is established, since the entire benefit rests on the selection happening before the program runs.
-- Each worker is checked for using only the operations its category provides, by reading the worker rather than trusting the tag in its signature.
-- The bidirectional case is compiled and shown to compile. This is the deliverable: the run-time alternative fails here and this one does not, and only compiling it demonstrates that.
-- The run-time version is written, or its failure is named precisely — a branch that never executes must still compile — so the comparison the drill is built on actually takes place.
-- Selection is confirmed to happen by overload resolution on the tag type, tested with an iterator whose category derives from a more refined one. That is the case where comparing categories for equality by hand would silently pick the wrong worker.
+- Both implementations compile for the three required iterator shapes, and the evidence includes which branch or overload each selected.
+- Each implementation uses only operations its stated category or concept guarantees, including the negative-distance distinction.
+- The runtime-branch failure is demonstrated or explained precisely: runtime control flow cannot discard an ill-formed template branch.
+- The comparison identifies tag dispatch as a classic-protocol compatibility technique and concepts plus `if constexpr` as the C++20 default for this closed operation choice.
 
 ## Common Failures
-- Branching at runtime with typeid, which both wastes runtime and forces the invalid += branch to compile.
-- Forgetting that the input-iterator worker also serves forward iterators through tag inheritance.
+- Comparing classic category tags for exact equality, which misses stronger categories that inherit from weaker ones.
+- Treating an input iterator as bidirectional when exercising a negative distance.
+- Constraining the C++20 version by a named tag instead of by the operation it actually needs.
 
 ## Notes
-This drills Items 47 and 48: the traits-plus-overloading dispatch is template metaprogramming — a compile-time if/else that keeps each type's code in a function using only that type's valid operations.
+This preserves the classic traits-and-overload technique because existing iterator protocols still use it, while making the C++20 decision explicit: concepts describe admissible operations, and `if constexpr` is the direct tool for a small closed compile-time branch.

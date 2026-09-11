@@ -41,7 +41,7 @@ variants: []
 ## Pattern Rule
 **IF** a function must keep its own copy of an argument, and you are considering taking the parameter by value and moving from it rather than taking a reference to const and copying inside
 **THEN** check all four conditions before doing so — the parameter is copyable, cheap to move, always copied, and copied by construction rather than assignment — and take the reference form if any of them fails
-**ELSE** where the function only reads its argument, none of this applies and reference to const is the answer.
+**ELSE** where the function only reads its argument, choose value or reference-to-const from the type's value semantics, copy cost, and need to preserve dynamic type; this sink-parameter analysis does not apply.
 
 ## Do
 - Treat it as something to consider rather than a rule, because it is never free. Taking a reference costs nothing; taking a value costs a construction. What the by-value form buys is that one signature serves lvalues and rvalues efficiently, where the reference form needs a second overload taking an rvalue reference — and the overloads double with each parameter that needs the treatment.

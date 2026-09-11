@@ -1,7 +1,7 @@
 ---
 object_id: PAT_prefer_inline_functions_to_macro_functions
 object_type: pattern
-name: Prefer inline Functions to Function-Like Macros
+name: Prefer Functions and Lambdas to Function-Like Macros
 library_path:
 - software-engineering
 - languages
@@ -29,24 +29,24 @@ references: []
 variants: []
 ---
 
-# Prefer inline Functions to Function-Like Macros
+# Prefer Functions and Lambdas to Function-Like Macros
 
 ## Pattern Rule
-**IF** you are tempted to write a function-like macro to dodge call overhead
-**THEN** write an `inline` function instead — a template if the argument types vary — so you keep the speed without the macro's evaluation and type hazards.
+**IF** you are tempted to write a function-like macro for computation or control flow
+**THEN** write a function, function template, generic lambda, or `constexpr` function instead, so arguments are evaluated once and the operation retains types, scope, and normal diagnostics.
 
 ## Do
-- Turn `#define CALL_WITH_MAX(a,b) f((a) > (b) ? (a) : (b))` into an `inline` function template `callWithMax` that takes `const T& a, const T& b` and calls `f(a > b ? a : b)`.
-- Pass by reference-to-const in the template so it works without knowing `T`, and let `inline` recover the macro's efficiency.
+- Turn `#define CALL_WITH_MAX(a,b) ...` into a function template or constrained generic lambda whose parameter policy matches the values it accepts.
+- Use `constexpr` when the operation should be available during constant evaluation. Use `inline` when its linkage rules are needed for a header definition; leave actual inlining to the optimizer.
 
 ## Don't
 - Don't accept a macro's evaluation surprises: `CALL_WITH_MAX(++a, b)` increments `a` a different number of times depending on the value it is compared against.
 - Don't lean on remembering to parenthesize every macro argument; a real function needs none of that and still honors scope and access rules, so it can even be private to a class.
 
 ## Checklist
-- Does this genuinely need to be a macro, or will an inline function do?
+- Does this genuinely need preprocessing, or will a function, template, lambda, or `constexpr` function do?
 - Could any argument be evaluated more than once when passed to the macro?
-- Would a member or private inline function express this more safely?
+- Would a member function or local lambda express the required scope more safely?
 
 ## Notes
-A function-like macro buys speed at the cost of predictability: arguments can be evaluated the wrong number of times, and the whole thing ignores scope and access. An inline function gives the same no-call-overhead performance while behaving like the real function it is — type-checked, single-evaluation, scoped. `#include`, `#ifdef`, and `#ifndef` still earn their keep, but function-like `#define` macros almost never do.
+A function-like macro does not itself guarantee speed; it performs token substitution, may evaluate arguments repeatedly, and bypasses language scope and type checking. Modern functions, templates, and lambdas expose the operation to the optimizer without those hazards. The `inline` keyword primarily changes the multiple-definition rules for a function defined in a header; it does not command the optimizer. Includes and conditional compilation still require preprocessing, but ordinary computation almost never does.

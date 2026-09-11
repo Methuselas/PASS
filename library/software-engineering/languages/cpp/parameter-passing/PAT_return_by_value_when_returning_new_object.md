@@ -20,7 +20,7 @@ tags:
 - undefined_behavior
 cross_links:
 - rel: related_to
-  target_object_id: PAT_return_by_const_value_to_block_assignment
+  target_object_id: PAT_return_values_without_top_level_const
 - rel: related_to
   target_object_id: PAT_replace_nonlocal_statics_with_local_statics
 reference:
@@ -40,7 +40,8 @@ variants: []
 ## Do
 - Return the new object by value and let the compiler's return-value optimization remove the copy where it can.
 - Construct the result directly in the return statement, giving that optimization the best chance to apply. Returning an unnamed temporary is more than a hint: since C++17 no copy or move is even *requested* in that form, so it is guaranteed rather than optimized away.
-- Keep copy and move operations declared even when you expect every call to elide them. Elision happens after the code compiles, so a type with both deleted fails to compile at the return statement and never reaches the step that would have removed the calls.
+- Distinguish guaranteed elision from optional named return-value optimization. Returning a prvalue such as `return T(args...);` constructs directly in the destination since C++17 and needs no accessible copy or move constructor. Returning a named local may use NRVO, but the function still needs an accessible move or copy fallback if NRVO is not performed.
+- Return the value without top-level `const`, preserving moves and rvalue-qualified use at the call site.
 
 ## Don't
 - Don't return a reference or pointer to a local object — it is destroyed when the function exits, leaving a dangling reference.
@@ -65,7 +66,7 @@ there. Nothing is returned because the result is already where it belongs. The f
 not need to be inlined or even in the same translation unit for this — the address travels
 with the call.
 
-Deleting a move constructor is not the same as never declaring one, and the difference bites
-here. Overload resolution on return still finds a deleted move constructor, selects it as the
-best match, and fails — so a type meant to be returned by value while copyable but not
-movable must declare no move operations at all rather than deleted ones.
+Deleting a move constructor is not the same as never declaring one, and the difference matters
+when returning a named local: the fallback overload resolution may select the deleted move and
+fail if NRVO is not performed. A directly returned prvalue is different. Since C++17 it is
+constructed in the caller's destination, so no copy or move operation is selected at all.

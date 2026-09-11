@@ -45,7 +45,7 @@ variants: []
 - Trace the reason rather than memorizing the rule, because it explains a whole family of surprises at once. An algorithm receives iterators, not a container; nothing lets it recover the container from an iterator; and only a container's own members can change how many elements it holds. Everything else here follows.
 - Picture what the call actually does: it walks the range and shifts the elements you are keeping forward over the ones you are not, then hands back an iterator to the position after the last kept element — the new logical end.
 - Pass that returned iterator and the container's real end to the range form of erase. That pairing is idiomatic enough to read as a single operation, which is what it is.
-- Reach for the free-standing removal functions where they exist, since they perform both halves and take the container, so the failure this card describes cannot arise.
+- In C++20, prefer `std::erase` or `std::erase_if` for standard containers they support. These free functions take the container and perform the complete removal; retain the erase-remove pairing when no container-aware overload fits.
 - Expect nothing of the tail beyond the new logical end. Implementations commonly leave the old values there and the standard does not require it, so the removed values may or may not still be present — and there are typically fewer of them than you removed.
 
 ## Don't

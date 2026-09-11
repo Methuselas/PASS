@@ -25,7 +25,14 @@ cross_links:
   target_object_id: PAT_construct_fortified_pictorial_city_icon_from_perimeter_and_layered_interior
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: VAR_build_front_elevation_castle_icon_from_tapered_towers_and_recessed_wall
+  variant_name: Build Front-Elevation Castle Icon From Tapered Towers and Recessed Wall
+  variant_basis: method_sequence
+  difference_from_foundation: Establish the icon's overall size with a temporary rectangle, draw a small family of slightly tapered towers with curved bases, connect them with wall sections that sit visually behind the towers by raising the wall baseline, then add simple overhanging roofs and only the few details, shadows, and highlights that survive at map scale.
+  when_to_use: Use when a compact front-elevation castle symbol needs to read clearly as a fortified place at regional or world-map scale without showing an interior city plan.
+  when_not_to_use: Do not use when the map needs an isometric or top-down fortress, when a fortified city must show interior density, or when output scale is too small for tower-and-wall separation to remain legible.
+  absorbed_from_object_id: none
 ---
 
 # Construct Pictorial Fortification By Expanding Keep Into Castle
@@ -55,3 +62,5 @@ variants: []
 
 ## Notes
 The reusable mechanism is nested complexity. A keep is already a valid fortification symbol; additional walls, towers, and a dominant keep let the same pictorial grammar scale upward instead of requiring a separate vocabulary for each rank.
+
+`VAR_build_front_elevation_castle_icon_from_tapered_towers_and_recessed_wall` is the compact frontal-symbol branch. Use a temporary size box to control the icon envelope, let tower sides flare slightly toward curved bases, and raise the connecting wall baseline so the walls read behind the foreground towers. Roof overhangs, windows, flags, hatching, color, and simple light-facing accents stay subordinate to the small-scale silhouette rather than becoming miniature architectural rendering.

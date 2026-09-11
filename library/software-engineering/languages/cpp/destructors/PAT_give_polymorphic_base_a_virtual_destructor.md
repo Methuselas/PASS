@@ -34,23 +34,25 @@ variants: []
 # Give Polymorphic Base Classes a Virtual Destructor
 
 ## Pattern Rule
-**IF** a class is a polymorphic base — clients delete or manipulate derived objects through base-class pointers or references, and it has virtual functions
-**THEN** declare its destructor virtual, so deleting a derived object through a base pointer destroys the whole object instead of leaking the derived part.
+**IF** clients may destroy derived objects through a base-class pointer
+**THEN** make the base destructor public and virtual so deletion destroys the complete object; if deletion through the base is forbidden, make the destructor protected and non-virtual instead.
 
 ## Do
-- Add a virtual destructor to any class that has at least one virtual function.
+- Make a polymorphic ownership interface explicit: a public virtual destructor permits deletion through the base, while a protected non-virtual destructor prevents that deletion without adding a new virtual slot to a non-polymorphic mixin.
 - To make an abstract base that has no other pure virtual function, declare a pure virtual destructor and still provide its definition, since derived destructors call it.
-- For a base that is inherited but never deleted through — a mixin, a template parameter a class inherits, a stateless helper — give it a **protected non-virtual** destructor. Protected stops an outsider deleting through a pointer to it; non-virtual keeps the object free of a vptr. This is the answer for the case the rule of thumb excludes, and leaving the destructor public and non-virtual leaves a legal-looking call with undefined behavior.
+- For a base that is inherited but never deleted through — a mixin, a template parameter a class inherits, a stateless helper — prefer a protected non-virtual destructor. Protected access rejects the dangerous call; non-virtual destruction is appropriate because the interface did not promise polymorphic deletion.
+- Mark a class `final` when it has virtual behavior but is not intended to be a base. That prevents a derived object from creating a deletion contract the class never offered.
 
 ## Don't
-- Don't give a virtual destructor to a class that is not meant to be a polymorphic base; the added vptr enlarges every object and breaks layout compatibility with C.
-- Don't inherit from a class whose destructor is non-virtual — including the standard string type and the STL containers — because deleting through a base pointer is undefined behavior.
+- Don't leave a public non-virtual destructor on a type intended for polymorphic use. It makes deletion through the base look valid while producing undefined behavior for a derived object.
+- Don't publicly derive from standard containers or `std::string` to create a polymorphic abstraction. They were not designed as polymorphic bases; use composition and publish the interface you actually own.
+- Don't claim a virtual destructor necessarily adds a vptr to a class that is already polymorphic. Such a class already has virtual dispatch machinery; the important cost decision applies when making an otherwise non-polymorphic base virtual.
 
 ## Checklist
-- Does this class have any virtual function, and if so is its destructor virtual?
-- Is this class genuinely a polymorphic base, or am I adding a vptr for nothing?
-- If it is a base but not a polymorphic one, is its destructor protected so nobody can delete through it?
-- Am I deriving from a type (string, a container) whose destructor is non-virtual?
+- May clients delete through the base, and does destructor access/virtuality state that answer?
+- Is the class a base at all, or should it be `final`?
+- If it is a non-owning mixin base, is its destructor protected and non-virtual?
+- Is composition a better boundary than deriving from a standard-library value or container type?
 
 ## Notes
-Deleting a derived object through a base pointer with a non-virtual destructor is undefined — typically the derived part is never destroyed, leaving a partially destroyed object that leaks. The rule of thumb is a virtual destructor if and only if the class has at least one virtual function; a gratuitous virtual destructor is as wrong as a missing one, because the vptr costs size and portability (the `TimeKeeper`/`Point` contrast). This applies only to *polymorphic* bases: non-polymorphic bases like `Uncopyable` need no virtual destructor. They do need a decision, though, and "leave it public and non-virtual" is the wrong one — a class that inherits such a base converts to it implicitly, so `delete` on that pointer compiles and is undefined. Protecting the destructor removes the call without adding the vptr, which matters most where a class inherits its configuration from template parameters: those bases are inherited constantly, deleted through never, and are often small enough that one vptr would dominate their size.
+Deleting a derived object through a base pointer with a non-virtual destructor is undefined. The durable guideline is about the ownership operation, not a count of virtual members: a base destructor should usually be public and virtual when polymorphic deletion is supported, or protected and non-virtual when it is forbidden. An already-polymorphic base already carries virtual dispatch machinery, so adding the correct destructor is primarily a semantic decision. A non-polymorphic mixin can keep its compact representation while making misuse fail at compile time through protected access.

@@ -44,11 +44,11 @@ variants: []
 **ELSE** where each thread holds its own copy of the handle, the reference-counting machinery is already thread-safe and nothing further is needed.
 
 ## Do
-- Separate the two guarantees the plain type gives you, because conflating them is the source of most of the confusion. The control block is thread-safe: reference-count adjustments are atomic and the resource is destroyed exactly once. The pointee is not, and neither is a single handle object that two threads both assign to.
+- Separate the guarantees the plain type gives you. Operations on distinct shared-pointer objects that share ownership do not race solely on their common control block; the implementation synchronizes that bookkeeping. The pointee is not thereby protected, and neither is one non-atomic handle object that two threads both modify.
 - Read the two derived rules straight off that split. Multiple threads may read one handle simultaneously; multiple threads may write to *different* handles simultaneously even when those handles share a control block. Neither permits two threads writing to the same handle.
-- Let the type carry the requirement. When the handle is an atomic shared pointer, an ordinary assignment to it will not compile, so the discipline is enforced rather than remembered — which is the whole argument for the facility over the free functions it replaces.
-- Expect the atomic version to be cheaper than a general-purpose lock around the same handle, since an implementation can specialize for this one case, often over a lightweight flag, rather than paying for synchronization the single-threaded uses would not want.
-- Ask the object whether it is lock-free before building anything on the assumption that it is. The specialization is permitted to be implemented with a lock and in practice sometimes is — one mainstream Windows toolchain reports it as not lock-free on a 64-bit target. Cheaper than a general-purpose lock is not the same as free of one, and a structure that reaches for these handles to become lock-free may quietly remain lock-based on some of its targets.
+- Let the type carry the requirement. Assignment to `std::atomic&lt;std::shared_ptr&lt;T&gt;&gt;` is itself an atomic store, and reads use its conversion or load operation, so ordinary-looking access cannot silently bypass the handle's synchronization.
+- Measure rather than assuming the atomic specialization is cheaper than a mutex. An implementation may use locks internally, and the surrounding operation may still need a larger critical section than one pointer load or store can provide.
+- Ask the object whether it is lock-free before building anything on that property. The specialization may use locks, and even a lock-free pointer update does not make a larger pointee operation or reclamation protocol lock-free.
 
 ## Don't
 - Don't rely on the free atomic functions. They were the only mechanism available for a long time, they are deprecated, and their defect is structural: nothing distinguishes a correct atomic store from a plain assignment at the point of use, so a single forgotten call is a data race that compiles cleanly and reviews cleanly.
@@ -58,7 +58,7 @@ variants: []
 ## Checklist
 - Do two threads write to the same handle object, or do they each hold their own copy?
 - If they share one handle, is its type atomic?
-- Does any code path assign to a shared handle with a plain assignment?
+- Is every concurrently shared handle access performed through the atomic object's load, store, exchange, compare-exchange, or atomic assignment/conversion interface?
 - Is the pointee itself mutated concurrently, which this addresses not at all?
 
 ## Notes

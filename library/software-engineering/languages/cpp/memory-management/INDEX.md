@@ -4,10 +4,10 @@
 
 ## Objects
 
+- [Do Not Emulate a Class-Specific new_handler with Global State](PAT_do_not_emulate_class_specific_new_handler_with_global_state.md) - pattern; 2 block. Tags: concurrency, cpp, memory_management, new_handler.
 - [Don't Let Class-Specific new Hide the Standard Forms](PAT_dont_hide_standard_new_forms.md) - pattern; 2 block. Tags: cpp, memory_management, name_hiding, placement_new.
 - [Embed the Free List in the Free Blocks](PAT_embed_the_free_list_in_the_free_blocks.md) - pattern; 2 block. Tags: alignment, allocator, cpp, data_structures, memory_management.
 - [Follow the Conventions When Writing new and delete](PAT_follow_new_delete_conventions.md) - pattern; 3 rough. Tags: allocation, conventions, cpp, memory_management.
-- [Give a Class Its Own New-Handler with a CRTP Mixin](PAT_provide_class_specific_new_handler_via_crtp.md) - pattern; 3 rough. Tags: cpp, crtp, memory_management, new_handler.
 - [Pair a Placement new with a Placement delete and Restore Hidden Forms](DRILL_pair_a_placement_new_with_placement_delete.md) - drill; 2 block. Tags: cpp, memory_management, name_hiding, placement_new.
 - [Pair Every Placement new with a Matching Placement delete](PAT_pair_placement_new_with_placement_delete.md) - pattern; 2 block. Tags: cpp, exception_safety, memory_management, placement_new.
 - [Prefer the make Functions to Direct Use of new](PAT_prefer_make_functions_to_direct_new.md) - pattern; 2 block. Tags: cpp, exception_safety, memory_management, performance, smart_pointers.

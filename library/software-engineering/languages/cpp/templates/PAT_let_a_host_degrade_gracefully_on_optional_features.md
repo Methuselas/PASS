@@ -40,28 +40,28 @@ variants: []
 
 ## Pattern Rule
 **IF** a template parameter supplies capability beyond the minimum the class requires, and you want the class to offer something built on that capability
-**THEN** write the extra member against the richer capability and require only the minimum in the contract, because a member function of a class template that nobody calls is never instantiated and so never has to compile.
+**THEN** constrain the extra member on that capability so it participates only for arguments that provide it, while the class itself requires only the minimum contract.
 
 ## Do
 - State the contract in two layers: what every argument must supply, and what an argument may additionally supply along with what the class will then offer.
-- Write the extra member as ordinary code against the richer capability. No detection, no branch, no specialization is needed for the degradation itself.
+- Express the richer capability as a named concept or a focused `requires` expression, then place that constraint on the extra member.
 - Let the extra members a parameter carries reach clients directly, where public inheritance already puts them — clients who chose that parameter get the richer interface without the class mediating it.
-- Where a client later switches to a leaner argument, read the resulting errors as the list of places that depended on the richer one. That list is what you want.
+- Where a client later switches to a leaner argument, expect the extra member to be unavailable at the call boundary with a failed constraint rather than an instantiation error from inside its body.
 
 ## Don't
 - Don't require the full capability from every argument so the class always compiles. That forces every lean implementation to supply members that do nothing, which is the interface bloat the parameters were separated to avoid.
-- Don't rely on this for anything other than uncalled member functions. What the language guarantees is that names are not looked up in an uninstantiated member; how much syntax checking happens is left to the implementation, so an unused member is not a place to keep something half-written.
+- Don't rely on delayed instantiation as the public contract. It can keep an unused body from failing, but it leaves the capability implicit and produces deeper diagnostics when a client does call it.
 - Don't leave the optional part undocumented and let clients discover it by compiler error. The two-layer contract is the interface, and only its lower layer is enforced.
 
 ## Checklist
 - Does the class compile and work when given an argument supplying only the minimum?
-- Does the extra member exist for clients who supply more, without any conditional code?
+- Does the extra member participate only for clients whose argument satisfies its declared constraint?
 - Is the optional capability written down, including what the class offers in return for it?
 - When a lean argument is substituted, do the errors land at the use sites rather than inside the class?
 
 ## Notes
-This is a consequence of the instantiation model rather than a technique layered on top of it. Because an uncalled member of a class template is not instantiated, one class can span a range of arguments from minimal to rich, and the point at which an argument becomes insufficient is the exact line where a client used something it does not supply.
+Delayed instantiation is what makes one class template able to span arguments from minimal to rich, but a C++20 constraint turns that implementation fact into an interface. The class can be instantiated with the minimum capability, while the richer member is present only when its own requirement is satisfied.
 
 The result is worth naming: a class can offer more than its contract requires without penalising the implementations that supply only the contract. The alternative designs both fail — demanding the richer capability everywhere forces empty members onto lean implementations, and offering nothing extra wastes what a rich argument brought.
 
-Modern C++ gives more direct ways to ask what an argument supports, and they are better where the class must actually branch on the answer. They do not replace this: the point here is that no branch is needed at all when the only consequence of a missing capability should be that one member is unavailable.
+No runtime or compile-time branch is needed when the only consequence of a missing capability is that one member is unavailable. A member constraint expresses exactly that and gives tools and diagnostics a contract they can inspect.

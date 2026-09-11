@@ -36,21 +36,25 @@ variants: []
 # Know the Special Member Functions the Compiler Writes for You
 
 ## Pattern Rule
-**IF** you declare a class without writing its copy constructor, copy assignment operator, destructor, or (when you declare no constructors) default constructor
-**THEN** expect the compiler to generate public inline versions on demand, and know the cases where it refuses — so copying and destruction never behave in a way you did not write.
+**IF** a class relies on implicitly declared special members
+**THEN** account for all six — default construction, destruction, copy construction, copy assignment, move construction, and move assignment — and verify whether each is generated, deleted, or suppressed before accepting the Rule of Zero result.
 
 ## Do
 - Expect a generated copy to duplicate each non-static member memberwise: a string member through its own copy constructor, an int member bit-for-bit.
+- Expect a generated move to initialize or assign bases and members from rvalues when their operations support it; an individual member may still copy if that is the viable operation.
 - Remember the default constructor is generated only when you declare no constructors at all; declaring any constructor suppresses it.
 - Know the generated destructor is non-virtual unless a base class already declares a virtual destructor.
+- Prefer the Rule of Zero: compose resource-owning members whose own special members are correct, then declare none of the six in the containing class.
 
 ## Don't
-- Don't assume a copy assignment operator is always generated: the compiler refuses when the class holds a reference member, a const member, or a base whose copy assignment is private.
+- Don't assume an implicitly declared operation is usable. It may be defined as deleted because a base or member cannot perform the corresponding operation.
+- Don't infer move support from a successful `std::move` call; overload resolution may have selected a copy operation.
 
 ## Checklist
 - Which special members will the compiler generate for this class, and which am I relying on?
-- Does a reference or const member here suppress the generated copy assignment?
+- Is any implicitly declared member defined as deleted by a base, reference, const member, or non-movable resource?
 - Do I actually want memberwise copying, or something different?
+- Can the class follow the Rule of Zero by delegating ownership to its members?
 
 ## Notes
-An empty class is not empty once the compiler adds a default constructor, copy constructor, copy assignment operator, and destructor — all public and inline, and only when used. The `NamedObject` example shows the memberwise behavior; the reference-and-const version shows the refusal, because reseating a reference is impossible and const members cannot be assigned. Knowing exactly what is generated (and when it is not) is the prerequisite for the copy-control decisions in the rest of this chapter.
+An apparently empty class still has an implicit default constructor, destructor, copy operations, and—when no declaration suppresses them—move operations. Their definitions are memberwise, and any operation may become deleted when a base or member cannot support it. The detailed suppression interactions live in `PAT_understand_special_member_generation`; this card owns the inventory and the Rule of Zero default. Knowing exactly what exists is the prerequisite for every later copy-control decision.

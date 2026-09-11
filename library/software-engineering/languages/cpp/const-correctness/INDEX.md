@@ -10,4 +10,4 @@
 - [Make a Class const-Correct](AP_make_a_class_const_correct.md) - ap; 3 rough. Tags: const_correctness, cpp, interface_design, mutable, thread_safety.
 - [Make const Member Functions Thread Safe](PAT_make_const_member_functions_thread_safe.md) - pattern; 2 block. Tags: class_design, concurrency, const_correctness, cpp, threading.
 - [Make Member Functions const for Logical, Not Bitwise, Constness](PAT_use_logical_constness_with_mutable.md) - pattern; 2 block. Tags: const, cpp, member_functions, mutable.
-- [Return by const Value to Block Accidental Assignment](PAT_return_by_const_value_to_block_assignment.md) - pattern; 2 block. Tags: const, cpp, interface_design, operator_overloading.
+- [Return Values Without Top-Level const](PAT_return_values_without_top_level_const.md) - pattern; 2 block. Tags: const, cpp, operator_overloading, value_semantics.

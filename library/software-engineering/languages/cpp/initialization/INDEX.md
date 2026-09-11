@@ -6,6 +6,6 @@
 
 - [Choose Braces or Parentheses Deliberately](PAT_choose_braces_or_parentheses_deliberately.md) - pattern; 2 block. Tags: avoiding_surprises, class_design, cpp, initialization, overloading.
 - [Convert Constructor Body Assignments to an Initializer List](DRILL_convert_constructor_assignment_to_init_list.md) - drill; 3 rough. Tags: constructors, cpp, initialization, member_initialization.
+- [Give Every Object a Defined Initial Value](PAT_manually_initialize_builtin_objects.md) - pattern; 3 rough. Tags: builtins, cpp, initialization, undefined_behavior.
 - [Initialize Members with the Initializer List, in Declaration Order](PAT_initialize_members_with_init_list.md) - pattern; 3 rough. Tags: constructors, cpp, initialization, member_initialization.
-- [Manually Initialize Objects of Built-in Type Before Use](PAT_manually_initialize_builtin_objects.md) - pattern; 3 rough. Tags: builtins, cpp, initialization, undefined_behavior.
 - [Replace Non-local static Objects with Function-Local statics](PAT_replace_nonlocal_statics_with_local_statics.md) - pattern; 2 block. Tags: cpp, initialization, singleton, static_objects.

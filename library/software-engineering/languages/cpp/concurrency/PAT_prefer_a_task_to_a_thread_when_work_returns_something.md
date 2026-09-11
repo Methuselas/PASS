@@ -47,13 +47,13 @@ variants: []
 - Weigh the two on what they give you rather than on which is more primitive. A thread hands results back through a shared variable that you must declare, protect, and synchronize; a task hands them back through a channel that is protected for you, so a task must not have a mutex added to it.
 - Treat the difference in failure behaviour as the decisive one, because it is not a matter of convenience. An exception escaping a thread's callable does not merely end that thread — it terminates the creator and the whole process. The same exception from a task is stored in the shared state and rethrown when the result is retrieved, which puts it in front of code positioned to handle it.
 - Set the failure explicitly when driving the channel by hand. Catching everything in the worker and setting the current exception on the promise is the idiom, and it turns any failure into a value the other endpoint receives.
-- Retrieve the result exactly once. A second retrieval through the same future is undefined; where several parties need the value, convert the future to its shareable form and let each hold one.
+- Retrieve the result exactly once from a plain `std::future`. `get()` releases its shared state, so `valid()` is false afterward and another state-dependent operation violates the no-state precondition (implementations commonly report `std::future_errc::no_state`). Where several parties need the value, convert it to `std::shared_future` and let each hold a copy.
 - Notice that a task does not oblige you to create a thread at all. Whether one is created is a separate decision, expressed by the launch policy, and forgetting to make it deliberately is its own hazard.
 
 ## Don't
 - Don't return results through a shared variable and a join. It works, and it requires you to declare the variable, arrange its synchronization, decide where it lives, and invent a separate channel for reporting failure — all of which arrive together with the task.
 - Don't let an exception escape a thread's callable. There is no mechanism to catch it outside that thread, so the outcome is termination of the entire program regardless of what the creator would have done with it.
-- Don't call the retrieval a second time on a plain future. It compiles and it is undefined, and the failure appears only on the path where two parties both wanted the answer.
+- Don't call `get()` a second time on a plain future. The first call consumes the shared state; test `valid()` when ownership is uncertain, and use `std::shared_future` when retrieval must be shared.
 
 ## Checklist
 - Does the caller need a value back, or only for the work to have happened?

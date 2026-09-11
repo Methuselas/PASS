@@ -46,6 +46,7 @@ variants: []
 ## Do
 - Reject the by-reference default because of what it hides rather than what it does. A closure holding a reference to a local is fine while both are alive and dangles the moment the closure outlives the scope — and with a named capture, a reader can see which object the closure's viability depends on. With the default, they have to reconstruct it from the body.
 - Reject the by-value default for a different reason: it does not do what it appears to. Referring to a data member inside a member function captures the enclosing object's address, not the member — so the closure is tied to that object's lifetime and dangles when the object dies, while looking entirely self-contained.
+- In a member function, write `this` when the closure refers to the existing object and `*this` when it needs its own object copy. Do not rely on `[=]` to capture `this` implicitly; that form is deprecated in C++20 and hides the lifetime dependency this card exists to expose.
 - Know that the by-value default also fails to make a closure self-contained in the other direction. Objects with static storage duration are not captured at all; the lambda refers to them, so the closure's behaviour changes when they do.
 - Use the general capture form to build a closure member from an expression. It lets you give the member its own name and initialize it from anything — a copy of a data member, a value computed on the spot, or an object moved in, which is the only way to get a move-only type into a closure.
 - Take the move case as the reason this form exists rather than as an extra. Before it, moving an object into a closure meant writing the function object by hand or using a bound call as a workaround; now the capture states the member's name and its initializer, and moving is just one of the initializers available.
@@ -60,6 +61,7 @@ variants: []
 ## Checklist
 - Does this capture clause name each captured entity, or use a default mode?
 - If the lambda is inside a member function, is it capturing a member or the enclosing object?
+- Is `this` versus `*this` explicit, and does that lifetime or copy behavior match the callback?
 - Will this closure outlive the scope that created it — stored, registered, or returned?
 - Does the closure refer to anything with static storage duration, and is that intended?
 - Is anything being copied into the closure that should have been moved?

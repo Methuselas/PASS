@@ -49,7 +49,7 @@ variants: []
 - Expect a declared destructor to cost you move support silently. This is the common case in practice, because destructors get added for tracing, for logging, or to be virtual, and the class quietly stops being movable — every "move" then resolves to a copy, correctly and slowly.
 - Read a memberwise move as a request rather than a guarantee. Members and base classes that support moving are moved; those that do not are copied, and the code compiles either way. A class can therefore be nominally movable and copy most of its state.
 - Say `= default` when the generated behaviour is what you want and something else has suppressed it. It documents the intent, costs nothing, and is the fix for a class that acquired a destructor and lost its moves.
-- Take the Rule of Three seriously in its C++11 form. If a class needs any of a destructor, a copy constructor, or a copy assignment operator, it is managing something, and the questions of how it should move and whether it should be copyable both become yours to answer explicitly.
+- Apply the Rule of Zero first. If a class nevertheless needs a custom destructor, copy operation, or move operation, treat that as a Rule-of-Five review: decide all ownership and transfer operations explicitly.
 - Treat a declared move operation as a decision to make the class uncopyable. Declaring either move operation causes the copy operations to be deleted, which is usually right for a move-only resource holder and is worth being deliberate about.
 
 ## Don't

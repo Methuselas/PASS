@@ -30,7 +30,14 @@ cross_links:
   target_object_id: PAT_make_climaxes_converge_accumulated_play_state
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_escalate_through_causal_setbacks_instead_of_steady_success
+  variant_name: Escalate Through Causal Setbacks Instead of Steady Success
+  variant_basis: method_sequence
+  difference_from_foundation: Interleave reversals, partial victories, defeats, costly choices, or lost support with forward progress so each setback changes the playable state and forces a new strategy instead of merely delaying the same objective.
+  when_to_use: A multi-stage adventure feels like a staircase of successive wins and would benefit from sharper tension, recovery, reprioritization, or renewed determination while preserving continued agency.
+  when_not_to_use: The setback would amount only to arbitrary bad luck, erase disproportionate investment, remove meaningful response options, or repeat a frustration pattern the intended players do not want.
+  absorbed_from_object_id: none
 ---
 
 # Shape Adventure Pace Through Consequential State Change
@@ -67,3 +74,5 @@ variants: []
 
 ## Notes
 Adventure pace is an emergent property of both design and table behavior. A designer can control how often meaningful information, choices, risks, resources, relationships, and objectives are allowed to change, but cannot dictate how quickly a particular group will talk, deliberate, joke, investigate, or resolve procedures. Designing for consequential change creates usable pressure and recovery without confusing motion with progress.
+
+Variant `game_design_variant_escalate_through_causal_setbacks_instead_of_steady_success` uses reversals as part of the adventure's pressure rhythm instead of assuming every intermediate beat should be a narrow victory. A useful setback changes what the players can protect, pursue, spend, trust, or attempt next: a costly win can consume resources needed for the larger goal, a missed deadline can close one opportunity while opening another problem, a defeated party can retreat and prepare against a previously overwhelming foe, or lost support can force a new route. Prefer setbacks that players can trace to an established choice, missed opportunity, opponent response, or known condition when the reversal is meant to feel earned. Pure bad luck can create short-term excitement, but it is a weak substitute for a consequential state change when the design is asking players to learn from or respond to failure.

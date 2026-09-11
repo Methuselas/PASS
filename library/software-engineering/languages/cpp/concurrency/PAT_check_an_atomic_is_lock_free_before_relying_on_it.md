@@ -48,20 +48,20 @@ variants: []
 **ELSE** where you want atomicity for correctness and have no requirement about how it is achieved, the implementation's choice is its own business and this check is noise.
 
 ## Do
-- Know which guarantee you actually have. Exactly one atomic type — the atomic flag — is guaranteed lock-free by the standard. Everything else may be a mutex wearing an atomic interface, and on the popular architectures usually is not, which is precisely what makes the assumption easy to carry unexamined onto an architecture where it fails.
-- Prefer the compile-time check to the runtime one when you can, because it answers a stronger question. The runtime query tells you about this object on this machine; the constant expression tells you the type is lock-free on *every* platform the executable might run on, and it is available to static assertions and to conditional compilation.
-- Understand why a user-defined atomic type usually is not lock-free, since the requirements point at the answer. Such a type must have a trivial copy assignment operator, no virtual functions and no virtual bases, and must be bitwise comparable so the raw memory operations can be applied to it. Types that satisfy all that and are no larger than a machine word tend to get hardware atomics; larger ones tend to get the mutex.
-- Check those requirements at compile time with the type traits rather than discovering them from a compiler error, since the traits for trivial copyability, triviality, and polymorphism answer exactly the questions the requirements ask.
+- Know which guarantee you actually have. `std::atomic_flag` is guaranteed lock-free; other atomic specializations may or may not be. Common scalar atomics are often lock-free on mainstream targets, but neither popularity nor object size is a portable guarantee.
+- Prefer `std::atomic&lt;T&gt;::is_always_lock_free` when the design requires a compile-time guarantee for that specialization on the target implementation. Use `object.is_lock_free()` when the implementation can decide per object or at runtime. Neither result should be extrapolated from one build target to every supported target.
+- Check whether a custom `std::atomic&lt;T&gt;` is permitted before asking whether it is lock-free. Under the C++20 floor, `T` must be trivially copyable and meet the required copy/move construction and assignment properties; enforce the properties relevant to a generic interface with constraints or `static_assert` and let the standard-library declaration diagnose unsupported types.
+- Keep representation concerns separate from lock-freedom. Padding bits and multiple value representations can affect compare-exchange behavior even for a permitted `T`; they do not create a general rule that an atomic object must be "bitwise comparable."
 
 ## Don't
 - Don't equate "atomic" with "lock-free". They are different properties: atomicity says the operation is indivisible, lock-freedom says the mechanism achieving that guarantees system-wide progress. An atomic implemented over a mutex is still perfectly atomic.
 - Don't rely on a check performed only on your development machine. The runtime query is honest about the machine it runs on and says nothing about the target, which is the platform where the property mattered.
-- Don't overlook that lock-free is expected to imply address-free. Operations that are genuinely lock-free are atomic with respect to other processes touching the same location, which is what makes them usable across shared memory — a mutex-backed implementation is not.
+- Don't infer interprocess suitability from `is_lock_free`. Shared-memory layout, process-shared synchronization guarantees, object lifetime, and the platform ABI are separate requirements that the standard atomic query does not establish.
 
 ## Checklist
 - Does anything here depend on lock-freedom rather than merely on atomicity, and what would break without it?
 - Is the check the runtime query or the compile-time constant?
-- If a user-defined type is being made atomic, does it meet all three requirements, and how large is it?
+- If a custom type is being made atomic, is the specialization permitted and are its representation constraints understood?
 - Do all target architectures answer the same way?
 
 ## Notes
@@ -69,4 +69,4 @@ The gap this closes is between what the name promises and what the standard guar
 
 Where it matters is narrow and worth stating, because otherwise this reads as ceremony. It matters when a thread being suspended mid-operation would be unacceptable — a signal handler, a real-time deadline, code shared between processes through a mapped region — and it matters when the atomic is the whole point of a non-blocking algorithm, since an internal mutex silently converts that algorithm into a locking one with worse performance than an honest lock.
 
-The user-defined-type requirements read as arbitrary restrictions until you see what they are for: they are the conditions under which the implementation can treat the object as a bag of bits and use a hardware instruction on it. A virtual function means a hidden pointer, a non-trivial copy means the copy has meaning beyond the bits, and neither is something a compare-and-exchange instruction can respect.
+The custom-type restrictions make atomic operations definable over an object's representation, but they do not promise a hardware instruction. An implementation can accept the type and still use a non-lock-free mechanism. Treat eligibility, representation behavior, and progress guarantees as three questions rather than one size-based heuristic.

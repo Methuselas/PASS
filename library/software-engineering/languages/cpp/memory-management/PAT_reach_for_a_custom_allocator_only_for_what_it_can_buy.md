@@ -47,7 +47,7 @@ variants: []
 - Establish the motivation by measurement rather than by suspicion when the reason is performance. That the default is too slow, wastes space, or fragments is a finding, and the other three motivations are facts about the deployment rather than performance claims at all.
 - Keep the distinction between the container and its contents in view, because it is the one people get wrong. Declaring a container that allocates from a special region puts its *elements* there; the container object is an ordinary variable wherever you declared it. Putting the container there as well means acquiring that memory yourself, constructing the container in place, and later destroying it explicitly and releasing the memory — four manual steps worth avoiding unless the container itself genuinely has to be shared.
 - Expect two surprises in the interface if you compare it to the raw allocation function. It is passed a count of objects rather than a count of bytes, so the multiplication by element size is yours to do; and its return type names the element type even though nothing has been constructed in that storage yet, so the caller still has to construct.
-- Remember that the node-based containers never allocate the element type at all. A linked list of some type needs storage for nodes containing that type, so the allocator it actually uses is derived from the one you supplied rather than being the one you supplied — which is why a custom allocator is asked to support that derivation, and why watching for allocation calls that never arrive is not a sign of a bug.
+- Remember that node-based containers allocate an internal node type rather than a bare element. `std::allocator_traits` rebinds the supplied allocator to that internal type, so instrumentation attached only to assumptions about direct element allocation can misread what the container is doing.
 
 ## Don't
 - Don't write one because the default allocator has a reputation. It is a general-purpose allocator and general-purpose allocators are good; the cases where a special-purpose one wins are cases where you know something about the allocation pattern that the general one cannot.
@@ -59,11 +59,11 @@ variants: []
 - If it is performance, what measurement established it?
 - Do the elements need to be in the special region, or the container object as well?
 - Would a standard memory resource cover this without a new template?
-- If a custom allocator is genuinely needed, does it support the derivation node-based containers require?
+- If a custom allocator is genuinely needed, does it satisfy allocator-traits rebinding and propagation requirements for the target containers?
 
 ## Notes
 The four motivations are the durable part of this and they have aged well: drawing from shared memory so several processes can reach the elements, drawing from a particular heap so that objects used together sit near each other, dropping thread-safety machinery in a program that is single-threaded, and beating a general-purpose allocator on a pattern you understand and it does not.
 
-Almost everything else Meyers records about allocators has been overtaken, and the direction of travel is worth knowing because it inverts his advice. He documents at length that portable allocators cannot hold state, that the pointer and reference type names are decorative because implementations may ignore them, and that the derivation mechanism must be supplied by hand. Stateful allocators are supported now, the type names are honored so that non-raw pointer representations work, and the traits mechanism supplies the derivation for you.
+Almost everything else Meyers records about allocators has been overtaken, and the direction of travel is worth knowing because it inverts his advice. He documents at length that portable allocators cannot hold state, that pointer-related type names are decorative, and that rebinding machinery must be supplied by hand. Stateful allocators are supported now, fancy-pointer support is part of the allocator model, and `std::allocator_traits` supplies standard rebinding machinery. C++17 polymorphic allocators and memory resources cover many runtime-selected arena and lifetime cases under the C++20 floor.
 
 The confidence on this card is deliberately lower than its neighbors. The motivations are solid, but allocator mechanics have been reworked more than once, and anything specific about how one is written should be checked against the current standard rather than taken from here.

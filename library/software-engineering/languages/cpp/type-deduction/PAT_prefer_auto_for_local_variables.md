@@ -52,7 +52,7 @@ variants: []
 - Count the refactoring benefit as real. Change a function's return type from `int` to `long` and every `auto` call site follows on the next compile; every explicitly typed call site has to be found.
 
 ## Don't
-- Don't initialize an `auto` variable with braces unless you want a `std::initializer_list`. This is the single point where `auto` deduction differs from template deduction: `auto x{27}` and `auto x = {27}` both declare a `std::initializer_list` of int, not an `int`. It is the standard accident of the uniform-initialization habit, and it is why some developers brace only where they must.
+- Distinguish the two braced `auto` forms. In the C++20 baseline, `auto x{27}` deduces `int`, while `auto x = {27}` deduces `std::initializer_list` of int; direct-list deduction also requires exactly one element. Use the spelling that expresses the intended type rather than treating all braces alike.
 - Don't expect that rule inside a deduced return type or a lambda parameter. Those use *template* deduction, where a braced initializer deduces nothing at all — so a function returning `{ 1, 2, 3 }` does not compile.
 - Don't assume the deduced type is the one the expression appears to produce. Where the initializer yields an invisible proxy, `auto` deduces the proxy, which is a separate decision with its own remedy.
 - Don't read the loss of a visible type name as a loss of information. Knowing that something is a container, a counter, or a smart pointer is usually enough, and with a well-chosen variable name it is already on the page.
@@ -62,7 +62,7 @@ variants: []
 - Is the declared type exactly what the initializer produces, including const and reference qualification?
 - In a range-based loop over an associative container, does the loop variable's type match the element type?
 - Would a change to the initializer's type require editing this declaration?
-- Is the initializer braced, and did you want a `std::initializer_list`?
+- Is the initializer direct-list or copy-list initialized, and does its distinct `auto` deduction produce the intended type?
 
 ## Notes
 The two failure modes this prevents are worth separating because they fail differently. An uninitialized variable is a defect that may or may not manifest. A type mismatch between a declaration and its initializer is silent and legal — the compiler inserts a conversion, and the result is a portability difference, an unwanted copy, or a reference bound to a temporary. `auto` removes the second class entirely, because there is nothing for the initializer to be converted *to*.

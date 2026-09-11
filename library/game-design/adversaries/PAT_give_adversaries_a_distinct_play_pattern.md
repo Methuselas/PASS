@@ -21,12 +21,23 @@ cross_links:
   target_object_id: PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
 - rel: related_to
   target_object_id: PAT_scale_npc_and_adversary_detail_to_their_role_in_play
+- rel: related_to
+  target_object_id: PAT_make_misdirection_playable_rather_than_arbitrary
+- rel: related_to
+  target_object_id: PAT_give_high_consequence_risks_a_learnable_information_basis
 reference:
   source_title: Designing TTRPGs For Dummies
   author: Martin Buinicki
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: game_design_variant_mutate_a_familiar_adversary_around_a_recognition_anchor
+  variant_name: Mutate a Familiar Adversary Around a Recognition Anchor
+  variant_basis: method_sequence
+  difference_from_foundation: Preserve enough of a familiar adversary's baseline identity for players to recognize what they are facing, then alter one or a coherent cluster of consequential traits and propagate those changes into mechanics, behavior, and perceivable evidence so prior knowledge becomes useful but incomplete rather than simply false.
+  when_to_use: A familiar creature or opponent has become routine and the design needs renewed uncertainty without discarding the recognition, expectations, or existing rules that make the baseline easy to understand.
+  when_not_to_use: The change is only cosmetic, the encounter depends on stable known properties that should remain reliable, or a hidden change would invalidate a high-consequence decision without a meaningful basis to notice, test, or learn it.
+  absorbed_from_object_id: none
 ---
 
 # Give Adversaries a Distinct Play Pattern
@@ -59,3 +70,6 @@ variants: []
 
 ## Notes
 A distinctive adversary should change decisions more than it changes rules. A rusting touch, deceptive disguise, unusual defense, predatory behavior, or clever use of ordinary abilities can make a weak creature more memorable than a numerically stronger one. Distinctiveness and difficulty are separate: the goal is a recognizable pattern of interaction, not simply a larger stat block.
+
+
+Variant `game_design_variant_mutate_a_familiar_adversary_around_a_recognition_anchor` uses familiarity itself as design material. Keep a recognizable anchor, then change a trait such as scale, age, anatomy, offense, defense, special capability, intelligence, magic, disposition, equipment, or altered state. Follow the consequences through: a size change may alter durability, reach, or numbers; greater intelligence should change planning and tactics; wielded gear should actually enter play; a changed defense can have a sensory tell or produce consistent feedback when tested. The result should still read as a transformed version of the known adversary rather than an unrelated creature wearing a familiar name. Surprise can be part of the payoff, but use the adventure's information and risk patterns to keep consequential deviations learnable rather than arbitrary.

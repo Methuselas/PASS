@@ -40,14 +40,14 @@ variants: []
 
 ## Pattern Rule
 **IF** you need to pass the contents of a container to an interface that takes a pointer and a length, or fill a container from one
-**THEN** go through the growable array, which is the only container whose storage is laid out the way such an interface expects — take its data pointer and its element count, guarding the empty case — and route every other container's contents through one on the way in or out
-**ELSE** where the interface is one you also control, take a non-owning view of contiguous memory instead and neither side has to spell out a pointer and a count.
+**THEN** use contiguous storage such as `std::vector`, `std::array`, or `std::basic_string` and pass `.data()` with the correct element count, adapting other containers through contiguous storage when necessary
+**ELSE** where the C++ interface is under your control, accept `std::span` (or `std::string_view` for read-only character data) so pointer and extent travel together.
 
 ## Do
-- Guard the empty case explicitly, because it is the one thing here that is undefined rather than merely awkward. Subscripting element zero of an empty container to take its address has no defined meaning, so test for emptiness before making the call.
-- Use the string's own C-string accessor rather than the address of its first character. It is defined even for an empty string, where it yields a pointer to a terminator, and it guarantees the terminator that the container's raw storage is not obliged to carry.
-- Pass a pointer to const unless you specifically intend the call to write. For a string that is the only defensible direction, since the accessor is permitted to hand back a pointer to a formatted copy rather than to the object's own storage.
-- Let a C routine write into a growable array's storage when you need it to, on one condition: it must not change how many elements there are. Size the container first, pass its data and its capacity, then set the element count from whatever the routine reports it wrote.
+- Use `.data()` instead of `&container[0]`. Calling `.data()` on an empty standard contiguous container is valid; whether a C API accepts that pointer with a zero count is part of that API's contract and may still require an adapter.
+- Use `.c_str()` when the C function requires a null-terminated read-only string, and `.data()` with an explicit size when embedded nulls or binary character data are allowed. Since C++17, non-const string `.data()` exposes writable contiguous storage for existing characters.
+- Pass a pointer to const unless the call is documented to write.
+- Before a C routine writes into a vector or string, resize it to the number of actual element objects the routine may write and pass `.size()`, not merely `.capacity()`. Afterward, shrink to the reported count after validating that count does not exceed the supplied size.
 - Bridge in both directions through a growable array. To fill some other container from such an interface, let it fill one of these and then construct the real container from the resulting range; to send some other container's contents out, copy them into one first and pass that.
 - Read the non-owning view in the ELSE above as carrying the extent, not as checking it. Taking one is what stops a sequence parameter from decaying to a bare pointer and losing its length, so the callee can size what it was given instead of being told separately or guessing — that is the whole of what it buys. Indexing past the end of such a view is undefined exactly as it is for the pointer it replaced. It removes the class of bug where the length is wrong because it travelled separately from the data; it does not remove the class where the index is wrong.
 
@@ -58,15 +58,15 @@ variants: []
 - Don't hand out a container carrying an invariant to something that may reorder it. A sequence kept sorted so it can be searched is still sorted only if the routine you passed it to left it that way, and re-establishing that is your problem after the call returns.
 
 ## Checklist
-- Is the container checked for emptiness before its data pointer is taken?
+- Does the C API define what pointer it accepts when the count is zero?
 - Is the parameter a pointer to const, and if not, what justifies the write?
-- If the routine writes, is the container sized beforehand and its element count set afterwards from what the routine reported?
+- If the routine writes, are elements alive for the whole writable range, and is the reported count validated before resizing?
 - Could the data contain an embedded null, and does the receiving side care?
 - Does the container carry an invariant that the call might break?
 
 ## Notes
 The whole technique rests on one guarantee — that this container's elements occupy contiguous memory, exactly as an array's do — which is why every other container has to be routed through one. That guarantee is what makes the container the interoperability point for the whole library rather than merely one option among several.
 
-Two of Meyers's cautions have since been resolved and are worth not carrying forward. Strings are now guaranteed contiguous as well, so his warning that their storage may be scattered no longer applies; and both containers now expose a named accessor for their data pointer, which is clearer than taking the address of the first element and, for the empty case, better behaved.
+Two of Meyers's cautions have since been resolved and are worth not carrying forward. Strings are guaranteed contiguous, and standard contiguous containers expose `.data()`, which avoids the undefined `&v[0]` expression on an empty vector. Empty still belongs in the boundary contract: a valid zero-length C call may accept the returned pointer, require null, or require a non-null sentinel.
 
-Where you control both sides of the call, the modern framing is different in kind rather than in detail. A non-owning view over contiguous memory carries the pointer and the length as one object, so the count cannot be passed wrongly and the empty case needs no special handling — which removes most of what this card is defending against. The card's advice is for the boundaries you do not control, and those are the ones that last.
+Where you control the C++ side, `std::span` carries a pointer and extent as one object; `std::string_view` does the same for read-only character sequences. Neither owns storage or makes indexing checked, so the source lifetime and bounds remain obligations. The raw pointer-and-count advice is for ABI boundaries that C must be able to express.

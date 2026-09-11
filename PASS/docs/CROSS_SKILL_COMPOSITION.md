@@ -145,7 +145,8 @@ recipe.
 ## Skillset Memory
 
 Auxiliary card presence does not bundle the foreign domain's Skillset Memory.
-Memory is empirical, domain-scoped state and is not part of the executable card
+Memory is domain-scoped learned and calibrated state plus its training evidence;
+it is not part of the executable card
 closure. The first implementation continues to ship memory only for domains
 owned by the release. Any future cross-skill memory composition requires a
 separate explicit decision.

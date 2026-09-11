@@ -67,10 +67,7 @@ The prose after each lead is this file's own.
   Attribute a failure before authoring: a missing reusable decision may justify a
   Pattern, and a missing reusable action orchestration may justify an AP; retrieval,
   application, continuity, reference, tool, and interface failures do not.
-- **Skillset Memory records what happened; it is never canon and is never copied
-  into canon.** Empirical state lives in `memory/<domain>/`. Cards do not carry
-  it and entrypoints do not inline it; an observation that appears to belong
-  everywhere goes through promotion review instead.
+- **Skillset Memory separates evidence from what the skill learned; it is never canon and never overrides canon.** Compact current state lives in `memory/<domain>/`: `training_result` records an observed outcome, while `learned_principle` records the durable transferable lesson retained from evidence. `training_history.jsonl` preserves the underlying events. Cards remain the authoritative executable knowledge; memory may motivate promotion review but must not replace its owner.
 - **An invalid run is never evidence about a capability.** If the run failed
   before the capability was exercised, record it in `training_history.jsonl` with
   a reason and attribute it to the tool, controller, or package that failed. It

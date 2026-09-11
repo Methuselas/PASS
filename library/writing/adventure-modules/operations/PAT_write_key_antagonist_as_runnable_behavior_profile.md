@@ -15,13 +15,15 @@ foundation_object_id: writing_adventure_modules_write_context_for_interpretive_h
 tags:
   - adventure_modules
   - antagonists
-  - villains
-  - game_master
+  - npc
+  - behavior
   - live_use
-cross_links: []
+cross_links:
+  - rel: related_to
+    target_object_id: writing_adventure_modules_write_generative_frame_for_unscripted_scenes
 reference:
-  source_title: "How To Write Adventure Modules That Don't Suck!"
-  author: "Casey W. Christofferson"
+  source_title: "How to Write Adventure Modules That Don't Suck!"
+  author: Casey W. Christofferson
 confidence: high
 references: []
 variants: []
@@ -30,34 +32,34 @@ variants: []
 # Write a Key Antagonist as a Runnable Behavior Profile
 
 ## Pattern Rule
-**IF** an important antagonist may need to respond across conversation, investigation, pursuit, combat, retreat, or recurrence rather than perform one fixed scene
-**THEN** give the facilitator a compact behavior profile that combines outward portrayal, current motive, triggers and offers, preferred tactics and fallback, useful secrets or leverage, loyalty limits, and the capabilities needed to support those choices
-**ELSE** use a lighter stat-and-role description for transient opposition whose individual judgment will not materially affect play
+**IF** an antagonist's individual judgment, negotiation, pursuit, retreat, or recurring interference can materially change an adventure
+**THEN** write a compact live-use profile that gives the operator portrayal cues, current motives, triggers, offers, preferred tactics, fallback behavior, useful secrets or leverage, loyalty limits, and the capabilities needed to carry those choices out
+**ELSE** use a lighter stat block or role note when the opposition has no meaningful individual decisions to make
 
 ## Do
-- Give the antagonist a few outward cues that make portrayal easy: how they act, speak, move, present themselves, or disguise their intentions.
-- State what the antagonist currently wants and what conditions make them attack, bargain, lie, flee, call for help, prepare, or change plans.
-- Record characteristic tactics or a standard operating procedure, including preparation and a plausible fallback when the preferred plan fails.
-- Note secrets, passwords, knowledge, relationships, valuables, favors, or other leverage the antagonist could trade, conceal, exploit, or reveal.
-- Distinguish loyalty from absolute obedience by naming relationships, interests, or survival limits that can override allegiance.
-- Include only enough statistics, equipment, powers, and resources to make the written behavior executable at the table.
+- Give the operator a few outward cues for how the antagonist speaks, moves, presents themself, or disguises intent so portrayal can begin immediately.
+- State what the antagonist wants now and which events, threats, insults, opportunities, or losses are likely to change their behavior.
+- Record the antagonist's normal operating procedure in conflict, including preparation, opening move, preferred pressure, and a fallback or exit when the first plan fails.
+- List bargains, bribes, threats, secrets, passwords, locations, relationships, or other leverage the antagonist can plausibly use when violence is not the only live option.
+- Distinguish loyalty from obedience by stating whom or what the antagonist protects, betrays, abandons, or values when interests collide.
+- Keep mechanical capabilities beside the behavior they enable so the operator does not have to reverse-engineer tactics from a disconnected stat block.
 
 ## Don't
-- Treat a stat block, equipment list, or backstory alone as sufficient instruction for how a major antagonist behaves now.
-- Write one cinematic sequence that assumes the antagonist will survive, escape, betray, or return regardless of what the players accomplish.
-- Protect a recurring antagonist by withholding legitimate consequences when the characters successfully defeat, capture, expose, or outmaneuver them.
-- Add biography that never changes portrayal, choice, leverage, tactics, or a facilitator decision.
-- Make every antagonist equally elaborate; minor opposition does not need a recurring villain's behavior profile.
+- Treat attributes, powers, and equipment as a complete personality or decision model.
+- Bury the usable behavior under a long biography that never tells the operator what the antagonist does under pressure.
+- Write one scripted sequence as though the antagonist will repeat it regardless of what the protagonists discover or prevent.
+- Give tactics without the motive or conditions that explain when those tactics are appropriate.
+- Turn every named foe into a full profile when the adventure only needs a simple combatant or messenger.
 
 ## Checklist
-- The facilitator can portray the antagonist in a first conversation without inventing a personality from the stat block.
-- At least one motive and one trigger explain how the antagonist changes behavior when circumstances change.
-- The profile states a preferred tactic or operating procedure and at least one fallback or exit condition when that plan stops working.
-- The antagonist has any relevant secrets, offers, or leverage available for noncombat interaction rather than only attack routines.
-- Loyalty and survival behavior can be resolved from written information instead of a predetermined plot outcome.
-- Every listed capability supports something the antagonist may actually attempt in play.
+- The operator can portray the antagonist before consulting a biography.
+- The antagonist has a current objective and at least one condition that can change their plan.
+- Conflict guidance includes a preferred approach and a fallback, not only a list of powers.
+- At least one noncombat lever is documented when the fiction gives the antagonist something credible to offer, conceal, or threaten.
+- Loyalty boundaries are clear enough to adjudicate betrayal, retreat, surrender, or cooperation without inventing a personality on the spot.
+- Every emphasized capability has an identifiable use in the antagonist's behavior profile.
 
 ## Notes
-A memorable villain is not only a stronger opponent. The facilitator needs enough operational information to decide what that person does when the players approach from an unexpected angle. Personality makes portrayal recognizable; motivation and triggers explain changes in behavior; tactics reduce cognitive load during conflict; secrets and offers make bargaining possible; and loyalty limits keep recurrence from becoming plot armor.
+A memorable antagonist is not merely a stronger encounter. The manuscript has to make that person runnable when the operator is simultaneously managing player choices, other actors, and rules. Compact behavioral state reduces that load by converting characterization into decisions the operator can actually execute.
 
-This profile is deliberately narrower than a general NPC dossier. Use it when an antagonist's individual judgment is part of the adventure's live machinery. A one-scene guard or disposable creature can remain compact, while a recurring assassin, rival advisor, conspirator, or other consequential foe deserves enough behavior state to survive unscripted interaction without requiring the facilitator to invent motives after the fact.
+The profile should remain conditional rather than predictive. Preparation and preferred tactics describe what the antagonist tries when circumstances permit; triggers, leverage, and fallbacks explain how that plan changes when the protagonists interfere. Biography is useful only insofar as it clarifies those live choices.

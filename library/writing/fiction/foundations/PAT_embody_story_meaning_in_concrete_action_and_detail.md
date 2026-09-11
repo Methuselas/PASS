@@ -3,9 +3,9 @@ object_id: writing_fiction_embody_story_meaning_in_concrete_action_and_detail
 object_type: pattern
 name: Embody Story Meaning in Concrete Action and Detail
 library_path:
-  - writing
-  - fiction
-  - foundations
+- writing
+- fiction
+- foundations
 stage_binding: 2 block
 lane_fit: skill
 foundation_role: specialization
@@ -13,26 +13,37 @@ routing_class: specialized
 specialization_axis: genre
 foundation_object_id: none
 tags:
-  - fiction
-  - meaning
-  - theme
-  - concrete_detail
-  - dramatic_action
+- fiction
+- meaning
+- theme
+- concrete_detail
+- dramatic_action
 cross_links:
-  - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
-  - rel: related_to
-    target_object_id: writing_balance_symbols_between_cliche_and_obscurity
-  - rel: related_to
-    target_object_id: writing_fiction_use_specific_sensory_details_to_imply_larger_conditions
-  - rel: related_to
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+- rel: related_to
+  target_object_id: writing_replace_abstractions_with_specific_sensory_images
+- rel: related_to
+  target_object_id: writing_balance_symbols_between_cliche_and_obscurity
+- rel: related_to
+  target_object_id: writing_fiction_use_specific_sensory_details_to_imply_larger_conditions
+- rel: related_to
+  target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: writing_fiction_variant_make_literal_mechanics_generate_meaning
+  variant_name: Make Literal Mechanics Generate Meaning
+  variant_basis: method_sequence
+  difference_from_foundation: Choose a real physical, technical, bodily, occupational, ritual, or procedural system
+    whose actual constraints can enact the thematic relation, then let meaning emerge from what characters must
+    literally do before explaining the abstraction.
+  when_to_use: Work, craft, technology, ritual, bodily process, environment, or another concrete procedure is central
+    enough that its mechanics can change decisions and carry thematic pressure at the same time.
+  when_not_to_use: The procedure exists only to illustrate a thesis, its mechanics are inaccurate or irrelevant to the
+    action, or explanation would overwhelm the human situation the process is supposed to intensify.
+  absorbed_from_object_id: none
 ---
 
 # Embody Story Meaning in Concrete Action and Detail
@@ -67,3 +78,5 @@ variants: []
 
 ## Notes
 Fiction can contain beliefs, arguments, and moral judgment, but its distinctive force comes from making them experienceable. Concrete detail is not opposed to thought: selection and viewpoint make every observed fact an act of judgment. Meaning becomes durable when the story's literal surface remains convincing while actions and details accumulate implications that no detached summary can fully replace.
+
+`writing_fiction_variant_make_literal_mechanics_generate_meaning` begins with the literal system rather than an abstract analogy. Understand what the procedure physically requires, where it creates dependence, danger, timing, resistance, coordination, or limitation, and let characters encounter those constraints in action. The thematic relation should be discoverable in the mechanics themselves before narration decodes it. Add reflection only when the character's act of interpretation creates a further turn instead of restating what the process has already made experienceable.

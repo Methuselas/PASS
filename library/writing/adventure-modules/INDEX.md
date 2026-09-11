@@ -5,7 +5,7 @@
 ## Topics
 
 - [Disclosure](disclosure/INDEX.md) - 1 object(s).
-- [Foundations](foundations/INDEX.md) - 4 object(s).
+- [Foundations](foundations/INDEX.md) - 6 object(s).
 - [Instruction](instruction/INDEX.md) - 4 object(s).
 - [Operations](operations/INDEX.md) - 4 object(s).
-- [Structure](structure/INDEX.md) - 6 object(s).
+- [Structure](structure/INDEX.md) - 7 object(s).

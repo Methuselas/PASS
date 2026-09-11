@@ -79,7 +79,10 @@ class SnapshotImportScopeTests(unittest.TestCase):
             "memory/art/skill_memory.yaml",
             "workspace/tools/helper.py",
             "workspace/release-recipes/SkillForge_Art.yaml",
+            "workspace/release-recipes/SkillForge_Writing.yaml",
             "workspace/release-recipes/Legacy.yaml",
+            "workspace/handoffs/ART_TRAINING_ENTRY.md",
+            "workspace/handoffs/WRITING_TRAINING_ENTRY.md",
             ".agents/skills/visual-art/SKILL.md",
             ".agents/skills/writing/SKILL.md",
             "tests/test_example.py",
@@ -89,7 +92,7 @@ class SnapshotImportScopeTests(unittest.TestCase):
             "PASS-project-art", tuple(entry(path) for path in paths)
         )
 
-    def test_default_scope_is_domain_library_and_memory_only(self) -> None:
+    def test_default_scope_includes_domain_library_memory_handoffs_and_recipe(self) -> None:
         selected = snapshot_import.select_entries(
             self.make_snapshot(),
             self.repo,
@@ -100,7 +103,12 @@ class SnapshotImportScopeTests(unittest.TestCase):
 
         self.assertEqual(
             paths,
-            {"library/art/card.md", "memory/art/skill_memory.yaml"},
+            {
+                "library/art/card.md",
+                "memory/art/skill_memory.yaml",
+                "workspace/handoffs/ART_TRAINING_ENTRY.md",
+                "workspace/release-recipes/SkillForge_Art.yaml",
+            },
         )
 
     def test_all_project_scope_remains_bounded(self) -> None:
@@ -124,6 +132,7 @@ class SnapshotImportScopeTests(unittest.TestCase):
         self.assertIn("tests/test_example.py", paths)
         self.assertNotIn("workspace/release-recipes/Legacy.yaml", paths)
         self.assertNotIn(".agents/skills/writing/SKILL.md", paths)
+        self.assertNotIn("workspace/handoffs/WRITING_TRAINING_ENTRY.md", paths)
         self.assertNotIn("SOURCE_INPUT/unit.txt", paths)
 
 

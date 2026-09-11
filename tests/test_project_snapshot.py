@@ -34,6 +34,9 @@ class SnapshotSelectionTests(unittest.TestCase):
         self.assertIn("library/metaskills/INDEX.md", relative)
         self.assertIn("library/game-design/INDEX.md", relative)
         self.assertIn("memory/game-design/skill_memory.yaml", relative)
+        self.assertIn(
+            "workspace/release-recipes/SkillForge_Game_Design.yaml", relative
+        )
         self.assertIn(".claude/skills/game-design/SKILL.md", relative)
         self.assertIn(".agents/skills/game-design/SKILL.md", relative)
         self.assertFalse(any(path.startswith("library/art/") for path in relative))
@@ -61,6 +64,21 @@ class SnapshotSelectionTests(unittest.TestCase):
         self.assertFalse(any(path.startswith("workspace/authoring/") for path in relative))
         self.assertFalse(any(path.startswith("workspace/releases/") for path in relative))
 
+    def test_snapshot_includes_only_handoffs_for_selected_domains(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo = Path(temp_dir)
+            handoffs = repo / "workspace/handoffs"
+            handoffs.mkdir(parents=True)
+            writing = handoffs / "WRITING_TRAINING_ENTRY.md"
+            art = handoffs / "ART_TRAINING_ENTRY.md"
+            unrelated = handoffs / "NOTES.md"
+            for path in (writing, art, unrelated):
+                path.write_text("handoff\n", encoding="utf-8")
+
+            selected = snapshot.domain_handoff_files(repo, ["writing"])
+
+            self.assertEqual(selected, [writing])
+
     def test_snapshot_selection_excludes_sources_archives_and_pdf_files(self) -> None:
         files = snapshot.collect_snapshot_files(ROOT, ["software-engineering"])
         relative = {path.relative_to(ROOT).as_posix() for path in files}
@@ -69,10 +87,8 @@ class SnapshotSelectionTests(unittest.TestCase):
         self.assertFalse(any(path.startswith("archive/") for path in relative))
         self.assertFalse(any(path.casefold().endswith((".pdf", ".zip")) for path in relative))
 
-    def test_include_recipes_keeps_only_canonical_skillforge_recipes(self) -> None:
-        files = snapshot.collect_snapshot_files(
-            ROOT, ["art"], include_recipes=True
-        )
+    def test_default_recipes_keep_only_canonical_skillforge_recipes(self) -> None:
+        files = snapshot.collect_snapshot_files(ROOT, ["art"])
         recipes = {
             path.relative_to(ROOT).as_posix()
             for path in files

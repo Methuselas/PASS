@@ -58,6 +58,7 @@ variants:
 - Establish the material basis of local life only far enough to explain what people do there, what they depend on, and which changes would matter to them.
 - Give selected residents specific wants, obligations, habits, opinions, and histories that can affect conduct rather than merely decorating a role such as innkeeper, constable, neighbor, or shopkeeper.
 - Connect residents to one another as well as to the focal characters; use friendship, rivalry, debt, kinship, work, belief, authority, gossip, care, or shared history to create pressures that do not begin only when the protagonist arrives.
+- Let consequential social exchanges—gifts, favors, hospitality, pardons, promotions, honors, shared meals, oaths, insults, or public refusals—change relationship state by creating debt, permission, expectation, shame, access, resentment, or obligation that later scenes can invoke, exploit, fulfill, or betray.
 - Let secondary concerns such as feuds, local ambitions, celebrations, shortages, scandals, or small mysteries reveal what people value and how they affect one another; carry them forward when the place recurs.
 - Give formal systems such as law, trade, religion, or local government recognizable people through whom characters experience them, while preserving the distinction between an individual's personality and the institution's actual rules.
 - Use scenes to teach practical social knowledge: who is trusted, feared, avoided, consulted, resented, protected, or likely to know something, and let later evidence revise that knowledge.
@@ -79,9 +80,12 @@ variants:
 - Readers can infer practical social orientation from scenes instead of requiring a detached explanation of the whole community.
 - Social access is not universal: changing which character approaches a resident or institution can plausibly change the welcome, information, scrutiny, or options available.
 - When the place recurs, relationships, opinions, and secondary concerns preserve continuity while remaining capable of change.
+- A major social or ceremonial exchange leaves a trace in later access, expectation, obligation, resentment, or judgment rather than resetting the relationship immediately afterward.
 - Removing the local social network would make the place more generic or would reduce a named source of pressure, attachment, memory, or future action.
 
 ## Notes
+A community is also an exchange-memory problem. When a scene includes a gift, favor, welcome, oath, public honor, insult, or other consequential social transaction, decide what state it leaves behind. The residue may be debt, trust, access, shame, expectation, resentment, permission, or obligation. Carry that residue forward when it matters; otherwise ceremony becomes decorative worldbuilding rather than part of the community's causal life.
+
 A community is partly a social continuity problem. Geography, sensory detail, and accurate material conditions establish where characters are; local people and their relationships establish what it means to belong, return, ask for help, violate expectation, or notice change there. The private model may contain more residents and connections than the prose names. Select the few whose pressures make the larger community legible, and let offstage life remain inferable rather than exhaustive.
 
 `writing_fiction_variant_anchor_community_in_a_social_hinge_character` starts from one resident who plausibly touches several local systems through work, history, obligation, or reputation. Give that person enough contradiction and ongoing business to sustain return appearances, then follow their actual relationships outward instead of inventing a whole cast at once. The hinge is an access route, not a miniature sovereign: preserve other centers of knowledge and power whenever the place would otherwise collapse into one person's biography.

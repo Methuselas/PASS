@@ -682,46 +682,55 @@ Valid reasons to stop before the end of a source:
 
 ## 5. What does not go in the library
 
-Three classes of knowledge exist. Only the first is a repository concern.
+Four layers of state matter, and they have different owners.
 
-1. **Canonical skillset** — general, reusable, source-independent. This is
-   `library/`.
-2. **Practice history** — what repeated attempts reveal about application,
-   failure, calibration. Real and useful; not canon.
-3. **Practitioner-specific** — stable personal choices, style preferences,
-   recurring individual weaknesses. Belongs to the practitioner.
+1. **Canonical skillset** — general, reusable, source-independent executable
+   knowledge. This is `library/`.
+2. **Skill memory** — compact current state. A `learned_principle` records the
+   durable craft or design lesson retained from evidence; a `training_result`
+   records the outcome of an actual exercise or evaluation. Strengths,
+   weaknesses, boundaries, and self-calibration live here too.
+3. **Training history** — the event-level record of what happened in specific
+   attempts and evaluations, including successes, failures, feedback, retention,
+   and transfer.
+4. **Practitioner-specific state** — a particular user's stable preferences,
+   personal choices, or private context. That belongs to a user/practitioner layer,
+   not Skillset Memory.
 
-**Layer 2 now has an accepted home: `memory/<domain>/`.** Skillset Memory holds
-practice history as compact empirical state beside the canonical cards, never
-inside them. Its contract is `PASS/docs/MEMORY_SCHEMA.md` and its tool is
-`PASS/tools/memory.py`. Three constraints did not change when it landed:
+**Layers 2 and 3 live together under `memory/<domain>/`.**
+`skill_memory.yaml` is the compact current state; `training_history.jsonl` is the
+append-oriented empirical evidence trail. Their contract is
+`PASS/docs/MEMORY_SCHEMA.md` and their tool is `PASS/tools/memory.py`. Three
+constraints remain:
 
 - It is **not a validator or build dependency**. `library/` validates with
   `memory/` absent, and a test enforces that.
-- It is **not an authoring workspace under a new name**. It records what happened
-  when the canon was *used* — never what was read, which unit is next, or where a
-  source stopped. Its schema rejects those keys.
-- **Practice history must not enter cards.** A card stays general, reusable, and
-  source-independent. An observation from one attempt is not a Pattern.
+- Memory is **not an authoring workspace or progress tracker under a new name**.
+  It may retain a generalized lesson learned from a book, teacher, exercise, or
+  evaluation, but not which source unit is next, where reading stopped, or
+  transient session state.
+- **Training history does not become canon by accumulation.** A card stays
+  general, reusable, and source-independent. Evidence may justify a reviewed
+  refinement or Variant; it never edits the owner automatically.
 
-**On timing:** an earlier draft of this section said layer 2 follows a skillset
-being complete rather than preceding it. That is now settled the other way, and
-the distinction is between two different things. *Recording* empirical results
-may begin as soon as real execution exists — waiting until a lane is complete
-would discard the evidence produced while getting there. What waits for maturity
+**On timing:** learned state and empirical results may develop while the skill is
+still being taught. Evidence from teaching, mentor study, practice, or review may
+establish a provisional learned principle; actual exercises and evaluations may
+establish training results. Further testing can strengthen, qualify, or overturn
+either. Waiting until a lane is “complete” would discard both the learning process
+and the evidence produced while getting there. What waits for maturity
 is *distribution*: a Skill Forge release is still declared by the user, never
 inferred, and memory travelling in a release does not make the release mature.
 
-**Layer 3 remains deferred.** Practitioner-specific style and preference is a
-separate layer with its own evidence firewall, it is user-owned rather than
-skill-owned, and no architecture has been accepted for it. Do not put it in
-`memory/`: that store is domain-scoped empirical state about the skill, not about
-the person using it.
+**Layer 4 remains separate.** Practitioner-specific style, preference, and
+private context are user-owned rather than skill-owned. Do not put them in
+`memory/`: that store describes the skill's learned and calibrated state, not the
+person using it.
 
-Layer 3 currently lives per-lane outside the repository, and that is the right
-place for it. Forcing personal calibration into the library contaminates it for
-every consumer; discarding it makes the practitioner reteach the system every
-session.
+Practitioner-specific state currently lives outside the skill repository. Forcing
+personal calibration into the library contaminates it for every consumer;
+forcing it into Skillset Memory confuses what the skill has learned with what one
+particular user prefers.
 
 **Attribute a failure before writing a card about it.** An unsuccessful result
 does not mean the underlying Pattern knowledge is missing:

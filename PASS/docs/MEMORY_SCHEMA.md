@@ -4,9 +4,11 @@ status: active
 owner: docs/domains/spec
 last_reviewed: 2026-08-22
 
-Skillset Memory is the portable empirical record of what actually happens when
-the canon is used. It is not canon, not a runtime, not a transcript, and not a
-fourth object type.
+Skillset Memory is the portable **compact current state of the skill**. It keeps
+durable learned principles distinct from empirical training results, strengths,
+weaknesses, boundaries, and other self-calibration. `training_history.jsonl` is
+the event record showing what happened in specific attempts. Skillset Memory is
+not canon, not a runtime, not a transcript, and not a fourth object type.
 
 **Every rule in this file that can be checked mechanically is checked by
 `PASS/tools/memory.py validate`.** Rules are written here once so the tool has a
@@ -24,11 +26,12 @@ record of the conversation that produced an entry.
 CANON        what decision to make, how to orchestrate it, how to practise it
              Patterns / APs / Drills. Source-independent. Stable.
 
-MEMORY       what happened when the canon was actually used
-             Empirical. Provisional. Allowed to be wrong, superseded, resolved.
+MEMORY       what the skill currently carries forward
+             Learned principles and calibrated empirical results, kept distinct.
+             Compact. Provisional. Allowed to be revised or superseded.
 
-HISTORY      the events the memory was consolidated from
-             Append-oriented. Includes runs that proved nothing.
+HISTORY      what happened in specific attempts and evaluations
+             Empirical. Append-oriented. Includes runs that proved nothing.
 
 REGRESSION   what must never happen again under deterministic conditions
              Tests. Not memory's job.
@@ -52,8 +55,10 @@ Four rules follow, and the tool enforces the ones that can be checked:
 
 ## 2. Admissibility — the gate that matters most
 
-An observation is evidence about a capability only if the run that produced it
-was a valid test of that capability.
+A **training result or other performance claim** is evidence about a capability
+only if the run that produced it was a valid test of that capability. A
+`learned_principle` records the durable lesson retained from evidence; it does
+not turn that lesson into a claim of demonstrated execution or transfer.
 
 ```text
 execution
@@ -151,7 +156,8 @@ entries:
     type: recurring_failure
     evidence_class: stochastic_performance
     observation: >
-      What was actually seen. Factual. Survives a change of diagnosis.
+      Compact lesson or self-knowledge the skill now carries forward.
+      It should remain useful after the specific evidence is forgotten.
     confidence: provisional
     status: active
 ```
@@ -162,15 +168,24 @@ entries:
 id:              stable id, unique within the file
 scope_type:      skillset | ap | pattern | drill | training | topic | runtime
 scope_id:        object_id for canonical scopes; readable slug for topic/runtime
-type:            recurring_failure | successful_tendency | known_boundary | training_result
+type:            learned_principle | recurring_failure | successful_tendency | known_boundary | training_result
 evidence_class:  stochastic_performance | deterministic_contract
-observation:     what was seen — not why
+observation:     compact retained lesson or self-observation; factual, self-contained, and not a transcript
 confidence:      provisional | repeated | strong
 status:          active | monitoring | resolved | superseded | obsolete
 ```
 
 `evidence_class` is required because the promotion threshold depends on it
 (§7). Every other key below is optional.
+
+`learned_principle` records a durable craft or design lesson that should be
+remembered and applied later. It is the transferable conclusion retained from
+evidence, not the evidence itself. `training_result` records the compact outcome
+of an actual exercise, evaluation, comparison, grade, detector run, playtest, or
+other observed use. It answers what happened when something was tested.
+`successful_tendency`, `recurring_failure`, and `known_boundary` record other
+forms of empirical self-calibration. The supporting event trail remains in
+`training_history.jsonl`.
 
 ### Optional keys
 
@@ -199,9 +214,10 @@ last_verified:    YYYY-MM-DD
 
 `human_teaching` means direct technical instruction or clarification supplied by
 the human during study or training. It is distinct from `user_feedback`, which
-is the user's assessment of a produced result. Teaching is not automatically a
-user preference, is not canonical doctrine, and is not by itself evidence that
-anything transferred.
+is the user's assessment of a produced result. Human teaching may support a
+provisional learned principle, but it is not automatically a user preference,
+is not canonical doctrine, and is not by itself proof of execution, retention,
+or transfer.
 
 ### Self-containment
 
@@ -324,16 +340,22 @@ current workflow or stage position, candidate or branch status
 temporary activation left by a recent operation
 recently produced artifacts, ambient conversation context
 transcripts, full conversations, every user comment
-book summaries, canonical text already in cards
-generic advice belonging to a Pattern, workflow order belonging to an AP,
-practice procedure belonging to a Drill
+book summaries, verbatim or full canonical text already in cards
+generic advice copied wholesale from a Pattern, workflow order copied wholesale
+from an AP, or practice procedure copied wholesale from a Drill
 user-specific preferences — those belong to a future User Memory layer
 ```
 
-Nothing becomes Skillset Memory except by explicit writeback of a **generalized
-empirical observation**. Temporary state is not memory however durable it feels.
-The generalized lesson such state reveals may become memory; the state itself
-never does.
+Nothing becomes Skillset Memory except by explicit writeback of a **compact,
+generalized current state**. A learned principle captures what should transfer
+forward from evidence; an empirical result captures what testing actually
+showed. Temporary state is not memory however durable it feels. The generalized
+lesson such state reveals may become memory; the state itself never does.
+
+Memory may overlap conceptually with canon when it records **how this skill has
+learned, internalized, struggled with, or calibrated** a principle. It must not
+duplicate full card text or become the authoritative instruction source. Canon
+says what to do; Skillset Memory says what this learner now knows about doing it.
 
 ```text
 NOT memory:  rejected thumbnail #6; candidate status; current stage

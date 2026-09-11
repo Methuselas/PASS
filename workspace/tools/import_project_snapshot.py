@@ -225,12 +225,43 @@ def is_domain_file(relative: PurePosixPath, domains: set[str]) -> bool:
     )
 
 
+def is_domain_handoff(relative: PurePosixPath, domains: set[str]) -> bool:
+    parts = relative.parts
+    if (
+        len(parts) != 3
+        or parts[:2] != ("workspace", "handoffs")
+        or not parts[2].casefold().endswith(".md")
+    ):
+        return False
+    name = parts[2].upper()
+    return any(
+        name.startswith(f"{domain.replace('-', '_').upper()}_")
+        for domain in domains
+    )
+
+
+def is_domain_recipe(relative: PurePosixPath, domains: set[str]) -> bool:
+    parts = relative.parts
+    if (
+        len(parts) != 3
+        or parts[:2] != ("workspace", "release-recipes")
+        or not parts[2].startswith("SkillForge_")
+        or not parts[2].endswith(".yaml")
+    ):
+        return False
+    recipe_domain = parts[2][len("SkillForge_") : -len(".yaml")]
+    recipe_domain = recipe_domain.replace("_", "-").casefold()
+    return recipe_domain in domains
+
+
 def is_all_project_file(
     relative: PurePosixPath,
     repo: Path,
     domains: list[str],
 ) -> bool:
-    if is_domain_file(relative, set(domains)):
+    if is_domain_file(relative, set(domains)) or is_domain_handoff(
+        relative, set(domains)
+    ):
         return True
     parts = relative.parts
     if len(parts) == 1 and parts[0] in ROOT_FILES:
@@ -260,9 +291,14 @@ def select_entries(
     for entry in snapshot.entries:
         if entry.relative.parts[0] == "SOURCE_INPUT":
             continue
-        if is_domain_file(entry.relative, domain_set) or (
+        if (
+            is_domain_file(entry.relative, domain_set)
+            or is_domain_handoff(entry.relative, domain_set)
+            or is_domain_recipe(entry.relative, domain_set)
+            or (
             all_project_files
             and is_all_project_file(entry.relative, repo, domains)
+            )
         ):
             selected.append(entry)
     if not selected:
@@ -431,7 +467,8 @@ def main() -> int:
             "when --apply is explicit."
         ),
         epilog=(
-            "The default scope is the archived domain library and domain memory. "
+            "The default scope is the archived domain library, domain memory, "
+            "matching workspace handoffs, and matching canonical recipe. "
             "Use --all-project-files to include shared PASS files, tests, tools, "
             "matching host skills, and canonical SkillForge recipes. SOURCE_INPUT "
             "is never imported, and absent files never delete repository files."
@@ -502,7 +539,11 @@ def main() -> int:
             print(f"domain(s): {', '.join(domains)}")
             print(
                 "scope: "
-                + ("all project files" if args.all_project_files else "domain library and memory")
+                + (
+                    "all project files"
+                    if args.all_project_files
+                    else "domain library, memory, handoffs, and recipe"
+                )
             )
             for label, result in validation:
                 print(f"validated {label}: {result}")

@@ -3,9 +3,9 @@ object_id: writing_fiction_use_diaries_and_letters_as_active_story_documents
 object_type: pattern
 name: Use Diaries and Letters as Active Story Documents
 library_path:
-  - writing
-  - fiction
-  - structure
+- writing
+- fiction
+- structure
 stage_binding: 1 skeleton
 lane_fit: skill
 foundation_role: specialization
@@ -13,41 +13,58 @@ routing_class: specialized
 specialization_axis: genre
 foundation_object_id: none
 tags:
-  - fiction
-  - epistolary
-  - diary
-  - letters
-  - embedded_documents
-  - interactive_narrative
+- fiction
+- epistolary
+- diary
+- letters
+- embedded_documents
+- interactive_narrative
 cross_links:
-  - rel: related_to
-    target_object_id: writing_fiction_design_first_person_telling_situation
-  - rel: related_to
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
-  - rel: related_to
-    target_object_id: writing_fiction_stage_disclosure_to_sustain_reader_inference
-  - rel: related_to
-    target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
+- rel: related_to
+  target_object_id: writing_fiction_design_first_person_telling_situation
+- rel: related_to
+  target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+- rel: related_to
+  target_object_id: writing_fiction_stage_disclosure_to_sustain_reader_inference
+- rel: related_to
+  target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
 reference:
-  source_title: "Creative Writing Exercises For Dummies"
+  source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand
 confidence: high
 references: []
 variants:
-  - variant_id: writing_fiction_variant_use_one_discovered_document_as_present_tense_turn
-    variant_name: Use One Discovered Document as a Present-Tense Turn
-    variant_basis: context
-    difference_from_foundation: Concentrate the document's work in one discovery and reading event whose contents force a present choice, reinterpretation, or change in relationship.
-    when_to_use: One artifact can expose or complicate the necessary past while the main story remains centered on the consequences of finding it.
-    when_not_to_use: The document changes no present action or understanding, or its contents require a sustained past narrative rather than one consequential turn.
-    absorbed_from_object_id: none
-  - variant_id: writing_fiction_variant_interleave_documentary_past_with_present_action
-    variant_name: Interleave a Documentary Past with Present Action
-    variant_basis: method_sequence
-    difference_from_foundation: Alternate documents from an earlier chronology with present action so each strand changes how readers interpret the other and advances toward a shared consequence.
-    when_to_use: The document writer's unfolding past and the discoverer's present response both require sustained development, and their juxtaposition creates necessary pressure or reinterpretation.
-    when_not_to_use: One strand merely repeats information from the other, the alternation interrupts momentum without changing meaning, or the two chronologies do not converge consequentially.
-    absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_use_one_discovered_document_as_present_tense_turn
+  variant_name: Use One Discovered Document as a Present-Tense Turn
+  variant_basis: context
+  difference_from_foundation: Concentrate the document's work in one discovery and reading event whose contents
+    force a present choice, reinterpretation, or change in relationship.
+  when_to_use: One artifact can expose or complicate the necessary past while the main story remains centered on
+    the consequences of finding it.
+  when_not_to_use: The document changes no present action or understanding, or its contents require a sustained
+    past narrative rather than one consequential turn.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_interleave_documentary_past_with_present_action
+  variant_name: Interleave a Documentary Past with Present Action
+  variant_basis: method_sequence
+  difference_from_foundation: Alternate documents from an earlier chronology with present action so each strand
+    changes how readers interpret the other and advances toward a shared consequence.
+  when_to_use: The document writer's unfolding past and the discoverer's present response both require sustained
+    development, and their juxtaposition creates necessary pressure or reinterpretation.
+  when_not_to_use: One strand merely repeats information from the other, the alternation interrupts momentum without
+    changing meaning, or the two chronologies do not converge consequentially.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_make_expository_document_epistemic_object
+  variant_name: Make an Expository Document an Epistemic Object
+  variant_basis: context
+  difference_from_foundation: When a document explains a large system, make authorship, audience, provenance, route,
+    preservation, motive, credibility, and later reinterpretation part of its story function, allowing different
+    layers of its contents to carry different reliability.
+  when_to_use: Characters must seek, trust, suppress, falsify, weaponize, misread, or later reevaluate an explanatory
+    text whose existence and provenance matter as much as the information it contains.
+  when_not_to_use: The document is only a neutral delivery device, its source cannot affect interpretation, or ordinary
+    narration can supply the information with less interruption and no loss of story pressure.
+  absorbed_from_object_id: none
 ---
 
 # Use Diaries and Letters as Active Story Documents
@@ -87,3 +104,5 @@ A story document is both language and event. Its contents matter, but so do the 
 `writing_fiction_variant_use_one_discovered_document_as_present_tense_turn` concentrates the method in a single artifact. Build the present scene around the reader-character's changing interpretation, then require the discovery to alter what that character does, believes, risks, or asks next.
 
 `writing_fiction_variant_interleave_documentary_past_with_present_action` makes the document strand a sustained structural carrier. Map both chronologies, order each document so it advances its own past pressure, and place each alternation where new knowledge complicates the present rather than merely explaining it.
+
+`writing_fiction_variant_make_expository_document_epistemic_object` treats an explanatory text as something characters must evaluate as well as read. Separate the reliability of description, interpretation, authorship, motive, and proposed action when useful; then let provenance, circulation, suppression, discovery, or later recontextualization change what the document means and what someone does with it.

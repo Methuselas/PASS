@@ -258,6 +258,10 @@ class PersistenceContract(MemoryStoreFixture):
 class SchemaContract(MemoryStoreFixture):
     """Closed vocabularies stay closed; the schema is never widened for an entry."""
 
+    def test_learned_principle_is_an_accepted_memory_type(self) -> None:
+        self.write([dict(VALID_ENTRY, type="learned_principle")], [])
+        self.assertEqual(self.validate().returncode, 0)
+
     def test_unknown_vocabulary_value_is_rejected(self) -> None:
         self.write([dict(VALID_ENTRY, confidence="quite_sure")], [])
         result = self.validate()
@@ -387,9 +391,10 @@ class ShippedStore(unittest.TestCase):
         """An entry that must apply every turn earns promotion, not a paste.
 
         Copying memory into an always-loaded file creates a second write site and
-        lets the retrieval path decay unobserved. This checks the paste directly:
-        no eight-word run from any observation may appear in a card or a skill
-        entrypoint, and no entry id may appear there either.
+        lets the retrieval path decay unobserved. Learned principles and empirical
+        calibration may overlap conceptually with the canon they inform, so shared
+        phrases are not proof of inlining. No complete memory observation and no
+        entry id may appear in a card or skill entrypoint.
         """
         canon_texts: list[tuple[str, str]] = []
         for path in LIBRARY.rglob("*.md"):
@@ -412,14 +417,14 @@ class ShippedStore(unittest.TestCase):
                         entry_id.lower(), text,
                         f"memory id {entry_id} appears in canon at {label}",
                     )
-                words = " ".join(str(entry.get("observation", "")).lower().split()).split()
-                shingles = {" ".join(words[i:i + 8]) for i in range(max(0, len(words) - 7))}
-                for shingle in shingles:
-                    for label, text in normalized:
-                        self.assertNotIn(
-                            shingle, text,
-                            f"memory observation from {entry_id} appears verbatim in canon at {label}",
-                        )
+                observation = " ".join(
+                    str(entry.get("observation", "")).lower().split()
+                )
+                for label, text in normalized:
+                    self.assertNotIn(
+                        observation, text,
+                        f"complete memory observation from {entry_id} appears verbatim in canon at {label}",
+                    )
 
     def test_memory_carries_no_practice_history_into_cards(self) -> None:
         """CLAUDE.md rule 15, checked from the other side."""

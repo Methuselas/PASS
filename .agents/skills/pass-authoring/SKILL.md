@@ -65,11 +65,18 @@ or teacher-dependent interpretation.
 `memory/<domain>/` is a separate store with its own contract in
 `PASS/docs/MEMORY_SCHEMA.md`. Read that before touching it.
 
-Memory records what happened when canon was used. It is never canon, never
-overrides a card, and is never copied into one — an entry that seems important
+Skill Memory separates what testing showed (`training_result`) from the durable
+lesson retained from evidence (`learned_principle`). Training history keeps the
+event trail. Memory is never canon and never overrides a card — an entry that seems important
 enough to apply on every turn has earned promotion review, not a paste, because
 pasting creates a second write site and lets the real owner decay unobserved.
 `tests/test_memory.py` enforces this.
+
+When a domain gains, removes, or renames a module, update that domain's canonical
+`SkillForge_*.yaml` recipe in the same change. When an approved cross-skill
+category is selected as an auxiliary, update the consuming recipe's bounded
+auxiliary entries in the same change. A project archive must not be the only
+place where its release composition is correct.
 
 An observation is evidence about a capability only if the run that produced it
 was a valid test of that capability. A run that failed before the capability was

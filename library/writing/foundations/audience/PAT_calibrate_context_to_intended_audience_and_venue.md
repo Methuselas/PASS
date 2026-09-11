@@ -33,6 +33,13 @@ variants:
     when_to_use: An application, selection statement, or other short evaluative document must reveal meaningful distinctions to a reader working quickly across a large comparison set.
     when_not_to_use: The work is meant for leisurely literary reading, a familiar private audience, or a context where compression would remove evidence the reader needs to judge fairly.
     absorbed_from_object_id: none
+  - variant_id: writing_variant_use_explicit_referent_terms_when_shorthand_can_mislead_outside_readers
+    variant_name: Use Explicit Referent Terms When Shorthand Can Mislead Outside Readers
+    variant_basis: context
+    difference_from_foundation: Replace insider shorthand with the full domain term when an omitted qualifier collapses a fictional, technical, or role-specific referent into a materially different literal reading for readers outside the immediate context.
+    when_to_use: A manuscript may circulate beyond insiders, excerpts may be encountered without surrounding explanation, or a shortened term could plausibly describe a real person, event, object, or consequence different from the one actually meant.
+    when_not_to_use: The shorthand is standard, unambiguous for the actual readership, and restoring the full term would add repetition without reducing a realistic risk of misreading.
+    absorbed_from_object_id: none
 ---
 
 # Calibrate Context to Intended Audience and Venue
@@ -70,3 +77,5 @@ variants:
 Writing is a social act: the writer's responsibilities change with who will read the piece, why, through which route, and whether one reader mediates the work for another. The number of audience layers is contextual; the durable move is to map the chain rather than assume a fixed taxonomy. A reference that works perfectly for a close friend may be opaque to a class or public audience, while an electronically shared draft can escape the intimate context that first made it legible or safe. Publication adds another layer because editors and agents sort work by genre and apply standards even when those standards are not fully articulated. Convention can be a reader contract without becoming a formula: familiar genres often derive pleasure from recognizable promises executed through new characters, obstacles, voices, or settings, and strong work can borrow across categories while remaining clear about the experience it offers.
 
 `writing_variant_write_for_high_volume_evaluative_reader` treats reader attention as a constrained resource without treating novelty as the evaluation criterion. Establish the document's specific human or practical relevance early, supply only the context an unfamiliar evaluator needs, and make each transition easy to follow. A common experience can remain compelling through exact perception and consequence; a strange detail fails when it is detachable, confusing, or unsupported. The test is whether the reader can quickly enter and accurately assess the work, not whether the opening performs the loudest stunt in the comparison set.
+
+`writing_variant_use_explicit_referent_terms_when_shorthand_can_mislead_outside_readers` applies audience calibration at the level of a single term. Insider context may make a shortened phrase seem harmless while a broader or excerpted reading changes its literal referent. Preserve the qualifier that keeps the intended subject explicit when that distinction matters; do not lengthen terminology mechanically when no credible ambiguity exists.

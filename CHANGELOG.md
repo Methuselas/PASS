@@ -6,6 +6,30 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+### Added
+
+- Added `learned_principle` as a first-class Skillset Memory type, separating a
+  durable transferable lesson from the empirical result or event that supported
+  it.
+- Added domain-prefixed `workspace/handoffs/` documents to project snapshot and
+  import scope while keeping them outside consumer releases.
+
+### Changed
+
+- Project snapshots now include canonical release recipes by default, and the
+  importer carries the selected domain's matching recipe automatically.
+- The Writing recipe now includes `writing/adventure-modules`.
+- Limited the repository's public `workspace/` surface to reusable tools,
+  canonical release recipes, and project handoffs. Existing local authoring
+  material remains on disk but is no longer tracked.
+
+### Validation
+
+- Validated 1,771 canonical objects, all visual references, 197 generated
+  indexes, and all four Skillset Memory stores (96 entries and 226 events).
+- Passed all 168 repository tests, including every canonical release build and
+  check.
+
 ## 1.0.0-beta.5 - 2026-09-08
 
 ### Added

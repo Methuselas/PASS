@@ -6,6 +6,7 @@ description: >-
   imagery, revision, feedback, and submission — using the SkillForge Writing
   knowledge library.
 modules:
+  - writing/adventure-modules
   - writing/career-documents
   - writing/college-admission-essays
   - writing/creative-nonfiction

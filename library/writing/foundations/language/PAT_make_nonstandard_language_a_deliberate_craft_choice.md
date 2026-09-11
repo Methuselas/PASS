@@ -3,9 +3,9 @@ object_id: writing_make_nonstandard_language_deliberate
 object_type: pattern
 name: Make Nonstandard Language a Deliberate Craft Choice
 library_path:
-  - writing
-  - foundations
-  - language
+- writing
+- foundations
+- language
 stage_binding: 3 rough
 lane_fit: skill
 foundation_role: foundation
@@ -13,20 +13,32 @@ routing_class: general
 specialization_axis: none
 foundation_object_id: none
 tags:
-  - language
-  - dialect
-  - multilingual_writing
-  - grammar
-  - voice
+- language
+- dialect
+- multilingual_writing
+- grammar
+- voice
 cross_links:
-  - rel: related_to
-    target_object_id: writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility
+- rel: related_to
+  target_object_id: writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility
 reference:
-  source_title: "Creative Writing: Four Genres in Brief"
+  source_title: 'Creative Writing: Four Genres in Brief'
   author: David Starkey
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: writing_variant_design_invented_language_as_constraint_system
+  variant_name: Design Invented Language as a Constraint System
+  variant_basis: constraint
+  difference_from_foundation: For fictional or institutional language, design not only surface vocabulary but what
+    morphology, semantic range, abbreviation, taboo, register, and distribution make easy, difficult, prestigious,
+    automatic, ambiguous, or unavailable, then let those constraints affect conduct or inference.
+  when_to_use: A constructed vocabulary, professional jargon, institutional register, or invented linguistic system
+    should participate in worldbuilding, power, cognition, social membership, or plot rather than serve as decorative
+    terminology.
+  when_not_to_use: The language difference is a living community variety the writer is treating as a fictional control
+    system, or the invented rules create no consequence beyond making the setting sound unusual.
+  absorbed_from_object_id: none
 ---
 
 # Make Nonstandard Language a Deliberate Craft Choice
@@ -62,3 +74,5 @@ variants: []
 
 ## Notes
 Experimental writers do not discard language craft; they depend on it. Fragments and nonstandard speech can represent character, spoken rhythm, region, class, or multilingual experience, while a clean surrounding text establishes that those choices are purposeful. Language is the writer's medium, so freedom and control reinforce rather than cancel one another.
+
+`writing_variant_design_invented_language_as_constraint_system` applies to fictional or institutional language designed by the writer. Decide what its forms make easy, difficult, automatic, prestigious, taboo, ambiguous, or unavailable, and let those consequences enter behavior or inference. Keep this distinct from real community dialects and multilingual usage: a living language variety is not a deficient thought system and should not be treated as one for worldbuilding convenience.

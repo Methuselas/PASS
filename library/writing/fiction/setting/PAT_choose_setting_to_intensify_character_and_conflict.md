@@ -3,9 +3,9 @@ object_id: writing_fiction_choose_setting_to_intensify_character_and_conflict
 object_type: pattern
 name: Choose Setting to Intensify Character and Conflict
 library_path:
-  - writing
-  - fiction
-  - setting
+- writing
+- fiction
+- setting
 stage_binding: 0 design
 lane_fit: skill
 foundation_role: specialization
@@ -13,51 +13,77 @@ routing_class: specialized
 specialization_axis: genre
 foundation_object_id: none
 tags:
-  - fiction
-  - setting
-  - character
-  - conflict
-  - time
-  - place
+- fiction
+- setting
+- character
+- conflict
+- time
+- place
 cross_links:
-  - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
-  - rel: related_to
-    target_object_id: writing_fiction_escalate_central_conflict_through_middle
+- rel: related_to
+  target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+- rel: related_to
+  target_object_id: writing_fiction_escalate_central_conflict_through_middle
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey
 confidence: high
 references: []
 variants:
-  - variant_id: writing_fiction_variant_choose_setting_from_governing_actions
-    variant_name: Choose Setting from Governing Actions
-    variant_basis: method_sequence
-    difference_from_foundation: Start from the recurring actions, resource pressures, and conflicts the story should make possible, then choose places, institutions, customs, and material conditions that reinforce that activity profile.
-    when_to_use: The desired mode of story is clearer than the exact location, or worldbuilding has become a collection of attractive but unrelated ideas.
-    when_not_to_use: A specific place or character-place relationship already gives the story stronger organization, or deliberate breadth and contrast are part of the intended design.
-    absorbed_from_object_id: none
-  - variant_id: writing_fiction_variant_intensify_conflict_through_public_visibility
-    variant_name: Intensify Conflict through Public Visibility
-    variant_basis: constraint
-    difference_from_foundation: Place an urgent or private conflict where witnesses, social norms, authority, recognition, or collateral consequences constrain direct action, forcing characters to conceal, limit, justify, reroute, or accept consequences for what they do.
-    when_to_use: Tension should come from a clash between what a character wants to do and what can be done openly in a socially observed space.
-    when_not_to_use: The setting is intentionally private or lawless, observers have no plausible effect on action or consequence, or adding public constraints would only clutter a conflict that depends on isolation.
-    absorbed_from_object_id: none
-  - variant_id: writing_fiction_variant_define_pressure_through_scarcity_and_nonmaterial_currency
-    variant_name: Define Pressure through Scarcity and Nonmaterial Currency
-    variant_basis: constraint
-    difference_from_foundation: Identify what the story world makes difficult to obtain or keep, then let money, access, information, favors, trust, protection, or reliable allies carry different practical value according to that scarcity rather than assuming material wealth is the only meaningful resource.
-    when_to_use: Economic constraint, dependence, corruption, precarious status, or unequal access should shape choices and make relationships or information materially consequential.
-    when_not_to_use: Resource access does not affect the governing conflict, abundance is intentional, or treating relationships as exchangeable currency would flatten the story's intended emotional logic.
-    absorbed_from_object_id: none
-  - variant_id: writing_fiction_variant_escalate_hostile_setting_through_cumulative_attrition
-    variant_name: Escalate a Hostile Setting through Cumulative Attrition
-    variant_basis: constraint
-    difference_from_foundation: Make the environment progressively consume or compromise resources, routes, equipment, health, rest, time, or access to aid so passage through the setting reduces later options instead of presenting only isolated hazards.
-    when_to_use: Survival, expedition, disaster, siege, remote travel, or other stories need environmental pressure to accumulate across time and make ordinary supplies or recovery decisions consequential.
-    when_not_to_use: Detailed logistics would displace the governing human conflict, recovery is intentionally abundant, or the story works better through discrete hazards that do not need to compound.
-    absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_choose_setting_from_governing_actions
+  variant_name: Choose Setting from Governing Actions
+  variant_basis: method_sequence
+  difference_from_foundation: Start from the recurring actions, resource pressures, and conflicts the story should make
+    possible, then choose places, institutions, customs, and material conditions that reinforce that activity profile.
+  when_to_use: The desired mode of story is clearer than the exact location, or worldbuilding has become a collection of
+    attractive but unrelated ideas.
+  when_not_to_use: A specific place or character-place relationship already gives the story stronger organization, or
+    deliberate breadth and contrast are part of the intended design.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_intensify_conflict_through_public_visibility
+  variant_name: Intensify Conflict through Public Visibility
+  variant_basis: constraint
+  difference_from_foundation: Place an urgent or private conflict where witnesses, social norms, authority, recognition,
+    or collateral consequences constrain direct action, forcing characters to conceal, limit, justify, reroute, or
+    accept consequences for what they do.
+  when_to_use: Tension should come from a clash between what a character wants to do and what can be done openly in a
+    socially observed space.
+  when_not_to_use: The setting is intentionally private or lawless, observers have no plausible effect on action or
+    consequence, or adding public constraints would only clutter a conflict that depends on isolation.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_define_pressure_through_scarcity_and_nonmaterial_currency
+  variant_name: Define Pressure through Scarcity and Nonmaterial Currency
+  variant_basis: constraint
+  difference_from_foundation: Identify what the story world makes difficult to obtain or keep, then let money, access,
+    information, favors, trust, protection, or reliable allies carry different practical value according to that
+    scarcity rather than assuming material wealth is the only meaningful resource.
+  when_to_use: Economic constraint, dependence, corruption, precarious status, or unequal access should shape choices
+    and make relationships or information materially consequential.
+  when_not_to_use: Resource access does not affect the governing conflict, abundance is intentional, or treating
+    relationships as exchangeable currency would flatten the story's intended emotional logic.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_escalate_hostile_setting_through_cumulative_attrition
+  variant_name: Escalate a Hostile Setting through Cumulative Attrition
+  variant_basis: constraint
+  difference_from_foundation: Make the environment progressively consume or compromise resources, routes, equipment,
+    health, rest, time, or access to aid so passage through the setting reduces later options instead of presenting only
+    isolated hazards.
+  when_to_use: Survival, expedition, disaster, siege, remote travel, or other stories need environmental pressure to
+    accumulate across time and make ordinary supplies or recovery decisions consequential.
+  when_not_to_use: Detailed logistics would displace the governing human conflict, recovery is intentionally abundant,
+    or the story works better through discrete hazards that do not need to compound.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_turn_setting_logistics_into_information_and_access_gates
+  variant_name: Turn Setting Logistics into Information and Access Gates
+  variant_basis: method_sequence
+  difference_from_foundation: Map doors, walls, adjacency, routes, travel time, schedules, social permissions,
+    witnesses, messengers, and other access conditions so place controls who can know, reach, overhear, correct, escape,
+    or intervene in time.
+  when_to_use: Suspense, secrecy, social pressure, pursuit, romance, or conflict depends on information and physical or
+    social access moving through a concrete environment.
+  when_not_to_use: The geography or social infrastructure does not alter decisions, the blockage would need a late rule
+    invented solely to force the plot, or detailed logistics would displace the governing human pressure.
+  absorbed_from_object_id: none
 ---
 
 # Choose Setting to Intensify Character and Conflict
@@ -98,3 +124,5 @@ Characters often suggest their most useful setting because their conflict reveal
 `writing_fiction_variant_define_pressure_through_scarcity_and_nonmaterial_currency` makes the setting's value system operational by asking what is actually hard to secure and what therefore changes choices. Establish material constraints such as money, housing, safety, medicine, time, or mobility when they matter, but also test whether information, access, favors, protection, trust, or reliable allies become more valuable because ordinary institutions cannot supply them. Show the exchange through consequences rather than bookkeeping: who can open a door, who incurs an obligation, what information costs, and what a character refuses to trade can reveal power and values. Treat "currency" as a design metaphor, not a command to make every relationship transactional.
 
 `writing_fiction_variant_escalate_hostile_setting_through_cumulative_attrition` turns environmental hostility into a changing option set rather than a sequence of decorative dangers. Choose the few resources whose loss matters to the story—food, water, light, shelter, equipment, health, transport, time, safe rest, or access to help—and let travel or exposure degrade them through concrete consequences. Each loss should alter a later choice: a damaged tool closes one route, exhaustion makes speed costly, depleted light shortens exploration, or distance from aid makes a minor injury harder to absorb. Signal the relevant constraint before characters pay for it, and compress routine accounting unless the act of rationing, repairing, resting, or turning back is itself the drama.
+
+`writing_fiction_variant_turn_setting_logistics_into_information_and_access_gates` treats geography and social infrastructure as a network of permissions and delays. Mark who can cross which threshold, who can see or overhear whom, how long travel or delivery takes, what privacy a room actually affords, and what witness or authority appears at a boundary. Then let at least one of those conditions change knowledge or options. The mechanism should be established before it becomes decisive; a locked door, delayed message, unavailable route, or forbidden approach introduced only at the climax reads as authorial convenience rather than setting pressure.

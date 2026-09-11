@@ -15,58 +15,72 @@ foundation_object_id: writing_calibrate_context_to_audience_and_venue
 tags:
   - adventure_modules
   - context
-  - game_master
+  - causality
   - backstory
-  - live_use
+  - game_master
 cross_links:
   - rel: related_to
     target_object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
-  - rel: related_to
-    target_object_id: writing_adventure_modules_write_generative_frame_for_unscripted_scenes
 reference:
-  source_title: "How To Write Adventure Modules That Don't Suck!"
-  author: "Jobe Bittman"
+  source_title: "How to Write Adventure Modules That Don't Suck!"
+  author: Jobe Bittman
 confidence: high
 references: []
-variants: []
+variants:
+  - variant_id: writing_adventure_modules_variant_write_unopposed_threat_trajectory_as_conditional_context
+    variant_name: Write an Unopposed Threat Trajectory as Conditional Context
+    variant_basis: method_sequence
+    difference_from_foundation: For a scenario driven by an intentional threat, state the antagonist's objective, the major actions it would attempt if the protagonists never interfered, and the likely responses of affected NPCs or institutions, then present that trajectory as a conditional baseline the operator must recompute after player action changes the situation.
+    when_to_use: The operator needs to understand how an active antagonist or faction creates pressure offscreen and what the surrounding world is likely to do before or between protagonist interventions.
+    when_not_to_use: No intentional actor drives the scenario, the relevant developments are genuinely fixed processes, or projecting a sequence would encourage the operator to preserve planned events after their causes have been removed.
+    absorbed_from_object_id: none
+  - variant_id: writing_adventure_modules_variant_build_context_around_a_focal_story_element
+    variant_name: Build Context Around a Focal Story Element
+    variant_basis: method_sequence
+    difference_from_foundation: Choose the person, place, event, object, time, cause, or method that most strongly defines the adventure and use supporting who, what, where, when, why, and how questions to fill only the causal gaps needed for the operator to understand the present situation.
+    when_to_use: A short or medium adventure needs a coherent backstory but open-ended worldbuilding would create more prose than the operator can use.
+    when_not_to_use: Several coequal threads intentionally share focus, the adventure is built as an open anthology of situations, or forcing one organizing element would distort the material.
+    absorbed_from_object_id: none
 ---
 
 # Write Adventure Context for Interpretive Handoff
 
 ## Pattern Rule
-**IF** an adventure module will be interpreted by a facilitator and then reshaped through live player action
-**THEN** write the stable context the facilitator needs to reconstruct and adapt the situation—observable details, actor motivations, relevant rules, and broad relationships—without turning the eventual table narrative into fixed prose
-**ELSE** use ordinary direct-reader narrative when no live intermediary must translate the work into an interactive situation
+**IF** an adventure manuscript gives an operator people, places, hazards, rewards, or rules that must be interpreted and recombined during live play
+**THEN** supply the minimum causal context that explains what those elements are doing now, how they relate, and what information the operator needs to keep them coherent when players act unpredictably
+**ELSE** omit background that neither affects operation nor can become discoverable or consequential in play
 
 ## Do
-- Trace the handoff from written module to facilitator delivery to player response, and supply the facts the facilitator needs at each point to keep the situation coherent when the delivery changes.
-- Describe people, places, and objects with concrete details that can be selected, paraphrased, or emphasized during live narration instead of depending on one exact block of literary prose.
-- Give offstage actors enough motive and current circumstance that the facilitator can portray their behavior when players approach them from an unexpected direction.
-- Include a rule, exception, or setting fact when it changes how an event is interpreted, resolved, or described at the table; leave unrelated system exposition elsewhere.
-- Keep backstory when it can surface through a clue, visible consequence, actor behavior, present relationship, or facilitator judgment that players may encounter.
-- State the broad situation and its active pressures clearly enough that the facilitator can preserve its identity even when the players change the order or manner in which its parts are encountered.
-- Run a brief why-now audit on substantial inhabitants, hazards, barriers, rewards, and access features: why is this element here now, who benefits from or tolerates it, and what allowed it to persist?
-- Check important juxtapositions for coexistence logic so predators and prey, residents and lethal traps, treasures and hazards, doors and occupants, or other nearby elements do not require contradictory assumptions to share the same situation.
+- Give important actors present motives, relevant relationships, and enough prior circumstance to explain what they are likely to do next without prescribing the protagonists' response.
+- For each substantial inhabitant, hazard, barrier, reward, or access feature, ask why it is present now, who benefits from or tolerates it, and what allowed it to persist.
+- Check coexistence explicitly when neighboring elements would naturally threaten, consume, disable, avoid, or exploit one another; write the relationship that makes the current arrangement possible.
+- Include backstory when it changes behavior, explains present state, supports discovery, or helps the operator adjudicate an unscripted consequence.
+- Prefer concrete present facts and broad causal strokes over a fully authored sequence of future events.
+- Leave enough stable context that an operator can infer a plausible response when play reaches a situation the manuscript did not predict.
+- When a single actor carries a function that later material depends on, decide whether losing that actor should end the adventure; if not, state a plausible successor, alternate pressure, independent process, or changed objective rather than protecting the actor by fiat.
 
 ## Don't
-- Write a future sequence as though the protagonists' decisions and the facilitator's interpretation have already happened.
-- Keep genealogy, institutional history, or other lore merely because it is interesting when it never changes what the facilitator can present or what players can discover.
-- Mistake a large amount of context for useful context; excess explanation makes live retrieval harder and can obscure the parts that actually drive portrayal.
-- Reduce the module to disconnected map keys, statistics, and treasure notes when the facilitator needs causal relationships to understand why those elements coexist.
-- Use polished fiction to conceal missing operational facts such as what an actor wants, what is happening now, or which circumstance changes a scene.
+- Write a fixed narrative outcome for protagonists whose choices belong to the players.
+- Keep lore merely because it is interesting when it cannot affect behavior, discovery, consequence, or live interpretation.
+- Place monsters, residents, traps, doors, treasure, or resources beside one another with no explanation for why the arrangement has not already changed.
+- Use backstory to repair contradictions after the fact without making the repaired relationship visible in the present adventure state.
+- Strip context so far that the operator has only isolated map keys, statistics, or set pieces and must invent the causal situation during play.
 
 ## Checklist
-- The facilitator can state the current situation, the major actors' immediate motives, and any rules that materially change interpretation without inventing missing context.
-- Every substantial piece of backstory has at least one route into player discovery, observable consequence, actor behavior, or facilitator decision.
-- Descriptive material remains useful when paraphrased or shortened rather than requiring verbatim delivery to make sense.
-- The text distinguishes present circumstances from outcomes that will only become true after player action.
-- Removing a lore passage that has no live consequence creates no operational gap; if that test passes, the passage can be cut.
-- The module contains enough causal context to explain important juxtapositions among locations, actors, hazards, and rewards rather than leaving them as arbitrary adjacent entries.
-- Each substantial encounter element has a present-tense reason for being there and for remaining compatible with the other elements that share its local situation.
+- Every major actor has a present motive or pressure the operator can use to choose behavior.
+- Every major hazard, reward, barrier, or inhabitant has a credible reason to be where it is now.
+- Potentially incompatible neighboring elements have an explicit coexistence explanation.
+- Included history changes present interpretation, future response, or discoverable meaning.
+- Removing any remaining background would make live interpretation materially harder; material that fails that test has been cut.
+- The manuscript establishes circumstances without deciding how the protagonists must react or how the adventure must end.
+- Removing a key actor early either produces a supported ending or leaves enough written causal state for the operator to continue without inventing a replacement plot from nothing.
 
 ## Notes
-Adventure-module prose is mediated writing. The author does not deliver the final narrative directly: a facilitator studies the material, selects and recomposes it in play, and player decisions feed new state back into that interpretation. That extra handoff changes what earns space on the page. Context is useful when it survives recomposition: a motive explains an NPC's response, a present condition explains a location, a rule changes what an event means, and a sensory detail gives the facilitator something concrete to communicate.
+Adventure prose is mediated: the writer does not directly narrate the final sequence to the audience. An operator interprets the written situation, players act inside it, and the operator must then recombine the manuscript's facts in response. The useful context is therefore neither a bare key nor a complete fiction plot. It is the causal information that survives that handoff.
 
-The practical target is neither maximal backstory nor bare notation. Too little context leaves the facilitator with disconnected ingredients and forces causal invention during play; too much treats the module like fiction whose sequence and interpretation are already settled. Write enough to make the situation legible, visual, and causally grounded, then stop before information that cannot reach play begins competing with information that can.
+A practical rationale audit catches many failures early. Ask why a creature lives beside another creature, why residents tolerate a lethal trap on their own route, why a valuable object remains in a hazardous place, or why a barrier exists in relation to the people who use the site. The answer need not be elaborate. It only needs to make the current state operable and plausible enough that later consequences can be derived from it.
 
-A useful causal audit asks not only why an element originally existed, but why it still exists in its present relationship to everything around it. Brief history earns its keep when it explains current placement, ownership, tolerance, access, or persistence. When a trap would routinely kill its own residents, a predator should already have eaten its neighbors, or a useful treasure would logically have been used, traded, protected, or destroyed, the writer needs an explicit condition that resolves the contradiction rather than decorative lore around it.
+Variant `writing_adventure_modules_variant_write_unopposed_threat_trajectory_as_conditional_context` makes an active threat legible across time. State what the antagonist wants, what it would attempt if nobody interfered, and what affected people or institutions would plausibly notice and do. The resulting trajectory is operator context, not promised future narration: once the protagonists interrupt a step, remove a resource, expose a secret, or change an NPC response, the operator derives the next development from the new state instead of forcing the original sequence to occur.
+
+
+Variant `writing_adventure_modules_variant_build_context_around_a_focal_story_element` keeps backstory generation proportionate. Choose the element that most strongly organizes the adventure, then use who, what, where, when, why, and how as prompts for the supporting context. The questions are not a completeness checklist; they are a way to explain the present people, place, pressures, and relationships around the chosen focus without turning operator support into a separate work of fiction.

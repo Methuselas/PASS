@@ -5,7 +5,7 @@
 ## Objects
 
 - [Calibrate Context to Intended Audience and Venue](PAT_calibrate_context_to_intended_audience_and_venue.md) - pattern; 0 design. Tags: accessibility, audience, circulation, context, genre, publication.
-  - Variants: `Write for a High-Volume Evaluative Reader` (context).
+  - Variants: `Write for a High-Volume Evaluative Reader` (context); `Use Explicit Referent Terms When Shorthand Can Mislead Outside Readers` (context).
 - [Compare Publication Outlets by Work-Specific Tradeoffs](PAT_compare_publication_outlets_by_work_specific_tradeoffs.md) - pattern; 4 final. Tags: competitions, digital_publishing, outlet_selection, print, publication.
 - [Conform a Manuscript to the Receiver's Current Requirements](PAT_conform_manuscript_to_receiver_current_requirements.md) - pattern; 4 final. Tags: formatting, manuscript, presentation, readability, submissions.
 - [Decide Whether and How to Seek Literary Representation](PAT_decide_whether_and_how_to_seek_literary_representation.md) - pattern; 4 final. Tags: literary_agents, publication, representation, rights, submissions.

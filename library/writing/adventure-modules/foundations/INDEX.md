@@ -6,7 +6,10 @@
 
 - [Partition Adventure-Module Information by Reader Role and Reveal State](PAT_partition_adventure_module_information_by_reader_role_and_reveal_state.md) - pattern; 0 design. Tags: adventure_modules, audience, disclosure, game_master, information_architecture.
   - Variants: `Write Read-Aloud as a Minimum Fact Set with an Optional Sensory Palette` (emphasis); `Seed Open Exploration with Operator-Keyed Rumors` (method_sequence).
+- [State Adventure Rules Requirements and Use the Published Baseline](PAT_state_adventure_rules_requirements_and_use_published_baseline.md) - pattern; 0 design. Tags: adventure_modules, compatibility, portability, prerequisites, rules.
+- [Test an Adventure Draft Through Independent Operator Handoff](PAT_test_adventure_draft_through_independent_operator_handoff.md) - pattern; 3 rough. Tags: adventure_modules, game_master, handoff, playtest, usability.
 - [Write a Portable Scenario with Explicit Adaptation Seams](PAT_write_portable_scenario_with_explicit_adaptation_seams.md) - pattern; 0 design. Tags: adaptation, adventure_modules, integration, portability, setting.
-- [Write Adventure Context for Interpretive Handoff](PAT_write_adventure_context_for_interpretive_handoff.md) - pattern; 0 design. Tags: adventure_modules, backstory, context, game_master, live_use.
+- [Write Adventure Context for Interpretive Handoff](PAT_write_adventure_context_for_interpretive_handoff.md) - pattern; 0 design. Tags: adventure_modules, backstory, causality, context, game_master.
+  - Variants: `Write an Unopposed Threat Trajectory as Conditional Context` (method_sequence); `Build Context Around a Focal Story Element` (method_sequence).
 - [Write Pregenerated Roles as Playable Decision Positions](PAT_write_pregenerated_roles_as_playable_decision_positions.md) - pattern; 0 design. Tags: adventure_modules, characterization, ensemble, one_shots, pregenerated_characters.
   - Variants: `Prime a Pregenerated Ensemble with a Shared Launch Script` (method_sequence).

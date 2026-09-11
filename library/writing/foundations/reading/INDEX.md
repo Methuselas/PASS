@@ -6,5 +6,8 @@
 
 - [Map Favorite Books to Project Affinities](DRILL_map_favorite_books_to_project_affinities.md) - drill; 0 design. Tags: craft_analysis, influence, project_selection, reading, voice.
 - [Map Repetition by Scale Placement and Effect](DRILL_map_repetition_by_scale_placement_and_effect.md) - drill; 3 rough. Tags: close_reading, repetition, revision, rhythm, syntax.
+- [Reverse-Engineer and Transform a Writer's Microstyle](DRILL_reverse_engineer_and_transform_a_writers_microstyle.md) - drill; 0 design. Tags: close_reading, conjunctions, deliberate_practice, influence, rhythm, style, syntax, voice.
+  - Variants: `Break a Safe Default with Controlled Style Risk` (context).
 - [Synthesize Literary Influences into Original Voice](PAT_synthesize_literary_influences_into_original_voice.md) - pattern; 0 design. Tags: creative_writing, influence, reading, style, voice.
+  - Variants: `Reverse-Engineer Microstyle before Synthesis` (method_sequence).
 - [Trace Reader Effects to Craft Choices](PAT_trace_reader_effects_to_craft_choices.md) - pattern; 0 design. Tags: apprenticeship, close_reading, craft_analysis, imitation, reader_effect.

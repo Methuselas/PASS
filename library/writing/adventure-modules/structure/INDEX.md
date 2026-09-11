@@ -8,6 +8,7 @@
   - Variants: `Offer Parallel Approach Routes to a Shared Objective` (method_sequence).
 - [Derive the Finale from Accumulated Scenario State](PAT_derive_finale_from_accumulated_scenario_state.md) - pattern; 2 block. Tags: adventure_modules, branching, consequences, endings, state_tracking.
   - Variants: `Return Revealed Wrongdoing to Affected Stakeholders` (method_sequence).
+- [Orient the Operator with a Compact Adventure Flow Overview](PAT_orient_operator_with_compact_adventure_flow_overview.md) - pattern; 1 skeleton. Tags: adventure_modules, continuity, game_master, overview, structure.
 - [Pivot a Resolved One-Shot into a Campaign with a World-State Aftershock](PAT_pivot_resolved_one_shot_into_campaign_with_world_state_aftershock.md) - pattern; 2 block. Tags: adventure_modules, campaign_openers, endings, one_shots, transitions.
 - [Sequence Load-Bearing Adventure Scenes by Dependency](PAT_sequence_load_bearing_adventure_scenes_by_dependency.md) - pattern; 1 skeleton. Tags: adventure_modules, dependency, sequencing, structure, transitions.
 - [Split an Apparent Crisis into Distinct Causal Threads](PAT_split_apparent_crisis_into_distinct_causal_threads.md) - pattern; 1 skeleton. Tags: adventure_modules, causality, investigation, mystery, revelations.

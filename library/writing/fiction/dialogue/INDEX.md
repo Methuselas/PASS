@@ -15,7 +15,7 @@
 - [Draft and Revise a Dialogue Scene](AP_draft_and_revise_a_dialogue_scene.md) - ap; 1 skeleton. Tags: dialogue, drafting, fiction, revision, scene.
 - [Harvest and Refine Overheard Speech](DRILL_harvest_and_refine_overheard_speech.md) - drill; 1 skeleton. Tags: dialogue, fiction, listening, practice, rhythm, speech.
 - [Let Relationship and Setting Shape Dialogue](PAT_let_relationship_and_setting_shape_dialogue.md) - pattern; 0 design. Tags: dialogue, fiction, power, register, relationship, setting.
-  - Variants: `Let Communication Channel Shape Dialogue` (medium); `Constrain Dialogue with a Consequential Deadline` (constraint).
+  - Variants: `Let Communication Channel Shape Dialogue` (medium); `Constrain Dialogue with a Consequential Deadline` (constraint); `Transform Shared Language to Show Relationship Change` (method_sequence).
 - [Make an Unmentionable Subject Legible through Subtext](DRILL_make_an_unmentionable_subject_legible_through_subtext.md) - drill; 1 skeleton. Tags: conflict, deliberate_practice, dialogue, fiction, omission, reader_inference, subtext.
 - [Orient Speakers with Unobtrusive Formatting and Tags](PAT_orient_speakers_with_unobtrusive_formatting_and_tags.md) - pattern; 3 rough. Tags: clarity, dialogue, dialogue-tags, fiction, formatting, punctuation.
 - [Redraft One Conversation across Communication Channels](DRILL_redraft_one_conversation_across_communication_channels.md) - drill; 1 skeleton. Tags: communication_channel, deliberate_practice, dialogue, fiction, interactive_narrative, revision, scene.

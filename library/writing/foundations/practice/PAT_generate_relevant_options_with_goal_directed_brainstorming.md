@@ -60,13 +60,6 @@ variants:
     when_to_use: The writer prefers orderly lists and can name a broad life category but cannot yet choose or develop a specific episode within it.
     when_not_to_use: Continuous associative prose or spatial relations are producing stronger discoveries, or the chosen event already has enough concrete material to draft.
     absorbed_from_object_id: none
-  - variant_id: writing_variant_mine_familiar_subject_matter_for_transferable_structure
-    variant_name: Mine Familiar Subject Matter for Transferable Structure
-    variant_basis: context
-    difference_from_foundation: Start from a field the writer genuinely knows, isolate a role, institution, exchange, routine, pressure, or detail field that gives it structure, then generate fictional possibilities by transferring that function rather than copying surface facts.
-    when_to_use: A scene, setting, institution, occupation, or recurring activity needs grounded specificity and the writer has deep familiarity with a real or studied domain that can supply workable relationships and procedures.
-    when_not_to_use: The familiar material is being included mainly to display expertise, its real-world structure does not serve the current writing problem, or direct copying would crowd out the work's own causal and tonal needs.
-    absorbed_from_object_id: none
   - variant_id: writing_variant_introduce_random_environmental_constraint
     variant_name: Introduce a Random Environmental Constraint
     variant_basis: method_sequence
@@ -74,6 +67,28 @@ variants:
     when_to_use: Deliberate invention keeps producing predictable options, or a scene needs an external pressure, object, encounter, or condition the writer would not have selected unaided.
     when_not_to_use: The draft already has a stable causal design, or the random element can only be pasted on as decoration without changing action, relation, or meaning.
     absorbed_from_object_id: none
+  - variant_id: writing_variant_mine_familiar_subject_matter_for_transferable_structure
+    variant_name: Mine Familiar Subject Matter for Transferable Structure
+    variant_basis: method_sequence
+    difference_from_foundation: Begin from a field the writer knows well, isolate a role, institution, exchange, routine, pressure, or detail field that performs a useful function, then translate that function into the current work instead of copying the source domain's surface appearance.
+    when_to_use: A writing problem needs grounded material or believable operating detail and the writer has relevant knowledge from history, work, art, craft, hobby, or another familiar domain.
+    when_not_to_use: The current problem already has enough specific material, or familiarity would encourage a display of expertise that overwhelms the work's actual purpose.
+    absorbed_from_object_id: none
+  - variant_id: writing_variant_crossbreed_familiar_premises_into_new_concept
+    variant_name: Crossbreed Familiar Premises into a New Concept
+    variant_basis: method_sequence
+    difference_from_foundation: Select two or more recognizable premises, genre situations, or story engines that solve different parts of the current writing problem, state the combination in functional terms, then generate consequences that transform the ingredients into one internally coherent concept rather than reproducing either source intact.
+    when_to_use: A project needs a fresh premise, setting turn, threat, or adventure frame and the writer has strong but separately familiar reference ideas whose interaction could create a less predictable option set.
+    when_not_to_use: The combination depends mainly on copying distinctive expression or protected particulars, the ingredients do not alter one another causally, or the current problem is about voice rather than concept generation.
+    absorbed_from_object_id: none
+  - variant_id: writing_variant_mine_collaborator_speculation_around_unresolved_gap
+    variant_name: Mine Collaborator Speculation Around an Unresolved Gap
+    variant_basis: context
+    difference_from_foundation: When collaborators encounter a genuinely unresolved part of a draft or test text and spontaneously speculate about what might happen, exist, or be revealed there, capture promising predictions as candidate material and evaluate them after the session instead of treating the speculation only as feedback on the current version.
+    when_to_use: A live reading, playtest, workshop, or collaborative review reaches material the writer has intentionally left open and the participants generate possibilities that fit the established work.
+    when_not_to_use: The underlying fact is already fixed, adopting a guess would contradict established causality or promises, the participants did not consent to a generative collaboration where idea reuse is appropriate, or the writer would use a prediction merely to make the predictor seem retrospectively correct.
+    absorbed_from_object_id: none
+
 ---
 
 # Generate Relevant Options with Goal-Directed Brainstorming
@@ -117,6 +132,8 @@ Collaborative brainstorming works best when the group can respond to a tractable
 
 `writing_variant_cascade_story_titles_into_concrete_detail_lists` moves from breadth to depth through successive lists. Generate brief titles for several possible personal episodes under a broad cue, choose one that carries live action or meaning, then list remembered setting, sensation, conduct, emotion, objects, and speech without deciding which details will survive. If one submoment remains thin, make it the heading of another detail list. Stop when the selected episode has both enactable particulars and a question or pressure worth developing; list length is not the completion test.
 
-`writing_variant_mine_familiar_subject_matter_for_transferable_structure` uses lived or studied familiarity as a constrained source of invention. Instead of importing a hobby, workplace, historical practice, or specialist field whole, identify what makes it function: who depends on whom, what moves between them, what routines recur, where pressure accumulates, what information matters, and what concrete details reveal those relationships. Translate only the useful structure into the work, then reshape names, stakes, scale, and consequences for the destination. Familiarity should make invention more specific and causally plausible, not turn the draft into a demonstration of expertise.
-
 `writing_variant_introduce_random_environmental_constraint` interrupts an option set that has become too self-confirming. Draw one concrete element the writer did not choose—a change of weather, nearby object, unexpected visitor, overheard phrase, delay, sound, or location condition—and ask what it makes a character notice, want, avoid, do, or revise. Keep it only when its consequences become native to the scene; reject it when novelty remains detachable.
+`writing_variant_mine_familiar_subject_matter_for_transferable_structure` starts from knowledge the writer can inspect from the inside. Identify what the familiar domain actually does - who occupies which roles, what is exchanged, what routines repeat, which pressures shape behavior, and which concrete details signal the system - then carry only the useful function into the new work. Familiarity earns specificity and causal texture; it does not earn unlimited page space, so stop when the borrowed structure serves the present writing problem rather than showcasing the writer's expertise.
+`writing_variant_crossbreed_familiar_premises_into_new_concept` uses familiarity as raw generative material rather than as an endpoint. Name what each candidate premise contributes - for example a pursuit structure, social pressure, environment, revelation pattern, or antagonist relation - and ask what changes when those functions occupy the same work. Keep only consequences that make the combination behave as one concept. A pitch-like shorthand can start the exercise, but the resulting draft must transform the ingredients instead of leaning on copied names, scenes, or signature expression.
+
+`writing_variant_mine_collaborator_speculation_around_unresolved_gap` turns spontaneous prediction into an option source without confusing it with evidence about the draft. During a live encounter with an unfinished or deliberately open section, record predictions, hopes, or feared outcomes that reveal an unexpectedly strong possibility. Afterward, evaluate those possibilities by the same criteria as any other brainstormed option and integrate only what fits the work. A participant's guess can supply material, but its cleverness does not prove that the draft already communicated or foreshadowed that result. Use this method only in a collaboration where reusing contributed ideas is appropriate.

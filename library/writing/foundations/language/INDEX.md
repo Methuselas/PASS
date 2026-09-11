@@ -13,9 +13,13 @@
 - [Make Figurative Language Unexpected and Fitting](PAT_make_figurative_language_unexpected_and_fitting.md) - pattern; 3 rough. Tags: creative_writing, figurative_language, metaphor, revision, simile.
   - Variants: `Trust a Locally Mysterious Image` (context).
 - [Make Nonstandard Language a Deliberate Craft Choice](PAT_make_nonstandard_language_a_deliberate_craft_choice.md) - pattern; 3 rough. Tags: dialect, grammar, language, multilingual_writing, voice.
+  - Variants: `Design Invented Language as a Constraint System` (constraint).
 - [Replace Abstractions with Specific Sensory Images](PAT_replace_abstractions_with_specific_sensory_images.md) - pattern; 3 rough. Tags: creative_writing, imagery, revision, sensory_detail, specificity.
 - [Replace Received Language with Precise Distinctive Phrasing](PAT_replace_received_language_with_precise_distinctive_phrasing.md) - pattern; 3 rough. Tags: cliche, creative_writing, precision, revision, voice.
-  - Variants: `Rehabilitate Received Language` (method_sequence).
+  - Variants: `Rehabilitate Received Language` (method_sequence); `Reject the Predictive Continuation` (context).
+- [Revise Clause Load without Flattening Complexity](DRILL_revise_clause_load_without_flattening_complexity.md) - drill; 3 rough. Tags: analytical_writing, clarity, clause_load, revision, rhythm, syntax.
+  - Variants: `Diagnose Conceptual Density Below the Length Threshold` (context).
 - [Shape Sentence Rhythm Through Length Structure and Punctuation](PAT_shape_sentence_rhythm_through_length_structure_and_punctuation.md) - pattern; 3 rough. Tags: creative_writing, punctuation, revision, sentence_rhythm, syntax.
+  - Variants: `Treat Conjunctions as Rhythmic and Logical Joints` (style).
 - [Shape Sound to Reinforce Meaning](PAT_shape_sound_to_reinforce_meaning.md) - pattern; 3 rough. Tags: creative_writing, musicality, onomatopoeia, revision, sound.
   - Variants: `Link Ideas with Repeated Consonants or Vowels` (method_sequence); `Use Onomatopoeia to Echo the Subject` (method_sequence).

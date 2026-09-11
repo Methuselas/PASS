@@ -23,10 +23,12 @@
 - [Render One Character through Five Portrayal Channels](DRILL_render_one_character_through_five_portrayal_channels.md) - drill; 2 block. Tags: character, characterization, deliberate_practice, fiction, revision, scene.
   - Variants: `Interleave Deliberation with Consequential Action and Perception` (method_sequence).
 - [Reveal Character Incrementally through Behavior](PAT_reveal_character_incrementally_through_behavior.md) - pattern; 2 block. Tags: behavior, character, fiction, observation, scene.
-  - Variants: `Characterize through Selective Observation` (emphasis).
+  - Variants: `Characterize through Selective Observation` (emphasis); `Use a Constant Stimulus as a Character Prism` (method_sequence).
 - [Reveal Character through Contrasting Everyday Conduct](DRILL_reveal_character_through_contrasting_everyday_conduct.md) - drill; 2 block. Tags: activity, behavior, character, deliberate_practice, fiction, interactive_narrative, relationship, research.
   - Variants: `Stage a Relationship through Competitive or Cooperative Play` (context); `Compare Embodied Responses to Contrasting News` (context).
 - [Scale Character Change to Story Length](PAT_scale_character_change_to_story_length.md) - pattern; 3 rough. Tags: change, character, fiction, flash-fiction, realization.
+  - Variants: `Separate Recognition from Reform` (method_sequence); `Separate Compliance, Belief, and Allegiance` (method_sequence).
+- [Test a Character's Claimed Inviolable Core](DRILL_test_a_characters_inviolable_core.md) - drill; 0 design. Tags: character, climax, deliberate_practice, pressure, values, vulnerability.
 - [Test Character Motivation from Need to Attainment](DRILL_test_character_motivation_from_need_to_attainment.md) - drill; 0 design. Tags: character, deliberate_practice, desire, fiction, goals, motivation, self-sabotage.
 - [Trace Character Continuity across a Whole-Life Timeline](DRILL_trace_character_continuity_across_a_whole_life_timeline.md) - drill; 0 design. Tags: character, chronology, deliberate_practice, fiction, interactive_narrative, life_history.
 - [Trace One Embodied Condition through a Character's Life](DRILL_trace_one_embodied_condition_through_a_characters_life.md) - drill; 0 design. Tags: adaptation, causality, character, deliberate_practice, embodiment, fiction, stereotype.

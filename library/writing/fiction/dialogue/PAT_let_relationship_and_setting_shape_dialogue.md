@@ -3,9 +3,9 @@ object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
 object_type: pattern
 name: Let Relationship and Setting Shape Dialogue
 library_path:
-  - writing
-  - fiction
-  - dialogue
+- writing
+- fiction
+- dialogue
 stage_binding: 0 design
 lane_fit: skill
 foundation_role: specialization
@@ -13,41 +13,59 @@ routing_class: specialized
 specialization_axis: genre
 foundation_object_id: none
 tags:
-  - fiction
-  - dialogue
-  - relationship
-  - power
-  - setting
-  - register
+- fiction
+- dialogue
+- relationship
+- power
+- setting
+- register
 cross_links:
-  - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
-  - rel: related_to
-    target_object_id: writing_make_nonstandard_language_deliberate
-  - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
-  - rel: related_to
-    target_object_id: writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility
+- rel: related_to
+  target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+- rel: related_to
+  target_object_id: writing_make_nonstandard_language_deliberate
+- rel: related_to
+  target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+- rel: related_to
+  target_object_id: writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey
 confidence: high
 references: []
 variants:
-  - variant_id: writing_fiction_variant_let_communication_channel_shape_dialogue
-    variant_name: Let Communication Channel Shape Dialogue
-    variant_basis: medium
-    difference_from_foundation: Treat co-presence, audio, video, text, recording, relay, or another communication channel as a designed social condition by mapping what each participant can perceive, conceal, delay, preserve, interrupt, or misunderstand.
-    when_to_use: The exchange's medium changes available cues, privacy, latency, persistence, interruption, secondary activity, or the participants' ability to respond.
-    when_not_to_use: The channel has no consequence for wording, inference, conduct, timing, or story outcome and would function only as decorative technology.
-    absorbed_from_object_id: none
-  - variant_id: writing_fiction_variant_constrain_dialogue_with_consequential_deadline
-    variant_name: Constrain Dialogue with a Consequential Deadline
-    variant_basis: constraint
-    difference_from_foundation: Bound the opportunity to speak with a credible expiry event whose arrival removes an option, exposes the exchange, forces a choice, or changes the cost of continued delay.
-    when_to_use: Limited time can make interruption, evasion, disclosure, departure, or commitment consequential because the opportunity will materially change or disappear.
-    when_not_to_use: The countdown changes no available action or outcome and serves only to make an otherwise static exchange appear urgent.
-    absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_let_communication_channel_shape_dialogue
+  variant_name: Let Communication Channel Shape Dialogue
+  variant_basis: medium
+  difference_from_foundation: Treat co-presence, audio, video, text, recording, relay, or another communication channel
+    as a designed social condition by mapping what each participant can perceive, conceal, delay, preserve, interrupt,
+    or misunderstand.
+  when_to_use: The exchange's medium changes available cues, privacy, latency, persistence, interruption, secondary
+    activity, or the participants' ability to respond.
+  when_not_to_use: The channel has no consequence for wording, inference, conduct, timing, or story outcome and would
+    function only as decorative technology.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_constrain_dialogue_with_consequential_deadline
+  variant_name: Constrain Dialogue with a Consequential Deadline
+  variant_basis: constraint
+  difference_from_foundation: Bound the opportunity to speak with a credible expiry event whose arrival removes an
+    option, exposes the exchange, forces a choice, or changes the cost of continued delay.
+  when_to_use: Limited time can make interruption, evasion, disclosure, departure, or commitment consequential because
+    the opportunity will materially change or disappear.
+  when_not_to_use: The countdown changes no available action or outcome and serves only to make an otherwise static
+    exchange appear urgent.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_transform_shared_language_to_show_relationship_change
+  variant_name: Transform Shared Language to Show Relationship Change
+  variant_basis: method_sequence
+  difference_from_foundation: Give two speakers a shared verbal form such as a metaphor, joke, oath, phrase, naming
+    habit, analogy, or rhythm, then let one speaker alter, reject, complete, or redirect it and require the other's next
+    turn to adapt.
+  when_to_use: Reciprocity, intimacy, rivalry, trust, courtship, estrangement, or changing power can be made visible
+    through how speakers enter and modify one another's language.
+  when_not_to_use: The speakers would not plausibly share verbal play, the patterned exchange becomes performative
+    ornament detached from their goals, or direct speech is more credible under the scene's pressure.
+  absorbed_from_object_id: none
 ---
 
 # Let Relationship and Setting Shape Dialogue
@@ -91,3 +109,5 @@ Context dictates dialogue because speech is social action. A line addresses a pa
 `writing_fiction_variant_let_communication_channel_shape_dialogue` extends the context test from physical setting to mediated access. Inventory what each participant can see, hear, touch, edit, preserve, replay, conceal, and interrupt, then make at least one difference change interpretation or action. Use the variant when the channel alters the exchange; omit channel business when the same dialogue and consequence would survive unchanged.
 
 `writing_fiction_variant_constrain_dialogue_with_consequential_deadline` makes limited time part of the speakers' available choices. Define the event that ends or transforms the opportunity, what becomes impossible or newly costly afterward, and how each person responds to that knowledge. Use the deadline when delay itself becomes action; remove it when the same lines and outcome would survive without the clock.
+
+`writing_fiction_variant_transform_shared_language_to_show_relationship_change` treats verbal reciprocity as behavior. Establish a phrase, metaphor, joke, oath, naming habit, or other shared form; let one speaker accept, resist, sharpen, or redirect it; then make the other speaker's next choice of words respond to that alteration. A later recurrence can reveal relational change by showing who now controls, refuses, repairs, or abandons the shared language. Use the move because the relationship is changing, not because patterned dialogue sounds literary.

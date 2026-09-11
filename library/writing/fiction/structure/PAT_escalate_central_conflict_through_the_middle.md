@@ -43,6 +43,13 @@ variants:
     when_to_use: The story has several established personal or situational pressures but the climax feels episodic, mechanically physical, or disconnected from the character-specific costs accumulated through the middle.
     when_not_to_use: The intended culmination is primarily recognition, surrender, atmosphere, or an externally imposed event; the pressures are not causally related; or forcing them into one dilemma would distort character logic merely to make the ending louder.
     absorbed_from_object_id: none
+  - variant_id: writing_fiction_variant_escalate_through_setbacks_and_partial_victories
+    variant_name: Escalate Through Setbacks and Partial Victories
+    variant_basis: method_sequence
+    difference_from_foundation: Build rising action through reversals, defeats, partial salvations, Pyrrhic victories, or costly choices that deepen the governing conflict and change the next available action instead of giving the protagonist a steady staircase of intermediate wins.
+    when_to_use: The middle advances too smoothly, repeated successes flatten tension, or the story would benefit from forcing the protagonist to recover, reprioritize, sacrifice, or discover that an apparent solution carries a new cost.
+    when_not_to_use: The setback is unrelated punishment, produces only inert delay, repeatedly strips agency without opening a new choice, or the intended form depends on a cleaner accumulation of successful steps.
+    absorbed_from_object_id: none
 ---
 
 # Escalate Central Conflict Through the Middle
@@ -78,3 +85,5 @@ The middle is longest and therefore most exposed to repetition. Rising action in
 `writing_fiction_variant_accelerate_by_increasing_consequential_turn_density` changes the spacing of meaningful turns rather than merely making the prose busier. As the climax approaches, shorten the interval between complications, revelations, decisions, or reversals and compress connective duration that no longer needs full treatment. Count only changes that alter knowledge, relation, goal, risk, or available action; extra motion without consequence creates activity, not acceleration. Preserve wider spacing when suspense, investigation, atmosphere, or emotional processing depends on it.
 
 `writing_fiction_variant_converge_established_pressures_into_climactic_choice` changes how accumulated tensions meet at the culmination. Plant distinct pressures early enough to matter on their own, let complications and revelations alter what the character can protect, and then bring compatible strands into the same decision or encounter so one outcome carries several costs. A useful climactic choice does not manufacture an arbitrary binary; it exposes conflicts the story has already made real. Leave strands separate when their independence is meaningful, and do not force a dilemma onto a story whose culmination works through recognition, acceptance, or another quieter form of irreversible change.
+
+`writing_fiction_variant_escalate_through_setbacks_and_partial_victories` replaces a smooth ladder of intermediate success with reversals that keep the same central trouble active while changing its terms. A defeat can force recovery and a new approach; a partial salvation can solve one problem while exposing another; a Pyrrhic victory can win the immediate contest at a cost that endangers the larger objective; and a hard choice can require sacrificing one valued aim to preserve another. The setback earns its place when it changes motive, options, stakes, or available action and leaves the story able to move forward. Repeated unrelated misfortune or delays that restore the same conditions afterward create frustration rather than rising action.

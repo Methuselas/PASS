@@ -10,11 +10,12 @@
   - Variants: `Structure Through Habitual Recurrence Without a Dramatic Present` (context).
 - [Begin Fiction at the Point of Attack](PAT_begin_at_the_point_of_attack.md) - pattern; 1 skeleton. Tags: conflict, exposition, fiction, in_medias_res, openings.
 - [Build Plot from Causal Consequences](PAT_build_plot_from_causal_consequences.md) - pattern; 0 design. Tags: causality, consequences, fiction, plot, structure.
+  - Variants: `Make Interpretation Causally Operative` (method_sequence); `Make a Worldview Predict Behavior` (method_sequence); `Make Public Speech Causally Binding` (method_sequence); `Control the Evidence Ecology` (method_sequence).
 - [Design and Revise Short Story Structure](AP_design_and_revise_short_story_structure.md) - ap; 0 design. Tags: chronology, fiction, plot, revision, structure.
   - Variants: `Generate Structure Backward from a Desired Culmination` (method_sequence).
 - [End the Selected Story Without Exhausting the Larger Life](PAT_end_the_selected_story_without_exhausting_the_larger_life.md) - pattern; 3 rough. Tags: closure, endings, fiction, mystery, reader_inference.
 - [Escalate Central Conflict Through the Middle](PAT_escalate_central_conflict_through_the_middle.md) - pattern; 2 block. Tags: conflict, fiction, middles, rising_action, transitions.
-  - Variants: `Accelerate by Increasing Consequential Turn Density` (method_sequence); `Converge Established Pressures into a Climactic Choice` (method_sequence).
+  - Variants: `Accelerate by Increasing Consequential Turn Density` (method_sequence); `Converge Established Pressures into a Climactic Choice` (method_sequence); `Escalate Through Setbacks and Partial Victories` (method_sequence).
 - [Expand a Story Core into a Full-Disclosure Synopsis](DRILL_expand_story_core_into_full_disclosure_synopsis.md) - drill; 4 final. Tags: compression, feedback, fiction, plot, synopsis.
 - [Foreshadow a Consequence While Withholding Its Route](PAT_foreshadow_a_consequence_while_withholding_its_route.md) - pattern; 1 skeleton. Tags: anticipation, fiction, foreshadowing, openings, titles.
 - [Generate and Cull Multiple Story Openings](DRILL_generate_and_cull_multiple_story_openings.md) - drill; 1 skeleton. Tags: fiction, invention, openings, practice, selection.
@@ -23,12 +24,13 @@
 - [Omit Eventless Travel between Consequential Scenes](PAT_omit_eventless_travel_between_consequential_scenes.md) - pattern; 2 block. Tags: compression, fiction, pacing, scene_transition, travel.
 - [Reduce a Story to a Logline](DRILL_reduce_story_to_a_logline.md) - drill; 0 design. Tags: conflict, diagnosis, fiction, logline, story_core.
 - [Reinforce Story Structure Through Repetition and Variation](PAT_reinforce_story_structure_through_repetition_and_variation.md) - pattern; 2 block. Tags: fiction, motifs, repetition, structure, variation.
+  - Variants: `Condition Suspense with Recurring Threat Cues` (method_sequence); `Convert Recurrence by Function` (method_sequence); `Use an Inset Story as Counterpressure` (method_sequence).
 - [Revise One Event through Summary Scene and Blend](DRILL_revise_one_event_through_summary_scene_and_blend.md) - drill; 2 block. Tags: deliberate_practice, fiction, pacing, revision, scene, summary.
 - [Stage Disclosure to Sustain Reader Inference](PAT_stage_disclosure_to_sustain_reader_inference.md) - pattern; 1 skeleton. Tags: disclosure, exposition, fiction, mystery, reader_inference.
-  - Variants: `Correct False Memory through Consequential Evidence` (method_sequence); `Build Fair Misdirection from Plausible Inference` (method_sequence).
+  - Variants: `Correct False Memory through Consequential Evidence` (method_sequence); `Build Fair Misdirection from Plausible Inference` (method_sequence); `Build a Trap from the Target's Desired Hypothesis` (method_sequence).
 - [Structure Multiple-Viewpoint Narratives by Function and Orientation](PAT_structure_multiple_viewpoint_narratives_by_function_and_orientation.md) - pattern; 0 design. Tags: chronology, fiction, multiple_viewpoints, reader_orientation, structure.
   - Variants: `Reinterpret a Complete Account through a Later Account` (method_sequence); `Rotate Parallel Viewpoint Strands` (method_sequence); `Pass the Narrative through Relay or Nested Frames` (method_sequence); `Permit Reader-Selected Account Order` (constraint).
 - [Test Structural Recurrence with Exact Repetition and Varied Echo](DRILL_test_structural_recurrence_with_exact_repetition_and_varied_echo.md) - drill; 2 block. Tags: deliberate_practice, fiction, repetition, structure, variation.
 - [Use Diaries and Letters as Active Story Documents](PAT_use_diaries_and_letters_as_active_story_documents.md) - pattern; 1 skeleton. Tags: diary, embedded_documents, epistolary, fiction, interactive_narrative, letters.
-  - Variants: `Use One Discovered Document as a Present-Tense Turn` (context); `Interleave a Documentary Past with Present Action` (method_sequence).
+  - Variants: `Use One Discovered Document as a Present-Tense Turn` (context); `Interleave a Documentary Past with Present Action` (method_sequence); `Make an Expository Document an Epistemic Object` (context).
 - [Write a Full-Disclosure Fiction Synopsis](PAT_write_full_disclosure_fiction_synopsis.md) - pattern; 4 final. Tags: conflict, fiction, plot, submissions, synopsis.

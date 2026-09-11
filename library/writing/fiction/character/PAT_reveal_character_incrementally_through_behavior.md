@@ -3,9 +3,9 @@ object_id: writing_fiction_reveal_character_incrementally_through_behavior
 object_type: pattern
 name: Reveal Character Incrementally through Behavior
 library_path:
-  - writing
-  - fiction
-  - character
+- writing
+- fiction
+- character
 stage_binding: 2 block
 lane_fit: skill
 foundation_role: specialization
@@ -13,31 +13,44 @@ routing_class: specialized
 specialization_axis: genre
 foundation_object_id: none
 tags:
-  - fiction
-  - character
-  - scene
-  - behavior
-  - observation
+- fiction
+- character
+- scene
+- behavior
+- observation
 cross_links:
-  - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
-  - rel: related_to
-    target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
-  - rel: related_to
-    target_object_id: writing_fiction_drill_reveal_character_through_contrasting_everyday_conduct
+- rel: related_to
+  target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+- rel: related_to
+  target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+- rel: related_to
+  target_object_id: writing_fiction_drill_reveal_character_through_contrasting_everyday_conduct
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey
 confidence: high
 references: []
 variants:
-  - variant_id: writing_fiction_variant_characterize_through_selective_observation
-    variant_name: Characterize through Selective Observation
-    variant_basis: emphasis
-    difference_from_foundation: Uses what a viewpoint character notices, ignores, or misreads as the primary behavioral evidence.
-    when_to_use: When a scene is filtered through a character whose attention can reveal training, desire, anxiety, or prejudice.
-    when_not_to_use: When the viewpoint or background would not plausibly support the precision of the observation.
-    absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_characterize_through_selective_observation
+  variant_name: Characterize through Selective Observation
+  variant_basis: emphasis
+  difference_from_foundation: Uses what a viewpoint character notices, ignores, or misreads as the primary behavioral
+    evidence.
+  when_to_use: When a scene is filtered through a character whose attention can reveal training, desire, anxiety, or
+    prejudice.
+  when_not_to_use: When the viewpoint or background would not plausibly support the precision of the observation.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_use_constant_stimulus_as_character_prism
+  variant_name: Use a Constant Stimulus as a Character Prism
+  variant_basis: method_sequence
+  difference_from_foundation: Hold an external object, event, question, setting, or comparable experience relatively
+    constant across several characters and reveal difference through what each notices, values, interprets, avoids, or
+    does in response.
+  when_to_use: An ensemble or foil structure needs economical contrast and the characters can encounter sufficiently
+    comparable evidence or pressure for their different responses to be meaningful.
+  when_not_to_use: The circumstances differ so much that response cannot be compared fairly, the characters merely state
+    different opinions without behavioral consequence, or repetition would stall the active scene.
+  absorbed_from_object_id: none
 ---
 
 # Reveal Character Incrementally through Behavior
@@ -84,3 +97,5 @@ The writer may know the whole private history while the reader receives only the
 Exact behavior can create strong inference without carrying one fixed meaning. A person who damages an object while speaking, mishandles a familiar tool, repeatedly starts and stops, or adopts an awkward physical distance may expose pressure because the action departs from an established pattern and affects the scene. The same movement outside that sequence may indicate habit, pain, sensory regulation, etiquette, strategy, divided attention, environmental constraint, or nothing consequential. Let readers and characters interpret evidence, but keep the narration from upgrading a plausible reading into diagnostic fact unless the viewpoint can actually know it.
 
 The variant `writing_fiction_variant_characterize_through_selective_observation` makes attention the main evidence. What a viewpoint character notices, overlooks, or names precisely can disclose profession, desire, fear, and bias. Use that precision only when experience or context makes it plausible; an unsupported technical observation characterizes the author instead of the character.
+
+`writing_fiction_variant_use_constant_stimulus_as_character_prism` reduces the number of changing variables so response itself becomes evidence. Present the same or closely comparable stimulus to several characters and let differences appear in attention, interpretation, speech, physical handling, choice, or consequence. Do not flatten the comparison into a questionnaire: the stimulus still has to belong naturally to each scene, and unequal knowledge or pressure should be named when it materially changes what a response can mean.

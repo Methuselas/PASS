@@ -45,8 +45,10 @@ receipts, hashes, chat transcripts, or the repository that produced them.
   on itself plus the universal `metaskills` baseline.
 - **Retrieve a small working set.** Rank relevant cards for a task without
   loading a whole domain or maintaining a global registry.
-- **Record empirical skill history.** Skillset Memory stores what happened in
-  valid attempts without copying practice history into canonical cards.
+- **Separate learned principles from observed results.** Skillset Memory keeps
+  durable transferable lessons distinct from empirical training outcomes;
+  `training_history.jsonl` preserves their event-level evidence. Neither replaces
+  canonical cards.
 - **Validate the library.** Check card schemas, IDs, relationships,
   prerequisites, assets, visual references, generated indexes, memory, and
   release portability.
@@ -88,11 +90,13 @@ by it.
 - `PASS/` — portable authoring method, contracts, templates, runtime, and tools
 - `library/` — canonical cards organized into independent domain packages
 - `library/metaskills/` — universal process knowledge included in every release
-- `memory/` — per-domain empirical history, separate from canon
+- `memory/` — per-domain learned and calibrated state plus empirical training history, separate from canon
 - `docs/` — human-facing repository and skill-author guides
 - `workspace/tools/` — PDF extraction and project snapshot utilities
 - `workspace/release-recipes/` — named release products; canonical recipes start
   with `SkillForge_`
+- `workspace/handoffs/` — domain-prefixed project continuity and trainer-entry
+  documents; included only with matching project domains, never in releases
 - `tests/` — architecture, runtime, tool, and release checks
 - `.agents/skills/`, `.claude/skills/` — repository discovery wrappers; these do
   not become release dependencies
@@ -146,7 +150,8 @@ The project builder automatically includes:
 - the selected domain's Skillset Memory;
 - matching host-discovery skills and root instructions;
 - reusable utilities from `workspace/tools/`; and
-- optional tests, release recipes, and bounded text source inputs when requested.
+- domain-prefixed project handoffs and canonical release recipes; and
+- optional tests and bounded text source inputs when requested.
 
 It deliberately leaves out unrelated domains, `.git`, retired archives, source
 PDFs, nested ZIPs, release outputs, caches, and workspace scratch. The result is
@@ -221,8 +226,8 @@ Useful options:
 
 - Repeat `--domain` to create a multi-domain project.
 - Add `--include-tests` when the project will maintain repository code.
-- Add `--include-recipes` to include only canonical
-  `SkillForge_*.yaml` recipes.
+- Add `--exclude-recipes` only when a deliberately reduced project should omit
+  canonical `SkillForge_*.yaml` recipes.
 - Add `--force` to replace an existing ZIP. Existing project directories are
   never replaced; choose a new folder name so no working copy is destroyed.
 
@@ -249,18 +254,19 @@ If the plan is correct, apply it:
 python workspace/tools/import_project_snapshot.py path/to/PASS-project-art.zip --apply
 ```
 
-By default, only `library/<domain>/` and `memory/<domain>/` are eligible. If the
-project intentionally changed shared PASS documentation, tools, tests, matching
-host skills, `metaskills`, or canonical recipes, preview that larger scope and
-then apply it explicitly:
+By default, only `library/<domain>/`, `memory/<domain>/`, domain-prefixed
+`workspace/handoffs/*.md` files, and the selected domain's canonical recipe are
+eligible. If the project intentionally changed shared PASS documentation, tools,
+tests, matching host skills, `metaskills`, or other domains' canonical recipes,
+preview that larger scope and then apply it explicitly:
 
 ```bash
 python workspace/tools/import_project_snapshot.py path/to/PASS-project-art.zip --all-project-files
 python workspace/tools/import_project_snapshot.py path/to/PASS-project-art.zip --all-project-files --apply
 ```
 
-The importer never imports `SOURCE_INPUT`, never imports unrelated domains or
-legacy recipes, and never deletes a repository file because it is absent from
+The importer never imports `SOURCE_INPUT`, unrelated domains or their handoffs,
+or legacy recipes, and never deletes a repository file because it is absent from
 the archive. It rejects traversal paths, links, duplicate/case-colliding names,
 unknown domains, oversized payloads, invalid cards, broken references, stale
 indexes, and invalid memory before writing. Each changed file is replaced
@@ -404,8 +410,9 @@ for the closed Drill contract.
 
 ## Use Skillset Memory
 
-Memory records evidence from actual attempts; it does not rewrite canonical
-knowledge automatically.
+Skill Memory keeps durable learned principles separate from empirical training
+results; `training_history.jsonl` records the underlying attempts and
+evaluations. None of these rewrite canonical knowledge automatically.
 
 ```bash
 python PASS/tools/memory.py query --domain art --cues "hand,grip" --limit 5
@@ -571,7 +578,7 @@ releases.
 - Cards survive their sources.
 - Domains do not depend on other domains.
 - Indexes are generated, never hand-edited.
-- Skillset Memory is empirical state, never canon.
+- Skillset Memory separates learned principles from empirical results and is never canon.
 - `archive/` is retired and cannot support active behavior.
 - `.agents/` and `.claude/` are discovery only, never release dependencies.
 - Every release includes `metaskills` and the full prerequisite closure.

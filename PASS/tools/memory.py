@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Skillset Memory tooling: validate, query, append, compact, review.
 
-Memory is the portable empirical record of what happens when the canon is used.
-This tool is mechanical: it validates shape, retrieves a bounded set, appends an
-event, links evidence, and reports what needs revalidation. It never decides
+Memory is the portable compact current state of a skill: learned principles are
+kept distinct from empirical training results. Training history is the event
+record for specific attempts and evaluations. This tool is mechanical: it
+validates shape, retrieves a bounded set, appends an event, links evidence, and
+reports what needs revalidation. It never decides
 whether an artifact was good, never mutates a card, and never invents a training
 stage that did not run.
 
@@ -36,7 +38,13 @@ from paths import default_memory_root, default_library_root
 SCHEMA_VERSION = 1
 
 SCOPE_TYPES = {"skillset", "ap", "pattern", "drill", "training", "topic", "runtime"}
-ENTRY_TYPES = {"recurring_failure", "successful_tendency", "known_boundary", "training_result"}
+ENTRY_TYPES = {
+    "learned_principle",
+    "recurring_failure",
+    "successful_tendency",
+    "known_boundary",
+    "training_result",
+}
 EVIDENCE_CLASSES = {"stochastic_performance", "deterministic_contract"}
 CONFIDENCE_VALUES = {"provisional", "repeated", "strong"}
 STATUS_VALUES = {"active", "monitoring", "resolved", "superseded", "obsolete"}

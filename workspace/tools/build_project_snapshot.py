@@ -107,11 +107,26 @@ def canonical_recipe_files(repo: Path) -> list[Path]:
     ]
 
 
+def domain_handoff_files(repo: Path, domains: list[str]) -> list[Path]:
+    handoffs = repo / "workspace/handoffs"
+    if not handoffs.is_dir():
+        return []
+    prefixes = tuple(f"{domain.replace('-', '_').upper()}_" for domain in domains)
+    return [
+        path
+        for path in sorted(handoffs.iterdir())
+        if path.is_file()
+        and not path.is_symlink()
+        and path.suffix.casefold() == ".md"
+        and path.name.upper().startswith(prefixes)
+    ]
+
+
 def snapshot_roots(
     repo: Path,
     domains: list[str],
     include_tests: bool = False,
-    include_recipes: bool = False,
+    include_recipes: bool = True,
 ) -> list[Path]:
     roots = [repo / name for name in ROOT_FILES if (repo / name).is_file()]
     roots.extend(
@@ -131,6 +146,7 @@ def snapshot_roots(
 
     for host in (".claude", ".agents"):
         roots.append(repo / host / "skills/pass-authoring")
+    roots.extend(domain_handoff_files(repo, domains))
     if include_tests:
         roots.append(repo / "tests")
     if include_recipes:
@@ -142,7 +158,7 @@ def collect_snapshot_files(
     repo: Path,
     domains: list[str],
     include_tests: bool = False,
-    include_recipes: bool = False,
+    include_recipes: bool = True,
 ) -> list[Path]:
     selected: dict[str, Path] = {}
     for root in snapshot_roots(repo, domains, include_tests, include_recipes):
@@ -213,7 +229,8 @@ def main() -> int:
         ),
         epilog=(
             "PASS, metaskills, selected domain cards, domain memory, and matching "
-            "host skills and reusable workspace tools are included. Source PDFs, "
+            "host skills, matching project handoffs, reusable workspace tools, "
+            "and canonical release recipes are included. Source PDFs, "
             "nested ZIPs, .git, archive, and workspace scratch are excluded. "
             "Explicit text inputs are transient."
         ),
@@ -231,10 +248,20 @@ def main() -> int:
         "--include-tests", action="store_true",
         help="Include repository tests for engineering-oriented Project chats.",
     )
-    parser.add_argument(
-        "--include-recipes", action="store_true",
-        help="Include canonical SkillForge_*.yaml workspace release recipes.",
+    recipe_options = parser.add_mutually_exclusive_group()
+    recipe_options.add_argument(
+        "--include-recipes",
+        dest="include_recipes",
+        action="store_true",
+        help=argparse.SUPPRESS,
     )
+    recipe_options.add_argument(
+        "--exclude-recipes",
+        dest="include_recipes",
+        action="store_false",
+        help="Omit canonical SkillForge_*.yaml release recipes from this project.",
+    )
+    parser.set_defaults(include_recipes=True)
     parser.add_argument(
         "--source-text", action="append", type=Path, default=[],
         help=(

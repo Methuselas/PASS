@@ -8,6 +8,13 @@ skillsets may evolve independently.
 
 ### Added
 
+- Added Skillset Memory schema v2 with `specialization_profile` for tracking
+  demonstrated subcategory transfer and `card_candidate` for incubating possible
+  canon lessons without premature card creation. Version-1 stores remain readable
+  so independently maintained domain archives can migrate when needed.
+- Added an explicit card-candidate lifecycle: evidence can strengthen a hypothesis
+  but never auto-promotes it; synthesis must deliberately create/refine canon,
+  retain specialization-only guidance, or reject the candidate.
 - Added `learned_principle` as a first-class Skillset Memory type, separating a
   durable transferable lesson from the empirical result or event that supported
   it.
@@ -25,9 +32,9 @@ skillsets may evolve independently.
 
 ### Validation
 
-- Validated 1,771 canonical objects, all visual references, 197 generated
-  indexes, and all four Skillset Memory stores (96 entries and 226 events).
-- Passed all 168 repository tests, including every canonical release build and
+- Validated 1,772 canonical objects, all visual references, 197 generated
+  indexes, and all four Skillset Memory stores (107 entries and 241 events).
+- Passed all 171 repository tests, including every canonical release build and
   check.
 
 ## 1.0.0-beta.5 - 2026-09-08

@@ -688,8 +688,11 @@ Four layers of state matter, and they have different owners.
    knowledge. This is `library/`.
 2. **Skill memory** — compact current state. A `learned_principle` records the
    durable craft or design lesson retained from evidence; a `training_result`
-   records the outcome of an actual exercise or evaluation. Strengths,
-   weaknesses, boundaries, and self-calibration live here too.
+   records the outcome of an actual exercise or evaluation; a
+   `specialization_profile` tracks demonstrated transfer into a subcategory; and
+   a `card_candidate` preserves a reusable canon hypothesis while evidence and
+   ownership are still being tested. Strengths, weaknesses, boundaries, and
+   self-calibration live here too.
 3. **Training history** — the event-level record of what happened in specific
    attempts and evaluations, including successes, failures, feedback, retention,
    and transfer.

@@ -9,5 +9,5 @@
 - [Reverse-Engineer and Transform a Writer's Microstyle](DRILL_reverse_engineer_and_transform_a_writers_microstyle.md) - drill; 0 design. Tags: close_reading, conjunctions, deliberate_practice, influence, rhythm, style, syntax, voice.
   - Variants: `Break a Safe Default with Controlled Style Risk` (context).
 - [Synthesize Literary Influences into Original Voice](PAT_synthesize_literary_influences_into_original_voice.md) - pattern; 0 design. Tags: creative_writing, influence, reading, style, voice.
-  - Variants: `Reverse-Engineer Microstyle before Synthesis` (method_sequence).
+  - Variants: `Reverse-Engineer Microstyle before Synthesis` (method_sequence); `Preserve Deep Style While Adapting Surface to Form` (style).
 - [Trace Reader Effects to Craft Choices](PAT_trace_reader_effects_to_craft_choices.md) - pattern; 0 design. Tags: apprenticeship, close_reading, craft_analysis, imitation, reader_effect.

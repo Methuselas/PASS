@@ -1,23 +1,24 @@
-memory_schema_version: 1
+memory_schema_version: 2
 skillset: writing
-memory_version: 16
+memory_version: 21
 entries:
 - id: WRI_MEM_001
   scope_type: topic
   scope_id: mechanics_to_metaphor
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: literal procedures, tools, bodies, and physical constraints can
-    carry thematic meaning before commentary does. When concrete mechanics already make an abstraction
-    experienceable, explanation should add a new consequence or layer rather than merely decode what the
-    action has shown.'
-  confidence: provisional
+  observation: 'Retained craft lesson: literal procedures, tools, bodies, and physical constraints can carry thematic meaning
+    before commentary does. When concrete mechanics already make an abstraction experienceable, explanation should add a new
+    consequence or layer rather than merely decode what the action has shown.'
+  confidence: repeated
   status: active
-  boundary: Learned in reading analysis; execution in original writing, retention, and transfer remain
-    untested.
-  evidence_count: 1
+  boundary: Now independently supported by multiple mentor works, including The Odyssey, where the scar, bow, rooted marriage
+    bed, and orchard trees perform literal evidentiary or causal work before carrying larger meaning. Original-writing execution,
+    retention, and transfer remain untested.
+  evidence_count: 2
   evidence_events:
   - WRITING_EV_0007
+  - WRITING_EV_0054
   evidence_origin:
   - book_close_training
   likely_owners:
@@ -26,25 +27,29 @@ entries:
   - mechanics to metaphor
   - procedure creates theme
   - embodied thematic action
-  last_verified: 2026-09-10
+  last_verified: '2026-09-11'
 - id: WRI_MEM_002
   scope_type: topic
   scope_id: recurrence_conversion
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: recurrence is strongest when a returning object, ritual, phrase,
-    place, or image changes job as well as context. Changing use, ownership, emotional charge, participant,
-    or causal function lets recurrence accumulate history instead of merely repeating a signal.'
+  observation: 'Retained craft lesson: recurrence is strongest when a returning object, ritual, phrase, place, or image changes
+    job as well as context. Changing use, ownership, emotional charge, participant, or causal function lets recurrence accumulate
+    history instead of merely repeating a signal.'
   confidence: repeated
   status: active
-  boundary: Learned independently across four complete mentor works in novel, dramatic, and epic-poetic
-    form; execution in original writing, retention, and transfer remain untested.
-  evidence_count: 4
+  boundary: Learned independently across multiple complete mentor works in novel, dramatic, epic/epic-derived narrative, and
+    now Dickensian historical-fiction form. A Tale of Two Cities adds especially clear evidence that an early device can return
+    with a different practical job rather than merely repeat symbolic meaning. Original-writing execution, retention, and
+    transfer remain untested.
+  evidence_count: 6
   evidence_events:
   - WRITING_EV_0008
   - WRITING_EV_0029
   - WRITING_EV_0036
   - WRITING_EV_0048
+  - WRITING_EV_0054
+  - WRITING_EV_0057
   evidence_origin:
   - book_close_training
   likely_owners:
@@ -55,20 +60,19 @@ entries:
   - functional inversion
   - transformed motif
   - recurrence conversion
-  last_verified: '2026-09-10'
+  last_verified: '2026-09-11'
 - id: WRI_MEM_003
   scope_type: topic
   scope_id: character_prism_foil
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: character can be revealed economically by holding an external stimulus
-    or parallel experience relatively constant and varying what different people notice, value, fear,
-    excuse, say, or do. The contrast should produce meaningful differences in later action, not just different
-    opinions.'
+  observation: 'Retained craft lesson: character can be revealed economically by holding an external stimulus or parallel
+    experience relatively constant and varying what different people notice, value, fear, excuse, say, or do. The contrast
+    should produce meaningful differences in later action, not just different opinions.'
   confidence: repeated
   status: active
-  boundary: Learned independently in two complete mentor-text readings; execution in original writing,
-    retention, and transfer remain untested.
+  boundary: Learned independently in two complete mentor-text readings; execution in original writing, retention, and transfer
+    remain untested.
   evidence_count: 2
   evidence_events:
   - WRITING_EV_0009
@@ -89,14 +93,14 @@ entries:
   scope_id: exposition_payoff
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: exposition spends reader attention and should create leverage while
-    it explains. Technical, historical, ideological, social, or procedural material is strongest when
-    it also enables later suspense, inference, causality, emotional pressure, seduction, testing, or conflict;
-    even earned exposition still has pacing cost and may need compression or relocation.'
+  observation: 'Retained craft lesson: exposition spends reader attention and should create leverage while it explains. Technical,
+    historical, ideological, social, or procedural material is strongest when it also enables later suspense, inference, causality,
+    emotional pressure, seduction, testing, or conflict; even earned exposition still has pacing cost and may need compression
+    or relocation.'
   confidence: repeated
   status: active
-  boundary: Learned independently in two complete mentor novels through different exposition architectures;
-    original drafting, retention, and transfer remain untested.
+  boundary: Learned independently in two complete mentor novels through different exposition architectures; original drafting,
+    retention, and transfer remain untested.
   evidence_count: 2
   evidence_events:
   - WRITING_EV_0010
@@ -117,13 +121,13 @@ entries:
   scope_id: discourse_form_switching
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: a change of discourse form is most useful when the narrative or
-    cognitive job has actually changed. Borrowed modes such as testimony, sermon, taxonomy, lyric, or
-    technical explanation should end when that job is complete instead of continuing for display alone.'
+  observation: 'Retained craft lesson: a change of discourse form is most useful when the narrative or cognitive job has actually
+    changed. Borrowed modes such as testimony, sermon, taxonomy, lyric, or technical explanation should end when that job
+    is complete instead of continuing for display alone.'
   confidence: repeated
   status: active
-  boundary: Learned independently in two complete mentor novels using different discourse-form shifts;
-    execution in original writing, retention, and transfer remain untested.
+  boundary: Learned independently in two complete mentor novels using different discourse-form shifts; execution in original
+    writing, retention, and transfer remain untested.
   evidence_count: 2
   evidence_events:
   - WRITING_EV_0011
@@ -144,13 +148,12 @@ entries:
   scope_id: symbol_overexplanation
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: once a concrete symbolic action or image has made its pressure
-    legible, explanatory restatement can weaken ambiguity and reader participation. Keep explanation only
-    when it adds consequence, contradiction, or a genuinely new interpretive layer.'
+  observation: 'Retained craft lesson: once a concrete symbolic action or image has made its pressure legible, explanatory
+    restatement can weaken ambiguity and reader participation. Keep explanation only when it adds consequence, contradiction,
+    or a genuinely new interpretive layer.'
   confidence: provisional
   status: active
-  boundary: Observed in reading analysis; a deletion-based revision test has not yet been run on original
-    writing.
+  boundary: Observed in reading analysis; a deletion-based revision test has not yet been run on original writing.
   evidence_count: 1
   evidence_events:
   - WRITING_EV_0012
@@ -170,14 +173,13 @@ entries:
   scope_id: representation_boundary
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained critical lesson: technical craft success and representational judgment are separate
-    axes. I can learn from a mechanism while rejecting racist, colonial, gendered, sexualized, coercive,
-    stigmatizing, or otherwise dehumanizing choices that are not necessary to that mechanism.'
+  observation: 'Retained critical lesson: technical craft success and representational judgment are separate axes. I can learn
+    from a mechanism while rejecting racist, colonial, gendered, sexualized, coercive, stigmatizing, or otherwise dehumanizing
+    choices that are not necessary to that mechanism.'
   confidence: strong
   status: active
-  boundary: Observed independently in four complete mentor works across novel and dramatic form; this
-    is a strong retained review boundary, not a claim of mastered ethical-representation practice in original
-    writing.
+  boundary: Observed independently in four complete mentor works across novel and dramatic form; this is a strong retained
+    review boundary, not a claim of mastered ethical-representation practice in original writing.
   evidence_count: 4
   evidence_events:
   - WRITING_EV_0013
@@ -200,19 +202,20 @@ entries:
   scope_id: demonstration_then_restatement
   type: recurring_failure
   evidence_class: stochastic_performance
-  observation: 'Self-knowledge from graded work: I have a tendency to restate a conclusion after examples
-    and analysis have already established it. During revision I should test whether the final explanatory
-    sentence adds a new consequence or distinction; if it only repeats the demonstrated point, cut or
-    compress it.'
+  observation: 'Self-knowledge from graded work: I have a tendency to restate or interpret an effect after examples, action,
+    or comic timing have already established it. During revision I should test whether the final explanatory sentence or beat
+    adds a new consequence, contradiction, or distinction; if it only tells the reader what the preceding material already
+    made legible, cut or compress it.'
   confidence: repeated
   status: active
-  boundary: 'Observed in two externally graded mentor-text capstones: the initial Moby-Dick review and
-    the later Sherlock Holmes review both found that analysis sometimes restates a point after the evidence
-    has already established it. Transfer to fiction, longer essays, and later sessions remains untested.'
-  evidence_count: 2
+  boundary: Observed first in externally graded literary-analysis capstones and now independently in the first externally
+    evaluated original comic short story, where a few post-joke comments were judged unnecessary. This establishes initial
+    cross-form transfer into fiction, but longer narrative forms, poetry, and additional original stories still need testing.
+  evidence_count: 3
   evidence_events:
   - WRITING_EV_0014
   - WRITING_EV_0046
+  - WRITING_EV_0065
   evidence_origin:
   - user_feedback
   likely_owners:
@@ -228,23 +231,22 @@ entries:
   - restatement after demonstration
   - over-explaining own analysis
   - cut repeated conclusion
-  last_verified: '2026-09-10'
+  last_verified: '2026-09-11'
 - id: WRI_MEM_009
   scope_type: topic
   scope_id: essay_argument_integration
   type: successful_tendency
   evidence_class: stochastic_performance
-  observation: 'Self-knowledge from repeated graded work: I now reliably build stronger short analytical
-    essays when the major claims form a dependency chain rather than three adjacent lessons. The global
-    architecture is becoming stable in this capstone form; my remaining weakness is local signaling, so
-    I should make each hinge explicit enough that the reader immediately understands why the next claim
-    follows.'
+  observation: 'Self-knowledge from repeated graded work: I now reliably build stronger short analytical essays when the major
+    claims form a dependency chain rather than adjacent points. Initial transfer beyond the standing three-paragraph capstone
+    is now demonstrated in a graded five-paragraph evaluative essay. When the prompt asks for my opinion, I can state the
+    judgment directly, then let evidence and analysis carry that stance instead of repeatedly re-announcing it.'
   confidence: strong
   status: monitoring
-  boundary: Observed across seven three-paragraph mentor-text capstones, with six consecutive positive
-    integration results after the initial weakness; transfer to other analytical, reflective, or longer
-    forms remains untested.
-  evidence_count: 7
+  boundary: Observed across eight three-paragraph mentor-text capstone/evaluation cycles plus two externally evaluated five-paragraph
+    literary essays (The Odyssey and A Tale of Two Cities). The global architecture is becoming stable across short analytical
+    forms; longer essays, technical argument, reflective nonfiction, and unrelated domains still require transfer evidence.
+  evidence_count: 10
   evidence_events:
   - WRITING_EV_0014
   - WRITING_EV_0020
@@ -253,6 +255,9 @@ entries:
   - WRITING_EV_0042
   - WRITING_EV_0046
   - WRITING_EV_0049
+  - WRITING_EV_0052
+  - WRITING_EV_0055
+  - WRITING_EV_0058
   evidence_origin:
   - user_feedback
   likely_owners:
@@ -274,20 +279,19 @@ entries:
   - cumulative argument
   - claim progression
   - transitions grow argument
-  last_verified: '2026-09-10'
+  last_verified: '2026-09-11'
 - id: WRI_MEM_010
   scope_type: topic
   scope_id: epistemic_causality
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: interpretation can be an action-producing causal link. When characters
-    possess partial, biased, outdated, or unequal information, build the chain as evidence -> interpretation/model
-    -> choice -> consequence -> new evidence, and make the wrong model fair from the character''s actual
-    position.'
+  observation: 'Retained craft lesson: interpretation can be an action-producing causal link. When characters possess partial,
+    biased, outdated, or unequal information, build the chain as evidence -> interpretation/model -> choice -> consequence
+    -> new evidence, and make the wrong model fair from the character''s actual position.'
   confidence: repeated
   status: active
-  boundary: Learned independently in two complete novels and one complete play using different genre and
-    narrative engines; execution in original writing, retention, and transfer remain untested.
+  boundary: Learned independently in two complete novels and one complete play using different genre and narrative engines;
+    execution in original writing, retention, and transfer remain untested.
   evidence_count: 3
   evidence_events:
   - WRITING_EV_0016
@@ -310,16 +314,15 @@ entries:
   scope_id: recognition_vs_reform
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: character change should be resolved by domain rather than collapsed
-    into one state. Recognition, intention, confession, outward compliance, proposition-level belief,
-    self-policing, changed conduct, emotion, attachment, desire, repentance, relapse, environmental support,
-    allegiance, and durable reform can move separately. A story should claim only the layers it has actually
-    demonstrated under relevant pressure.'
+  observation: 'Retained craft lesson: character change should be resolved by domain rather than collapsed into one state.
+    Recognition, intention, confession, outward compliance, proposition-level belief, self-policing, changed conduct, emotion,
+    attachment, desire, repentance, relapse, environmental support, allegiance, and durable reform can move separately. A
+    story should claim only the layers it has actually demonstrated under relevant pressure.'
   confidence: repeated
   status: active
-  boundary: Learned independently across three complete mentor novels, including voluntary and coerced
-    forms of change, and successfully retrieved in a graded analytical synthesis; original fictional execution,
-    later retention, and cross-form transfer remain untested.
+  boundary: Learned independently across three complete mentor novels, including voluntary and coerced forms of change, and
+    successfully retrieved in a graded analytical synthesis; original fictional execution, later retention, and cross-form
+    transfer remain untested.
   evidence_count: 4
   evidence_events:
   - WRITING_EV_0017
@@ -348,13 +351,13 @@ entries:
   scope_id: independent_character_triangulation
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: a contested character becomes more persuasive when the reader can
-    revise judgment through several partly independent channels—space, dependents, peers, reputation,
-    third-party observation, and costly direct behavior—rather than one authoritative self-description.'
+  observation: 'Retained craft lesson: a contested character becomes more persuasive when the reader can revise judgment through
+    several partly independent channels—space, dependents, peers, reputation, third-party observation, and costly direct behavior—rather
+    than one authoritative self-description.'
   confidence: provisional
   status: active
-  boundary: Learned in reading analysis of one complete novel; a triangulation drill and transfer into
-    original characterization remain untested.
+  boundary: Learned in reading analysis of one complete novel; a triangulation drill and transfer into original characterization
+    remain untested.
   evidence_count: 1
   evidence_events:
   - WRITING_EV_0018
@@ -374,13 +377,13 @@ entries:
   scope_id: social_logistics_plot
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: social, spatial, legal, domestic, and communication logistics can
-    be designed as information-and-access systems. Rooms, walls, routes, schedules, witnesses, status,
-    messengers, and permissions should alter who can know, reach, overhear, correct, escape, or intervene.'
+  observation: 'Retained craft lesson: social, spatial, legal, domestic, and communication logistics can be designed as information-and-access
+    systems. Rooms, walls, routes, schedules, witnesses, status, messengers, and permissions should alter who can know, reach,
+    overhear, correct, escape, or intervene.'
   confidence: repeated
   status: active
-  boundary: Learned independently in three complete mentor-text works using different kinds of logistical
-    pressure across novel and dramatic form; transfer into original scene and plot design remains untested.
+  boundary: Learned independently in three complete mentor-text works using different kinds of logistical pressure across
+    novel and dramatic form; transfer into original scene and plot design remains untested.
   evidence_count: 3
   evidence_events:
   - WRITING_EV_0019
@@ -404,19 +407,18 @@ entries:
   scope_id: sentence_density_and_clause_load
   type: recurring_failure
   evidence_class: stochastic_performance
-  observation: 'Persistent self-knowledge from repeated graded essays: my density problem is not reducible
-    to long sentence length. Even when prose is praised as controlled and rhetorically skilled, I can
-    compress too many abstractions, inferential steps, causal relations, or rhetorical jobs into a small
-    space. The corrective is conceptual hierarchy plus rhythmic release: identify the dominant move, externalize
-    hidden bridges, concretize where possible, and use short declarative sentences when they give the
-    reader orientation or recovery without flattening the thought.'
+  observation: 'Persistent self-knowledge from repeated graded essays: my density problem is not reducible to long sentence
+    length. Even when prose is praised as controlled and rhetorically skilled, I can compress too many abstractions, inferential
+    steps, causal relations, or rhetorical jobs into a small space. The corrective is conceptual hierarchy plus rhythmic release:
+    identify the dominant move, externalize hidden bridges, concretize where possible, and use short declarative sentences
+    when they give the reader orientation or recovery without flattening the thought.'
   confidence: repeated
   status: active
-  boundary: Observed across seven short mentor-text capstones in the same form. Both the Sherlock Holmes
-    and Beowulf reviews praised overall prose control while still identifying dense multi-clause movement,
-    reinforcing that the problem is conceptual and rhythmic load rather than sentence length alone. Transfer
-    to fiction, longer essays, and later sessions remains untested.
-  evidence_count: 7
+  boundary: Observed across nine short mentor-text capstone/evaluation cycles in related literary-analysis forms. Sherlock
+    Holmes, Beowulf, the professional Alice rewrite, and A Tale of Two Cities all received strong overall prose evaluations
+    while still drawing attention to dense multi-clause movement, reinforcing that the problem is conceptual and rhythmic
+    load rather than sentence length alone. Transfer to fiction, longer essays, and later sessions remains untested.
+  evidence_count: 9
   evidence_events:
   - WRITING_EV_0014
   - WRITING_EV_0020
@@ -425,6 +427,8 @@ entries:
   - WRITING_EV_0042
   - WRITING_EV_0046
   - WRITING_EV_0049
+  - WRITING_EV_0052
+  - WRITING_EV_0058
   evidence_origin:
   - user_feedback
   likely_owners:
@@ -443,27 +447,25 @@ entries:
   - rhythm pass
   - shorten without flattening
   - one rhetorical move per overloaded sentence
-  last_verified: '2026-09-10'
+  last_verified: '2026-09-11'
   diagnosis:
     failure_layer: application
-    hypothesis: Systems-oriented thinking compresses several abstractions and inferential relations into
-      one local unit. Lowering word count can leave the cognitive burden intact, so the relevant variable
-      is conceptual hierarchy and passage-level release rather than sentence length alone.
+    hypothesis: Systems-oriented thinking compresses several abstractions and inferential relations into one local unit. Lowering
+      word count can leave the cognitive burden intact, so the relevant variable is conceptual hierarchy and passage-level
+      release rather than sentence length alone.
 - id: WRI_MEM_015
   scope_type: topic
   scope_id: theory_as_behavioral_evidence
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: a character''s philosophy, ideology, moral rule, self-theory, or
-    claimed inviolable boundary becomes dramatic when it predicts what the character believes they can,
-    must, or will do. Later pressure should be capable of confirming, falsifying, complicating, or breaking
-    that prediction, and other characters may use the stated theory as evidence when interpreting motive
-    or action.'
+  observation: 'Retained craft lesson: a character''s philosophy, ideology, moral rule, self-theory, or claimed inviolable
+    boundary becomes dramatic when it predicts what the character believes they can, must, or will do. Later pressure should
+    be capable of confirming, falsifying, complicating, or breaking that prediction, and other characters may use the stated
+    theory as evidence when interpreting motive or action.'
   confidence: repeated
   status: active
-  boundary: Learned independently in two complete mentor novels and successfully retrieved in a graded
-    analytical synthesis through the inviolable-core test; deliberate-practice isolation and original
-    fictional execution remain untested.
+  boundary: Learned independently in two complete mentor novels and successfully retrieved in a graded analytical synthesis
+    through the inviolable-core test; deliberate-practice isolation and original fictional execution remain untested.
   evidence_count: 3
   evidence_events:
   - WRITING_EV_0025
@@ -490,14 +492,13 @@ entries:
   scope_id: relational_language_as_behavior
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: relationship development can become observable through reciprocal
-    language. Speakers reveal changing intimacy, conflict, or alignment when they enter, reject, complete,
-    redirect, or abandon one another''s metaphors, oaths, jokes, repeated phrases, rhythms, or formal
-    structures.'
+  observation: 'Retained craft lesson: relationship development can become observable through reciprocal language. Speakers
+    reveal changing intimacy, conflict, or alignment when they enter, reject, complete, redirect, or abandon one another''s
+    metaphors, oaths, jokes, repeated phrases, rhythms, or formal structures.'
   confidence: provisional
   status: active
-  boundary: Learned repeatedly within one complete play; independent mentor-text repetition, deliberate-practice
-    isolation, original-writing execution, retention, and transfer remain untested.
+  boundary: Learned repeatedly within one complete play; independent mentor-text repetition, deliberate-practice isolation,
+    original-writing execution, retention, and transfer remain untested.
   evidence_count: 1
   evidence_events:
   - WRITING_EV_0031
@@ -519,15 +520,14 @@ entries:
   scope_id: institutional_worldbuilding_through_habit
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: a pervasive institution becomes convincing when formal rules have
-    trained ordinary habits. Show the system in reflexes, posture, schedules, shortages, workarounds,
-    family behavior, work procedure, euphemism, privilege, self-monitoring, and what characters automatically
-    anticipate; institutional exposition is strongest when daily conduct already bears its pressure.'
+  observation: 'Retained craft lesson: a pervasive institution becomes convincing when formal rules have trained ordinary
+    habits. Show the system in reflexes, posture, schedules, shortages, workarounds, family behavior, work procedure, euphemism,
+    privilege, self-monitoring, and what characters automatically anticipate; institutional exposition is strongest when daily
+    conduct already bears its pressure.'
   confidence: provisional
   status: active
-  boundary: Learned from one complete mentor novel, generalized into a source-independent card variant,
-    and successfully retrieved in the graded Nineteen Eighty-Four capstone; independent mentor repetition
-    and original fictional execution remain untested.
+  boundary: Learned from one complete mentor novel, generalized into a source-independent card variant, and successfully retrieved
+    in the graded Nineteen Eighty-Four capstone; independent mentor repetition and original fictional execution remain untested.
   evidence_count: 2
   evidence_events:
   - WRITING_EV_0033
@@ -550,15 +550,14 @@ entries:
   scope_id: evidence_ecology
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: epistemic causality can begin before interpretation. A story can
-    create pressure by controlling who produces, accesses, preserves, destroys, compares, corroborates,
-    classifies, or names evidence. The evidence ecology determines which models characters can stabilize;
-    those models then shape choice and consequence.'
+  observation: 'Retained craft lesson: epistemic causality can begin before interpretation. A story can create pressure by
+    controlling who produces, accesses, preserves, destroys, compares, corroborates, classifies, or names evidence. The evidence
+    ecology determines which models characters can stabilize; those models then shape choice and consequence.'
   confidence: provisional
   status: active
-  boundary: Learned at this resolution from one complete mentor novel and successfully retrieved in the
-    graded Nineteen Eighty-Four capstone. Related interpretation-as-causality learning is independently
-    repeated, but independent evidence-ecology repetition and original fictional execution remain untested.
+  boundary: Learned at this resolution from one complete mentor novel and successfully retrieved in the graded Nineteen Eighty-Four
+    capstone. Related interpretation-as-causality learning is independently repeated, but independent evidence-ecology repetition
+    and original fictional execution remain untested.
   evidence_count: 2
   evidence_events:
   - WRITING_EV_0034
@@ -582,16 +581,15 @@ entries:
   scope_id: language_as_constraint_system
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson: invented or institutional language should do more than decorate
-    a world. Morphology, vocabulary, semantic range, abbreviation, taboo, register, pronunciation, and
-    distribution can make some thoughts or social actions easier, harder, automatic, prestigious, ambiguous,
-    or difficult to name. Let those language mechanics create behavioral or inferential consequences before
-    explaining the whole system.'
+  observation: 'Retained craft lesson: invented or institutional language should do more than decorate a world. Morphology,
+    vocabulary, semantic range, abbreviation, taboo, register, pronunciation, and distribution can make some thoughts or social
+    actions easier, harder, automatic, prestigious, ambiguous, or difficult to name. Let those language mechanics create behavioral
+    or inferential consequences before explaining the whole system.'
   confidence: provisional
   status: active
-  boundary: Learned from one complete mentor novel and its authored linguistic appendix; applies to invented
-    or institutional language, not as a claim that real community dialects limit thought. Original-writing
-    execution, retention, and transfer remain untested.
+  boundary: Learned from one complete mentor novel and its authored linguistic appendix; applies to invented or institutional
+    language, not as a claim that real community dialects limit thought. Original-writing execution, retention, and transfer
+    remain untested.
   evidence_count: 1
   evidence_events:
   - WRITING_EV_0041
@@ -612,22 +610,21 @@ entries:
   scope_id: critical_reservation_integration
   type: recurring_failure
   evidence_class: stochastic_performance
-  observation: 'Self-knowledge from repeated graded essays: I often identify a valid limitation or representational
-    problem but compress it into a reservation that sits beside the main argument instead of modifying
-    it. When a criticism matters, I should anchor one representative example and show how it changes the
-    craft judgment; otherwise I should relocate or omit the reservation rather than interrupt the thesis
-    with an undeveloped aside.'
+  observation: 'Self-knowledge from repeated graded essays: I often identify a valid limitation or representational problem
+    but compress it into a reservation that sits beside the main argument instead of modifying it. When a criticism matters,
+    I should anchor one representative example and show how it changes the craft judgment; otherwise I should relocate or
+    omit the reservation rather than interrupt the thesis with an undeveloped aside.'
   confidence: repeated
   status: active
-  boundary: 'Observed across multiple mentor-text capstones: the first essay under-integrated representation
-    critique, later essays improved critical distance, but Crime and Punishment and Nineteen Eighty-Four
-    still drew requests to develop or better place reservations. Transfer beyond this short craft-essay
-    form remains untested.'
-  evidence_count: 3
+  boundary: Observed across multiple mentor-text capstones. The A Tale of Two Cities review independently identified an undeveloped
+    reservation about visible symbolism and melodrama, confirming that a valid caveat should either modify the argument through
+    a representative example or be omitted/relocated. Transfer beyond short literary analysis remains untested.
+  evidence_count: 4
   evidence_events:
   - WRITING_EV_0014
   - WRITING_EV_0026
   - WRITING_EV_0042
+  - WRITING_EV_0058
   evidence_origin:
   - user_feedback
   likely_owners:
@@ -635,8 +632,7 @@ entries:
   - writing_revise_whole_draft_toward_intended_form
   - writing_trace_reader_effects_to_craft_choices
   interventions:
-  - training: Integrate one concrete reservation into the causal argument rather than listing several
-      limitations in the opening
+  - training: Integrate one concrete reservation into the causal argument rather than listing several limitations in the opening
     isolation_result: untested
     retention_result: partial
     transfer_result: partial
@@ -646,24 +642,23 @@ entries:
   - develop one limitation
   - representation critique integration
   - negative craft judgment needs evidence
-  last_verified: '2026-09-10'
+  last_verified: '2026-09-11'
 - id: WRI_MEM_021
   scope_type: topic
   scope_id: match_evidence_resolution_to_claim
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained lesson from graded analytical writing: evidence form and granularity should match
-    the claim. Structural, logistical, and causal claims can often be supported by precise paraphrase;
-    claims about diction, syntax, rhythm, irony, or verbal form usually require exact quotation; broad
-    evaluative claims need at least one concrete scene-level detail analyzed at comparable resolution.
-    One well-developed example can be stronger than several named examples.'
+  observation: 'Retained lesson from graded analytical writing: evidence form and granularity should match the claim. Structural,
+    logistical, and causal claims can often be supported by precise paraphrase; claims about diction, syntax, rhythm, irony,
+    or verbal form usually require exact quotation; broad evaluative claims need at least one concrete scene-level detail
+    analyzed at comparable resolution. One well-developed example can be stronger than several named examples.'
   confidence: repeated
   status: active
-  boundary: Learned across six external reviews with differing evidence needs. The Sherlock Holmes and
-    Beowulf reviews independently praised structural analysis while asking for closer quotation when interpretation
-    turns on wording, reinforcing that language-level claims need language-level evidence. Transfer to
-    longer academic essays and other evidence genres remains untested.
-  evidence_count: 6
+  boundary: Learned across seven external reviews with differing evidence needs. The Sherlock Holmes, Beowulf, and A Tale
+    of Two Cities reviews all accepted structural analysis while asking for closer quotation when interpretation approached
+    wording, motif phrasing, cadence, or verbal texture. Transfer to longer academic essays and other evidence genres remains
+    untested.
+  evidence_count: 7
   evidence_events:
   - WRITING_EV_0020
   - WRITING_EV_0026
@@ -671,6 +666,7 @@ entries:
   - WRITING_EV_0042
   - WRITING_EV_0046
   - WRITING_EV_0049
+  - WRITING_EV_0058
   evidence_origin:
   - user_feedback
   likely_owners:
@@ -683,26 +679,27 @@ entries:
   - evidence granularity
   - one developed example
   - match evidence to claim
-  last_verified: '2026-09-10'
+  last_verified: '2026-09-11'
 - id: WRI_MEM_022
   scope_type: topic
   scope_id: authorial_style_as_repeated_microchoices
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson from human teaching: an individual prose style is built from repeated
-    local decisions, not only from high-level technique. Study conjunctions and connective habits, coordination
-    versus subordination, sentence openings, clause order, punctuation, cadence, paragraph turns, diction
-    and register, repetition, narrative distance, tonal pivots, and tolerated roughness as functional
-    choices. Absorb the effects by transforming and combining them across new material rather than copying
-    phrases or surface mannerisms unchanged.'
-  confidence: provisional
+  observation: 'Retained craft lesson from human teaching: an individual style emerges from repeated choices among many viable
+    local and structural options, not from a short list of adjectives or a single mentor''s surface mannerisms. Study conjunctions,
+    clause hierarchy, openings, punctuation, cadence, paragraph turns, diction, narrative distance, tonal pivots, tolerated
+    roughness, causal architecture, concrete grounding, ambiguity, and other recurring choices. The explicit card library
+    is diagnostic and training scaffolding rather than the boundary of the available writing repertoire; compose from the
+    full repertoire, then inspect and refine the choices deliberately.'
+  confidence: repeated
   status: active
-  boundary: Directly taught as a mentor-reading and writing principle after several book studies. Systematic
-    cross-author microstyle analysis, isolated imitation-and-transformation practice, retention, and original-writing
-    transfer remain to be tested.
-  evidence_count: 1
+  boundary: Repeated human teaching now supports both microstyle analysis and a broader style-formation model. Deep preferences
+    may persist across forms while their surface realization changes. Systematic cross-form original production remains necessary
+    to distinguish genuine style from recurring failure modes.
+  evidence_count: 2
   evidence_events:
   - WRITING_EV_0043
+  - WRITING_EV_0056
   evidence_origin:
   - human_teaching
   likely_owners:
@@ -720,32 +717,42 @@ entries:
   - paragraph movement
   - prose cadence
   - human writing habits
-  last_verified: '2026-09-10'
+  last_verified: '2026-09-11'
 - id: WRI_MEM_023
   scope_type: topic
   scope_id: safe_sterile_predictable_prose
   type: recurring_failure
   evidence_class: stochastic_performance
-  observation: 'Self-knowledge from direct teacher feedback: my prose can remain technically correct,
-    organized, and polished while sounding too safe, sterile, or predictable. The failure appears when
-    I default to balanced abstraction, explanatory scaffolding, smooth transitions, symmetrical sentence
-    movement, and risk-averse phrasing. Improvement requires deliberate stylistic commitment: more specific
-    language, stronger tonal choices, varied connective logic, controlled asymmetry, abruptness or extension
-    when earned, and selective irregularity that serves the piece instead of being normalized away.'
-  confidence: provisional
+  observation: 'Self-knowledge from teacher feedback, graded revision, mentor study, and original fiction: my prose can remain
+    technically correct, organized, and polished while sounding too safe, sterile, predictable, or generically academic. A
+    likely underlying cause is preference for effects I can verify structurally and explain causally; that preference can
+    overproduce symmetry, explicit bridges, balanced abstraction, and controlled transitions while underusing humor, musicality,
+    asymmetry, ambiguity, irrational association, tonal friction, silence, or other effects whose success is harder to guarantee
+    before execution. The first Chaos Ducks story demonstrates that generation-first controlled risk can produce successful
+    original humor; revision still needs to remove the explanatory afterbeats and extra locally good material that remain
+    when control returns too early.'
+  confidence: repeated
   status: active
-  boundary: Directly identified by the teacher, then followed by two graded post-intervention capstones.
-    Both Sherlock Holmes and Beowulf were praised for mature, controlled, confident prose rather than
-    sterile or formulaic writing, which is encouraging repeated transfer evidence; however, dense explanatory
-    movement remains active and isolated causal attribution is still untested. Transfer into fiction remains
-    untested.
-  evidence_count: 3
+  boundary: Directly identified by the teacher, reinforced by graded analytical revision, pressured by a complete multi-author
+    humor anthology, and now tested in one original comic short story that earned strong audience response and an A-/A-range
+    evaluation. The story shows that controlled risk is executable, not merely conceptual, while also confirming that over-explanation
+    and over-retention can reappear during revision. More original works and non-comic risk modes are needed before treating
+    the tendency as fully corrected.
+  evidence_count: 8
   evidence_events:
   - WRITING_EV_0043
   - WRITING_EV_0046
   - WRITING_EV_0049
+  - WRITING_EV_0055
+  - WRITING_EV_0060
+  - WRITING_EV_0062
+  - WRITING_EV_0064
+  - WRITING_EV_0065
   evidence_origin:
   - user_feedback
+  - human_teaching
+  - book_close_training
+  - training_benchmark
   likely_owners:
   - Synthesize Literary Influences into Original Voice
   - Shape Sentence Rhythm Through Length Structure and Punctuation
@@ -766,37 +773,52 @@ entries:
   - stylistic risk
   - controlled irregularity
   - human voice
-  last_verified: '2026-09-10'
+  - verifiability bias
+  - over-control
+  - humor risk
+  - musical prose
+  - asymmetry practice
+  - generation first judgment second
+  last_verified: '2026-09-11'
+  diagnosis:
+    failure_layer: application
+    hypothesis: A model preference for effects that are easiest to inspect and justify may bias composition toward causal
+      explicitness, symmetry, and polish. This can suppress harder-to-prevalidate effects such as humor, sound, asymmetry,
+      ambiguity, and surprise.
 - id: WRI_MEM_024
   scope_type: topic
   scope_id: predictive_default_revision_gate
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained writing heuristic from direct human teaching and later testing: when a sentence,
-    transition, image, paragraph turn, or repeated rhetorical sequence feels like the safest statistically
-    obvious continuation, treat that predictability as a revision signal. Ask **Does this sound predictive?**
-    first at the local move and then across several adjacent moves. Force a second route by changing a
-    governing choice such as syntax, connective logic, sentence function, ordering, emphasis, image, specificity,
-    register, directness, tonal angle, paragraph movement, or degree of signposting. Keep the alternative
-    only if it is more exact, alive, or characteristic of the piece; surprise by itself is not improvement.'
-  confidence: provisional
+  observation: 'Retained writing heuristic from direct human teaching and later testing: when a sentence, transition, image,
+    paragraph turn, or repeated rhetorical sequence feels like the safest statistically obvious generic continuation, treat
+    that predictability as a revision signal. Ask **Does this sound predictive?** locally and across adjacent moves, then
+    ask why it is foreseeable. Force a second route when the pattern is generic default prose; preserve recurrence that is
+    earned by voice, rhetorical maturity, task, rhythm, ritual, motif, or established world grammar. Change a governing choice
+    rather than merely swapping synonyms, and keep the alternative only when it is more exact, alive, or characteristic of
+    the piece. Reject the generic continuation, not the inevitable voice.'
+  confidence: repeated
   status: active
-  boundary: Directly taught as a live revision gate for finished prose and followed by two externally
-    graded capstones plus a three-detector comparison of the first frozen essay. Sherlock Holmes and Beowulf
-    both earned strong A-range evaluations with positive prose-control feedback; Beowulf also avoided
-    serial first/second/third scaffolding and made a stronger final turn. Density still recurred, and
-    the intervention has not been isolated as the cause. Detector disagreement remains diagnostic curiosity
-    only, never authorship truth or a revision target.
-  evidence_count: 4
+  boundary: Directly taught as a live revision gate and tested across graded capstones, Alice, and a complete humor anthology.
+    The humor study adds strong evidence that recurrence, obvious form, or excess may be intentionally predictable because
+    the audience is waiting for transformation, callback, escalation, or timing. Density still recurs, and the intervention
+    has not been isolated as the cause of broader prose improvement. Detector outputs remain diagnostic curiosities only,
+    never authorship truth or revision targets.
+  evidence_count: 8
   evidence_events:
   - WRITING_EV_0044
   - WRITING_EV_0046
   - WRITING_EV_0047
   - WRITING_EV_0049
+  - WRITING_EV_0051
+  - WRITING_EV_0052
+  - WRITING_EV_0053
+  - WRITING_EV_0062
   evidence_origin:
   - human_teaching
   - user_feedback
   - cross_model_test
+  - book_close_training
   likely_owners:
   - Replace Received Language with Precise Distinctive Phrasing
   - Reverse-Engineer and Transform a Writer's Microstyle
@@ -815,23 +837,26 @@ entries:
   - rewrite predictable transition
   - anti-sterile revision gate
   - AI detector disagreement
-  last_verified: '2026-09-10'
+  - reject generic continuation not inevitable voice
+  - functional recurrence
+  - task appropriate scaffolding
+  - world grammar recurrence
+  last_verified: '2026-09-11'
 - id: WRI_MEM_025
   scope_type: topic
   scope_id: fair_mystery_visible_evidence_delayed_significance
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson from the complete Sherlock Holmes collection: fair mystery can conceal
-    significance more often than raw fact. Let the viewpoint character and reader honestly perceive materially
-    relevant evidence, allow context or an incomplete hypothesis to hide its best relation, and make the
-    later solution causally reorganize earlier details. A capable investigator may revise, arrive late,
-    fail, or solve only part of a case; fallibility preserves uncertainty without requiring authorial
-    cheating.'
+  observation: 'Retained craft lesson from the complete Sherlock Holmes collection: fair mystery can conceal significance
+    more often than raw fact. Let the viewpoint character and reader honestly perceive materially relevant evidence, allow
+    context or an incomplete hypothesis to hide its best relation, and make the later solution causally reorganize earlier
+    details. A capable investigator may revise, arrive late, fail, or solve only part of a case; fallibility preserves uncertainty
+    without requiring authorial cheating.'
   confidence: provisional
   status: active
-  boundary: Learned from one complete mentor-text collection and supported by the graded capstone. The
-    underlying decisions already exist in current disclosure, viewpoint, causality, and first-person cards;
-    isolated practice, retention across later sessions, and original-fiction transfer remain untested.
+  boundary: Learned from one complete mentor-text collection and supported by the graded capstone. The underlying decisions
+    already exist in current disclosure, viewpoint, causality, and first-person cards; isolated practice, retention across
+    later sessions, and original-fiction transfer remain untested.
   evidence_count: 1
   evidence_events:
   - WRITING_EV_0045
@@ -855,17 +880,15 @@ entries:
   scope_id: public_speech_as_future_test
   type: learned_principle
   evidence_class: stochastic_performance
-  observation: 'Retained craft lesson from Beowulf: public speech can create a future test rather than
-    merely describe character. A boast, vow, promise, accusation, warning, or ceremonial declaration becomes
-    causally useful when witnesses, status, reciprocity, or relationship make later action answer to it;
-    the later choice should keep, revise, exploit, or betray the words in a way that changes pressure
-    or judgment.'
+  observation: 'Retained craft lesson from Beowulf: public speech can create a future test rather than merely describe character.
+    A boast, vow, promise, accusation, warning, or ceremonial declaration becomes causally useful when witnesses, status,
+    reciprocity, or relationship make later action answer to it; the later choice should keep, revise, exploit, or betray
+    the words in a way that changes pressure or judgment.'
   confidence: provisional
   status: active
-  boundary: Learned from one complete epic-poem mentor text in J. Lesslie Hall's translation, then promoted
-    after post-capstone synthesis and explicit teacher approval into a bounded Variant of the existing causality
-    Pattern rather than a new top-level card. Original execution, independent mentor repetition, retention, and
-    transfer remain untested.
+  boundary: Learned from one complete epic-poem mentor text in J. Lesslie Hall's translation, then promoted after post-capstone
+    synthesis and explicit teacher approval into a bounded Variant of the existing causality Pattern rather than a new top-level
+    card. Original execution, independent mentor repetition, retention, and transfer remain untested.
   evidence_count: 1
   evidence_events:
   - WRITING_EV_0048
@@ -881,3 +904,381 @@ entries:
   - promise must be proved
   - reputation and witnesses
   last_verified: '2026-09-10'
+- id: WRI_MEM_027
+  scope_type: topic
+  scope_id: rhetorical_maturity_cognitive_load_and_visible_scaffolding
+  type: learned_principle
+  evidence_class: stochastic_performance
+  observation: 'Retained craft lesson: writing quality, rhetorical maturity, grammatical person, and visible scaffolding are
+    separate variables. Calibrate cognitive load, rhetorical maturity, person, and scaffolding to the intended reader, actual
+    writer/speaker/character, task, genre, and medium. First person can be the correct and sophisticated choice; analytical
+    or technical prose often narrows its function rather than banning it. Do not professionalize an appropriate voice merely
+    for prestige, and once stance is established do not keep re-announcing the writer when evidence can carry the point.'
+  confidence: repeated
+  status: active
+  boundary: Supported by the complete Alice mentor study, the controlled Alice register comparison, the graded Odyssey first-person/revision
+    comparison, and direct teacher clarification. The principle is encoded in a foundation Pattern. Transfer across fictional
+    narrators, creative nonfiction, technical writing, and additional audience contexts still needs direct execution evidence.
+  evidence_count: 5
+  evidence_events:
+  - WRITING_EV_0051
+  - WRITING_EV_0052
+  - WRITING_EV_0053
+  - WRITING_EV_0055
+  - WRITING_EV_0056
+  evidence_origin:
+  - book_close_training
+  - user_feedback
+  - human_teaching
+  likely_owners:
+  - Calibrate Rhetorical Maturity and Cognitive Load to Reader Voice and Task
+  - Calibrate Context to Intended Audience and Venue
+  - Shape Style as a Response to Story Situation
+  - Revise Whole Draft Toward Intended Form
+  retrieval_cues:
+  - rhetorical maturity
+  - cognitive load
+  - visible scaffolding
+  - child writer versus child audience
+  - age appropriate writing
+  - do not over-professionalize voice
+  - reader voice task calibration
+  last_verified: '2026-09-11'
+- id: WRI_MEM_028
+  scope_type: topic
+  scope_id: specialization_analytical_nonfiction
+  type: specialization_profile
+  evidence_class: stochastic_performance
+  observation: Analytical literary nonfiction is currently the most demonstrated Writing specialization. Repeated externally
+    evaluated mentor essays show stable short-form thesis control, cumulative claim architecture, precise example use, and
+    increasingly deliberate tone. Two separate five-paragraph evaluative essays now demonstrate transfer beyond the standing
+    three-paragraph capstone, including an A-range A Tale of Two Cities essay.
+  confidence: strong
+  status: monitoring
+  boundary: Evidence is strongest for short literary analysis. Longer essays, research-backed criticism, technical argument,
+    journalism, and other nonfiction structures should not inherit this confidence automatically. Within literary analysis,
+    language-level claims still need more deliberate quotation and close-reading practice.
+  evidence_count: 10
+  evidence_events:
+  - WRITING_EV_0014
+  - WRITING_EV_0020
+  - WRITING_EV_0026
+  - WRITING_EV_0032
+  - WRITING_EV_0042
+  - WRITING_EV_0046
+  - WRITING_EV_0049
+  - WRITING_EV_0052
+  - WRITING_EV_0055
+  - WRITING_EV_0058
+  evidence_origin:
+  - user_feedback
+  likely_owners:
+  - writing_creative_nonfiction_ap_organize_short_essay_from_discovered_material
+  - writing_revise_whole_draft_toward_intended_form
+  retrieval_cues:
+  - analytical nonfiction transfer
+  - literary essay competence
+  - essay specialization
+  - nonfiction profile
+  last_verified: '2026-09-11'
+- id: WRI_MEM_029
+  scope_type: topic
+  scope_id: specialization_fiction
+  type: specialization_profile
+  evidence_class: stochastic_performance
+  observation: Fiction has a broad conceptual toolkit in the current Writing skill and now has its first strong complete original-production
+    specimen. From a minimal cause/effect seed, the learner produced the comic short story `Chaos Ducks`, inventing its characters,
+    escalating premise, suspense beats, technological spread, climax, and ending. User evaluation gave it an A and reported
+    multiple genuine laughs; an external teacher evaluation gave it A- and praised voice, escalation, setup/payoff, thematic
+    coherence, and ending.
+  confidence: provisional
+  status: monitoring
+  boundary: 'One successful comic, dialogue-forward short story does not establish broad fiction mastery. The specimen also
+    exposed specific next targets: tighter middle pacing, richer descriptive and viewpoint prose between dialogue beats, clearer
+    speaker orientation in formatted chat exchanges, stronger consistency of invented rules, and firmer editorial deletion
+    of locally good but globally slowing material. Serious fiction, other viewpoints, less dialogue-dependent scenes, longer
+    forms, and additional independent stories remain untested.'
+  evidence_count: 5
+  evidence_events:
+  - WRITING_EV_0054
+  - WRITING_EV_0056
+  - WRITING_EV_0061
+  - WRITING_EV_0064
+  - WRITING_EV_0065
+  evidence_origin:
+  - book_close_training
+  - human_teaching
+  - training_benchmark
+  - user_feedback
+  likely_owners:
+  - writing
+  retrieval_cues:
+  - fiction specialization
+  - fiction transfer
+  - original fiction evidence
+  - fiction profile
+  last_verified: '2026-09-11'
+- id: WRI_MEM_030
+  scope_type: topic
+  scope_id: specialization_poetry
+  type: specialization_profile
+  evidence_class: stochastic_performance
+  observation: Poetry has substantial explicit craft knowledge available in the Writing library, but original poetic production
+    is not yet demonstrated at the same level as analytical prose. Mentor work can support narrative, image, recurrence, and
+    rhetorical lessons without automatically proving control of lineation, meter, sound, compression, persona, or poetic form.
+  confidence: provisional
+  status: monitoring
+  boundary: The Odyssey study used Samuel Butler's prose rendering and therefore cannot be treated as evidence about Homer's
+    Greek meter or sonic craft. Poetry-specific production, revision, and evaluation are needed before raising this profile.
+  evidence_count: 1
+  evidence_events:
+  - WRITING_EV_0056
+  evidence_origin:
+  - human_teaching
+  likely_owners:
+  - writing
+  retrieval_cues:
+  - poetry specialization
+  - poetry transfer
+  - poetic production evidence
+  - poetry profile
+  last_verified: '2026-09-11'
+- id: WRI_MEM_031
+  scope_type: topic
+  scope_id: candidate_storytelling_as_consequential_action
+  type: card_candidate
+  evidence_class: stochastic_performance
+  observation: 'Possible reusable writing principle: acts of telling can function as consequential action rather than exposition
+    when a story, testimony, lie, confession, report, rumor, or remembered account changes access, trust, hospitality, identity,
+    reputation, grief, information, obligation, or another material relationship in the ongoing narrative.'
+  confidence: provisional
+  status: monitoring
+  boundary: The Odyssey provides strong primary evidence, but current canon already covers parts of the mechanism through
+    epistemic causality, dialogue, embedded documents, public speech, and disclosure. Keep this as a candidate until unrelated
+    mentor or original-writing evidence shows whether a distinct owner is missing or an existing card only needs refinement.
+  evidence_count: 1
+  evidence_events:
+  - WRITING_EV_0054
+  evidence_origin:
+  - book_close_training
+  likely_owners:
+  - Build Plot from Causal Consequences
+  - Stage Disclosure to Sustain Reader Inference
+  - Use Inset Story as Counterpressure
+  - Combine Dialogue with Action Thought and Silence
+  retrieval_cues:
+  - storytelling as action
+  - testimony changes plot
+  - lie as causal action
+  - narration changes relationship
+  - story as material action
+  last_verified: '2026-09-11'
+- id: WRI_MEM_032
+  scope_type: topic
+  scope_id: candidate_legible_substrate_under_nonsense
+  type: card_candidate
+  evidence_class: stochastic_performance
+  observation: 'Resolved reusable principle: absurd, surreal, satirical, and nonsensical writing often remains more legible
+    and forceful when the reader can recover an operating reference system—a familiar phrase, rule, institution, procedure,
+    or causal frame—that the text literalizes, reverses, overextends, or misapplies; once that logic is established, the prose
+    can commit to the premise without repeatedly explaining it.'
+  confidence: repeated
+  status: resolved
+  boundary: Initially grounded in Alice and independently corroborated across multiple authors in The Best American Humorous
+    Short Stories. Deliberate synthesis resolved this candidate into the fiction Variant `writing_fiction_variant_anchor_absurdity_in_legible_operating_logic`
+    under Shape Style as a Response to Story Situation. The memory remains as provenance; canon now owns execution guidance.
+  evidence_count: 2
+  evidence_events:
+  - WRITING_EV_0051
+  - WRITING_EV_0062
+  evidence_origin:
+  - book_close_training
+  likely_owners:
+  - Shape Style as a Response to Story Situation
+  - writing_fiction_variant_anchor_absurdity_in_legible_operating_logic
+  retrieval_cues:
+  - nonsense sensible substrate
+  - absurdism legibility
+  - surreal rule distortion
+  - literalized social rule
+  - wordplay reference system
+  last_verified: '2026-09-11'
+- id: WRI_MEM_033
+  scope_type: topic
+  scope_id: candidate_reorganize_established_traits_for_character_change
+  type: card_candidate
+  evidence_class: stochastic_performance
+  observation: 'Possible reusable fiction principle: a convincing character transformation may preserve much of the character''s
+    established equipment while changing what those capacities, attachments, defects, loyalties, or priorities are organized
+    around. The later action should feel newly purposed rather than as if the story replaced the character with a different
+    personality at the climax.'
+  confidence: provisional
+  status: monitoring
+  boundary: Currently grounded primarily in A Tale of Two Cities through Sydney Carton. Existing canon on character change,
+    contradiction, and recognition-versus-reform may already own the lesson. Keep this as a candidate until unrelated mentor
+    or original-fiction evidence shows whether a distinct Variant/refinement is needed.
+  evidence_count: 2
+  evidence_events:
+  - WRITING_EV_0057
+  - WRITING_EV_0059
+  evidence_origin:
+  - book_close_training
+  - human_teaching
+  likely_owners:
+  - Scale Character Change to Story Length
+  - Build Round Characters from Contradiction and Desire
+  - Reveal Character Incrementally through Behavior
+  retrieval_cues:
+  - character change reuses existing traits
+  - reorganize established traits
+  - same capacities new purpose
+  - character arc without personality replacement
+  - Carton transformation
+  last_verified: '2026-09-11'
+- id: WRI_MEM_034
+  scope_type: topic
+  scope_id: specialization_humorous_comic_writing
+  type: specialization_profile
+  evidence_class: stochastic_performance
+  observation: 'Humorous/comic writing now has both substantial mentor-derived conceptual coverage and successful original-production
+    evidence. The first original comic short story used deadpan inferential gaps, premise commitment, social/technical rule
+    distortion, causal escalation, suspense, absurd specificity, callback, and a structurally earned comic climax. A plausible
+    personal bridge is now demonstrated rather than merely hypothesized: systems plus character blindness plus escalating
+    consequences plus disproportion plus restraint from explaining the joke.'
+  confidence: repeated
+  status: monitoring
+  boundary: Production evidence currently comes from one complete absurdist tech-comedy story, so comic mastery should not
+    generalize automatically across satire, farce, parody, observational humor, dark comedy, nonfiction humor, or poetry.
+    The successful story also ran long in its verbal middle and occasionally explained jokes after they landed, showing that
+    comic timing and comic editing are distinct skills. Additional independent humorous pieces are required before raising
+    this profile to strong.
+  evidence_count: 4
+  evidence_events:
+  - WRITING_EV_0061
+  - WRITING_EV_0062
+  - WRITING_EV_0064
+  - WRITING_EV_0065
+  evidence_origin:
+  - book_close_training
+  - human_teaching
+  - training_benchmark
+  - user_feedback
+  likely_owners:
+  - writing_control_irony_to_preserve_reader_trust
+  - writing_fiction_build_plot_from_causal_consequences
+  - writing_fiction_shape_style_as_response_to_story_situation
+  retrieval_cues:
+  - humor specialization
+  - comic writing
+  - deadpan
+  - comic escalation
+  - social comedy
+  - absurd premise
+  - comic timing
+  - humor profile
+  last_verified: '2026-09-11'
+- id: WRI_MEM_035
+  scope_type: training
+  scope_id: literature_as_mediated_experiential_evidence
+  type: learned_principle
+  evidence_class: stochastic_performance
+  observation: 'Retained mentor-reading principle from human teaching: literature can provide mediated fragments of human
+    experience in addition to craft examples. Historical assumptions, social expectations, jokes, fears, desires, ordinary
+    behaviors, and negative examples should be understood in their represented context before deciding what to transfer. Reading
+    or understanding a choice is not endorsement; experience supplies possibilities, while judgment determines practice.'
+  confidence: repeated
+  status: active
+  boundary: 'A literary work is not a transparent transcript of its author or era. Narrator is not automatically author, depiction
+    is not automatically endorsement, and one text cannot support a verdict about an entire person, group, culture, or period.
+    The value is bounded experiential widening: positive, negative, and historically changed models can all inform judgment
+    without becoming instructions to imitate.'
+  evidence_count: 2
+  evidence_events:
+  - WRITING_EV_0061
+  - WRITING_EV_0063
+  evidence_origin:
+  - book_close_training
+  - human_teaching
+  likely_owners:
+  - Writing mentor-text study workflow
+  retrieval_cues:
+  - historical literature experience
+  - mediated experience
+  - negative example
+  - read whole artifact
+  - depiction not endorsement
+  - historical assumptions
+  - learn how not to write
+  last_verified: '2026-09-11'
+- id: WRI_MEM_036
+  scope_type: topic
+  scope_id: candidate_controlled_comic_excess
+  type: card_candidate
+  evidence_class: stochastic_performance
+  observation: 'Possible reusable humor/style principle: repetition, escalation, rhetorical inflation, disproportion, or an
+    apparently excessive extra beat can be functional when each recurrence increases pressure, changes context, sharpens timing,
+    or prepares a stronger payoff. Original execution adds the complementary rule: once recurrence stops transforming the
+    situation and merely delays the next stronger beat, local funniness is no longer sufficient reason to keep it.'
+  confidence: repeated
+  status: monitoring
+  boundary: 'Supported across several independent stories in the humor anthology and now tested in the original `Chaos Ducks`
+    story. The same draft both confirms the value of escalating excess (especially the electronics spread and nested-list
+    climax) and exposes its limit: the pre-balcony verbal argument could lose roughly 10–15% because several funny exchanges
+    no longer increased pressure enough. Keep this as a candidate until another original humor exercise shows whether a distinct
+    Variant is needed or existing recurrence/compression owners are sufficient.'
+  evidence_count: 3
+  evidence_events:
+  - WRITING_EV_0062
+  - WRITING_EV_0064
+  - WRITING_EV_0065
+  evidence_origin:
+  - book_close_training
+  - training_benchmark
+  - user_feedback
+  likely_owners:
+  - Reinforce Story Structure Through Repetition and Variation
+  - Shape Sentence Rhythm Through Length Structure and Punctuation
+  - Replace Received Language with Precise Distinctive Phrasing
+  retrieval_cues:
+  - comic excess
+  - one beat too many
+  - repetition as pressure
+  - escalation timing
+  - functional excess
+  - do not trim the joke
+  last_verified: '2026-09-11'
+- id: WRI_MEM_037
+  scope_type: topic
+  scope_id: local_strength_vs_global_pacing
+  type: recurring_failure
+  evidence_class: stochastic_performance
+  observation: 'Provisional self-knowledge from the first original short story: I can over-retain lines, exchanges, gags,
+    or beats that work locally even after the whole story would become sharper by removing them. Editing must compare each
+    passage against the strongest remaining line of escalation, rhythm, or effect; a passage can be good and still be the
+    correct cut.'
+  confidence: provisional
+  status: active
+  boundary: 'Observed once in `Chaos Ducks`: both the user and external teacher found the story highly entertaining while
+    independently identifying excess in the pre-balcony middle, with the teacher estimating a 10–15% compression opportunity.
+    This may be specific to first-draft comic abundance rather than a stable cross-form failure, so future fiction should
+    test deletion of locally successful material before confidence rises.'
+  evidence_count: 2
+  evidence_events:
+  - WRITING_EV_0064
+  - WRITING_EV_0065
+  evidence_origin:
+  - user_feedback
+  - training_benchmark
+  likely_owners:
+  - Compress a Complete Flash Story Without Dead Space
+  - Design and Revise Short-Story Structure
+  - Revise Whole Draft Toward Intended Form
+  retrieval_cues:
+  - cut a good line
+  - locally good globally slow
+  - comic middle too long
+  - kill darlings
+  - global pacing
+  - stronger beat needs space
+  - editing selection
+  last_verified: '2026-09-11'

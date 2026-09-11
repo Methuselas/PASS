@@ -75,10 +75,21 @@ class MemoryStoreFixture(unittest.TestCase):
         self.domain = self.tmp / "art"
         self.domain.mkdir(parents=True)
 
-    def write(self, entries: list[dict], events: list[dict]) -> None:
+    def write(
+        self,
+        entries: list[dict],
+        events: list[dict],
+        *,
+        schema_version: int = 1,
+    ) -> None:
         (self.domain / "skill_memory.yaml").write_text(
             yaml.safe_dump(
-                {"memory_schema_version": 1, "skillset": "art", "memory_version": 1, "entries": entries},
+                {
+                    "memory_schema_version": schema_version,
+                    "skillset": "art",
+                    "memory_version": 1,
+                    "entries": entries,
+                },
                 sort_keys=False,
             ),
             encoding="utf-8",
@@ -261,6 +272,30 @@ class SchemaContract(MemoryStoreFixture):
     def test_learned_principle_is_an_accepted_memory_type(self) -> None:
         self.write([dict(VALID_ENTRY, type="learned_principle")], [])
         self.assertEqual(self.validate().returncode, 0)
+
+    def test_v2_accepts_specialization_profiles_and_card_candidates(self) -> None:
+        for entry_type in ("specialization_profile", "card_candidate"):
+            with self.subTest(entry_type=entry_type):
+                self.write(
+                    [dict(VALID_ENTRY, type=entry_type)],
+                    [],
+                    schema_version=2,
+                )
+                self.assertEqual(self.validate().returncode, 0)
+
+    def test_v1_rejects_v2_only_entry_types(self) -> None:
+        for entry_type in ("specialization_profile", "card_candidate"):
+            with self.subTest(entry_type=entry_type):
+                self.write([dict(VALID_ENTRY, type=entry_type)], [])
+                result = self.validate()
+                self.assertEqual(result.returncode, 1)
+                self.assertIn("requires memory_schema_version 2", result.stdout)
+
+    def test_unknown_schema_version_is_rejected(self) -> None:
+        self.write([VALID_ENTRY], [], schema_version=3)
+        result = self.validate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("memory_schema_version must be one of [1, 2]", result.stdout)
 
     def test_unknown_vocabulary_value_is_rejected(self) -> None:
         self.write([dict(VALID_ENTRY, confidence="quite_sure")], [])

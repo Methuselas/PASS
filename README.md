@@ -46,9 +46,10 @@ receipts, hashes, chat transcripts, or the repository that produced them.
 - **Retrieve a small working set.** Rank relevant cards for a task without
   loading a whole domain or maintaining a global registry.
 - **Separate learned principles from observed results.** Skillset Memory keeps
-  durable transferable lessons distinct from empirical training outcomes;
-  `training_history.jsonl` preserves their event-level evidence. Neither replaces
-  canonical cards.
+  durable transferable lessons distinct from empirical training outcomes, tracks
+  demonstrated subcategory transfer with `specialization_profile`, and incubates
+  possible canon lessons with `card_candidate`; `training_history.jsonl` preserves
+  their event-level evidence. Neither replaces canonical cards.
 - **Validate the library.** Check card schemas, IDs, relationships,
   prerequisites, assets, visual references, generated indexes, memory, and
   release portability.
@@ -411,8 +412,11 @@ for the closed Drill contract.
 ## Use Skillset Memory
 
 Skill Memory keeps durable learned principles separate from empirical training
-results; `training_history.jsonl` records the underlying attempts and
-evaluations. None of these rewrite canonical knowledge automatically.
+results, records specialization-specific transfer without assuming that general
+competence propagates automatically, and gives provisional card hypotheses a
+place to accumulate evidence. `training_history.jsonl` records the underlying
+attempts and evaluations. None of these rewrite canonical knowledge automatically;
+card candidates always require deliberate synthesis before canon changes.
 
 ```bash
 python PASS/tools/memory.py query --domain art --cues "hand,grip" --limit 5
@@ -578,7 +582,7 @@ releases.
 - Cards survive their sources.
 - Domains do not depend on other domains.
 - Indexes are generated, never hand-edited.
-- Skillset Memory separates learned principles from empirical results and is never canon.
+- Skillset Memory separates learned principles, empirical results, specialization transfer, and provisional card candidates; it is never canon.
 - `archive/` is retired and cannot support active behavior.
 - `.agents/` and `.claude/` are discovery only, never release dependencies.
 - Every release includes `metaskills` and the full prerequisite closure.

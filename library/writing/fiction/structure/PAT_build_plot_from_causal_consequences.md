@@ -55,8 +55,8 @@ variants:
   difference_from_foundation: Let a boast, vow, promise, accusation, warning, counsel, or ceremonial declaration
     change later pressure by making subsequent action answer to words that witnesses, status, reciprocity, or relationship
     have made consequential.
-  when_to_use: A spoken commitment or public claim should create reputation, obligation, permission, expectation, or
-    judgment that a later choice can fulfill, revise, exploit, or betray.
+  when_to_use: A spoken commitment or public claim should create reputation, obligation, permission, expectation,
+    or judgment that a later choice can fulfill, revise, exploit, or betray.
   when_not_to_use: The speech changes no later option or judgment, the only consequence is that the audience remembers
     exposition, or the later action would carry the same pressure if the earlier words were removed.
   absorbed_from_object_id: none
@@ -70,6 +70,30 @@ variants:
     affect whether corrective evidence survives or reaches the people who need it.
   when_not_to_use: Evidence access has no effect on action, the writer merely withholds facts from the reader, or
     the supposed control requires every independent source to fail without established cause.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_let_solution_transform_problem
+  variant_name: Let a Solution Transform the Problem
+  variant_basis: method_sequence
+  difference_from_foundation: Let a partial success grant access, capability, information, position, or relief while
+    changing conditions in a way that creates the next traceable constraint, so progress generates new pressure
+    instead of resetting the story after each obstacle.
+  when_to_use: Episodic, exploratory, comic, adventure, puzzle, or escalating plots need forward causality without
+    requiring every scene to be driven by one continuous antagonist action.
+  when_not_to_use: The new obstacle is unrelated to the solution, the complication merely delays progress, or the
+    character should reasonably have solved the problem outright and the story withholds that success only to prolong
+    itself.
+  absorbed_from_object_id: none
+- variant_id: writing_fiction_variant_turn_causality_into_comic_escalation
+  variant_name: Turn Causality into Comic Escalation
+  variant_basis: method_sequence
+  difference_from_foundation: Keep each move traceably downstream of the previous one, but let solutions, countermoves,
+    misunderstandings, rule-following, or competitive ingenuity generate disproportion, reversal, embarrassment,
+    or playful new problems instead of only increasing gravity.
+  when_to_use: Farce, social comedy, comic rivalry, adventure, bargaining, etiquette traps, or any sequence where
+    the pleasure comes from watching characters create increasingly difficult conditions through their own understandable
+    actions.
+  when_not_to_use: The next event is merely random, escalation ignores character motive, consequences erase stakes
+    the story needs treated seriously, or repetition changes nothing except volume.
   absorbed_from_object_id: none
 ---
 
@@ -85,6 +109,7 @@ variants:
 - Make a character's response alter the next available choice instead of restoring the same conditions after every scene.
 - Carry consequences forward even when the narrative skips time; a transition can compress duration without resetting causality.
 - Use coincidence to create trouble more readily than to solve trouble that character action has made difficult.
+- When a solution should propel rather than end a sequence, let the solved condition alter scale, position, resources, knowledge, relationships, or stakes so the next obstacle exists because progress occurred.
 - When a setback is meant to carry dramatic weight, derive it from an established choice, delay, antagonist response, vulnerability, or other condition the reader can trace; use pure bad luck sparingly unless chance itself is part of the governing pressure.
 
 ## Don't
@@ -97,6 +122,7 @@ variants:
 ## Checklist
 - Every major turn has an identifiable cause inside the story's established conditions.
 - Consequences narrow, widen, or transform later choices.
+- A partial solution that creates the next problem does so through a visible state change rather than an unrelated complication.
 - Removing an event would break a specific causal link rather than merely shorten elapsed time.
 - Major setbacks meant to feel earned can be traced to prior choice, pressure, opposition, vulnerability, or another established condition rather than arbitrary misfortune alone.
 - When public speech is meant to matter, removing the earlier words weakens a later choice, judgment, obligation, or consequence.
@@ -113,3 +139,7 @@ A story records events; plot makes their relations consequential. The difference
 `writing_fiction_variant_make_public_speech_causally_binding` treats speech as a state change rather than detachable characterization. Identify what the words create in the social world—reputation, debt, permission, expectation, warning, or a standard against which conduct will be judged—then build at least one later moment that has to answer to that changed state. The later action may keep, revise, exploit, or betray the words, but deleting the earlier speech should reduce causal or social pressure rather than merely remove a memorable line.
 
 `writing_fiction_variant_control_the_evidence_ecology` moves one step upstream from interpretation. Map who can create, access, preserve, destroy, compare, corroborate, classify, or name the evidence on which later models depend. Suppression becomes causal only when it changes a character's available inference or choice; do not confuse authorial concealment from the reader with in-world control of verification.
+
+`writing_fiction_variant_let_solution_transform_problem` turns partial success into propulsion. Map the state before the attempt, what the character genuinely gains, and which changed condition now creates the next constraint. The new problem should be downstream of the solution: becoming small enough to pass one barrier may put another resource out of reach; gaining authority may create obligation; learning the truth may remove safety. The character must receive real progress, not a disguised reset.
+
+`writing_fiction_variant_turn_causality_into_comic_escalation` preserves causal rigor while changing the emotional payload of consequence. Map each move as action -> changed condition -> next understandable move, then look for disproportion, category collision, competitive counterplay, social entrapment, or a solution that creates a funnier constraint. The chain should feel inevitable enough to follow and excessive enough to surprise. Comic escalation fails when events are simply random or when every turn restores the same situation at a higher volume.

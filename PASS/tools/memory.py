@@ -35,15 +35,20 @@ import yaml
 from paths import default_memory_root, default_library_root
 
 
-SCHEMA_VERSION = 1
-
-SCOPE_TYPES = {"skillset", "ap", "pattern", "drill", "training", "topic", "runtime"}
-ENTRY_TYPES = {
+SCHEMA_VERSION = 2
+SUPPORTED_SCHEMA_VERSIONS = {1, 2}
+LEGACY_V1_ENTRY_TYPES = {
     "learned_principle",
     "recurring_failure",
     "successful_tendency",
     "known_boundary",
     "training_result",
+}
+
+SCOPE_TYPES = {"skillset", "ap", "pattern", "drill", "training", "topic", "runtime"}
+ENTRY_TYPES = LEGACY_V1_ENTRY_TYPES | {
+    "specialization_profile",
+    "card_candidate",
 }
 EVIDENCE_CLASSES = {"stochastic_performance", "deterministic_contract"}
 CONFIDENCE_VALUES = {"provisional", "repeated", "strong"}
@@ -327,8 +332,11 @@ def validate_store(domain_dir: Path) -> list[str]:
     missing = sorted(FILE_REQUIRED - set(memory))
     if missing:
         errors.append(f"skill_memory.yaml: missing file-level keys: {', '.join(missing)}")
-    if memory.get("memory_schema_version") != SCHEMA_VERSION:
-        errors.append(f"skill_memory.yaml: memory_schema_version must be {SCHEMA_VERSION}")
+    schema_version = memory.get("memory_schema_version")
+    if schema_version not in SUPPORTED_SCHEMA_VERSIONS:
+        errors.append(
+            f"skill_memory.yaml: memory_schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}"
+        )
     if memory.get("skillset") != domain_dir.name:
         errors.append(f"skill_memory.yaml: skillset '{memory.get('skillset')}' does not match directory '{domain_dir.name}'")
 
@@ -338,6 +346,14 @@ def validate_store(domain_dir: Path) -> list[str]:
     if not isinstance(entries, list):
         errors.append("skill_memory.yaml: entries must be a list")
         entries = []
+
+    if schema_version == 1:
+        for index, entry in enumerate(entries):
+            if isinstance(entry, dict) and entry.get("type") in {"specialization_profile", "card_candidate"}:
+                label = entry.get("id", f"entry[{index}]")
+                errors.append(
+                    f"{label}: type '{entry.get('type')}' requires memory_schema_version 2"
+                )
 
     for index, entry in enumerate(entries):
         validate_entry(entry, index, errors)

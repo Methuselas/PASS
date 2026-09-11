@@ -61,9 +61,11 @@ If no, the runtime does not depend on it.
     only the model and host can actually do.
 20. **Skillset Memory separates retained learning from empirical results; it is
     not canon and not a fourth object type.** Within the compact current state,
-    `learned_principle` records a durable transferable lesson and
-    `training_result` records an observed outcome from actual use or evaluation.
-    The event-level evidence lives beside it in
+    `learned_principle` records a durable transferable lesson, `training_result`
+    records an observed outcome from actual use or evaluation,
+    `specialization_profile` tracks demonstrated transfer into a subcategory, and
+    `card_candidate` incubates a possible reusable canon lesson until deliberate
+    synthesis accepts, redirects, or rejects it. The event-level evidence lives beside it in
     `memory/<domain>/training_history.jsonl`. Both are domain-scoped rather than
     global; neither mutates or overrides a card. An invalid run — one that failed
     before the capability was exercised — may remain in training history but never

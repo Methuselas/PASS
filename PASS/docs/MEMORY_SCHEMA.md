@@ -2,7 +2,7 @@
 
 status: active
 owner: docs/domains/spec
-last_reviewed: 2026-08-22
+last_reviewed: 2026-09-11
 
 Skillset Memory is the portable **compact current state of the skill**. It keeps
 durable learned principles distinct from empirical training results, strengths,
@@ -145,8 +145,14 @@ honest phrasing is *observed in the current session*.
 
 One file per domain, at `memory/<domain>/skill_memory.yaml`.
 
+Schema version 2 adds `specialization_profile` and `card_candidate`. The tooling
+continues to read and validate version-1 stores so separately maintained domain
+archives can merge without a synchronized migration. A version-1 store may not
+use the two version-2 entry types; migrate that store to version 2 when either is
+needed.
+
 ```yaml
-memory_schema_version: 1
+memory_schema_version: 2
 skillset: art
 memory_version: 3
 entries:
@@ -168,7 +174,7 @@ entries:
 id:              stable id, unique within the file
 scope_type:      skillset | ap | pattern | drill | training | topic | runtime
 scope_id:        object_id for canonical scopes; readable slug for topic/runtime
-type:            learned_principle | recurring_failure | successful_tendency | known_boundary | training_result
+type:            learned_principle | recurring_failure | successful_tendency | known_boundary | training_result | specialization_profile | card_candidate
 evidence_class:  stochastic_performance | deterministic_contract
 observation:     compact retained lesson or self-observation; factual, self-contained, and not a transcript
 confidence:      provisional | repeated | strong
@@ -184,7 +190,12 @@ evidence, not the evidence itself. `training_result` records the compact outcome
 of an actual exercise, evaluation, comparison, grade, detector run, playtest, or
 other observed use. It answers what happened when something was tested.
 `successful_tendency`, `recurring_failure`, and `known_boundary` record other
-forms of empirical self-calibration. The supporting event trail remains in
+forms of empirical self-calibration. `specialization_profile` records how far a
+general skill has actually transferred into a named subcategory or specialization
+without assuming that broad competence propagates automatically. `card_candidate`
+records a provisional reusable principle that appears important enough to watch
+but does not yet have enough independent evidence, execution proof, or ownership
+clarity to justify canon change. The supporting event trail remains in
 `training_history.jsonl`.
 
 ### Optional keys
@@ -308,6 +319,32 @@ obsolete    the environment changed and the observation no longer applies
 Only `active` and `monitoring` entries are returned by `memory.py query`.
 Resolved history stays in the file; it stops biasing the runtime.
 
+### Specialization profiles
+
+A `specialization_profile` answers **where has this skill actually demonstrated
+transfer?** It is not a separate score system and must not infer mastery from the
+parent skillset. Scope it to a readable specialization such as fiction, poetry,
+encounter design, environment art, backend engineering, or another meaningful
+subcategory. Strengthen or narrow it as valid exercises, evaluations, field tests,
+or mentor-to-production transfer accumulate.
+
+### Card-candidate incubation
+
+A `card_candidate` answers **what possible canonical lesson is accumulating
+evidence but is not ready yet?** It preserves a reusable hypothesis without
+forcing premature Pattern/AP/Drill creation. Keep the observation generalized,
+source-independent, and self-contained; record supporting events rather than
+source locators. Use `likely_owners` to name plausible existing owners when known.
+
+A candidate may accumulate evidence and move from `provisional` to `repeated` or
+`strong`, but **evidence never promotes it automatically**. Sufficient evidence
+triggers deliberate synthesis review. That review may: (1) create a new card,
+(2) add a Variant or refinement to an existing owner, (3) conclude that existing
+canon already covers the lesson, (4) retain the lesson only inside a specialization,
+or (5) reject it as false, redundant, or too narrow. After disposition, mark the
+candidate `resolved`, `superseded`, or `obsolete` as appropriate and point to a
+replacement with `superseded_by` when one exists.
+
 ### Compaction
 
 ```text
@@ -336,7 +373,7 @@ confidence; then more recent `last_verified`.
 ```text
 source ids, page numbers, locators, hashes, receipts, attestations
 reading progress, unit maps, next-unit pointers, authoring checkpoints
-current workflow or stage position, candidate or branch status
+current workflow or stage position, temporary artifact candidate/branch status
 temporary activation left by a recent operation
 recently produced artifacts, ambient conversation context
 transcripts, full conversations, every user comment

@@ -42,9 +42,9 @@ variants:
     variant_name: Reject the Predictive Continuation
     variant_basis: context
     difference_from_foundation: >-
-      Treat a sentence, transition, image, paragraph turn, or repeated rhetorical sequence that feels like the statistically obvious next move as a revision trigger even when it is grammatical and clear. Test both the local continuation and the larger pattern across adjacent moves. Generate a second route by changing the governing emphasis, syntax, connective logic, sentence function, ordering, degree of signposting, directness, image, register, or tonal angle; keep the alternative only when it is more exact, alive, or characteristic of the piece rather than merely less expected.
+      Treat a sentence, transition, image, paragraph turn, or repeated rhetorical sequence that feels like the statistically obvious generic next move as a revision trigger even when it is grammatical and clear. Test both the local continuation and the larger pattern across adjacent moves, then distinguish generic default from recurrence that is native to the established voice, rhetorical maturity, task, rhythm, ritual, or world grammar. Generate a second route by changing the governing emphasis, syntax, connective logic, sentence function, ordering, degree of signposting, directness, image, register, or tonal angle; keep the alternative only when it is more exact, alive, or characteristic of the piece rather than merely less expected.
     when_to_use: A draft reads smoothly but the next sentence, transition, phrasing, or multi-sentence movement feels easy to predict, generically literary, mechanically balanced, safely explanatory, over-signposted, or like default model prose.
-    when_not_to_use: The expected wording is exact and earns its inevitability, the task requires intentionally neutral or standardized language, or deviation would sacrifice clarity without producing a meaningful gain.
+    when_not_to_use: The expected wording is exact and earns its inevitability; recurrence establishes voice, age- or task-appropriate scaffolding, comic rhythm, ritual, motif, or world grammar; the task requires intentionally neutral or standardized language; or deviation would sacrifice clarity without producing a meaningful gain.
     absorbed_from_object_id: none
 ---
 
@@ -59,7 +59,7 @@ variants:
 - Flag wording that came to mind as a complete familiar unit before the specific scene or thought had been examined.
 - Ask what this instance looks, sounds, does, or feels like that another instance would not, then let those differences determine the nouns and verbs.
 - Search past the first fluent phrase for an arrangement whose rhythm and emphasis belong to the present voice rather than to repeated public use.
-- During revision ask, **Does this sound predictive?** First test the local continuation; then zoom out across several adjacent sentences or paragraph turns for repeated rhetorical machinery. If either level feels like the safest or most obvious route, force at least one materially different alternative before deciding what belongs.
+- During revision ask, **Does this sound predictive?** First test the local continuation; then zoom out across several adjacent sentences or paragraph turns for repeated rhetorical machinery. If either level feels like the safest or most obvious **generic** route, force at least one materially different alternative before deciding what belongs; preserve recurrence that the established voice, task, rhythm, ritual, motif, or world logic has actually earned.
 - Let strangeness emerge from an idiosyncratic way of encountering the subject, while keeping the resulting language accurate enough to reveal that encounter.
 
 ## Don't
@@ -73,7 +73,7 @@ variants:
 - Replacements identify particulars that belong to this subject, speaker, or occasion.
 - Unusual wording remains fitting rather than merely surprising.
 - The sentence sounds intentional when read aloud and does not depend on stock rhythm for fluency.
-- Any passage that felt predictively default—locally or because several adjacent moves repeated the same rhetorical route—has been tested against at least one alternative; surprise alone is not counted as improvement.
+- Any passage that felt predictively default—locally or because several adjacent moves repeated the same rhetorical route—has been tested against at least one alternative; surprise alone is not counted as improvement, and voice-native or task-appropriate recurrence is not penalized merely for being foreseeable.
 - Any retained familiar expression gains a specific new pressure from context, irony, transformation, or contrast.
 
 ## Notes
@@ -81,4 +81,4 @@ Received language is tempting precisely because repetition makes it arrive quick
 
 `writing_variant_rehabilitate_received_language` keeps inherited wording but changes its work. Trace the concealed comparison literally until it generates concrete action and objects, or build a speaker and situation in which no fresher wording carries the same history, irony, or final pressure. Keep the phrase only when the new context reactivates it.
 
-`writing_variant_reject_predictive_continuation` uses predictability as a diagnostic, not an aesthetic command. The question **Does this sound predictive?** catches prose that is correct because it followed a default continuation rather than because the piece demanded it. Apply the question both to the immediate next move and to repeated rhetorical machinery across several moves: a sequence can become default even when every individual sentence is competent. Rewrite from a different governing choice, then compare. The less expected version fails if it is merely eccentric; the aim is a more particular movement of thought and language, not permanent surprise. AI-authorship detector scores are not a success criterion for this variant and should never be optimized directly.
+`writing_variant_reject_predictive_continuation` uses predictability as a diagnostic, not an aesthetic command. The question **Does this sound predictive?** catches prose that is correct because it followed a generic default continuation rather than because the piece demanded it. Apply the question both to the immediate next move and to repeated rhetorical machinery across several moves: a sequence can become default even when every individual sentence is competent. Before rewriting, ask why the move is foreseeable. Voice-native repetition, developmental or task-appropriate scaffolding, ritual language, motif, comic recurrence, and established world grammar may be predictable because recurrence is doing useful work. Reject the generic continuation, not the inevitable voice. Rewrite from a different governing choice only when the pattern is default rather than functional, then compare. The less expected version fails if it is merely eccentric; the aim is a more particular movement of thought and language, not permanent surprise. AI-authorship detector scores are not a success criterion for this variant and should never be optimized directly.

@@ -3,9 +3,9 @@ object_id: writing_control_irony_to_preserve_reader_trust
 object_type: pattern
 name: Control Irony to Preserve Reader Trust
 library_path:
-  - writing
-  - foundations
-  - language
+- writing
+- foundations
+- language
 stage_binding: 3 rough
 lane_fit: skill
 foundation_role: foundation
@@ -13,22 +13,33 @@ routing_class: general
 specialization_axis: none
 foundation_object_id: none
 tags:
-  - creative_writing
-  - irony
-  - tone
-  - reader_response
-  - revision
+- creative_writing
+- irony
+- tone
+- reader_response
+- revision
 cross_links:
-  - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
-  - rel: related_to
-    target_object_id: writing_read_draft_aloud_to_defamiliarize_it
+- rel: related_to
+  target_object_id: writing_calibrate_context_to_audience_and_venue
+- rel: related_to
+  target_object_id: writing_read_draft_aloud_to_defamiliarize_it
 reference:
-  source_title: "Creative Writing: Four Genres in Brief"
+  source_title: 'Creative Writing: Four Genres in Brief'
   author: David Starkey
 confidence: high
 references: []
-variants: []
+variants:
+- variant_id: writing_variant_preserve_comic_gap_without_corrective_wink
+  variant_name: Preserve the Comic Gap without a Corrective Wink
+  variant_basis: style
+  difference_from_foundation: When readers can already detect a discrepancy between a character or narrator's self-model
+    and the arranged evidence, keep the voice sincere enough for readers to perform the comparison themselves instead
+    of adding authorial commentary that labels the joke.
+  when_to_use: Deadpan narration, social comedy, pompous or earnest characters, and other scenes where dignity,
+    blindness, or partial understanding creates a readable comic double vision.
+  when_not_to_use: The intended gap is not recoverable from context, the literal reading would create consequential
+    misunderstanding, or explicit self-awareness is itself the comic mechanism.
+  absorbed_from_object_id: none
 ---
 
 # Control Irony to Preserve Reader Trust
@@ -60,3 +71,5 @@ variants: []
 
 ## Notes
 Verbal irony turns on a difference between what is said and what is meant; situational irony turns on a difference between what reasonably should happen and what does. Both depend on control. If readers cannot detect the intended gap, they do not experience irony - they experience a writer who seems unaware of the work's implications.
+
+`writing_variant_preserve_comic_gap_without_corrective_wink` uses reader inference as part of comic timing. Arrange enough counterevidence for the audience to see more than the speaker or character sees, then resist the urge to certify the discrepancy with a narrator's wink, moral, or explanatory tag. The voice may remain dignified, pompous, frightened, literal, or completely sincere; the humor lives in the distance between models. Preserve correction only where readers would otherwise mistake the gap for uncontrolled error or harmful ambiguity.

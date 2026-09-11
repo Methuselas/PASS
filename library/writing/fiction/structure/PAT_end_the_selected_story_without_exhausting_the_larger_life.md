@@ -28,7 +28,15 @@ reference:
   author: Linda Anderson
 confidence: high
 references: []
-variants: []
+variants:
+  - variant_id: writing_fiction_variant_carry_victory_through_required_aftershock
+    variant_name: Carry Victory Through Its Required Aftershock
+    variant_basis: context
+    difference_from_foundation: >-
+      Treat apparent victory, arrival, defeat of the antagonist, or completion of the external objective as a state change rather than automatic closure. Continue only through the relational, social, political, moral, or practical consequences that the victory itself creates and that still belong to the selected story's governing promise.
+    when_to_use: Achieving the apparent objective immediately creates consequences whose settlement, transformation, or acknowledged instability determines whether the story's central relation or order has actually reached a meaningful new equilibrium.
+    when_not_to_use: The new consequences belong to a larger future story, the genre intentionally ends at the shock of victory, or extending the aftermath would merely report later life rather than complete a causal obligation created by the climax.
+    absorbed_from_object_id: none
 ---
 
 # End the Selected Story Without Exhausting the Larger Life
@@ -45,6 +53,7 @@ variants: []
 - Resolve or transform the central reader question even when subsidiary facts remain unknown.
 - Let a changed action, image, perception, relation, or texture carry the final shift when explicit insight would narrow it.
 - Test each paragraph after the culmination and retain it only if it completes a remaining consequence or materially changes interpretation.
+- Distinguish achieving the external objective from settling the consequences that objective itself creates inside the selected story.
 
 ## Don't
 - Continue until every character's later fate has been reported.
@@ -63,3 +72,6 @@ variants: []
 
 ## Notes
 Completeness belongs to the selected story, not to the represented life as a whole. A narrative can finish after a slight emotional shift while relationships, motives, and circumstances remain complex. Productive openness differs from incompletion because the governing movement has reached a consequential boundary; what remains unknown enlarges that completed experience instead of postponing it.
+
+
+`writing_fiction_variant_carry_victory_through_required_aftershock` protects endings from treating the climax as an automatic stop sign. A protagonist may arrive home, expose the truth, defeat an enemy, win the contest, or secure the desired object while the victory itself creates debts, retaliation, damaged relationships, legitimacy questions, or a new social state that the selected story still owes. Continue only until those consequences reach the story's chosen boundary; do not convert the Variant into an epilogue requirement or an excuse to exhaust the characters' larger lives.

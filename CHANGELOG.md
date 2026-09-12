@@ -6,6 +6,38 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.11 - 2026-09-12
+
+### Changed
+
+- Repaired four more C++ cards against compiled evidence, continuing the topic-by-topic
+  sweep of the `software-engineering` package through iterators and initialization, the
+  first of the larger topics.
+- `PAT_replace_nonlocal_statics_with_local_statics` no longer tells readers that
+  function-local static initialization is not thread-safe, which its own Notes already
+  contradicted; sixteen racing threads produced one construction, and only switching the
+  compiler's guard off broke it. Its teardown warning now names the right object: the
+  hazard is reporting to the object built later, not the one built first.
+- `PAT_manually_initialize_builtin_objects` no longer says failed extraction leaves the
+  destination unchanged. Since C++11 a failed numeric parse stores zero and an overflow
+  stores the limit; only a failure before parsing, such as empty input, leaves it alone.
+- `PAT_choose_braces_or_parentheses_deliberately` no longer says braced copy and move are
+  diverted to an initializer-list constructor, which a defect resolution applied to C++14
+  ended; no longer says an equals sign cannot initialize an uncopyable object, which C++17
+  elision changed; and no longer says the general vexing parse draws no warning.
+- `PAT_convert_a_reverse_iterator_with_base_and_mind_the_offset` no longer draws an
+  implicit conversion from an iterator to a reverse iterator, whose constructor is
+  explicit; notes that mainstream libraries give contiguous containers class-type
+  iterators, so stepping back from `base()` usually compiles and fails only on pointers;
+  and warns that a reference cast can remove an iterator's constness on a library that
+  derives one type from the other.
+
+### Added
+
+- Updated `software-engineering` memory: every defect in the first larger topics came from
+  a card whose source stands far from C++20, and one card's Notes had already corrected
+  advice its own Don't bullet kept giving.
+
 ## 1.0.0-beta.10 - 2026-09-12
 
 ### Changed

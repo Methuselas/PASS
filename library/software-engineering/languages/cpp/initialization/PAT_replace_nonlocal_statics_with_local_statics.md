@@ -41,13 +41,13 @@ variants: []
 
 ## Don't
 - Don't leave a cross-translation-unit static dependency to chance: a `tempDir` whose constructor calls `tfs.numDisks()` may run before `tfs` is constructed, which is undefined and varies by platform.
-- Don't assume this is thread-safe — the first-use initialization of a local static can race, so trigger each function during single-threaded startup.
-- Don't take this as a fix for destruction order. It pins down when each object is built and leaves teardown on the reverse of that — so of two objects converted this way, the one built first is destroyed last, and if it is the one the other reports to during its own teardown, the reference handed back names an object that is already gone.
+- Don't warm these functions up on a single thread at startup out of habit. Since C++11 first-use initialization is guarded: sixteen threads racing to a slow constructor produced one construction, and none saw a half-built object. The warm-up is still needed on a pre-C++11 toolchain or where the guard has been switched off — with the compiler's switch off, fifteen of the sixteen threads read the unfinished object.
+- Don't take this as a fix for destruction order. It pins down when each object is built and leaves teardown on the reverse of that — so of two objects converted this way, the one built later is destroyed first. If the object built first reports to the one built later during its own teardown, the reference handed back names an object that is already gone — measured, a service reporting to a logger built after it found the logger already destroyed, while a logger built before it was still alive.
 
 ## Checklist
 - Does any non-local static depend on another defined in a different translation unit?
 - Is each such object now reached through a function returning a local-static reference?
-- Are those functions invoked during single-threaded startup to head off initialization races?
+- If the toolchain predates C++11 or has the initialization guard switched off, are those functions invoked during single-threaded startup?
 - Does any of these objects get used during another's teardown, and if so is it guaranteed to still be alive then?
 
 ## Notes

@@ -45,7 +45,7 @@ variants: []
 
 ## Don't
 - Don't assume `int x;` or `Point p;` comes out zeroed; the storage duration and initialization form decide that.
-- Don't use `std::cin >> value` as the first operation on an otherwise uninitialized scalar and then read it unconditionally. Failed extraction leaves the destination unchanged.
+- Don't use `std::cin >> value` as the first operation on an otherwise uninitialized scalar and then read it unconditionally. A failed extraction does not leave a usable value either way: since C++11 a failed numeric parse stores zero and an out-of-range one stores the type's limit, while a failure before any parsing begins, such as empty input, leaves the destination untouched, so an uninitialized destination stays indeterminate in exactly that case.
 
 ## Checklist
 - Does every object receive a defined value before its first read on every path?

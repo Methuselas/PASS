@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 30
+memory_version: 31
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -1725,10 +1725,19 @@ entries:
     adopted and this compiler refuses in C++20 and C++23. What predicts a broken language claim is
     how far the source stands from the standard the card targets, whether older or pre-standard.
 
+    The fifteenth batch, the first larger topics, held to that at scale: four of eight cards failed
+    with nine defects, and every defect sat in a card from Effective STL, Effective C++ or a
+    pre-resolution reading of Effective Modern C++ - failed extraction said to leave the value,
+    braced copies said to divert to a list constructor, an equals sign said unable to initialize an
+    uncopyable object, an implicit conversion to a reverse iterator that has always been explicit.
+    Both cards from a C++20-era source held every claim. It also found a card whose Notes had
+    already corrected its own Don''t bullet, which kept the stale advice, so a correction written
+    into a card is not evidence the card''s instructions were corrected.
+
     '
   confidence: strong
   status: active
-  evidence_count: 14
+  evidence_count: 15
   evidence_events:
   - SE_EV_0061
   - SE_EV_0062
@@ -1744,6 +1753,7 @@ entries:
   - SE_EV_0072
   - SE_EV_0073
   - SE_EV_0074
+  - SE_EV_0075
   evidence_origin:
   - runtime_self_audit
   retrieval_cues:

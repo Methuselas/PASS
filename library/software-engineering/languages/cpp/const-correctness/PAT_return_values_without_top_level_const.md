@@ -41,6 +41,7 @@ variants: []
 - Return `T`, not `const T`, from arithmetic operators and other value-producing functions so callers can move from the result and use rvalue-qualified operations.
 - Ref-qualify assignment as `T& operator=(const T&) &` when assignment is meaningful only for named, persistent objects. Then `(a * b) = c` is rejected because the left operand is a prvalue, without poisoning the returned value with top-level `const`.
 - Apply the same design to other mutating operations: use `&`, `const &`, `&&`, constraints, or deletion to state which value categories may call them.
+- Once one overload of a name carries a ref-qualifier, every overload of that name must carry one. A mutable accessor sitting next to a const accessor - `double &X()` beside `const double &X() const`, the ordinary shape for a value type's components - will not compile if only the mutating one is qualified; the pair becomes `double &X() &` and `const double &X() const &` together. The `const &` form still binds a prvalue, so a read through a temporary keeps compiling and quietly selects the const overload, while a write through one no longer has a candidate.
 
 ## Don't
 - Don't return `const T` by value to block assignment to a temporary. Top-level `const` on the result can suppress moves and reject otherwise valid rvalue use.
@@ -49,7 +50,8 @@ variants: []
 ## Checklist
 - Does every value-producing function return an unqualified value type?
 - Are mutating members callable only on the value categories for which mutation has a durable meaning?
+- Does every overload of a newly ref-qualified name carry a ref-qualifier of its own?
 - Does deliberate misuse fail at the interface boundary without disabling moves from ordinary results?
 
 ## Notes
-Older C++ guidance returned arithmetic results as `const` values so a second mutating operation would not compile. In modern C++, that top-level qualification travels into overload resolution and can prevent a move or an intended rvalue-qualified call. Ref-qualified members put the restriction on the operation that owns it: a named object can be assigned, while a disposable result cannot. The result remains an ordinary movable value.
+Older C++ guidance returned arithmetic results as `const` values so a second mutating operation would not compile. In modern C++, that top-level qualification travels into overload resolution and can prevent a move or an intended rvalue-qualified call. Ref-qualified members put the restriction on the operation that owns it: a named object can be assigned, while a disposable result cannot. The result remains an ordinary movable value. A defaulted assignment operator is allowed to differ from its implicit declaration in the ref-qualifier, and qualifying it leaves the type trivially copyable and trivially assignable, so a class whose tests assert those properties can take the restriction without changing what they report.

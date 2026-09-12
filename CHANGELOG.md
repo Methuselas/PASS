@@ -6,6 +6,63 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.7 - 2026-09-12
+
+### Changed
+
+- Repaired ten C++ cards against compiled evidence, from a topic-by-topic sweep of
+  the `software-engineering` package that tests each card's claims by compiling what
+  it prescribes, compiling what it says must fail, and measuring what it quantifies.
+  Seventy objects across seven topics were probed; the ten below were the cards whose
+  claims did not survive.
+- `PAT_return_values_without_top_level_const` now states that ref-qualifying one
+  overload of a name obliges every overload of that name to carry a ref-qualifier,
+  and that the `const &` form still binds a prvalue so existing reads keep compiling.
+  Applied as previously written, the advice did not compile on the ordinary
+  mutable/const accessor pair.
+- `PAT_do_not_emulate_class_specific_new_handler_with_global_state` now requires a
+  local policy's bookkeeping to live in the pool or memory resource every allocator
+  instance points at, because per-instance accounting breaks the allocator equality
+  contract that lets a container release through any equal instance.
+- `PAT_choose_a_thread_safe_initialization_mechanism` no longer carries one
+  platform's benchmark ratios as durable guidance. What transfers - the
+  order-of-magnitude cost of guarding every access, and the reason to prefer the
+  function-local static - is kept; the ratios, which inverted on a supported target,
+  are not.
+- `PAT_choose_the_execution_policy_the_loop_body_can_survive` no longer implies a
+  sequence-length crossover threshold. Per-element work decides, and a length
+  threshold measured with one weight of work says nothing about another.
+- `PAT_manage_resources_with_raii_objects` now distinguishes the three outcomes of
+  dropping a manager's name: a braced or cast temporary releases immediately, while
+  the parenthesized spelling is a declaration that either fails to compile or
+  silently constructs an owner of nothing.
+- `PAT_avoid_overloading_on_universal_references` now separates the base-class case
+  from the derived-class case, which is broader: a hand-written derived copy or move
+  constructor has both hijacked, including the const copy that was safe in the base,
+  while defaulted derived constructors are unaffected.
+- `PAT_precede_nested_dependent_types_with_typename` now illustrates the rule with a
+  declaration inside a function body rather than with a `using` alias, which C++20's
+  type-only contexts made optional, and records that implementations have taken that
+  relaxation up unevenly.
+- `PAT_factor_parameter_independent_code_from_templates` now identifies forced
+  substitution, not the `inline` keyword, as what reinstates the duplication that
+  factoring removes, and cross-links the card that owns the distinction.
+- `PAT_change_an_associative_element_without_breaking_its_ordering` now names which
+  cast fails loudly and which one silently does nothing: `const_cast` to a value does
+  not compile, while a cast that may copy modifies a temporary.
+- `PAT_price_virtual_dispatch_against_the_real_alternative` no longer quotes the
+  figures its own Don't clause forbids, and no longer ranks a tag-and-switch below
+  virtual dispatch - measured, the switch can win at three cases. The maintenance
+  objection, which holds whichever way a measurement goes, is now the stated reason
+  to refuse it.
+
+### Added
+
+- Added `software-engineering` memory entries recording the sweep: what the probe
+  method finds and cannot find, the two shapes of defect it keeps surfacing
+  (benchmark numbers written into canon, and equivalences between cases that behave
+  differently), and the fixture faults that precede most false alarms.
+
 ## 1.0.0-beta.6 - 2026-09-11
 
 ### Added

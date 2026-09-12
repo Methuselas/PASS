@@ -45,7 +45,8 @@ variants: []
 
 ## Do
 - Expect the forwarding-reference overload to win far more often than it looks like it should. It can instantiate to an exact match for almost any argument, so another overload requiring even a trivial conversion loses.
-- Treat a perfect-forwarding constructor as the dangerous case rather than one case among several. It is a better match than the copy constructor for a non-const lvalue of the same class, so copying a non-const object calls the forwarding constructor instead. And in a derived class, the base copy and move constructors are hijacked the same way.
+- Treat a perfect-forwarding constructor as the dangerous case rather than one case among several. It is a better match than the copy constructor for a non-const lvalue of the same class, so copying a non-const object calls the forwarding constructor instead, while a copy of a const object and a move still reach the constructors you wrote.
+- Expect a derived class to lose more than the base does, and to lose it only when its constructors are written out. A hand-written derived copy or move constructor that passes the whole derived object to the base initializer makes the base's own copy and move constructors require a derived-to-base conversion, while the forwarding constructor deduces an exact match - so both of them are hijacked, including the const copy that was safe in the base itself. Derived constructors that are defaulted or generated are unaffected, because the compiler initializes the base subobject from the source's base subobject and no conversion is involved. The failure therefore appears in the derived class that spells its constructors out, which is usually the one with members of its own to copy.
 - Take the simplest alternative that works: give the functions different names. Perfect forwarding is not tied to a shared name, and abandoning the overload set costs nothing where the operations are conceptually distinct.
 - Pass by reference to const where the efficiency of forwarding is not what the code needs. It gives up a move in some cases and it restores ordinary, predictable overload resolution.
 - Pass by value where the parameter will be copied into the object anyway and the type is cheap to move. That gives most of the forwarding benefit with none of the overload-resolution behaviour.
@@ -62,7 +63,7 @@ variants: []
 - Does this overload set contain a forwarding-reference parameter?
 - For each other overload: is there an argument type for which it would now lose to the forwarding one?
 - If this is a constructor, what happens when a non-const lvalue of the class is copied?
-- If the class has derived classes, what happens to their copy and move constructors?
+- If the class has derived classes, are their copy and move constructors written out or generated, and what does each one's base initializer resolve to?
 - Have distinct names, reference to const, and by value been considered, and does any retained forwarding overload have a stated concept?
 
 ## Notes

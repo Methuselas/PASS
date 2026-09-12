@@ -43,6 +43,7 @@ variants: []
 - Keep `std::set_new_handler` for a process-wide policy whose effects on every allocation are intended.
 - Give a class or subsystem a dedicated allocator or `std::pmr::memory_resource` when it needs a distinct storage pool, accounting policy, or exhaustion behavior.
 - Use a factory returning the project's explicit result type when allocation failure is meant to be recoverable locally rather than thrown as `std::bad_alloc`.
+- Keep the policy's bookkeeping - a live-block set, a byte count, a high-water mark - in the pool or `memory_resource` that every allocator instance points at, never in the allocator object itself. Allocator values are copied, rebound to other element types, and compared for equality, and two instances that compare equal must each be able to release storage the other obtained. Per-instance bookkeeping makes that promise false, and an ordinary container swap or move-assignment then releases a block through an instance that never recorded it.
 
 ## Don't
 - Don't install a class handler globally, call `::operator new`, and restore the previous handler with RAII. Exception safety restores the value on one thread, but it does not make the process-global mutation isolated from concurrent allocations.
@@ -53,6 +54,7 @@ variants: []
 - Is the desired policy truly process-wide, or only local to one type or subsystem?
 - Can another thread or reentrant call allocate while the global handler is temporarily changed?
 - Would an allocator, memory resource, factory, or explicit result make the scope of the policy visible?
+- If the policy keeps bookkeeping, does that state live in the one object every allocator instance refers to?
 
 ## Notes
 The historical CRTP recipe stored one handler per class, installed it with `std::set_new_handler`, delegated to global allocation, and restored the old handler in a destructor. RAII makes restoration exception-safe but cannot make global mutable state thread-local. Under a C++20 baseline, a local policy should have local state. Keep the old construction recognizable for legacy diagnosis; do not use it as a reusable modern facility.

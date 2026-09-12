@@ -36,16 +36,16 @@ variants: []
 **THEN** precede the name with `typename` so the parser treats it as a type.
 
 ## Do
-- Write `typename` before a dependent qualified type in an ambiguous context, such as a `using value_type` alias to the dependent trait's `value_type` member.
+- Write `typename` before a dependent qualified type where the parser genuinely cannot tell a type from a value: a declaration inside a function body is the case to hold onto, because `Container::const_iterator it = c.begin();` there is indistinguishable from a multiplication until the parameter is known. Do not take a `using` alias to a dependent member as the example - under a C++20 baseline that is one of the type-only contexts below, and it compiles either way.
 - Prefer a `using` alias for a long dependent type so the full qualified name and its disambiguation appear once.
-- Let C++20's type-only contexts do their job: when the grammar already requires a type, `typename` may be omitted. Keep it where ambiguity remains rather than applying or removing it mechanically.
+- Let C++20's type-only contexts do their job: where the grammar already requires a type - an alias declaration, a member's declared type, a return or trailing return type, the type in a cast or a new-expression - `typename` may be omitted. Treat that as a portability decision rather than a free simplification, because implementations have taken the relaxation up unevenly: a function parameter's dependent type is one the standard puts on this list and a current compiler can still reject without the keyword. Keeping it costs nothing and compiles everywhere.
 
 ## Don't
 - Don't put `typename` on a non-dependent name or on the template parameter itself; it disambiguates a qualified dependent name.
 - Don't use typename in a base class list or a member initialization list, even for a nested dependent type name — it is disallowed in those two positions.
 
 ## Checklist
-- Is this a qualified dependent name in a context where the parser cannot already know it is a type?
+- Is this a qualified dependent name in a context where the parser cannot already know it is a type - in particular, a declaration inside a function body?
 - Am I wrongly adding typename to a non-dependent name or in a base-class-list or init-list position?
 - Have I used a `using` alias to avoid repeating a long dependent type name?
 

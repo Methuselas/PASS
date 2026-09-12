@@ -44,12 +44,12 @@ variants: []
 
 ## Don't
 - Don't leave code that differs only by a constant inside the template; each instantiation duplicates it, as a 5-by-5 and a 10-by-10 invert do.
-- Don't inline the shared base function, or you reinstate the duplication you just factored out.
+- Don't force the shared implementation to be substituted into every instantiation, which is what actually reinstates the duplication. The `inline` keyword is not that: it governs whether repeated definitions are legal, and whether a body is substituted is the optimizer's decision, which for a body large enough to be worth factoring it normally declines. Measured across eight sizes of one matrix template, moving the body out of the template cut the object by about forty percent; writing that shared body inside the class instead left it within a fraction of a percent of the out-of-line version; only a non-portable force-inline attribute brought the duplication back, and it then cost slightly more than never factoring at all. See `PAT_separate_inline_linkage_from_inlining_optimization`.
 
 ## Checklist
 - Does any code in this template not depend on all of its parameters?
 - Can a non-type parameter become a function parameter or a data member?
-- Is the shared implementation non-inline and reused across instantiations?
+- Is the shared implementation one function reused across instantiations, with nothing forcing it to be substituted into each of them?
 
 ## Notes
 Template replication is implicit: one source copy, but many instantiated bodies. The SquareMatrix invert example bloats because size is a non-type parameter, so each size gets its own copy; moving invert into a base templatized only on the element type (reached by private inheritance) shares one body. Trade-offs are real — the size-specific version can optimize a compile-time constant the shared version cannot, and a stored data pointer adds size — so measure before deciding.

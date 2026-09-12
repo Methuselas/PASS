@@ -48,13 +48,14 @@ variants: []
 
 ## Don't
 - Don't count on reaching a manual delete or release at the end of a function; a premature return, a loop break, or a thrown exception skips it and leaks the resource plus everything it owns.
-- Don't construct the managing object without a name. A declaration that gives it a name binds it to the enclosing scope; the same constructor call written as a bare expression creates a temporary that is destroyed at the end of that statement, so the resource is released immediately and the code that follows runs unprotected. The two forms differ by an identifier, both compile, and only the named one does anything.
+- Don't construct the managing object without a name. A declaration that gives it a name binds it to the enclosing scope, and dropping the name gives one of three different results rather than one: braced or cast to void, `Guard{m};` and `(void)Guard(m);` create a temporary that is destroyed at the end of that statement, so the resource is released immediately and the code that follows runs unprotected. Written with plain parentheses, `Guard(m);` is not an expression at all - it declares a variable named `m` of the manager's type, which fails to compile when the manager has no default constructor and, when it has one, quietly constructs an object that owns nothing and shadows the thing you meant to guard. Only the named declaration does the job, and the spelling that goes wrong does not announce which way it went wrong.
 - Don't represent a dynamic array with the wrong smart-pointer specialization. Prefer `std::vector` or `std::string`; when array ownership itself is required, use the array specialization of `std::unique_ptr`, or the array specialization of `std::shared_ptr` only when the array truly has shared ownership.
 
 ## Checklist
 - Is every acquired resource owned by an object that releases it in its destructor?
 - Is the resource handed to its manager at the moment of acquisition?
 - Am I still calling delete or a release function by hand anywhere outside a resource-managing class?
+- Does every manager here have a name, rather than being a temporary or an accidental declaration?
 
 ## Notes
 The `createInvestment`/`f` example shows why manual release fails: any early exit or exception between acquisition and the release call leaks. RAII closes every path by tying release to destruction, which C++ runs automatically at scope exit. Historical examples used `auto_ptr` and `tr1::shared_ptr`; the C++20 forms are `std::unique_ptr` and `std::shared_ptr`. The mechanism is broader than memory: an object, not control-flow discipline, owns every acquired resource.

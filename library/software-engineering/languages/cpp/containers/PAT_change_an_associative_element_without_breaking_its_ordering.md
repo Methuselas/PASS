@@ -46,7 +46,7 @@ variants: []
 - Take the element out when the ordering-relevant part must change, and use the five-step form: find it, copy it, erase it, modify the copy, insert the copy. Pass the iterator you found as a placement hint to the insertion when the new position will be near the old one, which makes that insertion constant rather than logarithmic.
 - Reach for node extraction where it is available, which is the direct expression of the same idea: detach the node, change the key on the detached node, and reinsert it. It moves no elements and allocates nothing, so it does what the five-step form does without the copy.
 - Check both ends of the extraction, because each can fail and neither failure throws. Extracting a key that is not present yields an empty handle rather than an error, so a sequence that extracts two nodes and swaps their keys must confirm both were found before touching either. Reinserting can fail as well, since the key you just wrote may already belong to another element — the insertion reports that it did not happen and hands back the position of the element already holding that key. Ignore either report and the element is simply gone: extracted out of the container, never reinserted, and destroyed with the handle at the end of the scope.
-- Cast to a reference, not to a value, on the rare occasion a cast is the right tool. Casting to the element type produces a temporary copy, so the modification lands on the copy and the container is untouched — code that compiles, runs, and silently does nothing.
+- Cast to a reference, not to a value, on the rare occasion a cast is the right tool, and know that the two mistakes fail differently. A `const_cast` to the element type rather than to a reference does not compile at all, because `const_cast` only ever yields a pointer or a reference. The version that compiles and silently does nothing is a cast that is allowed to produce a copy - a `static_cast` or a functional cast to the element type - where the modification lands on the temporary and the container is untouched. So the loud failure comes from the cast this rule is about, and the silent one from reaching for a different cast when that failure appears.
 
 ## Don't
 - Don't change an ordering-relevant part in place and assume the container will cope. It will not re-sort itself, so the element stays where its old value put it, and every later lookup, insertion, and range query navigates a structure whose sortedness is a lie.
@@ -57,7 +57,7 @@ variants: []
 - Which parts of this element does the container's ordering actually consult?
 - Is the part being changed one of them?
 - If it is, is the element removed and reinserted rather than edited in place?
-- If a cast is involved, is it to a reference?
+- If a cast is involved, is it to a reference, and is it a `const_cast` rather than a cast that may copy?
 - Is a placement hint being supplied when the new position is near the old one?
 
 ## Notes

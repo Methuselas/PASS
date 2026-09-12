@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 13
+memory_version: 22
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -1245,3 +1245,388 @@ entries:
   - write the drill
   - author a drill
   last_verified: '2026-09-03'
+- id: SE_MEM_018
+  scope_type: pattern
+  scope_id: PAT_return_values_without_top_level_const
+  type: training_result
+  evidence_class: deterministic_contract
+  observation: 'The first code test run after the C++ package was modernized to a C++20 base
+    took a rewritten const-correctness Pattern to a real C++20 value type, and the card''s
+    prescribed mechanism did not compile. The rule and its direction held: applied so that
+    every overload of the ref-qualified name carried a qualifier, it rejected all three shapes
+    of mutation through a temporary at compile time, left every type trait the project''s own
+    tests assert about the class unchanged, and produced identical output on the real call-site
+    shapes. Its stated reason for rejecting the older style also reproduced at runtime - a
+    const-qualified returned value was copied where the unqualified one was moved. What failed
+    was the mechanics: the card scoped its instruction to mutating operations, and the language
+    puts the matching obligation on the non-mutating overload of the same name, which that
+    scope excludes. The reviewed human class complied with the card''s main clause and still
+    admitted assignment, compound assignment, and a component write through a disposable
+    result.
+
+    '
+  boundary: 'One card, one class, one reviewer, one compiler implementation, under two standard
+    settings. The ill-formed overload pair is a language rule; the finding that the restriction
+    costs no triviality is one implementation''s answer agreeing with the standard''s wording,
+    not two implementations agreeing with each other. Nothing here tests the other cards the
+    same modernization pass rewrote.
+
+    '
+  confidence: strong
+  status: resolved
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0058
+  evidence_origin:
+  - runtime_self_audit
+  likely_owners:
+  - PAT_return_values_without_top_level_const
+  retrieval_cues:
+  - ref-qualify
+  - value category
+  - assignment to a temporary
+  - const return value
+  - trivially copyable
+  last_verified: '2026-09-11'
+- id: SE_MEM_019
+  scope_type: topic
+  scope_id: guidance_that_prescribes_a_language_mechanism
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: 'A card that tells a reader to reach for a specific language mechanism can be
+    right about the decision and wrong about the mechanics, and prose review does not separate
+    the two. The cheap separator is to write the smallest class that has the shape the card
+    addresses and compile the card''s own instruction against it: a rule the language forbids
+    outright shows up as an error on the first attempt, while reading the same card for a
+    third time does not. The first such compile after a modernization pass found an instruction
+    that could not be followed as written. Prefer the shape of a class that already exists in
+    real code - the awkward pairs, the overload sets, the members the card does not mention -
+    because the obligation the card missed usually sits on the member it did not scope.
+
+    '
+  boundary: 'Four occasions, all in C++, three on single cards and one across a whole topic of
+    twenty-one.
+    The probe condemned an instruction that could not be followed as written, cleared a second
+    card whose linkage and optimizer claims all held, and on a third found the rule sound while
+    the mechanism it recommended carried an unstated obligation that only appeared once two
+    mechanisms the card treats as interchangeable were built side by side. So the probe finds
+    three distinct things - an instruction that cannot compile, nothing, and a cost attached to
+    a choice the card presents as free - and that it can return nothing is what separates it from
+    a procedure that manufactures findings. Untested on cards whose advice is structural rather
+    than mechanical, on languages without a compiler to consult, and on cards that were not
+    recently rewritten. At the scale of a whole topic the probe''s own failure rate became the
+    thing to watch: every false failure in that batch was the fixture''s, so a check that
+    reports failure is more likely to be a broken probe than a broken card until diagnosed.
+    Across two batches the fixture faults have a shape: each one answered a question adjacent
+    to the card''s claim rather than the claim itself - a handle passed by reference when the
+    claim was about the handle, a predicate satisfied by a timeout counted as a notification,
+    threads that never overlapped, a count taken from two different temporaries. So the first
+    question on a failure is not whether the card is wrong but whether the probe is measuring
+    the sentence. The corollary arrived on the third batch: correcting such a fixture is also
+    how a real imprecision surfaces. A probe that tested a defaulted constructor where the
+    card''s case was a hand-written one reported a failure that belonged to the probe, and
+    fixing it exposed that the card had claimed two cases behave alike when the second is
+    strictly worse. So an adjacent fixture can hide a defect as easily as invent one, and
+    neither outcome is visible until the probe is aimed at the sentence.
+
+    '
+  confidence: repeated
+  status: active
+  evidence_count: 9
+  evidence_events:
+  - SE_EV_0058
+  - SE_EV_0059
+  - SE_EV_0060
+  - SE_EV_0061
+  - SE_EV_0062
+  - SE_EV_0063
+  - SE_EV_0064
+  - SE_EV_0065
+  - SE_EV_0066
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - modernized card
+  - does this advice compile
+  - card prescribes a mechanism
+  - language rule
+  - field test
+  - testing a card against code
+  - verifying guidance
+  - rewritten card
+  last_verified: '2026-09-11'
+- id: SE_MEM_020
+  scope_type: pattern
+  scope_id: PAT_separate_inline_linkage_from_inlining_optimization
+  type: training_result
+  evidence_class: deterministic_contract
+  observation: 'Tested against a real software renderer that force-inlines a tower of forwarding
+    layers, the card held on every claim it makes. Its linkage half reproduced exactly - a
+    plain function or variable defined in a header collided across two translation units while
+    the inline keyword, an inline variable, a constexpr function, and a definition inside a
+    class all linked - and its separation of linkage from substitution reproduced in both
+    directions on one function, which the optimizer inlined without any directive, declined
+    once the body grew, and inlined again once the call site passed a small constant length.
+    Where the directive did change the generated code it changed no measured time. The project''s
+    broad use of the attribute turned out to sit inside the clause the card''s Don''t list
+    already allows, because that project measures the renderer it tunes and ships to many
+    toolchains, so neither the card nor the human code was at fault.
+
+    '
+  boundary: 'One card, one renderer, one reviewer, one compiler on one target. The claims about
+    linkage and about the optimizer''s independence from the keyword are deterministic and
+    reproduced on demand; the finding that forcing bought no time is bounded to this machine
+    and this fixture, whose timing resolution is coarse relative to a single call. The renderer
+    was read rather than built, and the project''s own benchmark was not run.
+
+    '
+  confidence: strong
+  status: active
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0059
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - inline
+  - force-inline
+  - always_inline
+  - forceinline
+  - one definition rule
+  - link-time optimization
+  - header definition
+  - inline variable
+  - does inline make it faster
+  last_verified: '2026-09-11'
+- id: SE_MEM_021
+  scope_type: pattern
+  scope_id: PAT_do_not_emulate_class_specific_new_handler_with_global_state
+  type: training_result
+  evidence_class: deterministic_contract
+  observation: 'Building the construction a card rejects, and running it, settled in one run what
+    argument had not: a per-class allocation-failure handler installed globally and restored by
+    RAII served unrelated types'' allocations on another thread hundreds of times per twenty
+    thousand, with restoration correct on every path. The rejected recipe appears in no corpus,
+    so the only way to test the prohibition was to build it; the decision the card owns was
+    established instead from real code that had already chosen the prescribed alternative. Against
+    that real allocator the card''s rule held and one of its recommendations proved not free: it
+    offers a dedicated allocator and a memory resource as interchangeable, and per-instance
+    bookkeeping inside an allocator breaks the equality contract that lets a container release
+    through any equal instance, while the same bookkeeping held in the resource survives.
+
+    '
+  diagnosis:
+    failure_layer: knowledge
+    hypothesis: 'A card that lists two mechanisms for one job invites the reader to treat them as
+      equivalent in every respect, and the difference between them tends to sit in an obligation
+      neither mechanism''s name mentions. Building both and exercising the same operation through
+      each is what exposes it; reading either one alone does not, because each is individually
+      correct.
+
+      '
+  boundary: 'One card, one allocator, one reviewer, one compiler on one target. The demonstration
+    of the prohibition is deterministic in kind though not in rate, since the interleaving and the
+    artificial failure schedule set the count; only its being non-zero carries meaning. The
+    allocator was modelled rather than the project compiled, and no shipped site was found that
+    reaches the defect, so it is latent.
+
+    '
+  confidence: strong
+  status: active
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0060
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - new_handler
+  - set_new_handler
+  - allocation failure
+  - custom allocator
+  - memory_resource
+  - pmr
+  - allocator equality
+  - pool allocator
+  - out of memory policy
+  - two mechanisms for one job
+  last_verified: '2026-09-12'
+- id: SE_MEM_022
+  scope_type: topic
+  scope_id: benchmark_numbers_written_into_canon
+  type: recurring_failure
+  evidence_class: deterministic_contract
+  observation: 'Two cards in one topic carried performance ratios measured on somebody else''s
+    platform as though the ratio were a property of the mechanism, and on a supported target
+    both inverted. A hand-rolled double-checked initialization was at parity with or ahead of
+    the function-local static the card said beat it twice over; a per-access lock cost thirty-odd
+    times the static rather than the several hundred claimed; and an execution-policy crossover
+    presented as three lengths turned out to be decided by per-element work, so the card''s
+    middle number reads as a length threshold that does not exist. In both cases the advice was
+    right and only the stated reason was wrong, which is why prose review never caught it: the
+    conclusion follows from the numbers, and the numbers look like evidence. A sibling card in
+    the same topic states the correct posture - that performance is a property of the
+    implementation, operating system, contention pattern, and target - so the lane already knows
+    the rule it broke twice.
+
+    '
+  diagnosis:
+    failure_layer: knowledge
+    hypothesis: 'A measured number is the most persuasive thing a source offers, so it survives
+      extraction intact while the conditions that produced it - one compiler, one library, one
+      architecture, one shape of workload - are dropped as incidental detail. The card then reads
+      as more rigorous than a qualitative rule while being less portable than one.
+
+      '
+  boundary: 'Two cards in one topic, one compiler on one target, with measurement order
+    controlled after it was found to matter. A second topic of six cards was then swept and
+    carried no ratios at all, so this is not yet a library-wide tendency; its one performance
+    claim - that a dereference through an exclusive-ownership pointer costs the same
+    instruction as through a raw pointer - was exact, which is what a performance claim looks
+    like when it is about a mechanism rather than a benchmark. A fifteen-card topic then
+    measured at least as well as its prose claimed on every quantitative point - element moves,
+    bytes per element, lookup and insertion ratios - which separates the two kinds of number
+    cleanly: a ratio derived from what the structure is survives, and a ratio produced by
+    timing one workload on one machine does not. The third instance arrived with its own remedy
+    already written down: a card that forbids quoting a figure for a cost, on the correct
+    grounds that every quantified answer is right in some context, and quotes two in its own Do
+    list that measure at 2.86 times and at both 186 percent and minus 0.2 percent of the
+    claimed ten to fifteen. When a card contains both the rule and its violation, the repair is
+    deletion rather than authorship - which also means the violation was visible to anyone
+    reading both halves, and nobody read them together. A third card in the same topic carries a
+    platform figure correctly scoped to the build that produced it and needed no change, so the
+    problem is the framing rather than the presence of a number.
+
+    '
+  confidence: repeated
+  status: active
+  evidence_count: 3
+  evidence_events:
+  - SE_EV_0061
+  - SE_EV_0065
+  - SE_EV_0066
+  evidence_origin:
+  - runtime_self_audit
+  likely_owners:
+  - PAT_choose_a_thread_safe_initialization_mechanism
+  - PAT_choose_the_execution_policy_the_loop_body_can_survive
+  retrieval_cues:
+  - benchmark
+  - measured
+  - faster than
+  - ratio
+  - crossover
+  - times slower
+  - performance claim in a card
+  - how much faster
+  - threshold
+  - rule of thumb
+  last_verified: '2026-09-12'
+- id: SE_MEM_023
+  scope_type: topic
+  scope_id: claims_that_two_cases_behave_alike
+  type: recurring_failure
+  evidence_class: deterministic_contract
+  observation: 'Two cards so far have been right about a hazard and wrong about its extent, in
+    the same way: a sentence equating a second case to the first - "the same way", "both
+    compile" - where the second case actually behaves differently. A forwarding constructor
+    hijacks only the non-const lvalue copy within its own class but takes the const copy and
+    the move as well in a derived class that writes its constructors out, and escapes entirely
+    where they are defaulted. A manager built without a name is a temporary in two spellings
+    and an accidental declaration in the third, which either fails to compile or silently owns
+    nothing. In both cases the advice was sound and the equivalence was the defect, so a reader
+    checking the second case against the first''s symptoms looks for the wrong thing and
+    concludes the code is safe.
+
+    '
+  diagnosis:
+    failure_layer: knowledge
+    hypothesis: 'An equivalence is the cheapest way to extend a rule to a second case, and it
+      is written while the first case is the one in mind. Whatever makes the second case
+      different - a conversion in the overload set, a parse the language resolves elsewhere -
+      is exactly what the author did not have to think about to state the rule, so the
+      sentence records the similarity and drops the mechanism.
+
+      '
+  boundary: 'Two cards in two topics, both found by building the second case rather than the
+    first, on one compiler. Untested on whether equivalence sentences elsewhere in the library
+    fail at a similar rate; the sweep has not been looking for them specifically, and both were
+    found incidentally while probing something else.
+
+    '
+  confidence: provisional
+  status: active
+  evidence_count: 2
+  evidence_events:
+  - SE_EV_0062
+  - SE_EV_0063
+  evidence_origin:
+  - runtime_self_audit
+  likely_owners:
+  - PAT_avoid_overloading_on_universal_references
+  - PAT_manage_resources_with_raii_objects
+  retrieval_cues:
+  - the same way
+  - likewise
+  - both compile
+  - the same is true of
+  - in a derived class
+  - and the same applies
+  - equivalence between cases
+  - second case
+  last_verified: '2026-09-12'
+- id: SE_MEM_024
+  scope_type: topic
+  scope_id: rules_overtaken_by_the_language_or_the_optimizer
+  type: recurring_failure
+  evidence_class: deterministic_contract
+  observation: 'A third of the defects this sweep has found are rules that were correct when
+    written and have since been overtaken, which reads nothing like an error on the page. One
+    card illustrated the need for a disambiguating keyword with the single construct the
+    current standard made optional, while never naming the context where the keyword is still
+    load-bearing. Another told the reader that marking a shared implementation inline
+    reinstates the code duplication factoring had removed, when the keyword governs linkage and
+    an optimizer declines to substitute a body large enough to be worth factoring - measured,
+    the inline form came within a fraction of a percent of the out-of-line one and only a
+    forced substitution brought the duplication back. Neither is visible to a careful reader,
+    because the sentence is coherent and the reasoning behind it is sound; what changed is
+    underneath it. A language baseline moving forward is therefore a reason to re-run the
+    examples, not only to re-read the prose.
+
+    '
+  diagnosis:
+    failure_layer: knowledge
+    hypothesis: 'An example is chosen because it made the rule vivid under the standard and
+      toolchain of the day, and it is the part of a card least likely to be revisited when the
+      baseline moves, because the rule it illustrates is still true in general. So the stale
+      part is the demonstration rather than the claim, and a modernization pass that edits
+      claims will pass straight over it.
+
+      '
+  boundary: 'Two cards in one topic, both found by compiling the card''s own example rather
+    than by reading it, on one compiler at one standard setting. A third card in the same topic
+    carried a platform figure correctly scoped and needed nothing. Untested on how much of the
+    library rests on examples predating its C++20 baseline; the currency question is recorded
+    as standing intent elsewhere and this is the first measured evidence bearing on it.
+
+    '
+  confidence: provisional
+  status: active
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0064
+  evidence_origin:
+  - runtime_self_audit
+  likely_owners:
+  - PAT_precede_nested_dependent_types_with_typename
+  - PAT_factor_parameter_independent_code_from_templates
+  retrieval_cues:
+  - such as
+  - for example
+  - code bloat
+  - inline
+  - typename
+  - C++20
+  - modernization
+  - is this example still right
+  - stale example
+  last_verified: '2026-09-12'

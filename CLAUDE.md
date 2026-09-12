@@ -86,6 +86,11 @@ The prose after each lead is this file's own.
   commit body must state what changed, what was intentionally excluded or
   preserved, which validation ran, and any known issue left behind. Do not use
   an empty or title-only message for repository integration work.
+- **Every PASS commit advances the Semantic Version.** Update `VERSION`, the
+  current version in `README.md`, and the matching dated `CHANGELOG.md` entry in
+  the same commit. During public beta, increment the numeric prerelease suffix.
+  The test suite checks the working tree against `HEAD` and committed work
+  against its first parent; release builds reject substantive `Unreleased` notes.
 
 ## Validation
 

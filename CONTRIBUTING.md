@@ -62,6 +62,16 @@ the evidence another maintainer needs to understand and trust the commit.
 Release notes belong in `CHANGELOG.md` as well as the commit body. A commit is
 history for maintainers; the changelog is the curated history for users.
 
+Every PASS commit advances [`VERSION`](VERSION) to a strictly greater Semantic
+Version and adds the matching dated heading to `CHANGELOG.md`; during public beta,
+increment the numeric prerelease suffix. Update the current-version statement in
+`README.md` in the same commit. Keep `## Unreleased` empty in committed work: the
+release builder refuses to package substantive notes left there, preventing new
+contents from being published under an old identity. The versioning test checks
+the working tree against `HEAD` before commit and checks `HEAD` against its first
+parent after commit. Exported trees without Git history skip only that ancestry
+check.
+
 ## Licensing contributions
 
 PASS uses split open licensing:

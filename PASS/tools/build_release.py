@@ -55,13 +55,46 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def read_pass_version() -> str:
-    path = repo_root_from_tool().resolve() / "VERSION"
+def read_pass_version(repo: Path | None = None) -> str:
+    root = (repo or repo_root_from_tool()).resolve()
+    path = root / "VERSION"
     if not path.is_file():
         raise ValueError(f"PASS version file not found: {path}")
     version = path.read_text(encoding="utf-8").strip()
     if not SEMVER_RE.fullmatch(version):
         raise ValueError(f"VERSION is not valid Semantic Versioning: {version!r}")
+    return version
+
+
+def read_publishable_pass_version(repo: Path | None = None) -> str:
+    root = (repo or repo_root_from_tool()).resolve()
+    version = read_pass_version(root)
+    changelog_path = root / "CHANGELOG.md"
+    readme_path = root / "README.md"
+    if not changelog_path.is_file():
+        raise ValueError(f"PASS changelog not found: {changelog_path}")
+    if not readme_path.is_file():
+        raise ValueError(f"PASS README not found: {readme_path}")
+
+    changelog = changelog_path.read_text(encoding="utf-8")
+    readme = readme_path.read_text(encoding="utf-8")
+    if not re.search(rf"^## {re.escape(version)} - \d{{4}}-\d{{2}}-\d{{2}}$", changelog, re.M):
+        raise ValueError(f"CHANGELOG.md lacks a dated heading for VERSION {version}")
+    if f"version `{version}`" not in readme:
+        raise ValueError(f"README.md does not identify VERSION {version} as current")
+
+    unreleased = re.search(
+        r"^## Unreleased\s*\n(?P<body>.*?)(?=^## \S|\Z)",
+        changelog,
+        re.M | re.S,
+    )
+    if unreleased is None:
+        raise ValueError("CHANGELOG.md lacks an Unreleased heading")
+    if unreleased.group("body").strip():
+        raise ValueError(
+            "CHANGELOG.md has substantive Unreleased notes; advance VERSION and "
+            "move them into its dated release entry before building"
+        )
     return version
 
 
@@ -1171,6 +1204,7 @@ def build(
     replace: bool = False,
     unsafe_skip_quality_gates: bool = False,
 ):
+    pass_version = read_publishable_pass_version()
     lib = (library or default_library_root()).resolve()
     # Memory is optional by contract: a lane may have no store yet, and a clean
     # clone with memory/ deleted must still build.
@@ -1275,10 +1309,12 @@ def build(
                 staging / MEMORY_DIR if memory_domains else None,
             )
         )
+        if not unsafe_skip_quality_gates:
+            quality["version_contract"] = "passed"
 
         manifest = {
             "schema_version": RELEASE_MANIFEST_SCHEMA_VERSION,
-            "pass_version": read_pass_version(),
+            "pass_version": pass_version,
             "name": display_name,
             "skill_name": skill_name,
             "description": description,
@@ -1385,7 +1421,11 @@ def check(path: Path) -> None:
             if gates.get("status") == "UNSAFE_SKIPPED":
                 problems.append("release was built with quality gates skipped")
             else:
-                required = ["schema_validation", "visual_reference_verification"]
+                required = [
+                    "version_contract",
+                    "schema_validation",
+                    "visual_reference_verification",
+                ]
                 if (path / MEMORY_DIR).is_dir():
                     required.append("memory_validation")
                 for gate in required:

@@ -87,6 +87,12 @@ domains do not have to change when the PASS factory version changes, and changes
 to one domain do not force changes to another. Product-level SkillForge versions
 are independent of the PASS factory version.
 
+Every PASS commit advances the root Semantic Version and carries its dated
+changelog entry. The repository checks the working version against `HEAD` before
+commit and the committed version against its first parent afterward. A production
+release additionally requires an empty `Unreleased` section, so committed content
+cannot be rebuilt under an already published PASS identity.
+
 ## Knowledge and action composition
 
 PASS has one knowledge vocabulary with three roles, not three competing stores of

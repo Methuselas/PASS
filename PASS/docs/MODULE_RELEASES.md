@@ -107,11 +107,13 @@ package.
 
 A normal release build fails closed unless all of these pass:
 
-1. PASS schema and relationship validation;
-2. visual-reference asset verification;
-3. local asset resolution;
-4. portability scan;
-5. Skillset Memory validation, when the release ships a store.
+1. the root Semantic Version is documented and `Unreleased` contains no
+   substantive notes;
+2. PASS schema and relationship validation;
+3. visual-reference asset verification;
+4. local asset resolution;
+5. portability scan;
+6. Skillset Memory validation, when the release ships a store.
 
 Every gate runs against the materialized release closure, so a release is
 publishable on the strength of the cards it actually ships and a defect in an

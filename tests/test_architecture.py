@@ -100,7 +100,7 @@ def isolated_library() -> tempfile.TemporaryDirectory:
     shutil.copytree(RECIPES, root / "recipes")
     shutil.copytree(ROOT / "LICENSES", root / "LICENSES")
     for name in (
-        "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE.md", "NOTICE.md",
+        "CHANGELOG.md", "CONTRIBUTING.md", "LICENSE.md", "NOTICE.md", "README.md",
         "TRADEMARKS.md", "VERSION",
     ):
         shutil.copy2(ROOT / name, root / name)
@@ -211,6 +211,7 @@ class SourceAndStateIndependenceTests(unittest.TestCase):
                 (out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8")
             )
             gates = manifest["quality_gates"]
+            self.assertEqual(gates["version_contract"], "passed")
             self.assertEqual(gates["schema_validation"], "passed")
             self.assertEqual(gates["visual_reference_verification"], "passed")
             self.assertEqual(

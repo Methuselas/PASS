@@ -6,6 +6,8 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.6 - 2026-09-11
+
 ### Added
 
 - Added Skillset Memory schema v2 with `specialization_profile` for tracking
@@ -20,6 +22,13 @@ skillsets may evolve independently.
   it.
 - Added domain-prefixed `workspace/handoffs/` documents to project snapshot and
   import scope while keeping them outside consumer releases.
+- Added new Art cartography and publication-design knowledge, Game Design
+  adventure and foundation guidance, Writing fiction and adventure-module
+  coverage, and corresponding domain memory evidence.
+- Added commit-level Semantic Version enforcement. Repository tests require the
+  working version to advance beyond `HEAD`, or a committed version to advance
+  beyond its first parent, while exported trees without Git history remain
+  portable.
 
 ### Changed
 
@@ -29,12 +38,18 @@ skillsets may evolve independently.
 - Limited the repository's public `workspace/` surface to reusable tools,
   canonical release recipes, and project handoffs. Existing local authoring
   material remains on disk but is no longer tracked.
+- Modernized C++ guidance and its runtime profile, including corrected rules for
+  top-level `const` returns, inline linkage, and class-specific allocation
+  handlers.
+- Made production release builds reject substantive `Unreleased` notes or a
+  version missing from the public README and changelog. Release manifests now
+  record that this version contract passed.
 
 ### Validation
 
 - Validated 1,772 canonical objects, all visual references, 197 generated
   indexes, and all four Skillset Memory stores (107 entries and 241 events).
-- Passed all 171 repository tests, including every canonical release build and
+- Passed all 175 repository tests, including every canonical release build and
   check.
 
 ## 1.0.0-beta.5 - 2026-09-08

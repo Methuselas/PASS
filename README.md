@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.5`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.6`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -519,16 +519,20 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.5`. Beta builds increment the
-prerelease number and may contain clearly documented corrections that are
-incompatible with an earlier beta. Stable `1.0.0` means the public surface is
-defined and future incompatible changes require a new major version.
+contract; the current version is `1.0.0-beta.6`. Every PASS commit advances the
+Semantic Version and records the matching release entry in the changelog. During
+the public beta, commits increment the prerelease number and may contain clearly
+documented corrections that are incompatible with an earlier beta. Stable
+`1.0.0` means the public surface is defined and future incompatible changes
+require a new major version.
 
 This is the version of the PASS factory, not a claim that every knowledge domain
 changes in lockstep. SkillForge skillsets may eventually carry their own product
 versions; `pass_version` records which factory contract produced a release. Once
 a version is published, its contents are never silently replaced. Changes receive
-a new version and an entry in [`CHANGELOG.md`](CHANGELOG.md).
+a new version and an entry in [`CHANGELOG.md`](CHANGELOG.md). Tests compare the
+working version with `HEAD`, and committed versions with their first parent, so a
+commit cannot silently reuse its predecessor's release identity.
 
 ## Contributing
 

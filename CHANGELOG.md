@@ -6,6 +6,36 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.10 - 2026-09-12
+
+### Changed
+
+- Repaired four more C++ cards against compiled evidence, continuing the topic-by-topic
+  sweep of the `software-engineering` package through interface-design, encapsulation,
+  type-deduction, lambdas and coroutines. Every C++ topic holding three patterns or
+  fewer is now swept.
+- `PAT_make_interfaces_hard_to_misuse` now requires explicit constructors on the wrapper
+  types that stop a transposed call, since converting constructors let the raw call
+  compile and aggregate wrappers let a braced call in the wrong order compile. It no
+  longer recommends const return values, which cost every move of the result; blocking
+  assignment to a temporary goes through ref-qualified assignment instead. It no longer
+  says every standard container has `size()`, which the singly linked list does not.
+- `PAT_expect_one_keyword_to_convert_the_whole_function` lists three coroutine triggers,
+  not four: the range-based `for co_await` belonged to the Coroutines TS, was not adopted
+  into C++20, and a current compiler refuses it. It also says by-value parameters are
+  moved into the frame rather than copied.
+- `PAT_decide_where_a_coroutine_suspends_and_who_destroys_it` includes access to the
+  promise object in the handle's interface, which is how every result is read.
+- `PAT_name_every_lambda_capture` no longer says an empty capture clause certifies that a
+  closure depends on nothing outside itself. The compiler checks local variables that
+  would need capturing; globals, statics and read-only local constants stay reachable.
+
+### Added
+
+- Updated `software-engineering` memory: every language-rule defect in the last three
+  batches came from a source standing far from C++20, older or pre-standard, while cards
+  from a C++11/14-era source held every rule.
+
 ## 1.0.0-beta.9 - 2026-09-12
 
 ### Changed

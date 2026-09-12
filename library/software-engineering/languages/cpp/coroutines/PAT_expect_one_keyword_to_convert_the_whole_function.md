@@ -42,14 +42,14 @@ variants: []
 **ELSE** where you only need the behaviour at one call site, wrapping the work in a small coroutine and calling it leaves the original function unchanged.
 
 ## Do
-- Know the four triggers, since any one of them is sufficient: a coroutine return, an await, a yield, or an await expression in a range-based loop. There is no partial adoption and no way to have a function that is a coroutine only sometimes.
+- Know the three triggers, since any one of them is sufficient: a coroutine return, an await, or a yield. There is no partial adoption and no way to have a function that is a coroutine only sometimes. Material written against the pre-standard coroutine specification also lists an awaiting range-based loop; it was not adopted into C++20, and a current compiler refuses it as a non-conforming extension under both C++20 and C++23.
 - Expect the ordinary return statement to become unavailable. A coroutine cannot use it, so every path that returned a value has to be rewritten in terms of the coroutine's own mechanism, and a function with several returns is a larger change than it looks.
 - Expect deduced return types to become unavailable too. Neither an unconstrained placeholder nor a constrained one is permitted, so the return type has to be written out — and it has to be a type that supplies the inner promise type the machinery requires, which usually means a purpose-built resumable type rather than anything already to hand.
 - Check the function is even eligible before starting. Variadic functions, constant-evaluated functions of either kind, constructors, destructors, and the program's entry point cannot be coroutines, so for those the answer is to move the work elsewhere.
 - Keep the two things called "coroutine" apart when reading or writing about this. The function containing the keyword is a factory; calling it produces a coroutine object, which is what the caller actually holds and interacts with. Almost every confusing sentence on this topic is one that has conflated them.
 
 ## Don't
-- Don't expect parameters to behave as they did. They are copied into the coroutine's own frame, so anything passed by reference must outlive not the call but the coroutine — which is a considerably longer and less obvious lifetime.
+- Don't expect parameters to behave as they did. Each is carried into the coroutine's own frame — by-value parameters are moved there, or copied where the type cannot move, and a reference parameter carries only the reference — so anything passed by reference must outlive not the call but the coroutine — which is a considerably longer and less obvious lifetime.
 - Don't assume the frame's allocation is free. It is a separately allocated block holding the promise object, the copied parameters, the suspension state, and any local whose lifetime spans a suspension; implementations may elide the allocation under specific conditions, and relying on that without checking is relying on an optimization.
 - Don't convert a function in place because one call site wanted laziness. Every existing caller now receives a coroutine object rather than a value, which changes each of them, and the conversion cannot be scoped to the caller that asked for it.
 

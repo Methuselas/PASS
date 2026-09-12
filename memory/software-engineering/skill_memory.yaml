@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 28
+memory_version: 30
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -1632,23 +1632,31 @@ entries:
     telling the reader that only a non-heap array can take per-element constructor arguments, so a
     heap array needs an array of pointers or in-place construction. Since C++11 a heap array takes
     the same initializer and can take its length from it; only a run-time length still needs the
-    workarounds. So the overtaken sentence is not always the demonstration. Untested on how much of
-    the library rests on material predating its C++20 baseline; the currency question is recorded
-    as standing intent elsewhere.
+    workarounds. So the overtaken sentence is not always the demonstration. Two more came from one
+    card in the thirteenth batch: const-qualified return values recommended to block assignment to
+    a result, which since C++11 also turns every move of that result into a copy, and a claim that
+    every standard container has size(), which the singly linked list added in C++11 does not. The
+    first is worth holding apart because the package already carried the correction - a newer card
+    on returning values without top-level const - and the older card kept the advice anyway, so a
+    fix landed in one card does not reach the others that repeat what it fixed. Untested on how much
+    of the library rests on material predating its C++20 baseline; the currency question is
+    recorded as standing intent elsewhere.
 
     '
   confidence: repeated
   status: active
-  evidence_count: 2
+  evidence_count: 3
   evidence_events:
   - SE_EV_0064
   - SE_EV_0072
+  - SE_EV_0073
   evidence_origin:
   - runtime_self_audit
   likely_owners:
   - PAT_precede_nested_dependent_types_with_typename
   - PAT_factor_parameter_independent_code_from_templates
   - PAT_dont_add_a_default_constructor_a_class_cannot_honor
+  - PAT_make_interfaces_hard_to_misuse
   retrieval_cues:
   - such as
   - for example
@@ -1703,10 +1711,24 @@ entries:
     this compiler, and an address heuristic whose predicted misclassification inverted under this
     platform''s layout.
 
+    The thirteenth batch confirmed the shift rather than reversing it. Its only failing card, from
+    Effective C++, failed three times and every time on a language guarantee: wrapper types said to
+    stop a transposed call without the explicit constructors that actually do it, const return
+    values recommended where C++11 made them cost the move, and size() said to exist on every
+    standard container when the singly linked list has none. The six cards from Effective Modern
+    C++ in the same batch held every rule. Source age now predicts language-rule defects better
+    than the kind of claim does.
+
+    The fourteenth batch sharpened that from age to distance. Its coroutine cards come from a
+    source written against the Coroutines TS, and their one language-rule defect was exactly the
+    TS-to-standard delta: a range-based for co_await listed as a trigger, which C++20 never
+    adopted and this compiler refuses in C++20 and C++23. What predicts a broken language claim is
+    how far the source stands from the standard the card targets, whether older or pre-standard.
+
     '
   confidence: strong
   status: active
-  evidence_count: 12
+  evidence_count: 14
   evidence_events:
   - SE_EV_0061
   - SE_EV_0062
@@ -1720,6 +1742,8 @@ entries:
   - SE_EV_0070
   - SE_EV_0071
   - SE_EV_0072
+  - SE_EV_0073
+  - SE_EV_0074
   evidence_origin:
   - runtime_self_audit
   retrieval_cues:

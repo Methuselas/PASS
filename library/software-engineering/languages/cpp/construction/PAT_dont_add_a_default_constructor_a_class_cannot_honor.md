@@ -41,7 +41,7 @@ variants: []
 
 ## Do
 - Price the restriction concretely before trading it away. Arrays of the class cannot be created without supplying arguments for each element; templates that internally build an array of their parameter type will reject it; and a virtual base without one obliges every class derived from it, however indirectly, to know and supply its constructor arguments.
-- Supply the arguments in the initializer when a non-heap array is what you need. For a heap array, either hold an array of pointers, or allocate the raw memory and construct the objects in place — accepting that in-place construction obliges you to invoke each destructor by hand and release the raw memory separately afterward.
+- Supply the arguments in the initializer, one per element. A heap array accepts that initializer exactly as a non-heap one does, and can take its length from it, but only while the initializer reaches every element: a heap array whose length is decided at run time needs the argument-free constructor for whatever the initializer might not cover, and is rejected without one. For that case, either hold an array of pointers, or allocate the raw memory and construct the objects in place — accepting that in-place construction obliges you to invoke each destructor by hand and release the raw memory separately afterward.
 - Let the restriction steer you toward the facility that does not impose it, since careful template design usually removes the requirement entirely and the standard growable array imposes no argument-free constructor on its element type.
 
 ## Don't

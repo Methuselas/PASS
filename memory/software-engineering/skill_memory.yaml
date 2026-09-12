@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 26
+memory_version: 28
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -1557,26 +1557,39 @@ entries:
       sentence records the similarity and drops the mechanism.
 
       '
-  boundary: 'Two cards in two topics, both found by building the second case rather than the
-    first, on one compiler. Untested on whether equivalence sentences elsewhere in the library
-    fail at a similar rate; the sweep has not been looking for them specifically, and both were
-    found incidentally while probing something else.
+  boundary: 'Three cards in three topics, all found by building the second case rather than the
+    first, on one compiler. The third ran in the opposite direction and is worth holding beside the
+    others: a card ruled two cases out together - a struct with an empty base and one with a base
+    declaring data, both forbidden from crossing a C boundary - where measurement showed the empty
+    base leaves size, offsets and standard layout untouched. So the shape is not only "two cases
+    said to behave alike", it is any sentence that puts two cases under one verdict without naming
+    what makes them the same. A fourth was a verdict written about one case and read as covering a
+    family: a private class allocation function said to stop heap objects, when it stops only the
+    ordinary single-object new-expression and a global-scope new, the array form, and
+    allocator-based factories and containers all compiled past it. Untested on whether such
+    sentences elsewhere in the library fail at a similar rate; all four were found incidentally
+    while probing something else, the last by deliberately trying every other route to the heap.
 
     '
-  confidence: provisional
+  confidence: repeated
   status: active
-  evidence_count: 2
+  evidence_count: 4
   evidence_events:
   - SE_EV_0062
   - SE_EV_0063
+  - SE_EV_0071
+  - SE_EV_0072
   evidence_origin:
   - runtime_self_audit
   likely_owners:
   - PAT_avoid_overloading_on_universal_references
   - PAT_manage_resources_with_raii_objects
+  - PAT_cross_a_c_boundary_with_only_what_c_can_express
+  - PAT_restrict_a_special_member_to_control_where_objects_can_exist
   retrieval_cues:
   - the same way
   - likewise
+  - and neither will
   - both compile
   - the same is true of
   - in a derived class
@@ -1614,21 +1627,28 @@ entries:
       '
   boundary: 'Two cards in one topic, both found by compiling the card''s own example rather
     than by reading it, on one compiler at one standard setting. A third card in the same topic
-    carried a platform figure correctly scoped and needed nothing. Untested on how much of the
-    library rests on examples predating its C++20 baseline; the currency question is recorded
-    as standing intent elsewhere and this is the first measured evidence bearing on it.
+    carried a platform figure correctly scoped and needed nothing. A third instance came from a
+    different topic and a different source, and it was in the rule rather than the example: a card
+    telling the reader that only a non-heap array can take per-element constructor arguments, so a
+    heap array needs an array of pointers or in-place construction. Since C++11 a heap array takes
+    the same initializer and can take its length from it; only a run-time length still needs the
+    workarounds. So the overtaken sentence is not always the demonstration. Untested on how much of
+    the library rests on material predating its C++20 baseline; the currency question is recorded
+    as standing intent elsewhere.
 
     '
-  confidence: provisional
+  confidence: repeated
   status: active
-  evidence_count: 1
+  evidence_count: 2
   evidence_events:
   - SE_EV_0064
+  - SE_EV_0072
   evidence_origin:
   - runtime_self_audit
   likely_owners:
   - PAT_precede_nested_dependent_types_with_typename
   - PAT_factor_parameter_independent_code_from_templates
+  - PAT_dont_add_a_default_constructor_a_class_cannot_honor
   retrieval_cues:
   - such as
   - for example
@@ -1672,10 +1692,21 @@ entries:
     wrong. It also cannot speak for cards whose content is design judgment, which the probe
     cannot reach at all - those were counted as untested rather than as passing.
 
+    The "without exception" no longer holds. In the twelfth batch two of five defects were claims
+    about what the language requires, both from cards drawn from More Effective C++: a heap array
+    said to be unable to take per-element arguments, which C++11 changed, and a private class
+    allocation function said to stop heap objects, which the rules never allowed it to. So
+    language-rule claims are still the most reliable kind, but the older the source, the less that
+    reliability can be assumed - a card from a pre-C++11 source deserves a probe of its rules as
+    well as of its illustrations. The same batch added one each to the compiler-reports and
+    platform-measures kinds: a private defaulted constructor bypassed through aggregate braces on
+    this compiler, and an address heuristic whose predicted misclassification inverted under this
+    platform''s layout.
+
     '
   confidence: strong
   status: active
-  evidence_count: 10
+  evidence_count: 12
   evidence_events:
   - SE_EV_0061
   - SE_EV_0062
@@ -1687,6 +1718,8 @@ entries:
   - SE_EV_0068
   - SE_EV_0069
   - SE_EV_0070
+  - SE_EV_0071
+  - SE_EV_0072
   evidence_origin:
   - runtime_self_audit
   retrieval_cues:

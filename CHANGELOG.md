@@ -6,6 +6,39 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.9 - 2026-09-12
+
+### Changed
+
+- Repaired three more C++ cards against compiled evidence, continuing the topic-by-topic
+  sweep of the `software-engineering` package. Fifteen further objects were probed: the
+  last nine patterns in the one- and two-pattern topics, and the whole of `casting` and
+  `construction`. Every C++ topic holding fewer than three patterns is now swept.
+- `PAT_cross_a_c_boundary_with_only_what_c_can_express` no longer rules out every base
+  class on a struct that crosses into C. Measured, an empty base left the size, member
+  offsets and standard-layout answer identical to the plain struct; a base declaring data
+  of its own is the case that breaks layout, and the checklist now asks about that.
+- `PAT_dont_add_a_default_constructor_a_class_cannot_honor` no longer says a heap array
+  cannot take per-element constructor arguments. Since C++11 it takes the same initializer
+  as a non-heap array and can take its length from it; only a heap array whose length is
+  decided at run time still needs an array of pointers or in-place construction.
+- `PAT_restrict_a_special_member_to_control_where_objects_can_exist` now says a
+  non-public allocation function discourages heap objects rather than preventing them:
+  the array form, a global-scope new, and allocator-based factories and containers all
+  compiled past it. It also advises giving a restricted constructor a body, because one
+  compiler let a private defaulted constructor through aggregate braces; states the
+  address-comparison heuristic's failure as layout-dependent, since on a 64-bit target it
+  misclassified heap objects rather than statics; and notes that a constant-initialized,
+  trivially destructible local static costs no first-use check.
+
+### Added
+
+- Updated `software-engineering` memory: the observation that claims about what the
+  language requires had held without exception no longer stands. Two of the latest
+  batch's defects were language-rule claims, both from cards drawn from a pre-C++11
+  source, so a card from such a source deserves a probe of its rules as well as of its
+  illustrations.
+
 ## 1.0.0-beta.8 - 2026-09-12
 
 ### Changed

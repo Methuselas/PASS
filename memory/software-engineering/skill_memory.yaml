@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 22
+memory_version: 26
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -1327,12 +1327,19 @@ entries:
     card''s case was a hand-written one reported a failure that belonged to the probe, and
     fixing it exposed that the card had claimed two cases behave alike when the second is
     strictly worse. So an adjacent fixture can hide a defect as easily as invent one, and
-    neither outcome is visible until the probe is aimed at the sentence.
+    neither outcome is visible until the probe is aimed at the sentence. A seventh topic of
+    eight cards then needed no repair at all, which bounds the method''s yield honestly: it is
+    not a procedure that finds something everywhere it looks. That batch also produced the
+    sharpest fixture fault so far - a probe asked a type trait whether the move operations had
+    been generated, got true from the trait because assignment from an rvalue resolves to the
+    still-generated copy assignment, and had to be rewritten to count operations instead. The
+    card under test warns about exactly that inference, twice, so the probe reproduced the
+    error the card exists to prevent while trying to verify it.
 
     '
   confidence: repeated
   status: active
-  evidence_count: 9
+  evidence_count: 12
   evidence_events:
   - SE_EV_0058
   - SE_EV_0059
@@ -1343,6 +1350,9 @@ entries:
   - SE_EV_0064
   - SE_EV_0065
   - SE_EV_0066
+  - SE_EV_0067
+  - SE_EV_0068
+  - SE_EV_0069
   evidence_origin:
   - runtime_self_audit
   retrieval_cues:
@@ -1629,4 +1639,106 @@ entries:
   - modernization
   - is this example still right
   - stale example
+  last_verified: '2026-09-12'
+- id: SE_MEM_025
+  scope_type: topic
+  scope_id: which_kinds_of_card_claim_survive_testing
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: 'Eight topics and eighty-five objects into testing this library against a compiler,
+    the defects sort by what kind of thing the sentence asserts, and the sort is clean enough to
+    aim the next batch with. Claims about what the language does have held without exception:
+    every special-member generation rule, every name-hiding and access rule, every overload and
+    conversion rule, the assignment and destruction semantics of hierarchies, container
+    invalidation and equivalence, and the linkage rules. The defects have all been in three other
+    kinds. A claim about what a compiler will report, where the answer differs by form and by
+    implementation. A claim about what a platform measures, where a ratio from one machine
+    inverted on another. And a claim that a second case behaves like the first, where the second
+    case turned out broader, narrower, or ill-formed. Three whole topics of language-rule cards
+    needed no repair at all. The sharpest instance came in a batch of six small-topic cards where
+    three needed repair and all three failed identically: an illustration of what a compiler does,
+    written as an outcome rather than as an entitlement. A folded comparison that was not folded, a
+    null test said to be removed that was kept in both orderings, and an error message said to cite
+    a bare literal that named only the argument''s type. In each case the rule survived and only its
+    evidence needed correcting, which is the tell for this whole class - the defect is in the
+    sentence offered as proof, not in the claim being proved.
+
+    '
+  boundary: 'Eight topics of the C++ module on one compiler and one target; the core package and
+    five C++ topics are unswept, and no Drill or Action Pattern has been exercised. The
+    generalization is about this library''s cards and this method, not about C++ guidance at
+    large. One further kind has now appeared once and is worth watching: a card recommending a tool
+    the reader''s toolchain may not have, where the advice is sound and unavailable rather than
+    wrong. It also cannot speak for cards whose content is design judgment, which the probe
+    cannot reach at all - those were counted as untested rather than as passing.
+
+    '
+  confidence: strong
+  status: active
+  evidence_count: 10
+  evidence_events:
+  - SE_EV_0061
+  - SE_EV_0062
+  - SE_EV_0063
+  - SE_EV_0064
+  - SE_EV_0065
+  - SE_EV_0066
+  - SE_EV_0067
+  - SE_EV_0068
+  - SE_EV_0069
+  - SE_EV_0070
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - what should I test first
+  - which cards are risky
+  - where are the defects
+  - the compiler will warn
+  - measured
+  - the same is true of
+  - planning a sweep
+  - language rule
+  last_verified: '2026-09-12'
+- id: SE_MEM_026
+  scope_type: topic
+  scope_id: probing_a_concept_with_a_near_neighbour
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: 'Several probe failures in this sweep came from asking a question about the thing
+    next to the claim rather than the claim, and the near neighbours are specific enough to name.
+    A type trait answers what compiles, not what runs: is_move_assignable reports true for a class
+    with no move assignment, because assignment from an rvalue resolves to the copy. The noexcept
+    operator answers about a whole expression including argument conversions, not about the
+    function: the same call spelled with a string literal reports potentially-throwing while the
+    function is declared noexcept, because building the temporary can throw. And a measurement of
+    a mechanism must hold the data access equal, or it reports the memory layout instead. In each
+    case the neighbour is the thing that is easy to write and looks like the question. Before
+    trusting a probe''s failure, say out loud which of the two questions it asked.
+
+    '
+  boundary: 'Three instances across nine topics, all on one compiler, all found by the probe
+    reporting a failure that turned out to be its own. Untested on whether the same substitutions
+    happen in the other direction - a probe that passes while asking the neighbouring question and
+    so misses a real defect - though that failure mode would be invisible by construction, which
+    is itself a reason to name the neighbours explicitly.
+
+    '
+  confidence: repeated
+  status: active
+  evidence_count: 3
+  evidence_events:
+  - SE_EV_0066
+  - SE_EV_0067
+  - SE_EV_0069
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - is_move_assignable
+  - type trait
+  - noexcept operator
+  - does this compile
+  - writing a probe
+  - the probe failed
+  - measuring a mechanism
+  - what question is this asking
   last_verified: '2026-09-12'

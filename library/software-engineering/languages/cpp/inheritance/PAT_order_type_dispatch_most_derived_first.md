@@ -48,7 +48,7 @@ variants: []
 - Put the catch-all last where one exists at all, and treat it as the answer for cases nobody anticipated rather than the common path.
 
 ## Don't
-- Don't rely on the compiler to warn you. Ordering a base before its derived class is a legal arrangement in which one clause is unreachable, and unreachability across types is not something a compiler is obliged to notice.
+- Don't rely on the compiler to warn you, and know that the exposure is not the same across the three forms. The one the language itself knows about is diagnosed in practice: a current compiler reports an exception handler shadowed by an earlier base handler and names both lines. Every form you write yourself - a registered table, a chain of type tests - gets nothing at any warning level, because the arrangement is legal, the unreachability is across types rather than across statements, and no compiler is obliged to notice it. So the hand-written forms are where this ordering has to be established and maintained deliberately, and they are the ones without a safety net.
 - Don't test the arrangement only with the specific types. A scan ordered wrongly still produces an answer for every input, so a test that asserts something happened passes; the assertion has to name which candidate ran.
 - Don't add a new candidate to the end of an existing list by habit. Appending a derived type after its base is exactly the arrangement that makes it dead, and appending is the natural way to add one.
 - Don't reach for a scan when a virtual call would do. Dispatching on one type is the language's job, and a hand-written scan over candidates is worth writing only where a virtual function genuinely cannot express the selection.
@@ -57,6 +57,7 @@ variants: []
 - For every pair of candidates in a base-derived relation, does the derived one come first?
 - Is the ordering re-established when a candidate is added, or only when the list was first written?
 - Does a test exist that fails when two candidates are swapped?
+- If this is a hand-written scan rather than exception handlers, is anything at all checking the order?
 - Would a virtual function have selected this without a scan at all?
 
 ## Notes

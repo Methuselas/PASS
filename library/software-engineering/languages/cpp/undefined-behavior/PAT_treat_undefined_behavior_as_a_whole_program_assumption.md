@@ -44,22 +44,22 @@ variants: []
 ## Do
 - Keep the three categories apart, because the whole error lives in conflating them. Implementation-defined behaviour must be documented by the implementation. Unspecified behaviour has a range of permitted outcomes that need not be documented. Undefined behaviour places no requirement on the program at all — not a choice among outcomes, no requirement.
 - Follow the reasoning the optimizer actually performs, forward and backward. It assumes the program is well defined, deduces what must therefore be true, and optimizes on that. If a statement would be undefined for large inputs, then large inputs do not occur — so a preceding branch that only fires for large inputs is dead code and its output disappears. If a statement is undefined for every input, it is never executed, so its function is never called, and the conditions leading there are false.
-- Expect the deduction to run past the offending line in both directions. A function that dereferences a pointer and then tests it for null has the test removed — and so does one that tests first and dereferences afterwards, because either the pointer was non-null and the test was redundant, or it was null and nothing is required of the program.
+- Expect the deduction to be permitted past the offending line in both directions. A function that dereferences a pointer and then tests it for null may have the test removed — and so may one that tests first and dereferences afterwards, because either the pointer was non-null and the test was redundant, or it was null and nothing is required of the program. Whether a given compiler takes either deduction today is a separate question from whether it may: one current mainstream compiler at its usual optimization level kept both tests and even reordered the first function so the dereference followed the test. Which is not reassurance - it is the reason the next Don't says what it says.
 - Take real divergence between compilers as the evidence it is. A program with an infinite loop hung under one compiler and, under another at the same optimization level, printed the text after the loop and exited cleanly. Both are correct.
-- Run the sanitizer in your regular testing. Compilers ship an undefined-behaviour sanitizer that reports these situations at run time with the file, line, and the actual values involved. It costs run time, which is why it is a testing tool rather than a build setting.
+- Run a sanitizer in your regular testing where your toolchain has one. Several compilers ship an undefined-behaviour sanitizer that reports these situations at run time with the file, line, and the actual values involved, and it costs run time, which is why it is a testing tool rather than a build setting. Check rather than assume: one mainstream compiler rejects the flag outright and offers an address sanitizer only, so a project built solely with it needs a second toolchain in testing to get this coverage at all.
 - Keep the danger the right size. The compiler emits machine instructions; it cannot make your program do anything you could not have written in assembly yourself. The value of the folklore about arbitrary catastrophe is that it stops people reasoning about outcomes — the accurate statement is that the code you get is unrelated to the code you expected.
 
 ## Don't
 - Don't argue about which of two plausible results an undefined expression produces. Choosing between them is what the *unspecified* category means; treating undefined behaviour that way is the mistake this card exists to prevent.
 - Don't conclude a construct is safe because it currently works. The next compiler version reasons more aggressively than this one, and these deductions have grown steadily more thorough with each release.
 - Don't expect the damage to be confined to the line that caused it. The standard withdraws its requirements from the entire program, and the optimizer's deductions propagate outward from the assumption.
-- Don't assume the hardware's behaviour is what you will get. Signed overflow on a processor that wraps silently still permits the compiler to emit code containing no addition at all — a function returning whether `i + 1 > i` compiles to loading the constant true.
+- Don't assume the hardware's behaviour is what you will get. Signed overflow on a processor that wraps silently still permits the compiler to emit code containing no addition at all, and a function returning whether `i + 1 > i` is entitled to become a load of the constant true. Compilers differ on whether they take it: one current mainstream compiler emits the increment and the comparison for exactly that function. The entitlement is what to plan against, because it is the part that does not vary.
 
 ## Checklist
 - Is the construct undefined, or merely implementation-defined or unspecified?
 - What would the compiler be entitled to conclude if it assumed this never executes?
 - Which code before and after this point could that conclusion eliminate?
-- Does this build pass under the undefined-behaviour sanitizer?
+- Does this build pass under an undefined-behaviour sanitizer, and does your toolchain have one?
 - Is any part of your reasoning of the form "the hardware will just do X"?
 
 ## Notes

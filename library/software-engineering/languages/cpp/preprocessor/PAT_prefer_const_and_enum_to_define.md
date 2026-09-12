@@ -43,7 +43,7 @@ variants: []
 - Use a scoped `enum class` when the values form a closed set with domain meaning; use a `constexpr` object when the value is simply a named constant.
 
 ## Don't
-- Don't leave a constant as a `#define` you might meet in a compiler error: the macro name vanishes before compilation, so the message cites the bare literal `1.653` and you waste time hunting its origin.
+- Don't leave a constant as a `#define` you might meet in a compiler error, a debugger, or a symbol table. The macro name is gone before compilation begins, so nothing downstream can show it to you, and what you get instead is whatever the implementation chooses to report - measured on one current compiler, the same failing call reported only the argument's type for both spellings, naming neither the literal nor the constant. The durable point is not the wording of any one diagnostic: it is that a `#define` leaves nothing for any tool to name, while a constant keeps a name that the language, the debugger, and the linker all still know.
 - Don't expect a macro to respect class scope or privacy — there is no such thing as a private `#define` constant.
 - Don't use the historical enum hack as general constant storage. Modern `constexpr` states the intent directly and preserves the intended type.
 

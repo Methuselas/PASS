@@ -6,6 +6,43 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.8 - 2026-09-12
+
+### Changed
+
+- Repaired four more C++ cards against compiled evidence, continuing the topic-by-topic
+  sweep of the `software-engineering` package. Twenty-five further objects were probed
+  across virtual-functions, copy-control, inheritance, exception-safety and three of the
+  smaller topics; two of those topics needed no repair at all.
+- `PAT_price_virtual_dispatch_against_the_real_alternative` no longer quotes the figures
+  its own Don't clause forbids, and no longer ranks a tag-and-switch below virtual
+  dispatch. Measured at three cases with data access held equal, the switch won by a
+  factor of two; the maintenance objection, which holds whichever way a measurement goes,
+  is now the stated reason to refuse it anyway.
+- `PAT_order_type_dispatch_most_derived_first` now distinguishes the form the language
+  knows about, where a current compiler does report a shadowed handler by name, from the
+  hand-written table and type-test chain, which get no diagnostic at any warning level and
+  are therefore where the ordering has to be maintained deliberately.
+- `PAT_treat_undefined_behavior_as_a_whole_program_assumption` now presents its optimizer
+  illustrations as entitlements rather than outcomes, because a current compiler at its
+  usual optimization level takes neither of them - which is the card's own reason for
+  saying that code working today is not evidence. Its sanitizer advice now says to check
+  whether the toolchain has one.
+- `PAT_choose_index_types_the_compiler_can_assume_do_not_wrap` keeps its codegen
+  explanation, which reproduced exactly, and drops the carried claim that the change made
+  a sort several times faster: measured, three index types came within three parts in a
+  thousand of each other.
+- `PAT_prefer_const_and_enum_to_define` no longer predicts what a compiler error will say.
+  The durable point is that a `#define` leaves nothing for a diagnostic, a debugger, or a
+  linker to name.
+
+### Added
+
+- Added `software-engineering` memory entries recording which kinds of card claim survive
+  testing: claims about what the language requires have held without exception across ten
+  topics, while every defect found has been a claim about what a compiler reports, what a
+  platform measures, that two cases behave alike, or that a tool is available.
+
 ## 1.0.0-beta.7 - 2026-09-12
 
 ### Changed

@@ -55,3 +55,5 @@ variants: []
 
 ## Notes
 This is the C++ realization of making code hard to misuse: the type system is your primary ally, so lean on it. The `Date` example turns a positional-argument trap into a compile error via wrapper types; constrained Month values stop out-of-range input; a factory returning a shared pointer with a bound deleter removes the whole class of release mistakes. Consistency matters as much as any single trick — inconsistency imposes mental friction no IDE removes.
+
+C++20's own calendar types take a different point on the same trade. `std::chrono::month` has an explicit constructor, so a raw integer cannot slip into a month parameter, but `std::chrono::month{13}` compiles and reports `ok() == false`. The standard chose explicit construction plus a validity query, which lets a value arriving from input be represented and then checked; an unconstructible invalid value is stronger at the call site and costs a factory for every legal value. Where a standard vocabulary type already models the domain, prefer it and check validity at the boundary where values enter.

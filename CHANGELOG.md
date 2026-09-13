@@ -6,6 +6,31 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.17 - 2026-09-13
+
+### Changed
+
+- Updated the last four C++ Drills - interface-design, inheritance, virtual-functions and
+  concurrency - against their compile-swept patterns, completing the currency update of all 17 C++
+  Drills.
+- `DRILL_redesign_interface_to_prevent_misuse` builds the wrapper types three ways, since only
+  `explicit` constructors reject both the raw and the braced transposed call, and compares the
+  design with C++20's `std::chrono::month`.
+- `DRILL_refactor_broken_is_a_to_composition` narrows to `Set` over `std::list` and adds forwarded
+  iterators, since a mutable one lets clients write a duplicate.
+- `DRILL_apply_the_nvi_idiom` moves the lock rule and the cost list out of its Instructions.
+- `DRILL_restructure_a_class_that_locks_every_member` runs the nested acquisition and the
+  per-object guard over static state, and accepts one `std::scoped_lock` over both mutexes.
+- `PAT_make_interfaces_hard_to_misuse` notes the standard calendar types' choice of explicit
+  construction plus a validity query.
+- Removed book item numbers from the Drills' Notes.
+
+### Fixed
+
+- `PAT_lock_at_the_public_boundary_and_nowhere_inside` no longer says a nested ordinary-mutex
+  acquisition deadlocks in practice: it is undefined behaviour, and one mainstream implementation
+  threw `std::system_error` in every build mode measured. The Drill's matching wording follows.
+
 ## 1.0.0-beta.16 - 2026-09-13
 
 ### Changed

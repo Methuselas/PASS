@@ -44,7 +44,7 @@ variants: []
 
 ## Pattern Rule
 **IF** you are making a class usable from several threads by locking its member functions
-**THEN** lock in the public functions only, leave every non-public function unlocked, and forbid public functions from calling other public functions — because a locking function that calls another locking function on the same object either locks redundantly or deadlocks outright
+**THEN** lock in the public functions only, leave every non-public function unlocked, and forbid public functions from calling other public functions — because a locking function that calls another locking function on the same object either locks redundantly or fails on the second acquisition
 **ELSE** where the object's whole state is one thing that already carries its own guarantee — a single atomic, or a container built for concurrent use — there is no interface to structure and the guarantee is already where it belongs.
 
 ## Do
@@ -57,8 +57,8 @@ variants: []
 - Package the lock-and-condition pairing once and derive from it. Every class that needs this needs the same three operations — take the lock for the duration of a public function, wait for a predicate, wake the waiters — and rebuilding them per class is how the variants drift apart.
 
 ## Don't
-- Don't lock every member function on principle. It is the obvious way to make a class thread-safe and it is wrong in both directions: with a recursive mutex the inner lock is redundant work on every nested call, and with an ordinary mutex it is undefined behaviour that in practice deadlocks.
-- Don't switch to a recursive mutex to make the naive version work. It converts a hang into wasted work and leaves the real defect in place, which is that the extent of the critical section is no longer visible at any single point in the code.
+- Don't lock every member function on principle. It is the obvious way to make a class thread-safe and it is wrong in both directions: with a recursive mutex the inner lock is redundant work on every nested call, and with an ordinary mutex it is undefined behaviour. Do not expect that to look like a hang: one mainstream implementation detected the second acquisition and threw `std::system_error` with `resource_deadlock_would_occur` in every build mode measured, and nothing obliges any implementation to do either.
+- Don't switch to a recursive mutex to make the naive version work. It converts a failure into wasted work and leaves the real defect in place, which is that the extent of the critical section is no longer visible at any single point in the code.
 - Don't let a public function call another public function on the same object, even when it currently does not lock. The moment someone adds a lock to the callee — which the rules above say they should — the caller deadlocks, and nothing about the call site suggests why.
 
 ## Checklist

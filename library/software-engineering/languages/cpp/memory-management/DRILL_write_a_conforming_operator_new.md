@@ -43,22 +43,26 @@ No special setup required.
 
 ## Instructions
 - Delegate the ordinary form to `::operator new` so the global `new_handler`, zero-size, and `std::bad_alloc` contract is preserved; instrument around the delegation rather than reimplementing it.
+- Install a new-handler that uninstalls itself after a few calls, make a request through the class's allocation function that cannot succeed, and record the handler calls and the exception.
 - Add and exercise the alignment-aware form for an over-aligned instance, verifying the returned address satisfies the requested alignment.
 - Forward any request whose size is not the class size to the global operator new, and exercise a wrong-sized request showing it reach the global version.
 - Provide matching unsized, sized, aligned, and sized-aligned delete forms required by the supported allocation paths, each delegating to its corresponding global form. Record which overloads the test toolchain actually selects without assuming every implementation chooses the same optional sized form.
+- Allocate an array of the class, record which allocation function served it, and state whether the class should declare the array forms.
 - Either make the pooled class `final` or exercise a larger derived allocation and demonstrate the wrong-size request is forwarded. If deletion occurs through a base pointer, make the destructor virtual; otherwise the program is undefined before allocator accounting can rescue it.
 
 ## Success Check
-- The ordinary form delegates to the global form, and the run demonstrates the intended allocation and failure path rather than duplicating the global handler loop.
+- The ordinary form delegates to the global form, and a request through it that cannot succeed is shown calling the installed new-handler and then throwing `std::bad_alloc`, rather than a handler loop being duplicated or its behavior assumed.
 - An over-aligned allocation is exercised and its address is checked against the requested alignment.
 - A wrong-sized request is exercised and shown reaching the global version. This path appears only under inheritance, which is exactly why it goes untested.
 - Matching deallocation overloads are present for every exercised allocation form, and instrumentation records which one the toolchain selects.
+- The array allocation is recorded reaching the global array operator new, never the class's scalar operator new, and the run says whether the class declares the array forms or leaves arrays deliberately unpooled, with the reason. A class that defines only the scalar forms passes every other bullet here while every array of it bypasses the policy.
 - Inheritance is either prohibited with `final` or tested with wrong-size forwarding and a virtual destructor for polymorphic deletion.
 
 ## Common Failures
 - Reimplementing the global new-handler loop unnecessarily and getting its progress or failure behavior wrong.
 - Omitting the alignment-aware form for an over-aligned type.
 - Forgetting that inheritance can call the base operator new with a derived object's larger size.
+- Customizing the scalar forms and forgetting that arrays of the class go to the global array operator new.
 
 ## Notes
-This drills the modern allocation overload family. Delegation preserves standard failure behavior; the class-specific work is the measured customization plus truthful handling of size, alignment, inheritance, and every deallocation path the supported expressions may select.
+This drills the modern allocation overload family. Delegation preserves standard failure behavior; the class-specific work is the measured customization plus truthful handling of size, alignment, inheritance, arrays, and every deallocation path the supported expressions may select.

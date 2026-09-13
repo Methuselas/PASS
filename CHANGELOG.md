@@ -6,6 +6,29 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.16 - 2026-09-13
+
+### Changed
+
+- Updated four more C++ Drills in memory-management, templates and traits against their
+  compile-swept patterns, with every claim the new text makes compiled first.
+- `DRILL_write_a_conforming_operator_new` runs the failure path through the class's allocation
+  function and adds arrays, which reach the global array operator new and bypass the class's
+  scalar forms.
+- `DRILL_pair_a_placement_new_with_placement_delete` builds a near-match placement delete, which
+  compiles, is never called, and draws the same warning as a missing one; adds the buffer placement
+  form to the hidden forms; and compiles the ordinary delete with the normal form removed.
+- `DRILL_fix_templatized_base_class_name_access` observes dispatch through each fix, requires a
+  conforming compiler mode, builds the missing-specialization timing both ways, and adds the
+  unqualified call that silently binds to a same-named namespace-scope function.
+- `DRILL_implement_traits_based_dispatch` adds a forward-only iterator and the `std::views::iota`
+  iterator, which classic tag dispatch steps one at a time and C++20 concept dispatch advances with
+  `+=`; requires the runtime-`if` failure to be compiled; and records the ambiguity with
+  `std::advance`.
+- `PAT_access_templatized_base_members_explicitly` warns that an unqualified call can compile by
+  binding to a same-named function outside the class.
+- Removed book item numbers from the Drills' Notes.
+
 ## 1.0.0-beta.15 - 2026-09-13
 
 ### Changed

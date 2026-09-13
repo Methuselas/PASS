@@ -42,22 +42,26 @@ Declaring a placement delete matching a placement new, and re-exposing the stand
 No special setup required.
 
 ## Instructions
-- Reproduce the leak: construct an object with the placement new and have its constructor throw; observe that no delete runs.
+- Reproduce the leak: construct an object with the placement new and have its constructor throw; observe that no delete runs, and record any warning the compiler gave.
 - Add a placement operator delete taking the same ostream parameter, and check that its parameters match the placement new's beyond the first.
+- Change that extra parameter so it differs from the placement new's by a qualifier, rebuild, run the exception path, and record the result and the warnings. Then restore the exact match.
 - Run the exception path again and show the matching delete executing.
-- Keep the normal operator delete for ordinary delete on the pointer, and exercise ordinary deletion separately.
-- Restore the ordinary and nothrow forms hidden by the class declaration, and include alignment-aware forms if the class may be over-aligned. Compile every supported form rather than treating a base-class `using` declaration as proof.
+- Keep the normal operator delete for ordinary delete on the pointer, and exercise ordinary deletion separately. Then remove the normal delete, compile the ordinary deletion again, and record the result.
+- Before restoring anything, compile an ordinary new, a nothrow new, and a buffer placement new of the class, and record each diagnostic.
+- Restore the ordinary, nothrow, and buffer placement forms hidden by the class declaration, and include alignment-aware forms if the class may be over-aligned. Compile every supported form rather than treating a base-class `using` declaration as proof.
 
 ## Success Check
 - The leak is reproduced by making the constructor throw, with the absent release observed rather than reasoned about.
-- The placement delete's parameters are checked to match the placement new's beyond the first. A near-match is silently never called and reproduces the original leak exactly, with code that reads as correct.
-- The exception path is run again after the addition and the matching delete is shown to execute.
-- Ordinary deletion is exercised separately, because the placement pair and the normal path are different routes and repairing one routinely conceals the other.
-- The supported forms hidden by the class's own declaration are restored and each is compiled, including alignment-aware allocation when applicable.
+- The near-match is built and run: a placement delete differing only by a qualifier compiles, is never called, and leaks exactly as the missing one did, and any warning the build gives is the same one the missing delete drew. A rebuild that looks clean after a delete was added proves nothing about the pairing.
+- The exception path is run again after the exact match is restored, and the matching delete is shown to execute.
+- Ordinary deletion is exercised separately, and with the normal delete removed it fails to compile at the delete expression: a class that declares only a placement delete hides the global one. The placement pair and the normal path are different routes, and each needs its own function.
+- Each hidden form is compiled before the repair with its diagnostic recorded — the ordinary, nothrow, and buffer placement forms are all refused — and compiled again after it is restored, including alignment-aware allocation when applicable. A diagnostic need not mention hiding at all, which is why the forms are compiled rather than reasoned about.
 
 ## Common Failures
 - Declaring a placement new without its matching placement delete.
 - Forgetting that the class operator new hides the normal and nothrow forms.
+- Restoring the nothrow form and forgetting the buffer placement form, which the class declaration hides too.
+- Accepting a near-match as the pairing because the rebuild succeeds.
 
 ## Notes
-This drills Item 52: the runtime undoes a failed placement new only via the placement delete with matching extra parameters, and any class operator new hides the standard forms until you bring them back.
+The runtime undoes a failed placement new only through the placement delete whose extra parameters match exactly, and any class operator new hides the ordinary, nothrow, and buffer placement forms until you bring them back.

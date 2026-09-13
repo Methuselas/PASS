@@ -41,10 +41,12 @@ variants: []
 
 ## Don't
 - Don't call the inherited name unqualified; the compiler refuses to search the templatized base, because a specialization of that base (like one for CompanyZ) might not offer the name at all.
+- Don't read a clean build of an unqualified call as proof it reaches the base. When a function of the same name is visible outside the class — a namespace-scope `sendClear`, say — the call binds to that function where the template is defined, compiles without complaint, and silently calls it instead of the inherited member.
 - Don't use explicit base-class qualification when the function is virtual — qualifying turns off virtual dispatch; prefer this-> or a using declaration.
 
 ## Checklist
 - Does a derived class template call a base-class-template name unqualified?
+- Could an unqualified call that compiles have bound to a same-named function outside the class?
 - Have I enabled the lookup with this->, a using declaration, or base qualification?
 - If the inherited function is virtual, did I avoid explicit qualification that would disable dispatch?
 

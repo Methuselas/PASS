@@ -6,6 +6,31 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.13 - 2026-09-13
+
+### Changed
+
+- Updated five C++ Drills in copy-control, resource-management and exception-safety against
+  their compile-swept patterns, with every claim the new text makes compiled first.
+- `DRILL_make_copy_assignment_self_and_exception_safe` no longer asks the runner to price an
+  extra copy in copy-and-swap: counted, copy-first and copy-and-swap each make one allocation
+  and one copy, and only in-place assignment saves the allocation. It now requires an
+  instrumented build, explains the fixed layout that keeps a raw owner, and ends with the
+  `unique_ptr`-member rewrite.
+- `DRILL_complete_a_derived_class_copying_functions` measures moves: hand-written copying
+  functions turn `std::move` into copies, and removing them restores complete copies and moves.
+- `DRILL_choose_copying_behavior_for_an_raii_class` no longer allows defaulted moves on a
+  raw-handle guard, which unlock twice; it adds a move-assignment count and the scope-pinned
+  option.
+- `DRILL_refactor_manual_cleanup_to_raii` names `std::unique_ptr` and moves the handover into
+  the factory.
+- `DRILL_make_a_function_exception_safe` records the stream position after a failed call, so the
+  consumed input is observed rather than asserted, and checks the committing swap is nothrow.
+- `PAT_choose_raii_copying_behavior_deliberately` and `AP_write_copy_control_for_a_resource_owning_class`
+  add the fourth ownership option, an owner neither copyable nor movable, which `std::lock_guard`
+  and `std::scoped_lock` use.
+- Removed book item numbers from the five Drills' Notes.
+
 ## 1.0.0-beta.12 - 2026-09-12
 
 ### Changed

@@ -39,9 +39,10 @@ variants: []
 
 ## Pattern Rule
 **IF** you write your own resource-managing (RAII) class rather than using a ready-made smart pointer
-**THEN** choose explicitly whether the owner is move-only, shares ownership, or performs a deep copy, because compiler-generated memberwise copying usually mishandles the underlying resource.
+**THEN** choose explicitly whether the owner is pinned to its scope, move-only, shares ownership, or performs a deep copy, because compiler-generated memberwise copying usually mishandles the underlying resource.
 
 ## Do
+- Pin the owner to its scope when the release belongs exactly where the acquisition happened: delete the copy operations and declare no move operations, so the object can be neither copied nor moved. `std::lock_guard` and `std::scoped_lock` are built this way. Since C++17 a factory can still return one as a prvalue; only a named object is fixed where it was declared.
 - Make the class move-only when exclusive ownership can be transferred: declare copy operations `= delete` and implement or default move operations that leave the source harmless.
 - Reference-count the resource when it should live until the last holder is gone: hold it in a shared pointer, supplying a custom deleter (such as an unlock function) so the count reaching zero triggers release rather than deletion.
 - Deep-copy the resource when callers genuinely need independent copies.
@@ -51,10 +52,11 @@ variants: []
 - Don't encode ownership transfer as a copy operation. In modern C++, transfer is move construction or move assignment; a copy must preserve its source.
 
 ## Checklist
-- Have I chosen move-only ownership, shared ownership, or deep-copy value semantics for this RAII class?
+- Have I chosen a scope-pinned owner, move-only ownership, shared ownership, or deep-copy value semantics for this RAII class?
 - Does the chosen behavior match how the underlying resource must be shared or duplicated?
+- If pinned, is the owner neither copyable nor movable, and does no caller need to hand a named one on?
 - If reference-counting, does the deleter release the resource rather than delete it?
 - If move-only, is copying rejected and is the moved-from object safe to destroy?
 
 ## Notes
-Every RAII author faces the question the `Lock`/`Mutex` example poses: what should another owner mean? The modern answers are move-only exclusive ownership, reference-counted shared ownership, and a true deep copy. Old C++ encoded transfer as `auto_ptr` copy; modern C++ gives transfer its own operation, move, so copying never surprises the source by emptying it. The ownership semantics of the resource dictate the special members of the class.
+Every RAII author faces the question the `Lock`/`Mutex` example poses: what should another owner mean? The modern answers are an owner pinned to its scope, move-only exclusive ownership, reference-counted shared ownership, and a true deep copy. Pinning is the simplest and suits a guard whose whole job is one scope; move-only earns its extra state only when the owner has to travel. Old C++ encoded transfer as `auto_ptr` copy; modern C++ gives transfer its own operation, move, so copying never surprises the source by emptying it. The ownership semantics of the resource dictate the special members of the class.

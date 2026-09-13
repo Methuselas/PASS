@@ -63,7 +63,7 @@ def run_tool(*args: object, memory: Path | None = None) -> subprocess.CompletedP
     command = [sys.executable, str(TOOL), *map(str, args)]
     if memory is not None:
         command += ["--memory", str(memory)]
-    return subprocess.run(command, capture_output=True, text=True, cwd=ROOT)
+    return subprocess.run(command, capture_output=True, text=True, encoding="utf-8", cwd=ROOT)
 
 
 class MemoryStoreFixture(unittest.TestCase):
@@ -497,7 +497,7 @@ class Portability(unittest.TestCase):
         shutil.copytree(LIBRARY, tmp / "library")
         result = subprocess.run(
             [sys.executable, str(ROOT / "PASS/tools/validate.py"), "--library", str(tmp / "library")],
-            capture_output=True, text=True, cwd=ROOT,
+            capture_output=True, text=True, encoding="utf-8", cwd=ROOT,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertFalse((tmp / "memory").exists())

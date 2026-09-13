@@ -64,14 +64,14 @@ def agent_rule_leads(filename: str, heading: str) -> set[str]:
 def run(*args: object) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [sys.executable, str(BUILDER), *map(str, args)],
-        text=True, capture_output=True, cwd=ROOT,
+        text=True, encoding="utf-8", capture_output=True, cwd=ROOT,
     )
 
 
 def validate(*args: object) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [sys.executable, str(VALIDATOR), *map(str, args)],
-        text=True, capture_output=True, cwd=ROOT,
+        text=True, encoding="utf-8", capture_output=True, cwd=ROOT,
     )
 
 
@@ -187,7 +187,7 @@ class SourceAndStateIndependenceTests(unittest.TestCase):
                 self.assertFalse((root / name).exists(), f"{name} leaked into a clean checkout")
             result = subprocess.run(
                 [sys.executable, str(root / "PASS/tools/validate.py"), "--library", str(root / "library")],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("PASS:", result.stdout)
@@ -204,7 +204,7 @@ class SourceAndStateIndependenceTests(unittest.TestCase):
                     str(root / "recipes/SkillForge_Software_Engineering.yaml"), str(out),
                     "--library", str(root / "library"),
                 ],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             manifest = json.loads(
@@ -225,7 +225,7 @@ class SourceAndStateIndependenceTests(unittest.TestCase):
             root = Path(tmp)
             after = subprocess.run(
                 [sys.executable, str(root / "PASS/tools/validate.py"), "--library", str(root / "library")],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
         self.assertEqual(before.returncode, 0, before.stdout)
         self.assertEqual(before.stdout.strip(), after.stdout.strip())
@@ -529,7 +529,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
                     "--memory",
                     str(root / "memory"),
                 ],
-                text=True,
+                text=True, encoding="utf-8",
                 capture_output=True,
                 cwd=root,
             )
@@ -562,7 +562,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
             self.assertEqual(
                 subprocess.run(
                     [sys.executable, str(root / "PASS/tools/build_release.py"), "check", str(out)],
-                    text=True,
+                    text=True, encoding="utf-8",
                     capture_output=True,
                     cwd=root,
                 ).returncode,
@@ -570,7 +570,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
             )
             authority = subprocess.run(
                 [sys.executable, str(out / "scripts/skillforge_runtime.py"), "authority"],
-                text=True,
+                text=True, encoding="utf-8",
                 capture_output=True,
                 cwd=out,
             )
@@ -583,7 +583,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
             )
             broken = subprocess.run(
                 [sys.executable, str(root / "PASS/tools/build_release.py"), "check", str(out)],
-                text=True,
+                text=True, encoding="utf-8",
                 capture_output=True,
                 cwd=root,
             )
@@ -625,7 +625,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
             )
             result = subprocess.run(
                 [sys.executable, str(RUNTIME), "authority", "--manifest", str(fallback), "--manifest", str(owner)],
-                text=True,
+                text=True, encoding="utf-8",
                 capture_output=True,
                 cwd=ROOT,
             )
@@ -636,7 +636,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
             write_authority_manifest(owner, "writing", owned_domains=["writing"])
             result = subprocess.run(
                 [sys.executable, str(RUNTIME), "authority", "--manifest", str(fallback), "--manifest", str(owner)],
-                text=True,
+                text=True, encoding="utf-8",
                 capture_output=True,
                 cwd=ROOT,
             )
@@ -659,12 +659,12 @@ class AuxiliaryReleaseTests(unittest.TestCase):
                 "--manifest",
                 str(second),
             ]
-            same = subprocess.run(command, text=True, capture_output=True, cwd=ROOT)
+            same = subprocess.run(command, text=True, encoding="utf-8", capture_output=True, cwd=ROOT)
             self.assertEqual(same.returncode, 0, same.stderr)
             self.assertEqual(len(json.loads(same.stdout)["decisions"]), 2)
 
             write_authority_manifest(second, "worldbuilding", fallback_digest="b" * 64)
-            different = subprocess.run(command, text=True, capture_output=True, cwd=ROOT)
+            different = subprocess.run(command, text=True, encoding="utf-8", capture_output=True, cwd=ROOT)
             self.assertNotEqual(different.returncode, 0)
             self.assertIn("conflicting auxiliary fallback", different.stderr)
 
@@ -677,7 +677,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
             write_authority_manifest(second, "writing-two", owned_domains=["writing"])
             result = subprocess.run(
                 [sys.executable, str(RUNTIME), "authority", "--manifest", str(first), "--manifest", str(second)],
-                text=True,
+                text=True, encoding="utf-8",
                 capture_output=True,
                 cwd=ROOT,
             )
@@ -710,7 +710,7 @@ class ValidatorScopeTests(unittest.TestCase):
             )
             result = subprocess.run(
                 [sys.executable, str(root / "PASS/tools/validate.py"), "--library", str(root / "library")],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("rule 26", result.stdout)
@@ -734,7 +734,7 @@ class ValidatorScopeTests(unittest.TestCase):
             )
             result = subprocess.run(
                 [sys.executable, str(root / "PASS/tools/validate.py"), "--library", str(root / "library")],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("rule 26", result.stdout)
@@ -759,7 +759,7 @@ class ValidatorScopeTests(unittest.TestCase):
             manifest.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
             result = subprocess.run(
                 [sys.executable, str(root / "PASS/tools/validate.py"), "--library", str(root / "library")],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn(f"module {module}: a language module must require {core}", result.stdout)
@@ -776,7 +776,7 @@ class ValidatorScopeTests(unittest.TestCase):
             manifest.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
             result = subprocess.run(
                 [sys.executable, str(root / "PASS/tools/validate.py"), "--library", str(root / "library")],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn(
@@ -802,7 +802,7 @@ class ValidatorScopeTests(unittest.TestCase):
             result = subprocess.run(
                 [sys.executable, str(root / "PASS/tools/validate.py"),
                  "--relations", "--library", str(root / "library")],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn(f"pattern --supports--> drill {drill} is not a legal pairing", result.stdout)
@@ -825,7 +825,7 @@ class ValidatorScopeTests(unittest.TestCase):
         # any agent that follows a skill's documented load order.
         result = subprocess.run(
             [sys.executable, str(ROOT / "PASS/tools/build_index.py"), "--check"],
-            text=True, capture_output=True, cwd=ROOT,
+            text=True, encoding="utf-8", capture_output=True, cwd=ROOT,
         )
         self.assertEqual(result.returncode, 0, result.stdout)
 
@@ -1001,7 +1001,7 @@ class ReleaseMemoryTests(unittest.TestCase):
                     str(root / "recipes/SkillForge_Art.yaml"), str(out),
                     "--library", str(root / "library"),
                 ],
-                text=True, capture_output=True, cwd=root,
+                text=True, encoding="utf-8", capture_output=True, cwd=root,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             manifest = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
@@ -1031,7 +1031,7 @@ class ReleaseMemoryTests(unittest.TestCase):
                     sys.executable, str(ROOT / "PASS/tools/memory.py"), "validate",
                     "--memory", str(out / "memory"),
                 ],
-                text=True, capture_output=True, cwd=ROOT,
+                text=True, encoding="utf-8", capture_output=True, cwd=ROOT,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 

@@ -442,11 +442,7 @@ def stage_auxiliary_groups(
 
 def build_release_indexes(library: Path) -> None:
     script = Path(__file__).resolve().parent / "build_index.py"
-    result = subprocess.run(
-        [sys.executable, str(script), "--library", str(library)],
-        text=True,
-        capture_output=True,
-    )
+    result = run_python(script, "--library", str(library))
     if result.returncode:
         detail = (result.stdout + "\n" + result.stderr).strip()
         raise ValueError(f"release index generation failed:\n{detail}")
@@ -511,8 +507,23 @@ def legal_release_problems(path: Path) -> list[str]:
     ]
 
 
+def run_python(script: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    """Run a PASS script and capture its output as UTF-8 text.
+
+    Card text reaches stdout verbatim and is UTF-8, so both ends of the pipe are
+    pinned: left to the platform, a Windows parent decodes with its locale
+    codepage while the child may already write UTF-8.
+    """
+    return subprocess.run(
+        [sys.executable, str(script), *args],
+        encoding="utf-8",
+        capture_output=True,
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
+    )
+
+
 def run_gate(script: Path, args: list[str]) -> None:
-    result = subprocess.run([sys.executable, str(script), *args], text=True, capture_output=True)
+    result = run_python(script, *args)
     if result.returncode:
         detail = (result.stdout + "\n" + result.stderr).strip()
         raise ValueError(f"quality gate failed ({script.name}):\n{detail}")
@@ -1106,18 +1117,11 @@ def runtime_release_problems(path: Path) -> list[str]:
         return ["missing vendored SkillForge resolver"]
     if not profile.is_file():
         return ["missing vendored SkillForge runtime profile"]
-    result = subprocess.run(
-        [sys.executable, str(resolver), "--profile", str(profile), "--library", str(path / "library"), "doctor"],
-        text=True, capture_output=True,
-    )
+    result = run_python(resolver, "--profile", str(profile), "--library", str(path / "library"), "doctor")
     if result.returncode:
         detail = (result.stdout + "\n" + result.stderr).strip()
         return [f"runtime doctor failed: {detail}"]
-    result = subprocess.run(
-        [sys.executable, str(resolver), "authority"],
-        text=True,
-        capture_output=True,
-    )
+    result = run_python(resolver, "authority")
     if result.returncode:
         detail = (result.stdout + "\n" + result.stderr).strip()
         return [f"runtime authority check failed: {detail}"]
@@ -1139,18 +1143,8 @@ def runtime_release_problems(path: Path) -> list[str]:
     if not drill_cards and drill_runner.exists():
         return ["SkillForge Drill runner shipped without any packaged Drills"]
     if drill_cards:
-        result = subprocess.run(
-            [
-                sys.executable,
-                str(drill_runner),
-                "--library",
-                str(path / "library"),
-                "list",
-                "--format",
-                "json",
-            ],
-            text=True,
-            capture_output=True,
+        result = run_python(
+            drill_runner, "--library", str(path / "library"), "list", "--format", "json"
         )
         if result.returncode:
             detail = (result.stdout + "\n" + result.stderr).strip()

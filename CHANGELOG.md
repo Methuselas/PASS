@@ -6,6 +6,17 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.14 - 2026-09-13
+
+### Fixed
+
+- `build_release.py` runs its helper scripts with UTF-8 pinned at both ends of the pipe. On
+  Windows it decoded their output with the locale codepage, so a release whose card text
+  contains a character like a closing curly quote failed its runtime and Drill discovery
+  checks with a `UnicodeDecodeError`.
+- The tests that run PASS's own Python scripts decode their output as UTF-8, so a Drill name or
+  error message quoting card text no longer passes or fails by the locale codepage.
+
 ## 1.0.0-beta.13 - 2026-09-13
 
 ### Changed

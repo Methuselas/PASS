@@ -223,7 +223,7 @@ class SkillForgeDrillTests(unittest.TestCase):
                 "--library",
                 str(LIBRARY),
             ],
-            text=True,
+            text=True, encoding="utf-8",
             capture_output=True,
             cwd=ROOT,
         )
@@ -232,7 +232,7 @@ class SkillForgeDrillTests(unittest.TestCase):
         self.assertTrue(runner.is_file())
         listing = subprocess.run(
             [sys.executable, str(runner), "list", "--domain", "game-design", "--format", "json"],
-            text=True,
+            text=True, encoding="utf-8",
             capture_output=True,
             cwd=release,
         )
@@ -260,13 +260,13 @@ class SkillForgeDrillTests(unittest.TestCase):
             [sys.executable, str(runner), "reveal", "--run", str(released_run)],
         ]
         for command in commands[:1]:
-            completed = subprocess.run(command, text=True, capture_output=True, cwd=release)
+            completed = subprocess.run(command, text=True, encoding="utf-8", capture_output=True, cwd=release)
             self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         (released_run / "student" / "answer.md").write_text(
             "Produced release-local evidence.", encoding="utf-8"
         )
         for command in commands[1:]:
-            completed = subprocess.run(command, text=True, capture_output=True, cwd=release)
+            completed = subprocess.run(command, text=True, encoding="utf-8", capture_output=True, cwd=release)
             self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.complete_grade(released_run)
         completed = subprocess.run(
@@ -283,7 +283,7 @@ class SkillForgeDrillTests(unittest.TestCase):
                 "--date",
                 "2026-09-07",
             ],
-            text=True,
+            text=True, encoding="utf-8",
             capture_output=True,
             cwd=release,
         )
@@ -312,7 +312,7 @@ class SkillForgeDrillTests(unittest.TestCase):
                     "--library",
                     str(LIBRARY),
                 ],
-                text=True,
+                text=True, encoding="utf-8",
                 capture_output=True,
                 cwd=ROOT,
             )

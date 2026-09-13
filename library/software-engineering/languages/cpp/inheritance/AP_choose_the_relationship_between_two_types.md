@@ -67,7 +67,7 @@ Decide how one type should be connected to another — public inheritance, compo
 
 8. **Re-read the derived type as its own type.** `PAT_design_a_class_as_type` owns the wider set of questions this raises, and the relationship chosen above should not have answered them by default.
 
-9. **Completion check.** The link matches the relationship stated in step 1; substitutability holds for every caller, not merely for the current ones; no concrete class derives publicly from another concrete class; and no overload has silently disappeared from the derived interface.
+9. **Completion check.** The link matches the relationship stated in step 1; substitutability holds for every caller, not merely for the current ones; no concrete class derives publicly from another concrete class; a composed type forwards nothing that reopens its own invariant, mutable iterators into the contained object included; and no overload has silently disappeared from the derived interface.
 
 ## Notes
 The branch order is the content. Composition before private inheritance, one base before several, and the substitutability test before any of them — a set of these rules delivered unordered lets the reader pick the mechanism first and rationalize the relationship afterwards, which is the direction the mistake actually runs.

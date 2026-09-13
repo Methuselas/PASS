@@ -59,13 +59,13 @@ Take a class that owns something — memory, a handle, a lock, anything with a r
 
 ## Steps / Flow
 
-1. **Settle the ownership semantics before writing a line.** An owner pinned to its scope, move-only exclusive ownership, reference-counted sharing, and deep-copy value semantics are different classes with different clients, not implementation variants. `PAT_choose_raii_copying_behavior_deliberately` owns the decision, and the rest of this flow is different depending on which one it produced.
+1. **Settle the ownership semantics before writing a line.** First ask whether a standard value or owning member can carry the resource, so the class declares none of the special members at all; `PAT_know_compiler_generated_special_members` owns that Rule of Zero default, and a class that reaches it is finished here. Otherwise: an owner pinned to its scope, move-only exclusive ownership, reference-counted sharing, and deep-copy value semantics are different classes with different clients, not implementation variants. `PAT_choose_raii_copying_behavior_deliberately` owns the decision, and the rest of this flow is different depending on which one it produced.
 
 2. **Work out what the compiler is already giving you.** `PAT_know_compiler_generated_special_members` owns what appears on demand and the cases where the compiler refuses.
 
 3. *Gate.* **Work out what your own declarations suppress.** Declaring a destructor, a copy operation, or a move operation silently stops other members from being generated, which is how a class acquires an expensive copy where a move was intended. `PAT_understand_special_member_generation` owns the table; run it before writing, not after a performance surprise.
 
-4. **Branch — if ownership is exclusive, delete copying and finish the move contract.** `PAT_delete_the_functions_you_want_to_forbid` owns the copy prohibition. An owner pinned to its scope declares no move operations and is finished here. Otherwise default or implement move construction and move assignment deliberately, including a harmless moved-from state. Steps 5 through 9 do not apply.
+4. **Branch — if ownership is exclusive, delete copying and finish the move contract.** `PAT_delete_the_functions_you_want_to_forbid` owns the copy prohibition. An owner pinned to its scope declares no move operations and is finished here. Otherwise implement move construction and move assignment with a harmless moved-from state, and default them only where every member is itself an owner that empties its source — a defaulted move copies a raw handle, and both objects then release it. Steps 5 through 9 do not apply.
 
 5. **Branch — if copies should share until written to, take the counted route.** `PAT_share_a_representation_until_a_write_forces_a_copy` owns that design, and it replaces the deep copy the remaining steps assume rather than layering on top of it.
 
@@ -86,4 +86,4 @@ The order is the whole technique. Steps 1 through 3 are decisions, and taking th
 
 The two branches at steps 4 and 5 are genuine exits, not variations. A class that forbids copying is complete at step 4, and most classes should reach that exit: prohibiting copying is a legitimate final answer rather than a failure to implement it.
 
-Step 8 is worth taking even where step 7 already passed. Self-assignment safety and the strong guarantee are different properties, and copy-and-swap is the one construction that delivers both without a special case for aliasing.
+Step 8 is worth taking even where step 7 already passed. Self-assignment safety and the strong guarantee are different properties. For a class owning a single resource, copy-first ordering already delivers both; with two, copying member by member leaves a failure half-assigned, and copy-and-swap is the construction that keeps both properties as the class grows, without a special case for aliasing.

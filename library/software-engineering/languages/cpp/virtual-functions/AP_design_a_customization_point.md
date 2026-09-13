@@ -73,7 +73,7 @@ Decide how a behavior that varies should be allowed to vary — which mechanism 
 
 5. **Decide what each declaration commits derived classes to.** `PAT_match_virtualness_to_inherited_interface` owns the mapping: a pure virtual commits derived types to supplying their own, a plain virtual supplies a default they may replace, and a non-virtual commits them to inheriting both the interface and the implementation unchanged.
 
-6. **Branch — where the base must retain control of the context, wrap it.** `PAT_wrap_virtuals_with_nvi_idiom` owns the construction: a public non-virtual entry point that performs the invariant work and calls a non-public virtual for the varying part. This is the mechanism that makes step 1's second list enforceable rather than documented.
+6. **Branch — where the base must retain control of the context, wrap it.** `PAT_wrap_virtuals_with_nvi_idiom` owns the construction: a public non-virtual entry point that performs the invariant work and calls a non-public virtual for the varying part. This is the mechanism that makes step 1's second list enforceable rather than documented. Locking is the one item on that list the wrapper may carry only for a closed set of overrides: where an override can be supplied by a caller, the same owner moves the lock outside the dispatch.
 
 7. *Gate.* **Close the things that must not be redefined.** `PAT_never_redefine_inherited_non_virtual` owns why a non-virtual is a statement about invariant behavior that a derived redefinition silently breaks depending on the static type of the pointer used. `PAT_never_redefine_inherited_default_parameter` owns the related trap, where the default is resolved statically while the function is resolved dynamically, producing a call no author intended.
 
@@ -83,7 +83,7 @@ Decide how a behavior that varies should be allowed to vary — which mechanism 
 
 10. **Price the dispatch only when someone objects to it.** `PAT_price_virtual_dispatch_against_the_real_alternative` owns the comparison, and the alternative it must be priced against is the real one — a switch, a branch, a function pointer — rather than against nothing.
 
-11. **Completion check.** Every varying behavior has exactly one mechanism, from one route rather than both; the invariant work runs on every path a derived type can reach; nothing non-virtual is redefined anywhere in the hierarchy; no virtual carries a default argument; and the extension points are the ones a derived author would guess.
+11. **Completion check.** Every varying behavior has exactly one mechanism, from one route rather than both; the invariant work runs on every path a derived type can reach; nothing non-virtual is redefined anywhere in the hierarchy; no override changes an inherited default argument, and a default shared across the hierarchy lives once on a non-virtual entry point; and the extension points are the ones a derived author would guess.
 
 ## Notes
 The gates carry most of the value. Step 4 removes whole hierarchies that were never needed, and step 7 closes the two traps that are invisible at the call site and produce behavior that changes with the static type of a pointer — among the hardest defects in this area to diagnose from a symptom.

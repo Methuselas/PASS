@@ -59,13 +59,13 @@ Take code that acquires something needing release — heap memory, a file descri
 
 2. **Reach for a ready-made owner before writing anything.** An exclusive-ownership smart pointer is the default and covers most cases; `PAT_use_unique_ptr_for_exclusive_ownership` owns the choice, and moving up to shared ownership requires being able to name the second owner.
 
-3. **Create it through the make function, not a bare allocation.** `PAT_prefer_make_functions_to_direct_new` owns why the allocation and the ownership transfer must not be two separable steps.
+3. **Create it through the make function, not a bare allocation.** `PAT_prefer_make_functions_to_direct_new` owns why — one operation that names the type once and, for shared ownership, allocates once — and the cases a make function cannot serve: a custom deleter, a braced initializer, or a class with its own allocation functions, which a shared-pointer make function silently bypasses.
 
 4. **Price shared ownership if you are about to reach for it.** *Gate.* Reference counting is not free, and this is the point to find that out rather than after profiling. `PAT_price_shared_ownership_before_choosing_it` owns the cost account, and it also owns the rule that additional owners are constructed from an existing owner rather than from the raw pointer again.
 
 5. **Branch — when no ready-made owner fits, write the class.** A resource with a non-standard release, a paired acquire/release protocol, or a handle that is not a pointer needs its own manager. `PAT_manage_resources_with_raii_objects` owns the shape: acquire in the constructor, release in the destructor.
 
-6. *Gate.* **A resource-managing class is not usable until copying has a defined meaning.** The compiler-generated copy will almost always mishandle the resource — double release, or two owners believing they are one. `PAT_choose_raii_copying_behavior_deliberately` owns the choice among prohibiting, reference counting, deep copying, and transferring. Once chosen, delegate the implementation to `AP_write_copy_control_for_a_resource_owning_class`; do not hand-roll it here.
+6. *Gate.* **A resource-managing class is not usable until copying has a defined meaning.** The compiler-generated copy will almost always mishandle the resource — double release, or two owners believing they are one. `PAT_choose_raii_copying_behavior_deliberately` owns the choice among pinning the owner to its scope, move-only transfer, reference counting, and deep copying. Once chosen, delegate the implementation to `AP_write_copy_control_for_a_resource_owning_class`; do not hand-roll it here.
 
 7. **Give clients the raw resource where foreign interfaces demand it.** C APIs and older libraries will not take the wrapper. `PAT_provide_access_to_raw_resource_in_raii_class` owns the choice between an explicit accessor and an implicit conversion, and that choice trades safety against convenience rather than being free.
 
@@ -73,7 +73,7 @@ Take code that acquires something needing release — heap memory, a file descri
 
 9. **Remove the manual release, then re-read every exit path.** Delete the release call the owner now performs. Where any manual release survives — a legacy path, an array — `PAT_match_new_and_delete_forms` owns getting the form right, because a mismatch is undefined behavior rather than a leak.
 
-10. **Completion check.** Every acquisition in the scope has an owner; no exit path performs or skips a manual release; the ownership model is readable from the declaration; and if a class was written, copying either works or does not compile.
+10. **Completion check.** Every acquisition in the scope has an owner, and every owner has a name rather than being a temporary that releases at the end of its own statement; no exit path performs or skips a manual release; the ownership model is readable from the declaration; and if a class was written, copying either works or does not compile.
 
 ## Notes
 The reason this is a protocol rather than a single rule is the branch at step 5 and the gate at step 6. Most resources never reach either — a ready-made owner takes them and the work is three steps. The cost of the flow is paid only by resources that genuinely need a bespoke manager, and that is exactly where an unordered set of rules produces a class that compiles, releases correctly on the happy path, and double-frees the first time someone copies it.

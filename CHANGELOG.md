@@ -6,6 +6,35 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.18 - 2026-09-13
+
+### Fixed
+
+- Updated all nine C++ Action Patterns against the patterns they activate, after the pattern
+  sweep and the Drill update changed several of those owners. No step order, gate, or branch
+  changed; step summaries that restated an owner's old claim were corrected.
+- `AP_make_a_function_exception_safe` no longer says a function committing to a basic-only callee
+  cannot offer the strong guarantee: doing the work on a copy or making it reversible can. It adds
+  the reordering route and the `noexcept` completion check.
+- `AP_write_copy_control_for_a_resource_owning_class` starts from the Rule of Zero, defaults moves
+  only where every member empties its source, and no longer calls copy-and-swap the one
+  construction giving both self-assignment safety and the strong guarantee - copy-first ordering
+  does for a single resource.
+- `AP_give_an_acquired_resource_an_owner` gives the current make-function reasons and exceptions,
+  the four current ownership options, and the named-owner check.
+- `AP_replace_new_and_delete_for_a_named_reason` no longer calls a missing placement delete
+  silent at build time, and verifies arrays of the class.
+- `AP_make_a_class_const_correct` prices an embedded mutex, notes that the reverse delegation
+  compiles silently, and checks writes through pointer members.
+- `AP_choose_the_relationship_between_two_types` checks that composition forwards nothing that
+  reopens the invariant.
+- `AP_design_a_customization_point` limits locking in a wrapper to a closed override set and
+  aligns its default-argument check with its owner.
+- `AP_settle_a_containers_contract_before_filling_it` no longer says removing elements never
+  returns memory: contiguous containers keep their capacity, node-based ones free erased nodes.
+- `AP_make_shared_state_safe_in_cpp` adds the static-mutex and single-acquisition-order
+  obligations to its lock route.
+
 ## 1.0.0-beta.17 - 2026-09-13
 
 ### Changed

@@ -55,9 +55,9 @@ Take a function that can throw, or that calls something that can, and bring it t
 
 3. **Close the constructor case separately.** A constructor that throws part-way leaves an object whose destructor never runs, so anything it already acquired is stranded. `PAT_give_every_constructor_resource_a_self_releasing_owner` owns this; the class destructor cannot.
 
-4. *Gate.* **Choose the guarantee deliberately, and choose it against what your callees offer.** `PAT_offer_an_exception_safety_guarantee` owns the choice among basic, strong, and nothrow. The constraint that decides it: a function cannot offer the strong guarantee if it must commit to something whose own guarantee is only basic. Discover that here rather than after building the machinery.
+4. *Gate.* **Choose the guarantee deliberately, and choose it against what your callees offer.** `PAT_offer_an_exception_safety_guarantee` owns the choice among basic, strong, and nothrow. The constraint that decides it: a function that commits directly to something whose own guarantee is only basic cannot offer the strong guarantee — unless it does that work on a copy, or can roll it back, before committing. Discover which case you are in here rather than after building the machinery.
 
-5. **Branch — for the strong guarantee, restructure rather than patch.** `PAT_use_copy_and_swap_for_strong_guarantee` owns the construction: change a copy, then exchange it in with an operation that cannot fail. Bolting rollback code onto the existing statement order is the alternative, and it is the one that leaves a partially-applied state on the path nobody tested.
+5. **Branch — for the strong guarantee, restructure rather than patch.** `PAT_use_copy_and_swap_for_strong_guarantee` owns the construction: change a copy, then exchange it in with an operation that cannot fail. Bolting rollback code onto the existing statement order is the alternative, and it is the one that leaves a partially-applied state on the path nobody tested. Where the function has a single commit that cannot fail, reordering so nothing is recorded until the risky work has succeeded reaches the same guarantee without a copy; `PAT_offer_an_exception_safety_guarantee` owns that reordering.
 
 6. **Provide the non-throwing exchange the previous step assumes.** The swap has to actually not throw, or the all-or-nothing property is a claim rather than a fact. `PAT_support_nonthrowing_swap` owns the pieces.
 
@@ -65,11 +65,11 @@ Take a function that can throw, or that calls something that can, and bring it t
 
 8. **Fix how the handlers take and re-emit the exception.** `PAT_catch_exceptions_by_reference_and_rethrow_bare` owns both halves — taking by reference to avoid slicing the exception object, and re-emitting without naming it so the original dynamic type survives.
 
-9. **Completion check.** Every exit path releases what the function acquired; the guarantee is stated where callers can see it; nothing in the function silently weakens that guarantee by calling something that offers less; and a failure part-way through leaves a state you can describe in one sentence.
+9. **Completion check.** Every exit path releases what the function acquired; the guarantee is stated where callers can see it; nothing in the function silently weakens that guarantee by committing directly to something that offers less; any `noexcept` on it holds for every path that could otherwise let an exception escape; and a failure part-way through leaves a state you can describe in one sentence.
 
 ## Notes
 The ordering that matters most is steps 2 and 4. Leak-freedom is a precondition of every guarantee, so it is not negotiable and not a trade-off; the guarantee level, by contrast, is a genuine trade-off against copying cost and is chosen per function. Reversing them produces the common failure of building elaborate rollback machinery around a function that was leaking the whole time.
 
-The gate in step 4 is where most attempts at the strong guarantee actually die, and finding out there is cheap. A function is only as strong as the weakest guarantee among the operations it must commit to, which frequently means the honest answer is basic plus a clearly stated invariant.
+The gate in step 4 is where most attempts at the strong guarantee actually die, and finding out there is cheap. A function is only as strong as the weakest guarantee among the operations it commits to directly. Doing the tentative work on a copy, or making it reversible, is what lifts that ceiling; where neither is practical, the honest answer is basic plus a clearly stated invariant.
 
 The generic version of the signalling decision — recoverable or not, explicit or implicit, and what the caller is told — belongs to the core protocol this one specializes and is not repeated here.

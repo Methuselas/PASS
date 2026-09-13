@@ -53,7 +53,7 @@ variants:
 ## Don't
 - Don't treat mold variation as harmless stylistic freedom. It is the main reason two developers rarely pick the same name, and within one codebase it costs the same retrieval effort repeatedly.
 - Don't try to enumerate every mold. The point is a limited number, and a long approved list reproduces the problem it was meant to solve.
-- Don't standardise a mold that reads backwards in the project's natural language — see the ordering consideration in the naming action plan.
+- Don't standardise a mold that reads backwards in the project's natural language — see the ordering consideration in the naming Action Protocol.
 
 ## Checklist
 - What mold does this name use, and is that mold already established here?

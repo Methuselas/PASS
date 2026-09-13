@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.18`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.19`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -36,7 +36,8 @@ receipts, hashes, chat transcripts, or the repository that produced them.
 ## What PASS can do
 
 - **Author durable knowledge.** Convert studied instruction into Patterns
-  (reusable decisions), APs (ordered action procedures), and Drills (deliberate
+  (reusable decisions), APs (Action Protocols: ordered, gated applications of
+  Patterns), and Drills (deliberate
   practice with feedback and stopping criteria).
 - **Support autonomous and taught authoring.** Source-sufficient domains can be
   authored autonomously; interpretation-heavy domains can incorporate formal
@@ -519,7 +520,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.18`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.19`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

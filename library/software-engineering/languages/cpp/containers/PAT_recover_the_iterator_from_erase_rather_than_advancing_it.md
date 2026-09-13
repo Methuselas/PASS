@@ -41,10 +41,11 @@ variants: []
 ## Pattern Rule
 **IF** you are walking a container and erasing some of its elements as you go, because each erasure needs work the bulk removal facilities cannot do
 **THEN** take the next iterator from what the erase returns and never touch the one you handed it, since erasing invalidates that iterator and on a contiguous container invalidates every iterator past it as well — and where the container's erase returns nothing to take, advance first and erase the copy you kept
-**ELSE** where nothing extra needs doing per element, the free removal function taking a value or a predicate does the whole job and there is no loop to get wrong.
+**ELSE** where nothing extra needs doing per element, `std::erase_if` or `std::erase` does the whole job and there is no loop to get wrong.
 
 ## Do
-- Reach for bulk removal before writing any loop, and pick the form the container actually supports: the remove-then-erase pairing for the contiguous containers, the member erase taking a value for the ordered associative ones — which is logarithmic rather than linear, and matches on the container's ordering rather than on equality — and the member remove for a linked list.
+- Reach for the C++20 free removal functions before writing any loop. `std::erase_if` takes a predicate and works on every standard container, associative and unordered ones included, where the predicate sees each key-value pair; `std::erase` takes a value and exists only for the sequence containers and strings. Both remove the elements outright and return how many went, so they replace the remove-then-erase pairing and a linked list's member remove.
+- To remove one key from an ordered associative container, still call the member erase taking the key: it is logarithmic rather than a linear walk, and it matches on the container's ordering rather than on a predicate you wrote.
 - Where the loop is genuinely needed, structure it so the increment happens in exactly one of the two branches: assign the erase's result to the iterator when you erase, and increment it when you do not. Leave the loop's own increment clause empty.
 - Say why the loop exists, since the reason is the only justification for hand-writing something the library otherwise does. Logging each removal, releasing a resource the element owns, or accumulating a count are the usual ones.
 
@@ -55,7 +56,7 @@ variants: []
 - Don't use the removal *algorithm* on an ordered associative container. It works by overwriting elements with later ones, which for a container maintaining an ordering means writing over keys — corrupting the ordering rather than removing anything, where it compiles at all.
 
 ## Checklist
-- Could a bulk removal facility do this without a loop?
+- Could `std::erase_if`, `std::erase`, or a member erase by key do this without a loop?
 - In the loop, is the iterator advanced in exactly one place per branch?
 - Is the loop's own increment clause empty?
 - Does this container's erase return an iterator, or nothing? The answer decides which of
@@ -75,4 +76,4 @@ nothing, in which case the historical form is not legacy debt but the only thing
 compiles — and a codebase can hold both kinds, with the two loop shapes correct in
 different files. The signature is the thing to read, not the era the code was written in.
 
-Free removal functions taking a value or a predicate now exist for all the standard containers and subsume most of what the original matrix covered, which pushes the hand-written loop into the narrow case where something must happen per element beyond its removal. That is worth checking before writing the loop, since a loop not written cannot get this wrong.
+The C++20 free functions `std::erase_if`, for every standard container, and `std::erase`, for the sequence containers and strings, subsume most of what the original matrix covered, which pushes the hand-written loop into the narrow case where something must happen per element beyond its removal. That is worth checking before writing the loop, since a loop not written cannot get this wrong.

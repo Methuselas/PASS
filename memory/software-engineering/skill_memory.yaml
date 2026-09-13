@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 36
+memory_version: 37
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -1693,7 +1693,7 @@ entries:
 
     '
   boundary: 'Eight topics of the C++ module on one compiler and one target; the core package and
-    five C++ topics are unswept, and no Drill or Action Pattern has been exercised. The
+    five C++ topics are unswept, and no Drill or Action Protocol has been exercised. The
     generalization is about this library''s cards and this method, not about C++ guidance at
     large. One further kind has now appeared once and is worth watching: a card recommending a tool
     the reader''s toolchain may not have, where the advice is sound and unavailable rather than

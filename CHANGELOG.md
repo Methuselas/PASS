@@ -6,11 +6,24 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.19 - 2026-09-13
+
+### Fixed
+
+- APs are called Action Protocols everywhere, as `PASS/docs/PASS_DOCTRINE.md` defines them. The
+  README said "ordered action procedures", two core readability cards said "the naming action
+  plan", and a Skillset Memory entry and three training events said "Action Pattern".
+- `PAT_recover_the_iterator_from_erase_rather_than_advancing_it` leads with C++20 `std::erase_if`,
+  which covers every standard container, and `std::erase`, which covers the sequence containers and
+  strings, and keeps the member erase by key for ordered associative containers.
+  `PAT_remember_an_algorithm_cannot_change_a_containers_size` states each function's coverage and
+  returned count, and `AP_settle_a_containers_contract_before_filling_it` delegates to them first.
+
 ## 1.0.0-beta.18 - 2026-09-13
 
 ### Fixed
 
-- Updated all nine C++ Action Patterns against the patterns they activate, after the pattern
+- Updated all nine C++ Action Protocols against the patterns they activate, after the pattern
   sweep and the Drill update changed several of those owners. No step order, gate, or branch
   changed; step summaries that restated an owner's old claim were corrected.
 - `AP_make_a_function_exception_safe` no longer says a function committing to a basic-only callee

@@ -6,6 +6,26 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.15 - 2026-09-13
+
+### Changed
+
+- Updated four more C++ Drills against their compile-swept patterns, with every claim the new
+  text makes compiled first.
+- `DRILL_convert_a_class_to_the_pimpl_idiom` covers copy and move: declaring only the destructor
+  leaves the handle neither copyable nor movable, and moves defaulted in the header fail at the
+  client. It also records the moved-from state and the const write that the bare handle permits.
+- `DRILL_implement_nonthrowing_swap_for_pimpl` measures the standard swap first: with `noexcept`
+  moves it copies and allocates nothing, so the custom swap is argued as a primitive rather than a
+  speedup. It adds the qualified `std::swap` call that bypasses the customization.
+- `DRILL_add_const_correctness_to_a_class` compiles the reverse delegation, which nothing stops,
+  and prices a thread-safe cache: a `mutable` mutex removes copy and move.
+- `DRILL_convert_constructor_assignment_to_init_list` adds default member initializers across two
+  constructors, counts the construction work, and builds an initializer that reads a later member.
+- `PAT_minimize_compilation_dependencies` warns that `std::unique_ptr` does not propagate `const`
+  and routes const members through a const-qualified accessor.
+- Removed book item numbers from the Drills' Notes.
+
 ## 1.0.0-beta.14 - 2026-09-13
 
 ### Fixed

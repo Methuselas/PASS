@@ -53,9 +53,11 @@ variants:
 ## Don't
 - Don't include a definition where a declaration will do; declaring a function that passes or returns a type by value needs only that type's declaration, not its definition.
 - Don't forward-declare standard-library types yourself. `std::string` is an alias of a `std::basic_string` specialization, and user declarations inside `std` are not a supported substitute for including or importing the owning standard-library facility.
+- Don't let a `const` member function reach the implementation through the bare handle. `std::unique_ptr` does not pass `const` on to what it points to, so `pImpl->year = y` compiles inside a const member where the same write to a direct data member would not. Route access through a private accessor pair — `const PersonImpl& impl() const` and `PersonImpl& impl()` — so const members see only a const implementation.
 
 ## Checklist
 - Does the header depend on definitions where forward declarations would suffice?
+- Do const member functions reach the implementation only through a const-qualified accessor?
 - Is the implementation hidden behind a pimpl pointer or an Interface class, so implementation changes don't recompile clients?
 - Are declaration-only and definition headers provided as a pair?
 

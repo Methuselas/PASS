@@ -33,31 +33,35 @@ variants: []
 # Convert Constructor Body Assignments to an Initializer List
 
 ## Practice Task
-Start from an `ABEntry` constructor whose body assigns `theName`, `theAddress`, `thePhones`, and `numTimesConsulted`, and rewrite it to initialize those members properly.
+Start from an `ABEntry` with two constructors — one taking a name, an address, and a phone list, and one taking nothing — whose bodies assign `theName`, `theAddress`, `thePhones`, and `numTimesConsulted`, and rewrite them to initialize those members properly.
 
 ## Target Skill
-Moving member setup out of the constructor body and into the initialization list, in declaration order, including members that must be initialized there.
+Moving member setup out of the constructor body and into default member initializers and the initialization list, in declaration order, including members that must be initialized there.
 
 ## Setup
-No special setup required.
+Give the class-type members a type that counts its default constructions, copies, and assignments.
 
 ## Instructions
-- Move each member from a body assignment into the member initialization list.
+- Count the default constructions, copies, and assignments per class-type member that the body-assignment form performs.
+- Move each per-constructor value from a body assignment into the member initialization list, and count again.
+- Identify the members that gain nothing from the move.
+- Put the default both constructors share on the member's declaration, and confirm each constructor produces it.
 - Order the list to match the order the members are declared in the class, checking it against the class declaration rather than against itself.
-- Name concretely, for at least one member, the redundant work the body-assignment form did — default-constructed and then assigned, so two operations run where one would serve — and identify the members that gain nothing.
-- Check any member whose initializer reads another member against the declaration order.
+- Add a member whose initializer reads another member declared after it, build at your highest warning level, and record the warnings and the value it receives.
 - Add a `const` or reference member to the class, compile the body-assignment form, and record the error; then confirm it compiles when initialized through the list.
 
 ## Success Check
-- The redundant work is named concretely for at least one member — default-constructed and then assigned, so two operations run where one would serve. Asserting that the list is more efficient, without saying what is avoided, restates what everyone already believes.
-- The list order is checked against the class declaration rather than against itself. Members initialize in declaration order whatever the list says, so a reordered list is a statement that is not true and may draw no warning.
-- A const or reference member is actually added and the body-assignment form shown failing to compile, with the error recorded. This is the case that turns a preference into a rule.
+- The redundant work is counted, not asserted: the body-assignment form default-constructs each class-type member and then assigns it, two operations where the list performs one copy. Asserting that the list is more efficient, without saying what is avoided, restates what everyone already believes.
 - The members that gain nothing are identified as well, so the run separates what this fixes from what it merely tidies.
-- Any member whose initializer reads another member is checked against the declaration order, because that is where a correct-looking list quietly produces a garbage value.
+- The shared default sits on the member's declaration, and the constructor that never mentions it is shown producing it. Repeating the default in every constructor's list passes every other bullet and leaves the next constructor free to forget it.
+- The list order is checked against the class declaration rather than against itself. Members initialize in declaration order whatever the list says, so a reordered list is a statement that is not true and may draw no warning.
+- The out-of-order read is built and its result recorded, including whether any warning appeared. A correct-looking list quietly reads a member that has not been initialized yet, and a clean build is not evidence against it.
+- A const or reference member is actually added and the body-assignment form shown failing to compile, with the error recorded. This is the case that turns a preference into a rule.
 
 ## Common Failures
-- Leaving a built-in member such as `numTimesConsulted` off the list and then reading it while uninitialized.
+- Leaving a built-in member such as `numTimesConsulted` uninitialized in one constructor and then reading it.
 - Assuming the order written in the list, rather than the declaration order, drives initialization.
+- Repeating a shared default in every constructor's list instead of placing it on the declaration.
 
 ## Notes
-This makes the assignment-versus-initialization distinction concrete: the body-assignment version default-constructs the string and list members before overwriting them, work the initialization list skips. The added `const`/reference member shows the case where the list is not merely better but mandatory.
+This makes the assignment-versus-initialization distinction concrete: the body-assignment version default-constructs the string and list members before overwriting them, work the initialization list skips. A default shared by every constructor belongs on the member's declaration, where a new constructor cannot forget it. The added `const`/reference member shows the case where the list is not merely better but mandatory.

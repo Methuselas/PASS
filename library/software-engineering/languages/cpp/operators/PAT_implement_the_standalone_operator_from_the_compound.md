@@ -41,7 +41,7 @@ variants: []
 
 ## Do
 - Start from the fact that the language relates none of these to each other. Nothing connects the standalone operator, plain assignment, and the compound form, so any consistency between them is consistency you wrote and are maintaining. This is a statement about the arithmetic-style operators, and it is worth holding as such rather than as a general fact about operator families: the comparison operators are related by the language, where one three-way operator generates the relational spellings and a defaulted one generates equality too. Carrying the arithmetic expectation across to comparisons produces six hand-written overloads where one line would have done. See `PAT_define_one_three_way_comparison_and_let_the_language_derive_the_rest`.
-- Build the returned object out of the operands rather than naming a local one. Handing back a copy of the left operand with the compound operator already applied to it gives compilers a temporary they may elide, where a named local depends on an optimization that is still permitted rather than required.
+- Name the result: copy the left operand into a local, apply the compound operator to it, and return the local. The shorter spelling that returns a copy of the left operand with the compound operator applied in the same expression looks like a temporary and is not one — compound assignment returns a reference, so that expression is an lvalue and returning it copies. Measured, it made two copies where the named local made one.
 - Ship both spellings so callers can choose. Chained standalone expressions read better and are easier to debug; the sequence of compound assignments avoids constructing a temporary at each step, and clients under performance pressure can switch between them knowing the semantics are identical because one is written in terms of the other.
 - Keep the compound versions in the public interface, which also removes any need for the standalone ones to be friends of the class.
 
@@ -52,12 +52,12 @@ variants: []
 ## Checklist
 - For each arithmetic-style operator on this class, does the compound counterpart exist?
 - Does exactly one of the two contain the actual arithmetic?
-- Does the standalone version return the constructed temporary rather than a named local?
+- Does the standalone version return a named local, rather than the result of the compound expression, which is an lvalue and forces a copy?
 - If the operation's definition changed, how many places would need editing?
 
 ## Notes
 The consistency argument is the durable half of this and the efficiency argument is the contingent half. Clients will assume a relationship between the two spellings whether or not you established one, so the reason to derive one from the other is that the assumption then holds by construction instead of by discipline.
 
-The efficiency half has narrowed since Meyers wrote it but not disappeared. Elision of the unnamed temporary is now guaranteed rather than merely permitted, so returning the constructed object directly is reliable; elision of a named local is still an optimization compilers may or may not perform. The advice to prefer the unnamed form survives, with a smaller margin than it once had.
+The efficiency half has reversed since Meyers wrote it. Guaranteed elision applies to a returned prvalue, and the compound expression is not one: compound assignment returns a reference, so returning its result copies from that reference every time. A named local is eligible for elision and is at worst moved, which makes it the cheaper of the two forms rather than the riskier one.
 
 Where all the standalone operators can live at namespace scope, a template can generate them from the compound versions, so that any type supplying the compound form gets the standalone one without a line being written for it.

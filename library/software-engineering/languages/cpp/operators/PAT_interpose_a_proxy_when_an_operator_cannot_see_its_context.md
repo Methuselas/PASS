@@ -63,7 +63,7 @@ variants: []
 ## Notes
 The construct is worth recognizing by name — proxy, or surrogate — because it turns up in three unrelated-looking places that are the same move: standing in for a dimension the language does not offer, standing in for an element whose access mode is not yet known, and standing in for a conversion so that reaching the target type would need two user-defined steps rather than one.
 
-The first of those has since lost its motivation for new code. Subscripting can now take more than one argument, so a class representing a multidimensional array can define the operator directly rather than returning something whose own subscript completes the job. The other two motivations are untouched.
+The first of those loses its motivation in C++23, where subscripting can take more than one argument and a class representing a multidimensional array can define the operator directly. Under C++20 that declaration does not compile, so the proxy — or a call operator taking several indices — remains the way to do it there. The other two motivations are untouched.
 
 The canonical library instance is the specialization of the standard growable array for bool, whose subscript yields a stand-in rather than a reference to a bool — and it is equally the canonical cautionary tale, because generic code written against the general template misbehaves on it in precisely the ways listed above. That is the strongest available argument for the limitations being a design consequence rather than an implementation detail.
 

@@ -71,7 +71,7 @@ variants:
 - Don't use a make function when a custom deleter is required. There is no way to supply one, and the deleter is part of what the pointer is for.
 - Don't use a make function expecting a braced initializer to be forwarded as one. The arguments are forwarded with parentheses, which is a deliberate documented choice — the make function cannot know which delimiter the caller wanted, and for some types the two select different constructors.
 - Don't assume the single-allocation benefit is free of consequences for shared pointers. The object and its control block occupy one block of memory, so that memory cannot be released until the last weak reference is gone, not merely the last shared one. For a large object with long-lived weak references, two allocations may be preferable.
-- Don't use a shared-pointer make function for a class with its own allocation functions. Those are written for objects of the class's size and the make function asks for a larger block containing the control block too.
+- Don't use a shared-pointer make function for a class with its own allocation functions. The make function allocates the object and its control block together through the standard allocator, so the class's allocation functions are never called and whatever policy they carry is silently bypassed — measured, the class allocator saw no call at all. Where that policy matters, use `std::allocate_shared` with an allocator that carries it, or direct `new`.
 
 ## Checklist
 - Does any direct `new` here have a documented reason that a make function cannot express?

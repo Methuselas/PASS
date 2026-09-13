@@ -40,7 +40,7 @@ variants: []
 ## Do
 - Return the new object by value and let the compiler's return-value optimization remove the copy where it can.
 - Construct the result directly in the return statement, giving that optimization the best chance to apply. Returning an unnamed temporary is more than a hint: since C++17 no copy or move is even *requested* in that form, so it is guaranteed rather than optimized away.
-- Distinguish guaranteed elision from optional named return-value optimization. Returning a prvalue such as `return T(args...);` constructs directly in the destination since C++17 and needs no accessible copy or move constructor. Returning a named local may use NRVO, but the function still needs an accessible move or copy fallback if NRVO is not performed.
+- Distinguish guaranteed elision from optional named return-value optimization. Returning a prvalue such as `return T(args...);` constructs directly in the destination since C++17 and needs no accessible copy or move constructor. Returning a named local may use NRVO, but the function needs a usable move or copy constructor whether or not NRVO is then performed — the constructor is selected first and must be valid even when the call is elided.
 - Return the value without top-level `const`, preserving moves and rvalue-qualified use at the call site.
 
 ## Don't
@@ -67,6 +67,8 @@ not need to be inlined or even in the same translation unit for this — the add
 with the call.
 
 Deleting a move constructor is not the same as never declaring one, and the difference matters
-when returning a named local: the fallback overload resolution may select the deleted move and
-fail if NRVO is not performed. A directly returned prvalue is different. Since C++17 it is
+when returning a named local: the fallback overload resolution selects the deleted move and the
+return fails to compile, whether or not NRVO would have been performed — measured, it was refused
+at full optimization, while a type whose move was simply never declared compiled by falling back
+to its copy. A directly returned prvalue is different. Since C++17 it is
 constructed in the caller's destination, so no copy or move operation is selected at all.

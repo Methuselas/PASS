@@ -45,7 +45,7 @@ variants: []
 - Match the operation to the requirement rather than reaching for the full sort by reflex. Splitting a range by a predicate needs a partition; finding the element at a rank, or the best few in no particular order, needs the selection operation; the best few *in order* needs the partial sort; everything in order needs the full sort.
 - Use the selection operation for more than the top few, since it generalizes better than its name suggests. Positioning the middle element gives you the median; positioning at a computed offset gives you any percentile.
 - Reach for the stable variants only when equal elements must retain their relative order, and know which exist: the full sort and the partition have stable counterparts, the partial sort and the selection operation do not.
-- Check the iterator and callable requirements against the range you have. `sort`, `stable_sort`, `partial_sort`, and `nth_element` require random-access iterators; C++20 `partition` and `stable_partition` accept forward iterators, with implementation cost depending on the available category and memory.
+- Check the iterator and callable requirements against the range you have. `sort`, `stable_sort`, `partial_sort`, and `nth_element` require random-access iterators; `partition` accepts forward iterators, while `stable_partition` — classic or ranges — requires bidirectional ones, so a singly linked list can be partitioned but not stably; measured, both stable forms rejected a singly linked list's iterators.
 - Go indirect when a linked list needs an operation it cannot support — copy into a random-access container, or build a container of iterators into the list and order that.
 
 ## Don't

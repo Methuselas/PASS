@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 31
+memory_version: 36
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -1734,10 +1734,50 @@ entries:
     already corrected its own Don''t bullet, which kept the stale advice, so a correction written
     into a card is not evidence the card''s instructions were corrected.
 
+    The sixteenth batch found the same shape inside modernization itself. Two cards from
+    Effective C++ had already been rewritten for current C++, and each kept one old conclusion
+    over a mechanism that no longer supports it: const locals said to catch an assignment to a
+    product, which only the const return value ever did, and a deleted move said to fail only
+    without elision, when the move is selected and must be usable either way. A modernization
+    pass that checks what a card says about the language does not re-derive that its example
+    still demonstrates it.
+
+    The seventeenth batch added a third instance and a new kind. An operator card had kept the
+    advice to return the compound expression as the elidable form, when compound assignment
+    returns a reference and returning it copies; the named local it discouraged was the cheaper
+    form. And a card that stated a language rule correctly still misled in practice, because this
+    compiler evaluated the right operand first for free overloads of logical and and logical or,
+    against the sequencing the standard requires. A correct rule is not evidence that a compiler
+    follows it.
+
+    The eighteenth batch tempered the source-age signal. Every defect sat in a card from Effective
+    Modern C++, which had held for four batches: typename said to be required inside templates
+    where C++20 made it optional in member and alias declarations, nullptr said to convert to no
+    integral type when bool accepts it directly, and unrelated enumeration comparisons said to be
+    silent when C++20 deprecated them. So distance from C++20 is the signal, and a C++14 source
+    stands at a distance too; only the C++20-era cards have held without exception. The typename
+    claim had already been repaired in a different card, the third correction in the sweep that
+    reached one card and not another carrying the same claim.
+
+    The nineteenth batch ran that grep before repairing rather than after, and found each stale
+    phrase only in its own card. Its three defects repeat known kinds: a plain operator new said
+    to owe alignment for any type when C++17 split that duty with the aligned form, a leak said to
+    be silent that the compiler warned about at its lowest level, and make_shared said to hand a
+    class allocator a larger block when it never calls the class allocator at all.
+
+    The twentieth batch closed the C++ pattern topics. Its one outright defect was a library
+    requirement stated too loosely, stable partition said to accept forward iterators when both
+    forms demand bidirectional ones. Its two nuances were diagnostics the cards said do not exist:
+    a debug standard library asserted on unordered input to a merge and a containment test, and a
+    sanitizer with container annotations caught writes into reserved but unsized storage. Several
+    of its strongest predictions held exactly, including a counting predicate removing the third
+    and sixth elements and a parallel floating-point fold giving five different totals in thirty
+    runs.
+
     '
   confidence: strong
   status: active
-  evidence_count: 15
+  evidence_count: 20
   evidence_events:
   - SE_EV_0061
   - SE_EV_0062
@@ -1754,6 +1794,11 @@ entries:
   - SE_EV_0073
   - SE_EV_0074
   - SE_EV_0075
+  - SE_EV_0076
+  - SE_EV_0077
+  - SE_EV_0078
+  - SE_EV_0079
+  - SE_EV_0080
   evidence_origin:
   - runtime_self_audit
   retrieval_cues:

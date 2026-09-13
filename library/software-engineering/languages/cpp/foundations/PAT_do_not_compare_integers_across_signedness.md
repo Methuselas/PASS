@@ -49,7 +49,7 @@ variants: []
 - Treat compiler warnings as a bonus rather than the mechanism. Some compilers warn here and many do not, and the ones that do will warn in the places you were already looking.
 
 ## Don't
-- Don't cast one operand to silence a diagnostic. The cast does not fix the comparison; it performs the same reinterpretation the compiler was about to perform, with the difference that you have now signed your name to it and suppressed the warning that would have told the next reader.
+- Don't cast one operand to silence a diagnostic. Casting the signed operand to unsigned performs exactly the reinterpretation the compiler was about to perform, now with your name on it. Casting the unsigned operand to signed is a different conversion: it gives the right answer while the unsigned value fits the signed type and a wrong one beyond that, trading a bug at negative values for one at large ones. Either way the warning that would have told the next reader is gone, and neither is as sound as the comparison functions.
 - Don't expect the mistake to announce itself. The behaviour is fully defined, so nothing traps, nothing is diagnosed at runtime, and a sanitizer has nothing to report — the program simply takes the wrong branch.
 - Don't assume the comparison is safe because both values are small. The conversion is decided by the declared types, not by the values, and it happens identically whether the signed operand held negative three or three.
 

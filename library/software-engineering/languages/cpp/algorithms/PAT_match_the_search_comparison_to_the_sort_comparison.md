@@ -49,7 +49,7 @@ variants: []
 - Expect logarithmic *comparisons* rather than logarithmic *time* when the iterators are not random access. A binary search over a linked list still halves the candidate set each step, and still takes linear time getting from one candidate to the next.
 
 ## Don't
-- Don't rely on a diagnostic. Violating an iterator-category requirement fails to compile, which is inconvenient and safe; violating the ordering requirement compiles, runs, and returns answers that are wrong in ways that depend on the data.
+- Don't rely on a diagnostic. Violating an iterator-category requirement fails to compile, which is inconvenient and safe; violating the ordering requirement compiles, runs, and in an ordinary build returns answers that are wrong in ways that depend on the data. A debug standard library may check some of these — one asserted that the sequence was not ordered for a containment test and a merge — but it did not check the binary search, and no release build checks any of them.
 - Don't assume "sorted" is a property of the range alone. A range is sorted with respect to some comparison, and two ranges of the same elements can both be sorted under comparisons that disagree entirely — by ascending value, by descending value, by one field, by another.
 - Don't hand these algorithms a comparison that differs from the sorting one in any respect, including strictness. A comparison that reports equal values as ordered breaks these for the same reason it breaks an ordered container.
 

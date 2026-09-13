@@ -47,7 +47,7 @@ variants: []
 
 ## Don't
 - Don't overload it to make the wrapper usable with an interface that takes a pointer to pointer. That interface is going to write through the address it was given, which reaches past the wrapper entirely and leaves whatever bookkeeping the wrapper maintains describing a state that no longer exists.
-- Don't assume the damage is confined to code that knows about your type. Standard containers and algorithms take the address of elements; a type that redefines what an address means either fails to compile with them or, worse, compiles and does something else.
+- Don't assume the damage is confined to code that knows about your type. The standard containers and algorithms protect themselves by taking addresses through `std::addressof` — measured, a vector, list, sort, find and optional all behaved correctly on such a type — but generic code that writes the address-of expression directly, your own templates and third-party ones included, has no such guard, and there the type compiles and silently does something else.
 - Don't reach for this to avoid writing an accessor. The accessor is a few characters at each call site, and it is the only version of this that a reader can see.
 
 ## Checklist
@@ -60,4 +60,4 @@ Two separate objections apply and either is sufficient. The first is about owner
 
 The second objection is the one that generalizes past this operator. A type may reasonably define what addition or comparison means for it, because those have no single meaning across all types. Identity operations are different — they are part of how the language talks about objects at all — and redefining one leaves generic code with no diagnostic, because there is nothing in a template to say that this parameter is not an ordinary type.
 
-The failure mode is worth knowing because it does not point at the cause. What surfaces is a container or an algorithm behaving strangely on this element type and correctly on every other, which sends the reader into the library implementation rather than to the one operator that made this type unlike all the others.
+The failure mode is worth knowing because it does not point at the cause. What surfaces is a template behaving strangely on this type and correctly on every other, which sends the reader into the template's implementation rather than to the one operator that made this type unlike all the others. The standard library is the exception rather than the example, because it was written to take addresses in a way the operator cannot intercept.

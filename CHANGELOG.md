@@ -6,6 +6,52 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.12 - 2026-09-12
+
+### Changed
+
+- Repaired sixteen more C++ cards against compiled evidence, completing the topic-by-topic
+  sweep of every pattern in the `software-engineering` C++ module across const-correctness,
+  parameter-passing, operators, foundations, memory-management and algorithms.
+- `PAT_apply_const_to_lock_invariants` no longer says const locals catch `if (a * b = c)`;
+  a ref-qualified assignment operator is what refuses it for class types.
+- `PAT_return_by_value_when_returning_new_object` says a deleted move fails a named return
+  in every build, whether or not the copy is elided.
+- `PAT_prefer_pass_by_reference_to_const` says a const reference is reloaded only where an
+  intervening write could alias it.
+- `PAT_pass_a_smart_pointer_only_to_transfer_ownership` states the extra allocation for the
+  control block when a unique pointer becomes a shared one.
+- `PAT_implement_the_standalone_operator_from_the_compound` builds the result from a named
+  local, since returning the compound expression copies from an lvalue.
+- `PAT_leave_the_address_of_operator_alone` notes that the standard library guards itself
+  with `std::addressof`; generic code that writes `&x` is where the damage lands.
+- `PAT_leave_the_short_circuit_and_comma_operators_alone` notes that one current compiler
+  still evaluates free overloads of `&&` and `||` right operand first.
+- `PAT_interpose_a_proxy_when_an_operator_cannot_see_its_context` labels multi-argument
+  subscripting as C++23 and keeps the C++20 path.
+- `PAT_prefer_the_form_that_refuses_what_you_did_not_mean` scopes the `typename`
+  requirement under C++20, excepts `bool` from `nullptr`'s conversions, and notes the
+  deprecation warning on comparing unrelated enumerations.
+- `PAT_do_not_compare_integers_across_signedness` separates casting the signed operand from
+  casting the unsigned one.
+- `PAT_replace_new_delete_only_with_clear_reason` describes the C++17 split between plain
+  and aligned allocation.
+- `PAT_pair_placement_new_with_placement_delete` notes that a compiler may warn about the
+  missing placement delete.
+- `PAT_prefer_make_functions_to_direct_new` says `make_shared` never calls a class's
+  allocation functions and points to `std::allocate_shared`.
+- `PAT_choose_the_weakest_ordering_operation_that_does_the_job` says `stable_partition`
+  requires bidirectional iterators.
+- `PAT_match_the_search_comparison_to_the_sort_comparison` and
+  `PAT_make_sure_the_destination_range_can_hold_the_output` name the debug-library and
+  sanitizer checks that do catch their failures.
+
+### Added
+
+- Updated `software-engineering` memory: distance from C++20 predicts language-rule defects,
+  C++14-era sources are not exempt, and a correction should be searched for across the package
+  before one card is repaired.
+
 ## 1.0.0-beta.11 - 2026-09-12
 
 ### Changed

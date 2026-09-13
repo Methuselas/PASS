@@ -42,7 +42,7 @@ variants: []
 - Reserve the comma operator for reading rather than writing. Programmers meet it in the update clause of a loop advancing two variables at once, where only an expression is legal and two statements are not, and that is close to the whole of its defensible use.
 
 ## Don't
-- Don't conclude the objection lapsed when the ordering rules tightened. It is true that the operands of these overloaded operators are now sequenced the way the built-in versions sequence them, so the evaluation-order half of the classic argument no longer holds — but the decisive half is untouched: a call evaluates both operands whatever the order, so the skipping is gone.
+- Don't conclude the objection lapsed when the ordering rules tightened. The standard now sequences the operands of these overloaded operators the way the built-in versions sequence them, so in principle the evaluation-order half of the classic argument no longer holds — though one current compiler still evaluated the right operand first for free-function overloads of logical and and logical or — and the decisive half is untouched either way: a call evaluates both operands whatever the order, so the skipping is gone.
 - Don't treat the ability to overload an operator as a reason for doing it. The point of operator overloading is that programs read more clearly, and no caller can read these three correctly once the semantics have changed quietly underneath a familiar spelling.
 
 ## Checklist
@@ -55,4 +55,4 @@ What separates these three from the other overloadable operators is that their b
 
 The set of operators that cannot be overloaded at all — member selection, scope resolution, the conditional operator, sizeof, typeid, and the named casts — is worth knowing next to this, because it marks where the language judged the same hazard severe enough to settle centrally instead of leaving to taste. These three sit just on the permitted side of that line.
 
-Meyers rested the original case on two grounds: unspecified operand order and lost short-circuiting. The language has since fixed the first. Keeping the conclusion while discarding the obsolete half of its support is the point — the rule survives, but citing evaluation order as the reason for it is now simply wrong.
+Meyers rested the original case on two grounds: unspecified operand order and lost short-circuiting. The language has since fixed the first, though not every compiler honours the fix: one evaluated the right operand first for free-function overloads of logical and and logical or at every setting tried, while ordering comma, shift and member overloads correctly. The rule rests on the second ground, which no ordering rule can repair — so evaluation order is no longer the argument to lead with, and assuming left-first evaluation of an overloaded operand is still unsafe in practice.

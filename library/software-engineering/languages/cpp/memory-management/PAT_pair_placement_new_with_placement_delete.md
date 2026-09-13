@@ -42,7 +42,7 @@ variants: []
 - Also provide the normal operator delete, because a later plain delete on the pointer always calls the normal version, never a placement one.
 
 ## Don't
-- Don't declare a placement new without its matching placement delete; if the constructor throws, the runtime finds no delete to call and the memory leaks silently.
+- Don't declare a placement new without its matching placement delete; if the constructor throws, the runtime finds no delete to call and the memory leaks with nothing reported at run time. A compiler may warn at the declaration — one did, at its lowest warning level — and that warning is worth treating as an error.
 
 ## Checklist
 - Does each placement operator new have a placement operator delete with the same extra parameters?

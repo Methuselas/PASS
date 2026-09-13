@@ -45,7 +45,7 @@ variants: []
 - Let the parameter type state the ownership intent, because that is what a reader has to work out otherwise. A reference or raw pointer says the function uses the object and will not delete it; a smart pointer parameter says lifetime is changing hands.
 - Choose between reference and raw pointer on whether absence is meaningful. A reference is a pointer that cannot be null, so a parameter that must always refer to an object should be a reference, and one the function is prepared to receive as null should be a pointer — the declaration then documents which case the function handles.
 - Add const where the function does not modify the object, so the two facts a caller needs — no deletion, no modification — are both visible in the signature.
-- Return owning pointers from factories as unique pointers. A caller that wants shared ownership can construct one from the unique pointer cheaply, and a factory that returns a shared pointer has made that choice for every caller including those that did not need it.
+- Return owning pointers from factories as unique pointers. A caller that wants shared ownership can construct one from the unique pointer, at the price of a separate allocation for the control block that a shared-pointer factory would have combined with the object — measured, two allocations against one — and a factory that returns a shared pointer has made that choice for every caller including those that did not need it.
 - Apply the same reasoning inside containers. A container of raw pointers is right where the objects' lifetimes are managed elsewhere; a container of unique pointers is right where the container itself should own them.
 
 ## Don't

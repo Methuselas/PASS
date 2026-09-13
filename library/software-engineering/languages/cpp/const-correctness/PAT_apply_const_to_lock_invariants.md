@@ -42,7 +42,7 @@ variants: []
 ## Do
 - Place `const` precisely on pointers: in `const char * const p`, `const` left of the `*` freezes the pointee and `const` right of the `*` freezes the pointer — reading the declaration right-to-left makes this fall out.
 - Reach for `const_iterator` when you want the pointed-to element to stay fixed; a plain `const` iterator only stops the iterator from moving.
-- Mark parameters and locals `const` unless you must change them — six characters that turn the `if (a * b = c)` assignment typo into a compile error.
+- Mark parameters and locals `const` unless you must change them, so an accidental write to one of them is a compile error. Do not expect that to catch the `if (a * b = c)` typo: `a * b` produces a new non-const value whatever the constness of `a` and `b`, so for a class type the typo compiled with every operand const. For built-in types it is already an error; for a class type, a ref-qualified assignment operator is what refuses it.
 - Return a reference or pointer to const when callers may observe but not modify an existing object. Return newly produced values without top-level `const`; their operations should control valid value categories directly.
 
 ## Don't

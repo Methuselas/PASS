@@ -42,7 +42,7 @@ variants: []
 - Reach for compiler debug/logging switches, commercial allocators, or an open-source pool allocator (Boost's Pool) before writing your own.
 
 ## Don't
-- Don't hand-roll an allocator without handling alignment; operator new must return memory suitably aligned for any type, and getting this wrong crashes the program or silently slows it.
+- Don't hand-roll an allocator without handling alignment. Since C++17 the obligation is split: plain `operator new` must return memory aligned for any type up to the default new alignment, and types that need more are allocated through the `std::align_val_t` form, which a replacement has to supply as well or those types lose their alignment. Getting either wrong crashes on targets that fault on misaligned access and silently slows or corrupts on others.
 - Don't assume the default allocator is the bottleneck — profile before replacing it.
 
 ## Checklist
@@ -51,4 +51,4 @@ variants: []
 - Does my replacement return correctly aligned memory for any type?
 
 ## Notes
-The general-purpose allocator that ships with a compiler is a middle-of-the-road compromise: fine for everybody, optimal for nobody. Knowing your program's allocation patterns, a custom allocator can be markedly faster and smaller — but alignment is the detail that separates a professional allocator from one that "almost works," since returning a malloc pointer offset by an int can misalign a double and crash. Prefer compiler switches, commercial products, or Boost's Pool before rolling your own, and profile first.
+The general-purpose allocator that ships with a compiler is a middle-of-the-road compromise: fine for everybody, optimal for nobody. Knowing your program's allocation patterns, a custom allocator can be markedly faster and smaller — but alignment is the detail that separates a professional allocator from one that "almost works," since returning a malloc pointer offset by an int can misalign a double, which crashes on targets that fault on misaligned access — on x64 a misaligned double read back without complaint, which is exactly how the mistake survives testing. Prefer compiler switches, commercial products, or Boost's Pool before rolling your own, and profile first.

@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.20 - 2026-09-13
+
+### Changed
+
+- Recorded the first blind sitting of an updated C++ Drill in software-engineering Skillset
+  Memory as training event `SE_EV_0089`. A local model took
+  `DRILL_fix_templatized_base_class_name_access` cut before its Success Check, and the grader
+  rebuilt and reran every answer. The sitting passed all six criteria. It also flagged a possible
+  Instructions gap: bullet 4's stated reason is not asked for by its own step. No card changed.
+
 ## 1.0.0-beta.19 - 2026-09-13
 
 ### Fixed

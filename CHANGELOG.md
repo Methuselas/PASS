@@ -6,6 +6,28 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.22 - 2026-09-14
+
+### Fixed
+
+- `DRILL_redesign_interface_to_prevent_misuse` now asks for a wrong-order call with each argument in
+  its own braces, such as `Date({30}, {3}, {1995})`, in its Instruction, Success Check and Common
+  Failures. "A braced call in the wrong order" also reads as `Date{30, 3, 1995}`, which aggregate
+  wrappers reject, so a run following that reading never saw the aggregate hole the check exists to
+  expose. `PAT_make_interfaces_hard_to_misuse` names the same per-argument form and notes that bracing
+  the whole argument list is refused.
+
+### Changed
+
+- Recorded eight more blind C++ Drill sittings in software-engineering Skillset Memory as training
+  events `SE_EV_0098` to `SE_EV_0104` and `SE_EV_0106`. Six are valid; `SE_EV_0104` (the abandoned
+  interface-01 sitting) and `SE_EV_0106` are recorded invalid for harness failures (an engine
+  auto-update that stalled generation, and a shell tool that could not run commands) and count toward
+  nothing.
+- Added `SE_EV_0105`, which corrects the taker setup recorded in `SE_EV_0089` to `SE_EV_0097`: those
+  sittings ran the Q4_K_M model file with its vision projector, not Q5_K_M. Training history is
+  append-oriented, so the original events are left as written.
+
 ## 1.0.0-beta.21 - 2026-09-13
 
 ### Fixed

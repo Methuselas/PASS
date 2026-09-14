@@ -33,7 +33,7 @@ variants: []
 # Complete a Derived Class's Copying Functions
 
 ## Practice Task
-Given a base `Customer` (a name and a last-transaction date) and a derived `PriorityCustomer` (a priority) whose hand-written copying functions copy only `priority`, fix them so nothing is dropped, then decide whether the class should hand-write them at all.
+Given a base `Customer` (a name and a last-transaction date, with compiler-generated copying and moving functions) and a derived `PriorityCustomer` (a priority) whose hand-written copying functions copy only `priority`, fix them so nothing is dropped, then decide whether the class should hand-write them at all.
 
 ## Target Skill
 Copying every local member and invoking the base class's copying and moving functions from a derived class, and recognizing when removing the hand-written functions is the better repair.
@@ -48,7 +48,7 @@ Give `Customer`'s members a type that counts its own copies and moves.
 - In the copy assignment operator, call the base class operator= before copying the derived members.
 - State what happens instead when each of those two base calls is omitted.
 - State the relationship between the two copying functions, and whether either should be implemented by calling the other.
-- Add a new member to the base class, name every copying function that must now change before consulting the compiler, then consult the compiler and compare the two lists.
+- Add a new member to the derived class, name every copying function that must now change before consulting the compiler, then consult the compiler and compare the two lists.
 - Move-construct the fixed class with `std::move` and record how many base members were copied and how many moved.
 - Add a derived move constructor and record the same counts.
 - Remove every hand-written copying and moving function, repeat the copy and move measurements, and state what would justify writing them again.
@@ -57,7 +57,7 @@ Give `Customer`'s members a type that counts its own copies and moves.
 - The members and base parts the original copying functions miss are listed before the fix, produced by reading the class declaration rather than by reading the copying functions, which is what omitted them in the first place.
 - The failure is demonstrated: an object is copied and the base part is shown default-constructed by the copy constructor and left unchanged by the assignment. The compiler produces this without a warning, which is why an inspection is not enough.
 - The base copy constructor is invoked in the member initialization list and the base assignment operator is called explicitly, and the run states what happens instead when each is omitted. The two omissions have different symptoms and only one of them is easy to see.
-- A base member is actually added; every copying function needing a change is named before the compiler is consulted, and then the compiler is consulted. The gap between those two lists is the finding, because the compiler reports none of them.
+- A derived member is actually added; every copying function needing a change is named before the compiler is consulted, and then the compiler is consulted. The gap between those two lists is the finding, because the compiler reports none of them.
 - The run states the relationship between the two copying functions — why neither should be implemented by calling the other — rather than leaving them as parallel hand-written bodies whose agreement is a coincidence.
 - The move counts are recorded, not predicted: the fixed class copies both base members under `std::move`, because hand-written copying functions suppress the implicit move constructor, and the added derived move constructor's counts show the base moved rather than copied. A move constructor that passes `rhs` to the base compiles and copies it, and a class that copies correctly passes every bullet above while every move of it is a copy.
 - With the hand-written functions removed, the copy is measured complete and the move measured as moves, and the run names a concrete reason that would justify writing them again rather than treating the repaired versions as the goal.

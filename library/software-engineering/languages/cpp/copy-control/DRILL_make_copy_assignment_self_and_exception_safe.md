@@ -46,7 +46,7 @@ Give `Bitmap` a copy constructor that can be made to throw on demand. Build ever
 - Reproduce the naive version, execute a self-assignment against it in both builds, and record what each build reports.
 - Rewrite it to copy first: save the original pointer, allocate the new copy, then delete the original; return a reference to *this.
 - State whether that version needs an identity test, and why.
-- Make the `Bitmap` copy throw during an assignment, and record the target's state afterwards for both the naive version and the rewrite.
+- Make the `Bitmap` copy throw during an assignment, and record the target's state afterwards and what happens when it is destroyed, for both the naive version and the rewrite.
 - Exercise chaining through the returned reference.
 - Rewrite it a second time using copy-and-swap. Count allocations and `Bitmap` copies per assignment for the copy-first version, the copy-and-swap version, and an in-place `*pb = *rhs.pb`, and state what each form costs and what guarantee each gives.
 - Write the class with a `std::unique_ptr` member owning the `Bitmap`, run the same self-assignment, failure, chaining, and move cases against it, and list which special member functions still have to be written by hand.

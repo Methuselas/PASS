@@ -6,6 +6,29 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.21 - 2026-09-13
+
+### Fixed
+
+- `DRILL_complete_a_derived_class_copying_functions` no longer asks for two incompatible base
+  classes. Its base-member step needed a base with hand-written copying functions, while its move
+  bullet needed one whose moves were generated, so one of the two could not be met. The Practice Task
+  now states that `Customer`'s copying and moving functions are compiler-generated, and the added
+  member goes on the derived class, whose hand-written copying functions the compiler never reports
+  as stale.
+- `DRILL_make_copy_assignment_self_and_exception_safe` now asks what happens when the target is
+  destroyed after the throwing copy. Its Success Check grades the naive version's destructor freeing
+  released memory a second time, but reading the target's state is itself a use-after-free that stops
+  an AddressSanitizer build before the destructor runs.
+
+### Changed
+
+- Recorded eight blind sittings of C++ Drills in software-engineering Skillset Memory as training
+  events `SE_EV_0090` to `SE_EV_0097`. A local model took each Drill cut before its Success Check,
+  and the grader rebuilt and reran every answer and checked the Drill's claims with its own programs.
+  Seven sittings are valid, all partial passes; `SE_EV_0091` is recorded invalid because its session
+  reused an earlier sitting's context, and `SE_EV_0092` is its clean rerun.
+
 ## 1.0.0-beta.20 - 2026-09-13
 
 ### Changed

@@ -6,6 +6,26 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.23 - 2026-09-14
+
+### Fixed
+
+- `DRILL_redesign_interface_to_prevent_misuse` now asks for the scoped-enumeration attempt in a step of
+  its own, before Month is constrained with predefined objects: record whether the enumeration fixes
+  the argument order and refuses a plain integer, then cast an out-of-range integer to it and record
+  what the result holds. The Success Check already graded that an explicit cast still yields an
+  undeclared value, but no step asked for a cast, so whether a run tried one was left to chance.
+- The same Drill's invalid-month bullet now requires the compiler's rejection to be recorded, so a
+  predicted rejection no longer passes.
+
+### Changed
+
+- Recorded four blind C++ Drill sittings in software-engineering Skillset Memory as training events
+  `SE_EV_0107` to `SE_EV_0110`, all valid. Three confirm earlier repairs in practice: the
+  derived-class copying functions Drill (beta.21), the copy-assignment destruction step (beta.21), and
+  the per-argument braced call in the interface Drill (beta.22). The fourth is a valid rerun of the
+  pimpl sitting recorded invalid in beta.22.
+
 ## 1.0.0-beta.22 - 2026-09-14
 
 ### Fixed

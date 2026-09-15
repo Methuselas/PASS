@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.23`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.24`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -384,28 +384,53 @@ small C++ administration pilot under
 For an actual blind sitting, the optional
 [`PASS/runtime/skillforge_drill.py`](PASS/runtime/skillforge_drill.py) helper
 implements the shared prepare → produce → freeze → reveal → grade → finalize
-lifecycle. It is model-neutral: it standardizes evidence boundaries and stopping
-rules, not the taker's reasoning style. Only `student/` is exposed before freeze;
+lifecycle. It is learner-neutral: the same packet can train or evaluate a human
+or any AI model, while adapters own provider- or person-specific delivery. Only
+`student/` is exposed before freeze;
 `controller/` stays private, every canonical Success Check bullet must receive a
 grader disposition, and finalization exports a candidate history event without
-editing Skillset Memory. Releases that contain Drill cards receive the same
-helper automatically under `scripts/skillforge_drill.py`. See
+editing Skillset Memory. Qualification is key-blind and skillcard-present: the
+runner packages the exact linked Pattern/AP cards and hides the Success Check and
+Common Failures until the answer is frozen. A linked practice may teach through
+the Drill's own Instructions, an exact Pattern/AP bundle copied into the packet,
+external material, or a declared combination. Releases that contain Drill cards
+receive the same helper automatically under `scripts/skillforge_drill.py`. See
 [`PASS/docs/PASS_CONSUMPTION.md`](PASS/docs/PASS_CONSUMPTION.md#optional-model-neutral-drill-runner)
 for the command sequence.
 
-### Teaching humans with AI later
+### Teaching humans and AI
 
-Drills are also the foundation for a future mode in which an AI teaches a human
-through guided practice. In that mode the AI would select an appropriate Drill,
-present the task without leaking its answer, observe the learner's actual work,
-apply the Success Check, explain the relevant failure, and choose a next attempt
-or prerequisite.
+Drills train through guided practice, whether the taker is a person or a model.
+The learner profile states `human` or `ai`; it does not force human work into
+model metadata. Pattern/AP cards and the Drill Instructions are explicit teaching
+components, while the hidden Success Check remains assessment material.
 
-The present Drill schema already separates practice, instruction, assessment,
-and common failures, but PASS does not yet claim a complete human-teaching
-system. Human-facing pacing, hint policy, accessibility, safety, progression,
-and evidence of learning still need to be designed and tested before that mode
-is declared mature. See
+The same evidence also improves the skillset. Grading routes each non-pass to a
+provisional cause—application, Drill, exposed skillcard, scenario,
+runtime/tool, or unresolved. Application and card failures retain a transferable
+mistake/correction/prevention lesson rather than a named learner's weakness.
+Genuine card failures enter repair and fresh-case requalification.
+
+Card qualification is binary: every required criterion must pass, any failed
+criterion fails the card or bundle, and a prevented judgment is invalid. There
+is no partial qualification.
+
+While PASS is being stabilized, these runs have the fixed purpose
+`skillset-improvement`: they qualify and repair cards and create or update
+Skillset Memory. A model may benefit from the practice, but PASS does not treat
+that as a persistent model-memory or weight update. A local memory system owned
+by models is a later, separate project.
+
+Drills are training scaffolds with a deliberate half-life. Guided practice makes
+the action executable at first; later isolation and transfer remove that
+guidance. Once performance holds, ordinary work should depend on the smaller
+Patterns and Action Protocols, returning to Drills for refresh, qualification,
+or regression after the skillset changes.
+
+PASS does not yet claim a complete adaptive human-tutoring interface. Human-facing
+pacing, hint policy, accessibility, safety, and automatic progression still need
+design and testing. The portable practice and evidence contract is shared now;
+the adapter supplies that interaction. See
 [`PASS/docs/PASS_CONSUMPTION.md`](PASS/docs/PASS_CONSUMPTION.md) for current
 administration rules and [`PASS/docs/PASS_SCHEMA.md`](PASS/docs/PASS_SCHEMA.md)
 for the closed Drill contract.
@@ -520,7 +545,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.23`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.24`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

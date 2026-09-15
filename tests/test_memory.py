@@ -57,6 +57,28 @@ INVALID_EVENT = {
     "validity": "invalid",
     "invalid_reason": "exact_edit_source_unavailable",
 }
+CORRECTION_EVENT = {
+    "event_id": "TST_EV_0003",
+    "date": "2026-08-23",
+    "task": "Correct the model revision recorded for an earlier attempt",
+    "validity": "valid",
+    "event_kind": "metadata_correction",
+    "supersedes_events": ["TST_EV_0001"],
+    "corrections": {"taker.model.revision": "Q4_K_M"},
+}
+EVIDENCE_CORRECTION_EVENT = {
+    "event_id": "TST_EV_0004",
+    "date": "2026-08-24",
+    "task": "Correct the evidence classification of an earlier attempt",
+    "validity": "valid",
+    "event_kind": "evidence_correction",
+    "supersedes_events": ["TST_EV_0001"],
+    "corrections": {
+        "disposition": "quarantined",
+        "reason": "The attempt did not exercise the capability it was said to measure.",
+        "replacement_outcomes": {"TST_EV_0001": "not-applicable"},
+    },
+}
 
 
 def run_tool(*args: object, memory: Path | None = None) -> subprocess.CompletedProcess[str]:
@@ -197,6 +219,97 @@ class AdmissibilityContract(MemoryStoreFixture):
         self.assertEqual(stored["entries"][0]["evidence_events"], ["TST_EV_0001", "TST_EV_0003"])
         self.assertEqual(stored["entries"][0]["evidence_count"], 2)
 
+    def test_metadata_correction_is_valid_history_but_not_evidence(self) -> None:
+        self.write([], [VALID_EVENT, CORRECTION_EVENT])
+        self.assertEqual(self.validate().returncode, 0)
+        sys.path.insert(0, str(ROOT / "PASS/tools"))
+        self.addCleanup(sys.path.remove, str(ROOT / "PASS/tools"))
+        import memory as memory_tool
+
+        self.assertEqual(memory_tool.uncited_valid_events(self.domain), ["TST_EV_0001"])
+
+    def test_entry_citing_metadata_correction_is_rejected(self) -> None:
+        entry = dict(VALID_ENTRY, evidence_count=1, evidence_events=["TST_EV_0003"])
+        self.write([entry], [VALID_EVENT, CORRECTION_EVENT])
+        result = self.validate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("correction is not capability evidence", result.stdout)
+
+    def test_metadata_correction_must_point_backward_to_known_event(self) -> None:
+        correction = dict(CORRECTION_EVENT, supersedes_events=["TST_EV_9999"])
+        self.write([], [VALID_EVENT, correction])
+        result = self.validate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("supersedes unknown event", result.stdout)
+
+    def test_evidence_correction_quarantines_history_without_deleting_it(self) -> None:
+        self.write([], [VALID_EVENT, EVIDENCE_CORRECTION_EVENT])
+        self.assertEqual(self.validate().returncode, 0)
+        sys.path.insert(0, str(ROOT / "PASS/tools"))
+        self.addCleanup(sys.path.remove, str(ROOT / "PASS/tools"))
+        import memory as memory_tool
+
+        self.assertEqual(memory_tool.uncited_valid_events(self.domain), [])
+        self.assertEqual(
+            len((self.domain / "training_history.jsonl").read_text(encoding="utf-8").splitlines()),
+            2,
+        )
+
+    def test_entry_citing_quarantined_event_is_rejected(self) -> None:
+        entry = dict(VALID_ENTRY, evidence_count=1, evidence_events=["TST_EV_0001"])
+        self.write([entry], [VALID_EVENT, EVIDENCE_CORRECTION_EVENT])
+        result = self.validate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("cites quarantined event", result.stdout)
+
+    def test_compact_refuses_to_link_a_quarantined_event(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT, EVIDENCE_CORRECTION_EVENT])
+        result = run_tool(
+            "compact", "--domain", "art", "--entry", "TST_MEM_001",
+            "--events", "TST_EV_0001", memory=self.tmp,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("refusing quarantined event", result.stderr)
+
+    def test_evidence_correction_requires_a_reason_and_closed_outcome(self) -> None:
+        correction = dict(EVIDENCE_CORRECTION_EVENT)
+        correction["corrections"] = {
+            "disposition": "quarantined",
+            "reason": "",
+            "replacement_outcomes": {"TST_EV_0001": "partial"},
+        }
+        self.write([], [VALID_EVENT, correction])
+        result = self.validate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("corrections.reason must be non-empty", result.stdout)
+        self.assertIn("replacement_outcomes", result.stdout)
+
+    def test_lesson_records_the_transferable_mistake_not_the_model(self) -> None:
+        event = dict(
+            VALID_EVENT,
+            taker={
+                "learner_id": "qwen-local-01",
+                "learner": {"kind": "ai"},
+                "model": {"name": "Qwen"},
+                "runtime": {"name": "Bionic"},
+            },
+            lessons=[{
+                "drill_id": "DRILL_example",
+                "criterion_index": 1,
+                "cause": "application",
+                "mistake": "Qwen omitted the boundary check.",
+                "correction": "Check the boundary before indexing.",
+                "prevention": "Make the boundary case explicit in the preflight.",
+            }],
+        )
+        self.write([], [event])
+        result = self.validate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("transferable, not name the taker", result.stdout)
+
+        event["lessons"][0]["mistake"] = "The boundary check was omitted."
+        self.write([], [event])
+        self.assertEqual(self.validate().returncode, 0)
 
 class PersistenceContract(MemoryStoreFixture):
     """Reported written is not verified written."""
@@ -223,6 +336,16 @@ class PersistenceContract(MemoryStoreFixture):
         self.assertEqual(result.returncode, 1)
         self.assertIn("authoring action", result.stderr)
         self.assertEqual((self.domain / "training_history.jsonl").read_text(encoding="utf-8"), "")
+
+    def test_append_refuses_a_card_currency_update_as_training(self) -> None:
+        self.write([], [])
+        result = run_tool(
+            "append", "--domain", "art",
+            "--task", "Currency update of four Drills against their linked Patterns",
+            memory=self.tmp,
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("authoring action", result.stderr)
 
     def test_append_requires_a_reason_for_an_invalid_run(self) -> None:
         self.write([], [])

@@ -65,6 +65,18 @@ FAILURE_LAYERS = {
 STAGE_RESULTS = {"improved", "partial", "unchanged", "failed", "untested"}
 SCORE_VALUES = {"strong", "adequate", "weak", "failed", "unproven"}
 VALIDITY_VALUES = {"valid", "invalid"}
+EVENT_KIND_VALUES = {"performance", "metadata_correction", "evidence_correction"}
+RUN_TYPE_VALUES = {
+    "portability-probe", "blind-drill-sitting", "deterministic-regression",
+    "comparative-study",
+}
+TRAINING_STAGE_VALUES = {
+    "qualification", "baseline", "practice", "isolation", "retention", "transfer",
+}
+PROGRAM_PURPOSE_VALUES = {"skillset-improvement"}
+EVENT_INTERVENTION_COMPONENT_KEYS = {
+    "drill_instructions", "card_ids", "external_material",
+}
 
 ENTRY_REQUIRED = {
     "id", "scope_type", "scope_id", "type", "evidence_class", "observation",
@@ -86,7 +98,9 @@ EVENT_REQUIRED = {"event_id", "date", "task", "validity"}
 EVENT_OPTIONAL = {
     "invalid_reason", "scope_id", "delivery", "observations", "baseline",
     "isolation", "retention", "transfer", "artifact_quality", "process_validity",
-    "skill_attribution", "notes",
+    "skill_attribution", "notes", "run_type", "training_stage", "taker",
+    "intervention", "program_purpose", "lessons", "event_kind",
+    "supersedes_events", "corrections",
 }
 EVENT_KEYS = EVENT_REQUIRED | EVENT_OPTIONAL
 STAGE_KEYS = ("baseline", "isolation", "retention", "transfer")
@@ -119,6 +133,7 @@ AUTHORING_TASK_PHRASES = (
     "regenerated indexes", "regenerated the index", "built the release",
     "created an archive", "generated an archive", "packaged the release",
     "read unit", "processed unit", "closed the source", "closed the book",
+    "currency update of",
 )
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -274,7 +289,13 @@ def validate_entry(entry: Any, index: int, errors: list[str]) -> None:
         errors.append(f"{label}: last_verified must be YYYY-MM-DD")
 
 
-def validate_event(event: dict[str, Any], index: int, errors: list[str]) -> None:
+def validate_event(
+    event: dict[str, Any],
+    index: int,
+    errors: list[str],
+    *,
+    quarantined: bool = False,
+) -> None:
     label = event.get("event_id") if isinstance(event.get("event_id"), str) else f"event[{index}]"
 
     missing = sorted(EVENT_REQUIRED - set(event))
@@ -295,13 +316,210 @@ def validate_event(event: dict[str, Any], index: int, errors: list[str]) -> None
     if validity == "valid" and event.get("invalid_reason"):
         errors.append(f"{label}: invalid_reason must be absent when validity is valid")
 
+    event_kind = event.get("event_kind", "performance")
+    if event_kind not in EVENT_KIND_VALUES:
+        errors.append(f"{label}: event_kind must be one of {sorted(EVENT_KIND_VALUES)}")
+    if event_kind in {"metadata_correction", "evidence_correction"}:
+        supersedes = event.get("supersedes_events")
+        if not isinstance(supersedes, list) or not supersedes or any(
+            not isinstance(item, str) or not item.strip() for item in supersedes
+        ):
+            errors.append(
+                f"{label}: {event_kind} requires non-empty supersedes_events"
+            )
+        corrections = event.get("corrections")
+        if not isinstance(corrections, dict) or not corrections:
+            errors.append(f"{label}: {event_kind} requires non-empty corrections")
+        prohibited = {
+            "observations", "baseline", "isolation", "retention", "transfer",
+            "artifact_quality", "process_validity", "skill_attribution",
+            "run_type", "training_stage", "taker", "intervention",
+            "program_purpose", "lessons",
+        }
+        present = sorted(prohibited & set(event))
+        if present:
+            errors.append(
+                f"{label}: {event_kind} may not claim performance fields: "
+                f"{', '.join(present)}"
+            )
+        if event_kind == "evidence_correction" and isinstance(corrections, dict):
+            if corrections.get("disposition") != "quarantined":
+                errors.append(
+                    f"{label}: evidence_correction corrections.disposition must be quarantined"
+                )
+            if not str(corrections.get("reason", "")).strip():
+                errors.append(
+                    f"{label}: evidence_correction corrections.reason must be non-empty"
+                )
+            replacement = corrections.get("replacement_outcomes")
+            if replacement is not None:
+                allowed = {"pass", "fail", "invalid", "not-applicable"}
+                if not isinstance(replacement, dict) or any(
+                    target not in (supersedes or []) or outcome not in allowed
+                    for target, outcome in replacement.items()
+                ):
+                    errors.append(
+                        f"{label}: replacement_outcomes must map superseded events to "
+                        f"one of {sorted(allowed)}"
+                    )
+    elif "supersedes_events" in event or "corrections" in event:
+        errors.append(
+            f"{label}: supersedes_events and corrections require a correction event_kind"
+        )
+
+    if "run_type" in event and event["run_type"] not in RUN_TYPE_VALUES:
+        errors.append(f"{label}: run_type must be one of {sorted(RUN_TYPE_VALUES)}")
+    if "training_stage" in event and event["training_stage"] not in TRAINING_STAGE_VALUES:
+        errors.append(
+            f"{label}: training_stage must be one of {sorted(TRAINING_STAGE_VALUES)}"
+        )
+    if "program_purpose" in event and event["program_purpose"] not in PROGRAM_PURPOSE_VALUES:
+        errors.append(
+            f"{label}: program_purpose must be one of {sorted(PROGRAM_PURPOSE_VALUES)}"
+        )
+    taker = event.get("taker")
+    if taker is not None:
+        if not isinstance(taker, dict):
+            errors.append(f"{label}: taker must be a mapping")
+        else:
+            if not str(taker.get("learner_id", "")).strip():
+                errors.append(f"{label}: taker.learner_id must be non-empty")
+            learner = taker.get("learner")
+            if not isinstance(learner, dict) or learner.get("kind") not in {"human", "ai"}:
+                errors.append(f"{label}: taker.learner.kind must be human or ai")
+            runtime = taker.get("runtime")
+            if not isinstance(runtime, dict) or not str(runtime.get("name", "")).strip():
+                errors.append(f"{label}: taker.runtime.name must be non-empty")
+            if (
+                isinstance(learner, dict)
+                and learner.get("kind") == "ai"
+                and "model" in taker
+            ):
+                model = taker.get("model")
+                if not isinstance(model, dict) or not str(model.get("name", "")).strip():
+                    errors.append(f"{label}: optional AI model metadata requires model.name")
+            elif isinstance(learner, dict) and learner.get("kind") == "human" and "model" in taker:
+                errors.append(f"{label}: a human taker may not contain model metadata")
+
+    lessons = event.get("lessons")
+    if lessons is not None:
+        if not isinstance(lessons, list):
+            errors.append(f"{label}: lessons must be a list")
+        else:
+            for lesson_index, lesson in enumerate(lessons, start=1):
+                lesson_label = f"{label}: lesson {lesson_index}"
+                if not isinstance(lesson, dict):
+                    errors.append(f"{lesson_label} must be a mapping")
+                    continue
+                unknown = sorted(
+                    set(lesson)
+                    - {
+                        "drill_id", "criterion_index", "cause", "object_id",
+                        "mistake", "correction", "prevention",
+                    }
+                )
+                if unknown:
+                    errors.append(
+                        f"{lesson_label} has unknown key(s): {', '.join(unknown)}"
+                    )
+                if not str(lesson.get("drill_id", "")).strip():
+                    errors.append(f"{lesson_label}.drill_id must be non-empty")
+                if not isinstance(lesson.get("criterion_index"), int) or isinstance(
+                    lesson.get("criterion_index"), bool
+                ) or lesson["criterion_index"] < 1:
+                    errors.append(f"{lesson_label}.criterion_index must be a positive integer")
+                if lesson.get("cause") not in {"application", "drill", "skillcard"}:
+                    errors.append(
+                        f"{lesson_label}.cause must be application, drill, or skillcard"
+                    )
+                if lesson.get("cause") in {"drill", "skillcard"}:
+                    if not str(lesson.get("object_id", "")).strip():
+                        errors.append(f"{lesson_label}.object_id must name the attributed card")
+                    elif lesson.get("cause") == "drill" and lesson.get("object_id") != lesson.get("drill_id"):
+                        errors.append(f"{lesson_label}: Drill cause must name its Drill")
+                    elif lesson.get("cause") == "skillcard":
+                        intervention_data = event.get("intervention") or {}
+                        component_data = intervention_data.get("components") or {}
+                        exposed_cards = component_data.get("card_ids") or []
+                        if lesson.get("object_id") not in exposed_cards:
+                            errors.append(
+                                f"{lesson_label}: skillcard cause must name an exposed card"
+                            )
+                elif lesson.get("object_id") is not None:
+                    errors.append(f"{lesson_label}: application lessons may not name a card")
+                for key in ("mistake", "correction", "prevention"):
+                    if not str(lesson.get(key, "")).strip():
+                        errors.append(f"{lesson_label}.{key} must be non-empty")
+                profile = taker if isinstance(taker, dict) else {}
+                model = profile.get("model") or {}
+                taker_labels = [
+                    str(profile.get("learner_id", "")),
+                    str(model.get("name", "")),
+                ]
+                lesson_text = " ".join(
+                    str(lesson.get(key, ""))
+                    for key in ("mistake", "correction", "prevention")
+                ).lower()
+                if any(
+                    len(taker_label.strip()) >= 3
+                    and taker_label.lower() in lesson_text
+                    for taker_label in taker_labels
+                ):
+                    errors.append(
+                        f"{lesson_label}: lesson must be transferable, not name the taker"
+                    )
+
+    intervention = event.get("intervention")
+    if intervention is not None:
+        if not isinstance(intervention, dict):
+            errors.append(f"{label}: intervention must be a mapping")
+        else:
+            for key in ("intervention_id", "kind", "description"):
+                if not str(intervention.get(key, "")).strip():
+                    errors.append(f"{label}: intervention.{key} must be non-empty")
+            components = intervention.get("components")
+            if not isinstance(components, dict):
+                errors.append(f"{label}: intervention.components must be a mapping")
+            else:
+                unknown = sorted(set(components) - EVENT_INTERVENTION_COMPONENT_KEYS)
+                if unknown:
+                    errors.append(
+                        f"{label}: intervention.components has unknown key(s): "
+                        + ", ".join(unknown)
+                    )
+                for key in ("drill_instructions", "external_material"):
+                    if not isinstance(components.get(key, False), bool):
+                        errors.append(
+                            f"{label}: intervention.components.{key} must be true or false"
+                        )
+                card_ids = components.get("card_ids", [])
+                if not isinstance(card_ids, list) or any(
+                    not isinstance(item, str) or not item.strip()
+                    for item in card_ids
+                ):
+                    errors.append(
+                        f"{label}: intervention.components.card_ids must contain non-empty Pattern/AP IDs"
+                    )
+                elif len(card_ids) != len(set(card_ids)):
+                    errors.append(
+                        f"{label}: intervention.components.card_ids may not contain duplicates"
+                    )
+                if not (
+                    components.get("drill_instructions", False)
+                    or card_ids
+                    or components.get("external_material", False)
+                ):
+                    errors.append(
+                        f"{label}: intervention must declare at least one teaching component"
+                    )
+
     if "date" in event and not DATE_RE.fullmatch(str(event["date"])):
         errors.append(f"{label}: date must be YYYY-MM-DD")
 
     task = event.get("task")
     if not isinstance(task, str) or not task.strip():
         errors.append(f"{label}: task must be non-empty text")
-    else:
+    elif event_kind == "performance" and not quarantined:
         lowered = task.lower()
         for phrase in AUTHORING_TASK_PHRASES:
             if phrase in lowered:
@@ -364,14 +582,40 @@ def validate_store(domain_dir: Path) -> list[str]:
 
     events, event_errors = load_events(domain_dir)
     errors.extend(event_errors)
+    quarantined = {
+        str(target)
+        for event in events
+        if event.get("event_kind") == "evidence_correction"
+        and (event.get("corrections") or {}).get("disposition") == "quarantined"
+        for target in (event.get("supersedes_events") or [])
+    }
     for index, event in enumerate(events):
-        validate_event(event, index, errors)
+        validate_event(
+            event,
+            index,
+            errors,
+            quarantined=str(event.get("event_id")) in quarantined,
+        )
 
     event_ids = [e["event_id"] for e in events if isinstance(e.get("event_id"), str)]
     for duplicate in sorted({i for i in event_ids if event_ids.count(i) > 1}):
         errors.append(f"training_history.jsonl: duplicate event_id '{duplicate}'")
 
     by_event_id = {e["event_id"]: e for e in events if isinstance(e.get("event_id"), str)}
+    event_positions = {
+        e["event_id"]: index
+        for index, e in enumerate(events)
+        if isinstance(e.get("event_id"), str)
+    }
+    for event in events:
+        if event.get("event_kind") not in {"metadata_correction", "evidence_correction"}:
+            continue
+        label = event.get("event_id", "event")
+        for target in event.get("supersedes_events") or []:
+            if target not in by_event_id:
+                errors.append(f"{label}: supersedes unknown event '{target}'")
+            elif event_positions[target] >= event_positions.get(label, -1):
+                errors.append(f"{label}: correction target '{target}' must appear earlier")
     known_ids = set(ids)
 
     for entry in entries:
@@ -398,6 +642,21 @@ def validate_store(domain_dir: Path) -> list[str]:
                     f"{label}: evidence_events cites invalid event '{event_id}' "
                     f"({event.get('invalid_reason', 'no reason recorded')}); "
                     "an invalid run is never evidence about a capability"
+                )
+            elif event.get("event_kind") == "metadata_correction":
+                errors.append(
+                    f"{label}: evidence_events cites metadata correction '{event_id}'; "
+                    "a correction is not capability evidence"
+                )
+            elif event.get("event_kind") == "evidence_correction":
+                errors.append(
+                    f"{label}: evidence_events cites evidence correction '{event_id}'; "
+                    "a correction is not capability evidence"
+                )
+            elif event_id in quarantined:
+                errors.append(
+                    f"{label}: evidence_events cites quarantined event '{event_id}'; "
+                    "a superseding evidence correction removed it from capability evidence"
                 )
         count = entry.get("evidence_count")
         if isinstance(count, int) and not isinstance(count, bool) and cited and count != len(cited):
@@ -550,6 +809,13 @@ def compact_link(
     if load_errors:
         return False, load_errors
     by_id = {e.get("event_id"): e for e in events}
+    quarantined = {
+        str(target)
+        for event in events
+        if event.get("event_kind") == "evidence_correction"
+        and (event.get("corrections") or {}).get("disposition") == "quarantined"
+        for target in (event.get("supersedes_events") or [])
+    }
 
     problems: list[str] = []
     for event_id in event_ids:
@@ -560,6 +826,15 @@ def compact_link(
             problems.append(
                 f"refusing invalid event '{event_id}' "
                 f"({event.get('invalid_reason', 'no reason recorded')})"
+            )
+        elif event.get("event_kind") in {"metadata_correction", "evidence_correction"}:
+            problems.append(
+                f"refusing correction '{event_id}'; a correction is not capability evidence"
+            )
+        elif event_id in quarantined:
+            problems.append(
+                f"refusing quarantined event '{event_id}'; a superseding evidence correction "
+                "removed it from capability evidence"
             )
     if problems:
         return False, problems
@@ -592,10 +867,20 @@ def uncited_valid_events(domain_dir: Path) -> list[str]:
         if isinstance(entry, dict) and isinstance(entry.get("evidence_events"), list):
             cited.update(str(e) for e in entry["evidence_events"])
     events, _ = load_events(domain_dir)
+    quarantined = {
+        str(target)
+        for event in events
+        if event.get("event_kind") == "evidence_correction"
+        and (event.get("corrections") or {}).get("disposition") == "quarantined"
+        for target in (event.get("supersedes_events") or [])
+    }
     return [
         str(e.get("event_id"))
         for e in events
-        if e.get("validity") == "valid" and str(e.get("event_id")) not in cited
+        if e.get("validity") == "valid"
+        and e.get("event_kind", "performance") == "performance"
+        and str(e.get("event_id")) not in cited
+        and str(e.get("event_id")) not in quarantined
     ]
 
 

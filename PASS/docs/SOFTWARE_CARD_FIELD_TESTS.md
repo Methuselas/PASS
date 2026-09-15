@@ -4,14 +4,15 @@ status: active
 owner: docs/domains/software-engineering
 last_reviewed: 2026-09-07
 
-A software card field test asks a practical question: **does this card help a
-model understand, reproduce, or improve a real engineering decision found in
+A software card field test asks a practical question: **does this card guide an
+agent to understand, reproduce, or improve a real engineering decision found in
 human-written software?** It is not a Drill sitting and it is not a
 treatment/control experiment.
 
 The review subject is existing software. The card supplies the engineering
 lens; the human code supplies a real design with real constraints; a small proof
-of concept shows whether the model can turn what it learned into working code.
+of concept shows whether an agent can turn the card's guidance and the observed
+design constraints into working code.
 
 ## Qualification is not ordinary use
 
@@ -125,8 +126,9 @@ coherent source-code slice.
    automatically.
 
 The proof of concept is intentionally informed by both the card and the human
-code. This workflow studies whether a model can learn and improve from those two
-inputs together. It does not isolate the card's causal effect.
+code. This workflow tests whether the card guides the current execution correctly
+when confronted with real constraints. It does not claim a model changed, and it
+does not isolate the card's causal effect.
 
 ## Required review note
 
@@ -218,6 +220,10 @@ one of these dispositions:
   too mechanism-specific, or missing a necessary language idiom.
 - **Needs another valid review.** Tooling, incomplete context, or a faulty proof
   of concept prevented a judgment. This is not a failed card.
+
+These map to the qualification contract: ready is `PASS`, repair or missing
+language support is `FAIL`, and a prevented judgment is `INVALID`. There is no
+partial qualification.
 
 “Ready for a project trial” authorizes cautious application and the active
 project's own review and tests; it is not a promise that the change is correct.

@@ -142,8 +142,8 @@ selects one card and one bounded slice of human-written software, reads the real
 implementation and its surrounding constraints, records what the human design
 does, builds and exercises a small card-guided proof of concept, and compares the
 two designs. The result asks whether the card survives contact with real code and
-helps the model improve its own engineering—not whether access to PASS caused a
-statistically measurable treatment effect.
+guides the current engineering work correctly—not whether a model changed or
+whether access to PASS caused a statistically measurable treatment effect.
 
 Use this full protocol when a maintainer is qualifying cards. An ordinary user
 who asks for help with a software project receives normal card-guided project
@@ -184,9 +184,20 @@ passes that mean nothing. Give the taker the card truncated at a chosen point,
 have the answer written to a file, and only then reveal the rest and score against
 it. Freeze the answer before anything further is opened — a hash of the file,
 recorded — so the score is against what was actually produced rather than against
-what got tidied once the key was visible. Keep the taker out of the library for
-the duration: the owning cards hold the answers, and a search for the drill's own
-name reaches them.
+what got tidied once the key was visible. Do not give the taker unrestricted
+library access: prepare a bounded packet containing the exact safe Drill sections
+and Pattern/AP cards under test. This prevents a search from reaching the hidden
+Success Check or Common Failures without withholding the skillcards being
+qualified.
+
+Record two kinds of blindness instead of collapsing them. Every valid sitting is
+**key-blind**: the Success Check and controller stay hidden until freeze. Card
+qualification is always **skillcard-present**: it supplies the exact bounded
+Pattern/AP bundle linked by the Drill, plus the Drill Instructions when the Drill
+itself is under test. A learner-training baseline may be **skill-blind**, but that
+baseline cannot qualify an unseen Pattern or AP. Practice is deliberately
+skillcard-present when cards are the intervention and remains key-blind, which
+preserves honest grading while allowing the cards and the Stage practice to teach.
 
 Where the card is cut decides what is being measured:
 
@@ -199,7 +210,9 @@ Where the card is cut decides what is being measured:
   toward.
 
 Neither cut is the correct one; they answer different questions, and a sitting
-should say which it used. Have someone other than the taker score it where that is
+should say which it used. In qualification, the first cut tests the linked
+Patterns/APs without Drill guidance; the second tests the Drill-led bundle. Have
+someone other than the taker score it where that is
 possible, and where it is not, record that the runner and the grader were the same
 reader — the result is still usable, but it is weaker evidence about the
 capability than it looks.
@@ -228,6 +241,12 @@ order, requires every Success Check bullet to be graded, and exports a candidate
 history event. The same protocol may be followed manually when Python is not
 available.
 
+The runner is transport-neutral rather than magically host-aware. It writes a
+folder-in/folder-out contract; a person, desktop chat, command-line agent, API
+client, or fine-tuning harness may carry `student/` to the learner and return the
+answer. Model launch, authentication, tool approval, and provider-specific
+settings stay in that adapter. They do not change what the Drill measures.
+
 ```bash
 # Find a Drill and inspect its complete controller-side card.
 python PASS/runtime/skillforge_drill.py list --domain game-design
@@ -250,6 +269,141 @@ python PASS/runtime/skillforge_drill.py finalize \
   --event-id GAMEDESIGN_EV_0001 \
   --task "Execute a novel core-resolution case"
 ```
+
+When the sitting belongs to learner training, describe the learner in a JSON
+profile rather than embedding a particular host's settings in prompts or grading
+notes. `learner.kind` is `human` or `ai`. Both kinds name a `learner_id` and a
+`runtime.name`; an AI may optionally record `model.name` for reproducibility. Model revision,
+quantization, sampling, tool capabilities, human accommodations, and other
+details remain ordinary nested data. The packet and rubric do not change merely
+because a person rather than a model takes the Drill.
+
+```json
+{
+  "learner_id": "qwen-local-01",
+  "learner": {"kind": "ai"},
+  "model": {"name": "Qwen 27B", "revision": "local checkpoint"},
+  "runtime": {"name": "desktop agent", "version": "recorded if known"},
+  "capabilities": {"files": true, "shell": true},
+  "generation": {"temperature": 1.0}
+}
+```
+
+The protocol has two improvement targets. The human or AI taker can learn the
+craft; the skillset learns where its Patterns, Drills, and APs fail to teach or
+execute. During PASS stabilization, `program_purpose` is fixed to
+`skillset-improvement`: the taker supplies evidence for card repair and Skillset
+Memory, even when a practice also helps that taker. `training_stage` names the
+administration stage; it does not claim that model weights or a model-owned
+memory changed. A persistent local memory system for models is a separate future
+facility.
+
+Keep the evidence streams distinct. One taker's miss is an observed application
+failure, not a durable label attached to that person or model. If the card was
+sound, express what PASS retains as a transferable lesson: the mistake, its
+correction, and how any later taker can prevent it. A card becomes a repair
+candidate only when it was actually exposed and the frozen artifacts show that
+its rule, orchestration, or practice instructions caused or failed to prevent
+the miss. A blind run cannot blame a Pattern or AP the learner never saw.
+
+Training is a sequence of independently frozen sittings, not a label placed on
+one attempt:
+
+1. **Baseline** — a blind novel case before the intervention.
+2. **Practice** — the teaching sitting. The intervention may add the Drill's own
+   Instructions, an exact Pattern/AP bundle, external teaching material, or a
+   declared combination. The Stage practice therefore trains the capability; it
+   is not merely a measurement checkpoint. This attempt does not by itself prove
+   improvement.
+3. **Isolation** — a new frozen case immediately after practice, linked to the
+   prior run. This is the first stage allowed to record immediate improvement.
+4. **Retention** — a later novel case with the same learner identity and no
+   answer-bearing carryover.
+5. **Transfer** — a novel case that changes context, representation, language,
+   or task shape while preserving the capability being tested.
+
+Prepare each sitting separately with `--training-stage`. Practice requires a
+neutral intervention JSON. Its `components` declare whether teaching comes from
+`drill_instructions`, exact `card_ids`, or `external_material`; at least one must
+be present. Selected Pattern/AP files are copied into the student packet, so the
+same folder can teach a human or travel through any model adapter.
+
+```json
+{
+  "intervention_id": "cpp-dependent-name-lesson-01",
+  "kind": "guided-drill-plus-skillcards",
+  "description": "Practise dependent-name lookup with the Drill and its Pattern.",
+  "components": {
+    "drill_instructions": true,
+    "card_ids": ["PAT_access_templatized_base_members_explicitly"],
+    "external_material": false
+  }
+}
+```
+
+Practice, isolation, retention, and transfer link to a finalized predecessor
+with `--prior-run`. When Drill Instructions are the teaching component, baseline
+cuts before Instructions and practice exposes them. When only Pattern/AP cards
+are being tested, practice must keep the baseline cut unchanged, so the cards
+are the only declared prompt difference. A combined intervention may change
+both, but its evidence belongs to the bundle rather than to either component
+alone. Isolation, retention, and transfer return to the baseline administration
+cut and reject every scenario already used in the chain.
+
+Keep the learner and runtime profile byte-for-byte stable throughout a training
+sequence. The named teaching intervention changes; the person, model, runtime,
+and recorded settings do not. Rejecting repeated scenario text is only the
+mechanical floor; the administrator still verifies that isolation, retention,
+and transfer cases are genuinely novel at the semantic level.
+
+```bash
+python PASS/runtime/skillforge_drill.py prepare \
+  --drill DRILL_fix_templatized_base_class_name_access \
+  --cut before-instructions \
+  --training-stage baseline \
+  --learner-profile learner.json \
+  --scenario baseline-case.md \
+  --out runs/baseline
+```
+
+A qualification sitting remains the default. It is key-blind and
+skillcard-present: the runner automatically packages the selected Drill's linked
+Patterns and APs, records their exact object IDs, and exposes the Instructions
+when the Drill-led bundle is under test. It may not claim isolation, retention,
+or transfer. Every individual sitting keeps `skill_attribution` as `unproven`: a
+strong answer can establish capability without proving why the learner had it.
+A comparative study makes its causal judgment across the frozen pair, not by
+changing the attribution field on either arm.
+
+Qualification is binary. Every required Success Check bullet is `pass` or
+`fail`; the Drill or bundle passes only when every bullet passes. If setup,
+tooling, contamination, or missing evidence prevents a complete judgment, the
+sitting is `invalid`. `partial` may describe learner progress elsewhere, but it
+is never a qualification verdict.
+
+For each non-passing Success Check bullet, the grader names one provisional
+cause: application, Drill, exposed skillcard, scenario, runtime/tool, or
+unresolved. A Drill attribution must name that Drill. A skillcard attribution
+must name a Pattern or AP actually shipped in the intervention. Application,
+Drill, and skillcard failures also record a model-agnostic `lesson` with the
+mistake, correction, and prevention rule. The runner rejects a lesson that names
+the current learner or model. Attributed card failures enter the normal
+card-repair review; scenario and runtime failures repair the administration and
+cannot manufacture a craft lesson.
+
+Until a separate Teaching lane exists, a request to teach a human uses this
+Drill loop directly: present the practice, inspect the produced work, grade the
+actual artifact, explain the transferable correction, and choose a fresh next
+case. An AI taker uses the identical packet and rubric. Its model name is useful
+only for reproducing the sitting; it is not the subject of Skillset Memory.
+
+Drill dependence should decay as competence grows. Early sittings use guided
+Drill Instructions to make the action executable. Isolation and transfer remove
+that guidance and test whether the decision can be made from the task. Once the
+capability holds reliably, ordinary work should retrieve the compact Pattern for
+the decision and the AP for orchestration rather than replaying the full Drill.
+Drills remain for initial learning, spaced refresh, qualification, and regression
+after a card changes—not as a permanent runtime crutch.
 
 `controller/` is private until freeze; exposing it contaminates the sitting.
 `finalize` writes `candidate_training_event.json` inside the disposable run and

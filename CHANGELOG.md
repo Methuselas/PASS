@@ -6,6 +6,51 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.24 - 2026-09-15
+
+### Added
+
+- The learner-neutral Drill runner now supports human or AI baseline, teaching practice, isolation,
+  retention, and transfer sittings. Each sitting is independently frozen, later measurements require
+  novel scenarios, and a neutral profile treats model identity as optional reproducibility metadata.
+- Practice can teach through Drill Instructions, an exact same-domain/metaskills Pattern/AP bundle,
+  external material, or a declared combination. Stage practice is therefore both usable training and
+  evidence about whether the teaching material works.
+- A linked training sequence keeps the learner and runtime profile stable; the teaching intervention
+  changes, not the human, model, host, or recorded settings.
+- Non-passing criteria carry a provisional application or exposed-skillcard cause plus a transferable
+  mistake, correction, and prevention lesson. The runner rejects named-human or named-model weakness
+  profiles.
+- Append-only history now supports factual `metadata_correction` events and `evidence_correction`
+  events that quarantine invalid evidence without deleting it.
+
+### Changed
+
+- Card qualification is now key-blind and skillcard-present. The runner automatically packages each
+  Drill's exact linked Patterns and APs while keeping Success Check and Common Failures hidden until
+  the answer is frozen. A cut before Instructions tests the linked cards; a cut before Success Check
+  tests the Drill-led bundle.
+- Pattern, AP, and Drill IDs are resolved from card front matter rather than from naming prefixes, so
+  the same runner works with semantic IDs used by Art, Writing, and other skillsets.
+- Drill events now state the stabilization purpose `skillset-improvement`: model or human metadata
+  reproduces the conditions, while compact Skillset Memory retains transferable lessons about the
+  skillset rather than a learner profile. Persistent model memory remains a separate future system.
+- Software card field tests keep using bounded slices of real human code to test whether Patterns and
+  APs guide real engineering work, without claiming that a model changed.
+
+### Fixed
+
+- Qualification is closed-result: every criterion is PASS or FAIL, the overall result is derived from
+  those criteria, and a setup, tool, contamination, or package failure is INVALID. `partial` and
+  craft grades on invalid sittings are rejected.
+- A qualification or practice sitting can no longer claim isolation, retention, or transfer, and a
+  single sitting cannot claim that the skill caused its result.
+- Historical events `SE_EV_0081` through `SE_EV_0110` are preserved but quarantined by append-only
+  corrections. The currency-maintenance events remain card-review history, and the Bionic sittings
+  retain their Drill/compiler observations and accepted repairs; neither batch now counts as learner
+  improvement, isolation evidence, Pattern/AP qualification, or named-model weakness. Their former
+  partial outcomes are retrospectively disposed as PASS, FAIL, INVALID, or not applicable.
+
 ## 1.0.0-beta.23 - 2026-09-14
 
 ### Fixed

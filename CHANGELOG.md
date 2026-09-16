@@ -6,6 +6,19 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.41 - 2026-09-16
+
+### Added
+
+- One software-engineering core problem-solving card from Sedgewick and Flajolet,
+  chapter 9: finding where an iterated function repeats with two copies at different
+  speeds, in constant memory.
+
+### Changed
+
+- The collision-scheme card now carries measured probe counts for stepping to the next
+  slot and for a key-computed step at 50% to 99% occupancy.
+
 ## 1.0.0-beta.40 - 2026-09-16
 
 ### Added

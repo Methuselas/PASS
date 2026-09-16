@@ -29,6 +29,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Fill the Table or Memoise the Recursion, by What You Actually Reach](PAT_fill_the_table_or_memoise_the_recursion_by_what_you_reach.md) - pattern; 0 design. Tags: algorithm_design, dynamic_programming, memoization, performance.
 - [Find a Defect by Hypothesis, Not by Guessing](AP_find_a_defect_by_hypothesis_not_by_guessing.md) - ap; 3 rough. Tags: debugging, defects, diagnosis, hypothesis.
 - [Find the Real Constraints Before Calling It Impossible](PAT_find_the_real_constraints_before_calling_it_impossible.md) - pattern; 0 design. Tags: assumptions, constraints, design, problem_solving.
+- [Find Where an Iteration Repeats by Running It at Two Speeds](PAT_find_where_an_iteration_repeats_by_running_it_at_two_speeds.md) - pattern; 0 design. Tags: algorithm_design, cycle_detection, iteration, memory.
 - [Fix the Cause, Not the Symptom](PAT_fix_the_cause_not_the_symptom.md) - pattern; 3 rough. Tags: corrections, debugging, defects, maintainability.
 - [Generalise the Problem to Get a Stronger Recursive Step](PAT_generalize_the_problem_to_get_a_stronger_recursive_step.md) - pattern; 0 design. Tags: algorithm_design, problem_framing, recursion.
 - [Get a Usable Answer to an Intractable Problem](AP_get_a_usable_answer_to_an_intractable_problem.md) - ap; 0 design. Tags: algorithm_design, approximation, intractability, search.

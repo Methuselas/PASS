@@ -6,6 +6,15 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.39 - 2026-09-16
+
+### Added
+
+- One software-engineering core performance card from Sedgewick and Flajolet,
+  chapters 1 to 4: predicting cost from counted operations and measured unit costs,
+  for absolute figures and same-growth comparisons that a growth estimate cannot
+  answer.
+
 ## 1.0.0-beta.38 - 2026-09-16
 
 ### Fixed

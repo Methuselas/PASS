@@ -72,6 +72,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Name the Reuse Order Before Choosing a Pool Strategy](PAT_name_the_allocation_pattern_before_choosing_a_strategy.md) - pattern; 0 design. Tags: allocation, caching, performance, pooling, workload_characterization.
 - [Optimize for What the Compiler Can Prove](PAT_optimize_for_what_the_compiler_can_prove.md) - pattern; 4 final. Tags: compilers, design, optimization, performance, tuning.
 - [Pin the Relationship Between Input Sizes Before Ranking Two Costs](PAT_pin_the_relationship_between_input_sizes_before_ranking_two_costs.md) - pattern; 0 design. Tags: algorithm_selection, complexity, data_shape, performance, representation.
+- [Predict Cost From Counted Operations and Measured Unit Costs](PAT_predict_cost_from_counted_operations_and_measured_unit_costs.md) - pattern; 0 design. Tags: algorithm_analysis, measurement, performance_modeling, prediction.
 - [Read a Break in the Cost Curve as a Change of Strategy](PAT_read_a_break_in_the_cost_curve_as_a_change_of_strategy.md) - pattern; 4 final. Tags: abstraction, benchmarking, cost_model, measurement, performance.
 - [Read a Profile as a Statement About Machine Code](PAT_read_a_profile_as_a_statement_about_machine_code.md) - pattern; 4 final. Tags: compilers, diagnosis, measurement, performance, profiling.
 - [Read Wall, CPU, and Thread Time Together](PAT_read_wall_cpu_and_thread_time_together.md) - pattern; 4 final. Tags: benchmarking, concurrency, diagnosis, measurement, performance.

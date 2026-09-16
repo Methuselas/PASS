@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.26 - 2026-09-15
+
+### Changed
+
+- Project handoffs under `workspace/handoffs/` are local again and no longer
+  tracked. The workspace allowlist keeps reusable tools and canonical release
+  recipes; everything else, handoffs included, stays on the machine that owns
+  it. The five handoff files remain on disk and were removed from the index
+  only.
+
 ## 1.0.0-beta.25 - 2026-09-15
 
 ### Added

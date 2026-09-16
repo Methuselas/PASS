@@ -3,14 +3,13 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 .claude/settings.local.json
-# The public workspace surface is an allowlist. Project handoffs, reusable
-# tools, and canonical release recipes are tracked; releases, source drops,
-# authoring material, drill runs, mentor studies, and other local work stay on
-# the machine that owns them.
+# The public workspace surface is an allowlist. Reusable tools and canonical
+# release recipes are tracked; handoffs, releases, source drops, authoring
+# material, drill runs, mentor studies, and other local work stay on the
+# machine that owns them.
 workspace/*
 !workspace/tools/
 !workspace/release-recipes/
-!workspace/handoffs/
 
 # Agent scratch space
 tmp/

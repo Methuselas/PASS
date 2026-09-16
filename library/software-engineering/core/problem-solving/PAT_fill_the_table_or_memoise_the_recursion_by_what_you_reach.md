@@ -42,6 +42,7 @@ variants: []
 - Take the cached recursion when the set is sparse, and accept the overhead as the price of not computing the rest. Two calls, a hash lookup, and a stack frame per subproblem is a poor exchange when it saves nothing and an excellent one when it skips most of the table.
 - Make the cache key the whole identity of the subproblem. Every quantity the answer depends on belongs in the key, and one omitted is not a slow program but a wrong one that returns a neighbour's answer.
 - Prefer the loop when memory is the binding constraint. Working upward in a known order is what lets you discard values whose consumers are finished; a recursion that may revisit anything has to keep everything it has seen.
+- When even the upward table does not fit, trade time for memory by splitting the answer at its middle. Try each way the middle can fall — for a shortest tour, which cities its first half visits and where that half ends — and solve the two halves as separate half-size problems whose tables do fit. An 18-city tour solved this way used 35 KB instead of 36 MB and found the same tour, but took 4.1 seconds instead of 40 ms, and its time grew far faster with size (13 ms at 14 cities). Stopping the splitting at the size where a table fits gives the points in between.
 
 ## Don't
 - Don't treat equal asymptotic cost as equal cost. Both forms visit each needed subproblem once and the constant between them can be several-fold, which is exactly the range where a measured choice beats a reasoned one.
@@ -54,6 +55,7 @@ variants: []
 - Does the cache key contain every quantity the answer depends on?
 - Is the function's answer determined entirely by its arguments?
 - Which form does your memory budget allow?
+- If no table fits, where does the answer split into halves whose tables do?
 
 ## Notes
 The distinction that makes the choice is not about recursion or iteration as styles. Working upward solves every subproblem that could conceivably be needed; caching a recursion solves those that are actually asked for. When those two sets coincide the loop wins on constants; the further they diverge, the more the recursion's overhead is bought back by the entries it never touches. So the question to ask is about the input, not about the code.

@@ -48,6 +48,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Return a Certificate the Answer Can Be Checked Against](PAT_return_a_certificate_the_answer_can_be_checked_against.md) - pattern; 0 design. Tags: algorithm_design, optimization, trust, verification.
 - [Sample a Split Point You Cannot Afford to Compute](PAT_sample_a_split_point_you_cannot_afford_to_compute.md) - pattern; 0 design. Tags: algorithm_design, expected_cost, randomization, recursion.
 - [Search Only a Form Every Solution Can Be Rearranged Into](PAT_search_only_a_form_every_solution_can_be_rearranged_into.md) - pattern; 0 design. Tags: algorithm_design, optimization, problem_framing, search_space.
+- [Split the Choices in Half and Match the Two Lists](PAT_split_the_choices_in_half_and_match_the_two_lists.md) - pattern; 0 design. Tags: algorithm_design, exhaustive_search, meet_in_the_middle, time_space_tradeoff.
 - [State the Approximation Guarantee You Actually Have](PAT_state_the_approximation_guarantee_you_actually_have.md) - pattern; 0 design. Tags: algorithm_design, approximation, heuristics, honesty.
 - [Surface the Notional Machine Hiding in Your Team's Vocabulary](DRILL_surface_notional_machines_from_code_vocabulary.md) - drill; 1 skeleton. Tags: mental_model, notional_machine, problem_solving, vocabulary.
 - [Sweep Sorted Events and Compare Only Neighbors](PAT_sweep_sorted_events_and_compare_only_neighbors.md) - pattern; 0 design. Tags: algorithm_design, ordering, performance, search.

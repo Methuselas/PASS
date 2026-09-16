@@ -6,6 +6,20 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.43 - 2026-09-16
+
+### Added
+
+- One software-engineering core problem-solving card from Fomin and Kratsch: splitting
+  the choices in half and matching the two lists (meet in the middle).
+
+### Changed
+
+- The pruning card now says to branch on the decision with the fewest remaining options,
+  with measured search-tree sizes.
+- The table-or-memoise card now covers splitting the answer at its middle when no table
+  fits, with measured time and memory.
+
 ## 1.0.0-beta.42 - 2026-09-16
 
 ### Changed

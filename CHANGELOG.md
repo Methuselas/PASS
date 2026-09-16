@@ -6,6 +6,15 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.33 - 2026-09-16
+
+### Changed
+
+- C++ currency pass closed: all nine C++ Action Protocols and seventeen Drills
+  read. The const-correctness Action Protocol and Drill now follow their owner's
+  C++23 form — one member with a deduced explicit object parameter — and keep
+  const delegation as the C++20 spelling.
+
 ## 1.0.0-beta.32 - 2026-09-16
 
 ### Changed

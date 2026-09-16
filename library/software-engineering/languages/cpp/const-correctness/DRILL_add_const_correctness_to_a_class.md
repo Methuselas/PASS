@@ -45,6 +45,7 @@ No special setup required.
 - Add a `const` overload of `operator[]` returning `const char&` and a non-const overload returning `char&`.
 - Implement the non-const overload in terms of the const one: `static_cast` `*this` to `const`, call the const overload, then `const_cast` the const off the returned reference. State how many copies of the bounds check and the return logic now exist.
 - Write the reverse as well — a const overload calling the non-const one — compile it, record whether the compiler stops it, and say which direction is safe and why.
+- Rewrite the pair as one `operator[]` whose explicit object parameter is deduced, call it on a non-const and a const object, record what each call returns and whether a write through the const one compiles, and build the same member in C++20 mode and record the result.
 - Add a `length() const` that caches its result, make the cache members `mutable` so it compiles, and state what marking them `mutable` concedes.
 - Make the cache safe for two threads calling `length()` on the same const object, then compile a copy and a move of the class and record the result.
 - Construct a const object and compile both outcomes — a read-only member succeeding, a write through it rejected — recording the compiler's message.
@@ -54,6 +55,7 @@ No special setup required.
 - A const object is constructed and both outcomes are compiled: the read-only members succeed and a write through it is rejected, with the compiler's message recorded.
 - The non-const overload is implemented through the const one, and the run states the count: exactly one copy of the bounds check and the return logic exists. Two overloads that each read as short and correct is the duplication this technique removes.
 - The reverse direction is compiled and recorded compiling — it needs a `const_cast` on `*this`, and nothing else stops it — and the run says why it is unsafe. The two directions are not symmetric, and the compiler will not tell them apart.
+- The single-member form is built and both calls recorded: the non-const object yields a modifiable reference and the const object a const one that rejects a write, from one body with no casts. The C++20 build is recorded rejecting the form, which is why the delegation stays the spelling for a C++20 codebase rather than being replaced by it.
 - The caching members are marked so the const member compiles, and the run states what that concedes: the object now changes while logically constant, which is a claim about thread safety and has to be made deliberately rather than to satisfy the compiler.
 - The copy and move of the thread-safe class are compiled and their result recorded. A `mutable` `std::mutex` makes the class neither copyable nor movable; a run that adds the lock and never copies the class has changed its interface without noticing.
 - Parameters and locals that never change are marked, and the run separates the ones where this changes the interface from the ones where it is only a note to the reader.

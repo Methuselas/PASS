@@ -55,7 +55,7 @@ Take a class whose interface does not distinguish between operations that observ
 
 4. **Provide both overloads where callers need read and write access to the same thing.** Element access, and anything returning a reference into the object, typically needs one of each.
 
-5. *Recovery.* **When the two overloads have the same body, remove the duplication in one direction only.** `PAT_avoid_const_duplication_via_const_delegation` owns it: the non-const version calls the const one and casts the constness off the result. The reverse direction casts away a guarantee the caller relied on, and is not the same trade — and nothing but review catches it, because it compiles with a `const_cast` on `*this` and no diagnostic.
+5. *Recovery.* **When the two overloads have the same body, remove the duplication in one direction only.** `PAT_avoid_const_duplication_via_const_delegation` owns it: under C++23 one member taking its object as a deduced explicit parameter serves both and leaves no direction to get wrong; on the C++20 path the non-const version calls the const one and casts the constness off the result. The reverse direction casts away a guarantee the caller relied on, and is not the same trade — and nothing but review catches it, because it compiles with a `const_cast` on `*this` and no diagnostic.
 
 6. **Separate protected access from produced values.** Return references or pointers to const when exposing existing state. `PAT_return_values_without_top_level_const` owns newly produced values: return them without top-level const and ref-qualify mutating operations that should work only on persistent lvalues.
 

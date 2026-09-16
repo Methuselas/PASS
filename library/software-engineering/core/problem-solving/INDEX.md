@@ -22,6 +22,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Cue Yourself With the Domain, Not With a Generic Problem-Solving Frame](PAT_use_domain_specific_cues_not_generic_problem_frames.md) - pattern; 0 design. Tags: deliberate_practice, problem_solving, retrieval, transfer.
 - [Decide Whether the Split or the Combine Does the Work](PAT_decide_whether_the_split_or_the_combine_does_the_work.md) - pattern; 0 design. Tags: algorithm_design, decomposition, performance, recursion.
 - [Define the Subproblems and Let Their Dependencies Set the Order](PAT_define_the_subproblems_and_let_their_dependencies_set_the_order.md) - pattern; 0 design. Tags: algorithm_design, decomposition, dynamic_programming, memory.
+- [Detect a Degrading Run and Switch to a Bounded Method](PAT_detect_a_degrading_run_and_switch_to_a_bounded_method.md) - pattern; 0 design. Tags: adversarial_input, algorithm_design, guarantees, robustness, worst_case.
 - [Estimate a Count by Random Sampling When Enumeration Is Intractable](PAT_estimate_a_count_by_random_sampling_when_enumeration_is_intractable.md) - pattern; 0 design. Tags: algorithm_design, estimation, intractability, probabilistic.
 - [Fill the Table or Memoise the Recursion, by What You Actually Reach](PAT_fill_the_table_or_memoise_the_recursion_by_what_you_reach.md) - pattern; 0 design. Tags: algorithm_design, dynamic_programming, memoization, performance.
 - [Find a Defect by Hypothesis, Not by Guessing](AP_find_a_defect_by_hypothesis_not_by_guessing.md) - ap; 3 rough. Tags: debugging, defects, diagnosis, hypothesis.
@@ -29,6 +30,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Fix the Cause, Not the Symptom](PAT_fix_the_cause_not_the_symptom.md) - pattern; 3 rough. Tags: corrections, debugging, defects, maintainability.
 - [Generalise the Problem to Get a Stronger Recursive Step](PAT_generalize_the_problem_to_get_a_stronger_recursive_step.md) - pattern; 0 design. Tags: algorithm_design, problem_framing, recursion.
 - [Get a Usable Answer to an Intractable Problem](AP_get_a_usable_answer_to_an_intractable_problem.md) - ap; 0 design. Tags: algorithm_design, approximation, intractability, search.
+- [Keep the Order of Equal Keys When It Carries Information](PAT_keep_the_order_of_equal_keys_when_it_carries_information.md) - pattern; 0 design. Tags: data_modelling, ordering, sorting, stability.
 - [Make Only Forced Moves, So Failure Proves There Was No Solution](PAT_make_only_forced_moves_so_failure_proves_there_was_no_solution.md) - pattern; 0 design. Tags: algorithm_design, constraints, invariant, search.
 - [Move the Work Into a Cheaper Representation and Back](PAT_move_the_work_into_a_cheaper_representation_and_back.md) - pattern; 0 design. Tags: algorithm_design, performance, representation, transformation.
 - [Order the Search by an Admissible Cost Estimate](PAT_order_the_search_by_an_admissible_cost_estimate.md) - pattern; 0 design. Tags: algorithm_design, heuristics, optimization, search.

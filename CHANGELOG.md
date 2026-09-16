@@ -6,6 +6,17 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.30 - 2026-09-16
+
+### Changed
+
+- Two more C++ Patterns connect their decision to the C++20 range algorithms.
+  `PAT_match_the_search_comparison_to_the_sort_comparison` now warns that a
+  matching comparison with a different projection still searches under a
+  different ordering; `PAT_write_a_missing_algorithm_in_the_librarys_own_shape`
+  now lets the end take its own type and the convenience overload accept any
+  range, so the shape reaches views that end on a sentinel.
+
 ## 1.0.0-beta.29 - 2026-09-16
 
 ### Changed

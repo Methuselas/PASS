@@ -22,6 +22,8 @@ cross_links:
 - rel: related_to
   target_object_id: PAT_reach_for_a_named_algorithm_before_writing_the_loop
 - rel: related_to
+  target_object_id: PAT_model_an_unknown_end_as_a_sentinel_rather_than_a_position
+- rel: related_to
   target_object_id: PAT_publish_the_traits_an_iterator_claims_not_just_its_operators
 - rel: related_to
   target_object_id: PAT_program_to_a_templates_implicit_interface
@@ -44,6 +46,7 @@ variants: []
 
 ## Do
 - Take the range as two positions, because that is what buys the reach. Written against a container type, the function serves that container; written against a pair of positions, the same body serves every sequence in the library, a raw array, and anything else able to hand back a start and an end — including things that did not exist when it was written, which is how a utility written for one vector turns out to work unchanged on a linked list of a different element type and on a lazily computed view.
+- Give the end its own type under the C++20 floor. The library's own algorithms take an iterator and an end that need only be comparable with it, plus an overload accepting any range rather than any container — and a template demanding that both positions share one type rejects precisely the lazily computed views this shape is meant to reach, since many of them end on a sentinel.
 - Add the convenience overload instead of choosing between the two forms. The iterator form composes and the container form reads well at the call site; the second is one forwarding line on top of the first, so there is no reason to pick.
 - Hand back something the caller can keep using. Returning the stream, or the destination position, lets the call sit inside a larger expression the way the library's own algorithms do, rather than forcing a statement of its own.
 - Put it in a namespace of your own. A function filling a gap in the library gets the name the library would have used, is called unqualified beside library algorithms, and is therefore the single most likely thing to collide when a later standard fills the same gap.

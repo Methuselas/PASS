@@ -20,6 +20,8 @@ tags:
 - dangling
 cross_links:
 - rel: related_to
+  target_object_id: PAT_keep_a_non_owning_view_within_the_lifetime_of_what_it_views
+- rel: related_to
   target_object_id: PAT_declare_data_members_private
 - rel: related_to
   target_object_id: PAT_use_logical_constness_with_mutable
@@ -45,6 +47,7 @@ variants: []
 - Don't return a non-const reference, pointer, or iterator to a data member; a member is only as encapsulated as the most accessible function returning a handle to it, so this makes it effectively public.
 - Don't return a handle from a function whose result may outlive the object — a handle into a temporary returned by value dangles at the end of the statement.
 - Don't return one from a type that guards itself for concurrent use, on any path. The handle leaves the guarded region while still referring to what the guard protects, so the caller reaches the internals with no lock held at all — the type's whole guarantee, undone by one function that looked like an accessor.
+- Don't treat returning a view as returning by value. A `std::string_view` or `std::span` over a data member is returned by value and is still a handle into the object: it exposes the member's representation to callers and it dangles when the object is a temporary, which a caller holding something that looks like a value has even less reason to expect than one holding a reference. Returning by value avoids these hazards only when the returned value owns its data.
 
 ## Checklist
 - Does this function return a reference, pointer, or iterator into the object's internals?

@@ -38,6 +38,7 @@ variants: []
 ## Do
 - Prefer the named C++ casts: they are easy to spot for you and for tools, and each has a narrow, compiler-checkable purpose.
 - Hide a necessary cast inside a function so callers work with a clean interface instead of scattering casts through their code.
+- Reach for `std::bit_cast` rather than `reinterpret_cast` when the goal is to read one trivially copyable type's bits as another of the same size. Reading an object through a pointer or reference to an unrelated type is undefined, while `std::bit_cast` copies the representation and is defined — measured, it turned the floating-point value one into its expected bit pattern. Under C++23, convert an enumeration to its underlying integer with `std::to_underlying` rather than a `static_cast` that names the type and goes stale if the enumeration's underlying type changes.
 - Remember casts can run real code: an int-to-double conversion or a derived-pointer to base-pointer conversion may change representation or apply an address offset at runtime.
 
 ## Don't

@@ -21,6 +21,8 @@ tags:
 - avoiding_surprises
 cross_links:
 - rel: related_to
+  target_object_id: PAT_choose_the_map_update_call_that_does_not_construct_twice
+- rel: related_to
   target_object_id: PAT_pass_by_value_only_when_all_four_conditions_hold
 - rel: related_to
   target_object_id: PAT_prefer_make_functions_to_direct_new
@@ -47,7 +49,8 @@ variants: []
 - Understand where the saving comes from, because it tells you when there is none. Insertion takes an object of the element type, so arguments of any other type must first be converted into a temporary, which is then copied or moved into the container and destroyed. Emplacement takes constructor arguments and builds the element in place, so no temporary exists.
 - Require the first condition: the value is being *constructed* into the container rather than assigned over an existing element. Where an element is being assigned to, the storage already exists, and building in place has nothing to save.
 - Require the second: the argument types differ from the type the container holds. Passing an object of the element type to an emplacement function gives it nothing to construct — there is no temporary either way.
-- Require the third: the container will not reject the value. An associative container that discovers the new value is a duplicate has already constructed it, whereas an insertion function would have compared the temporary and destroyed it — so for a container that mostly rejects duplicates, emplacement can be the slower of the two.
+- Require the third: the container will not reject the value. An associative container that discovers the new value is a duplicate may already have constructed it, whereas an insertion function would have compared the temporary and destroyed it — so for a container that mostly rejects duplicates, emplacement can be the slower of the two.
+- Use `try_emplace` for the keyed containers when duplicates are common, because it is the one form that promises not to construct the mapped value for a key already present. Whether plain emplacement does is left to the implementation and to the form of the arguments: measured, one current library looked the key up first for an emplacement given the key and the value, and constructed nothing for a key already present, while an implementation that builds the element before searching pays exactly the cost described above. `PAT_choose_the_map_update_call_that_does_not_construct_twice` owns the choice among the map update calls.
 - Watch for the resource-management hazard, which is a correctness matter rather than a performance one. Building a smart pointer with insertion creates a temporary smart pointer first, so a failure inside the container's allocation destroys it and releases the resource. Emplacement forwards the raw pointer and constructs the smart pointer inside the container; if the allocation fails before that construction, nothing owns the resource and it leaks.
 - Watch for the initialization hazard. Emplacement direct-initializes, insertion copy-initializes — so emplacement will invoke constructors marked explicit that insertion rejects. That converts a compile error into a compiling construction, which is welcome when the conversion is intended and is how an object gets built from an argument that should never have been accepted.
 

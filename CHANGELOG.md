@@ -6,6 +6,21 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.32 - 2026-09-16
+
+### Changed
+
+- C++ currency batch 7: six cards connect their decision to a C++20 or C++23
+  facility — `try_emplace` beside plain emplacement, deducing `this` in place of
+  const delegation, `constinit` for a static others depend on, a returned view as
+  a handle to internals, `std::generator`, and `std::bit_cast` with
+  `std::to_underlying`.
+
+### Fixed
+
+- The emplacement card no longer states that an associative container always
+  constructs a rejected duplicate; whether it does is implementation-dependent.
+
 ## 1.0.0-beta.31 - 2026-09-16
 
 ### Changed

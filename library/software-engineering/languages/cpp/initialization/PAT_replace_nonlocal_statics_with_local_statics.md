@@ -20,6 +20,8 @@ tags:
 - singleton
 cross_links:
 - rel: related_to
+  target_object_id: PAT_choose_a_thread_safe_initialization_mechanism
+- rel: related_to
   target_object_id: PAT_initialize_members_with_init_list
 reference:
   source_title: 'Effective C++, Third Edition: 55 Specific Ways to Improve Your Programs and Designs'
@@ -38,6 +40,7 @@ variants: []
 ## Do
 - Convert `extern FileSystem tfs;` into `FileSystem& tfs() { static FileSystem fs; return fs; }` and have callers use `tfs()` instead of `tfs`.
 - Lean on C++'s guarantee that a function-local static is initialized the first time control reaches its definition, so the referenced object always exists by the time it is used.
+- Check first whether the object others depend on can be constant-initialized, and where it can, declare it `constinit` instead of wrapping it. Constant initialization completes before any dynamic initialization begins, so every other static may use it in any order, and the compiler rejects the declaration when the initializer is not a constant expression — which stops the guarantee eroding silently when somebody later changes the initializer. `PAT_choose_a_thread_safe_initialization_mechanism` owns the choice of initialization mechanism.
 
 ## Don't
 - Don't leave a cross-translation-unit static dependency to chance: a `tempDir` whose constructor calls `tfs.numDisks()` may run before `tfs` is constructed, which is undefined and varies by platform.

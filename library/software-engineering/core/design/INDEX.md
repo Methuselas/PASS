@@ -15,6 +15,7 @@
 - [Do Not Stop at the First Design That Would Work](PAT_produce_a_second_design_before_committing.md) - pattern; 0 design. Tags: alternatives, design, heuristics, iteration.
 - [Funnel Family-Consistent Creation Through One Interface](PAT_funnel_family_consistent_creation_through_one_interface.md) - pattern; 0 design. Tags: consistency, coupling, design, factories, interface_segregation.
 - [Have the Operation Record Its Own Reversal](PAT_have_the_doer_record_the_undo.md) - pattern; 2 block. Tags: command, design, reversibility, state_management, undo.
+- [Keep a Structural Invariant Loose Enough to Repair Locally](PAT_keep_a_structural_invariant_loose_enough_to_repair_locally.md) - pattern; 0 design. Tags: balancing, data_structures, design_tradeoffs, invariants.
 - [Let Each Type Register Itself With the Factory](PAT_let_each_type_register_itself_with_the_factory.md) - pattern; 0 design. Tags: coupling, deserialization, design, extensibility, factories.
 - [Let the Caller State Intent Without Learning the Implementation](PAT_let_the_caller_state_intent_without_learning_the_implementation.md) - pattern; 0 design. Tags: abstraction, api_design, design, interfaces, performance.
 - [One Named Owner, Everything Else Borrows](PAT_give_every_acquired_resource_one_named_owner.md) - pattern; 0 design. Tags: design, interfaces, lifetime, ownership, resources.
@@ -22,6 +23,8 @@
 - [Prototype the Minimum That Answers One Named Question](PAT_prototype_to_answer_one_specific_design_question.md) - pattern; 1 skeleton. Tags: design, experiment, prototyping, risk_reduction.
   - Variants: `Prototype to Test an Inarticulate Reluctance` (context).
 - [Refuse to Implement an Architecture You Cannot Follow](PAT_judge_an_architecture_before_building_on_it.md) - pattern; 0 design. Tags: architecture, conceptual_integrity, design_review, prerequisites.
+- [Repair on the Way Down So One Pass Never Backs Up](PAT_repair_on_the_way_down_so_one_pass_never_backs_up.md) - pattern; 0 design. Tags: data_structures, hierarchical_structures, invariants, secondary_storage.
+- [Say Which Outside References Survive Each Operation](PAT_say_which_outside_references_survive_each_operation.md) - pattern; 0 design. Tags: contracts, data_structures, handles, references.
 - [Separate the Durable Need From the Current Policy](PAT_separate_the_durable_need_from_the_current_policy.md) - pattern; 0 design. Tags: abstraction, adaptability, business_rules, requirements.
 - [Settle the Load-Bearing Decisions Early, Leave the Finishes Open](PAT_settle_load_bearing_decisions_before_finishes.md) - pattern; 0 design. Tags: construction, cost_of_change, design, planning, sequencing.
 - [Split a Deferred Call Into Captured and Supplied](PAT_split_a_deferred_call_into_captured_and_supplied.md) - pattern; 0 design. Tags: api_design, callbacks, deferred_execution, design, lifetime.

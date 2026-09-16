@@ -6,6 +6,23 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.35 - 2026-09-16
+
+### Added
+
+- Six software-engineering core cards from CLRS chapters 6, 12, 13, 18, 19, 21
+  and 22: saying which outside references survive each operation; keeping a
+  structural invariant loose enough to repair locally; repairing on the way down
+  so one pass never backs up; sizing each node to one transfer of the slow tier;
+  merging groups by linking representatives rather than relabeling members; and
+  ordering dependent work by its graph while naming the cycles.
+
+### Changed
+
+- Two performance refinements from CLRS chapters 19 and 20: defer tidying to the
+  operation that traverses the untidy part anyway; the comparison bound and its
+  key-property escape extend from sorting to priority queues.
+
 ## 1.0.0-beta.34 - 2026-09-16
 
 ### Added

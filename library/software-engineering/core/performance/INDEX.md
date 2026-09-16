@@ -63,6 +63,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Look for Hot Data When There Is No Hot Code](PAT_look_for_hot_data_when_there_is_no_hot_code.md) - pattern; 4 final. Tags: caching, diagnosis, memory, performance, profiling.
 - [Make the Benchmarked Work Observable](PAT_make_benchmarked_work_observable.md) - pattern; 4 final. Tags: benchmarking, compilers, measurement, optimization, performance.
 - [Measure How Much Your Index Actually Prunes](PAT_measure_how_much_your_index_actually_prunes.md) - pattern; 4 final. Tags: data_shape, dimensionality, indexing, measurement, performance.
+- [Merge Groups by Linking Representatives, Not by Relabeling Members](PAT_merge_groups_by_linking_representatives_not_relabeling_members.md) - pattern; 0 design. Tags: amortized_analysis, data_structures, grouping, performance.
 - [Model the Design Before There Is Code to Measure](PAT_model_the_design_before_there_is_code_to_measure.md) - pattern; 0 design. Tags: benchmarking, design, estimation, measurement, performance.
 - [Name the Binding Constraint Before Choosing a Remedy](PAT_name_the_binding_constraint_before_choosing_a_remedy.md) - pattern; 4 final. Tags: diagnosis, hardware, measurement, performance, tuning.
 - [Name the Metric Before You Call It Fast](PAT_name_the_performance_metric_before_you_optimize.md) - pattern; 0 design. Tags: measurement, metrics, performance, requirements, trade_offs.
@@ -75,6 +76,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Read Wall, CPU, and Thread Time Together](PAT_read_wall_cpu_and_thread_time_together.md) - pattern; 4 final. Tags: benchmarking, concurrency, diagnosis, measurement, performance.
 - [Report the Spread, Not Just the Number](PAT_report_the_spread_not_just_the_number.md) - pattern; 4 final. Tags: benchmarking, measurement, performance, reporting, statistics.
 - [Reproduce the Real Context Before Believing a Micro-Benchmark](PAT_reproduce_the_real_context_before_believing_a_microbenchmark.md) - pattern; 4 final. Tags: benchmarking, measurement, optimization, performance, validity.
+- [Size Each Node to One Transfer of the Slow Tier](PAT_size_each_node_to_one_transfer_of_the_slow_tier.md) - pattern; 0 design. Tags: cost_model, data_structures, performance, secondary_storage.
 - [Sort by What the Keys Are Once Comparisons Are the Cost](PAT_sort_by_what_the_keys_are_once_comparisons_are_the_cost.md) - pattern; 0 design. Tags: algorithm_choice, lower_bound, performance, sorting.
 - [Spend Computation to Buy Sequential Access](PAT_spend_computation_to_buy_sequential_access.md) - pattern; 4 final. Tags: algorithms, caching, memory, performance, trade_offs.
 - [Trade a Branch for Unconditional Work](PAT_trade_a_branch_for_unconditional_work.md) - pattern; 4 final. Tags: branches, hardware, optimization, performance, readability.

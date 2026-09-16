@@ -33,6 +33,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Keep the Order of Equal Keys When It Carries Information](PAT_keep_the_order_of_equal_keys_when_it_carries_information.md) - pattern; 0 design. Tags: data_modelling, ordering, sorting, stability.
 - [Make Only Forced Moves, So Failure Proves There Was No Solution](PAT_make_only_forced_moves_so_failure_proves_there_was_no_solution.md) - pattern; 0 design. Tags: algorithm_design, constraints, invariant, search.
 - [Move the Work Into a Cheaper Representation and Back](PAT_move_the_work_into_a_cheaper_representation_and_back.md) - pattern; 0 design. Tags: algorithm_design, performance, representation, transformation.
+- [Order Dependent Work by Its Graph and Name the Cycles](PAT_order_dependent_work_by_its_graph_and_name_the_cycles.md) - pattern; 0 design. Tags: cycles, dependencies, graphs, ordering.
 - [Order the Search by an Admissible Cost Estimate](PAT_order_the_search_by_an_admissible_cost_estimate.md) - pattern; 0 design. Tags: algorithm_design, heuristics, optimization, search.
 - [Pick the Abstraction Level of Your Machine Model and Name What It Hides](PAT_reason_with_a_notional_machine_at_a_chosen_level.md) - pattern; 0 design. Tags: abstraction, mental_model, notional_machine, problem_solving.
 - [Prescreen With a Bounded False-Positive Filter](PAT_prescreen_with_a_bounded_false_positive_filter.md) - pattern; 0 design. Tags: algorithm_design, membership, performance, probabilistic.

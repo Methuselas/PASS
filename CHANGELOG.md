@@ -6,6 +6,17 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.29 - 2026-09-16
+
+### Changed
+
+- Three C++ Patterns now connect the decision they teach to the language feature
+  that later arrived to express or check it. `PAT_lift_each_varying_design_decision_to_a_parameter`
+  points at stating a parameter's required expressions as a checked constraint;
+  `PAT_make_a_predicate_a_pure_function` extends the purity requirement to range
+  projections; `PAT_prefer_range_member_functions_to_repeated_single_element_calls`
+  names the container members that take a range directly.
+
 ## 1.0.0-beta.28 - 2026-09-16
 
 ### Changed

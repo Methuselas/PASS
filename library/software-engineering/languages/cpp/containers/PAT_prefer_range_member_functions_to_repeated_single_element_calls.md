@@ -44,6 +44,7 @@ variants: []
 - Spot the single-element calls that hide under other names. Appending at either end is a single-element insertion, and a copy whose destination is an inserting iterator is a loop of them — so a loop calling either, or a copy with an inserter, marks a place where a range call is likely better.
 - Count the three taxes on a contiguous container so the size of the difference is concrete. One call per element rather than one call total; every existing element above the insertion point shifted once per inserted element rather than once in total, which for a hundred inserted elements is ninety-nine percent more moves; and repeated reallocation as capacity is exhausted, where a range insertion given forward iterators can size the allocation once because it can measure the range first.
 - Expect a different but real saving on the node-based containers. There is no reallocation and no shifting, but inserting one at a time writes each node's links more than once and rewrites the following node's back link on every insertion.
+- Prefer the member taking a range itself where the library offers one. The container members that accept a range directly say what is happening without the caller converting to an iterator pair first, and they are the spelling to reach for under a C++23 baseline; the iterator-pair forms remain correct and are what you have where the range members are unavailable.
 - Use the assigning form when you are replacing a container's entire contents and plain assignment from another container will not express it.
 
 ## Don't

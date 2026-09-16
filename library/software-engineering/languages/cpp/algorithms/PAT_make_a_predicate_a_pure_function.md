@@ -46,6 +46,7 @@ variants: []
 - Go further than const, because const is necessary and not sufficient. A const member function may still read and write mutable members, function-local statics, class statics, and anything at namespace scope — all of which make the answer depend on something other than the arguments.
 - Apply the same rule to plain functions used as predicates. A function holding a local static counter is exactly as broken as a class holding a member one, and reads as more innocent.
 - Reach for the visiting algorithm when the job really is to accumulate. It is the one designed for callables with side effects, and it returns the object so you can extract what it gathered.
+- Apply the same requirement to a projection. The range algorithms take a callable that extracts what to compare alongside the one that decides, and it is copied on the same terms — a projection carrying state fails exactly as a stateful predicate does, and is easier to overlook because it looks like a field selector rather than like logic.
 - Count the order of application among the things not promised, alongside the copying. An algorithm is free to visit the elements in whatever order suits it — the transforming algorithm says so explicitly — so a callable whose result depends on how many times it has already run, or on what it saw last, is broken for the same reason a stateful one is, and fails the same way: correctly on the implementation you tested. Where the order genuinely matters, an ordinary loop promises what the algorithm declines to.
 
 ## Don't

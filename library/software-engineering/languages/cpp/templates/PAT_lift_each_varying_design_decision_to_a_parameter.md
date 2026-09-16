@@ -21,6 +21,8 @@ tags:
 - class_design
 cross_links:
 - rel: related_to
+  target_object_id: PAT_constrain_a_template_so_the_error_lands_at_the_call
+- rel: related_to
   target_object_id: PAT_keep_configuration_parameters_orthogonal
 - rel: related_to
   target_object_id: PAT_choose_compile_time_or_runtime_variation
@@ -47,6 +49,7 @@ variants: []
 ## Do
 - Walk the class and write down every question it currently answers by itself. The ones worth lifting are those where a different project would reasonably want a different answer.
 - Give each parameter a name and state the expressions a conforming answer must support — a `Create` returning `T*`, a `Check` callable on `T*`, an inner `Lock` constructible from `T&`. That expression set is the whole contract.
+- Write that expression set down as a constraint rather than leaving it to instantiation. Under the C++20 floor the requirements a parameter must satisfy can be stated in the code and checked at the call, which turns the contract from something a reader infers into something the compiler enforces.
 - Supply a default for the answer most users want, so the common instantiation names no parameters at all.
 - Inherit the parameters where clients should see any extra members they carry, and hold them by value where they should not.
 - Keep the assembly in the class: it orders and combines what the parameters supply and implements none of it.

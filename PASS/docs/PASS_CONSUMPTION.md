@@ -171,12 +171,17 @@ template are in
 
 Where Python is available, `runtime/skillforge_code_study.py` enforces the
 source-first boundary and frozen artifacts. Its sequence is `prepare` →
-`freeze-discovery` → `open-guidance` → `freeze-work` → `reveal` → `finalize`.
-The agent must implement the attempted improvement in `student/work/`; prose
-alone cannot pass. The controller exports a candidate history event but never
-changes cards or Skillset Memory. It carries reusable coding habits as reviewable
-candidates with an observation, an adoption rule, a verification method, and a
-disposition rather than silently turning one project's technique into canon.
+`freeze-discovery` → `open-guidance` → `freeze-work` → `reveal` →
+`accept-audit` → `finalize`. The agent must implement the attempted improvement
+in `student/work/`; prose alone cannot pass. The evidence auditor must bind every
+deciding fact to frozen source lines, disposition every unresolved question, map
+the deciding facts into the fixture, and verify a property-sensitive comparison
+before the craft grader is exposed. The controller exports a candidate history
+event only for held-out validation and never changes cards or Skillset Memory.
+Motivating-example regressions and exploratory studies remain local study
+records. Reusable coding habits carry an observation, an adoption rule, a
+verification method, and a disposition rather than silently turning one
+project's technique into canon.
 
 Begin qualification with the authored language module. A core card exercised
 only through one language has verified support in that language; it does not yet

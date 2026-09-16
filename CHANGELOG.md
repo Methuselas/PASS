@@ -6,6 +6,28 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.28 - 2026-09-16
+
+### Changed
+
+- Software Code Apprenticeship schema v3 replaces self-attested evidence booleans
+  with source-line facts, an unresolved-context ledger, an exact source-to-fixture
+  reproduction map, property-sensitive comparison checks, and separate project
+  and fixture toolchain metadata.
+- Evidence auditing now precedes and gates craft grading. Schema-v2 studies remain
+  available through `status` but are read-only, so old results cannot be finalized
+  under the stronger contract.
+- Studies now distinguish held-out validation from motivating-example regression
+  and exploration. Only held-out validation can export a candidate Skillset Memory
+  event; reusing the source that motivated a repair cannot validate that repair.
+
+### Tests
+
+- Replaced generic all-green controller fixtures with adversarial coverage for
+  unsupported card conditions, incomplete reproduction maps, nondiscriminating
+  comparisons, fixture-toolchain omissions, source-context invalidation, and
+  circular motivating examples.
+
 ## 1.0.0-beta.27 - 2026-09-15
 
 ### Added

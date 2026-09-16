@@ -113,6 +113,14 @@ ownership, interface clarity, failure handling, testability, maintainability,
 performance, or another explicit engineering consequence—and support it with
 behavior and constraints.
 
+Record the evidence relationship separately from why the source was selected.
+A `held-out-validation` source did not contribute to the card or repair being
+tested. A `motivating-example-regression` may show whether the repair still
+handles the example that prompted it, but agreement is circular and cannot
+validate the repair. An `exploratory` source may discover questions but cannot
+export a qualification or habit candidate. Only held-out validation produces a
+Skillset Memory candidate event.
+
 ### Evidence gates
 
 A Code Apprenticeship grade fails closed at five gates:
@@ -132,10 +140,12 @@ A Code Apprenticeship grade fails closed at five gates:
    Passing ordinary examples establishes only those examples; it cannot prove
    greater robustness, range, safety, or portability. An improvement claim needs
    a check capable of distinguishing the designs on that property.
-5. **Metadata consistency.** The recorded revision, language, and toolchain match
-   the source and machine evidence actually used. A neutral external corpus uses
-   an immutable commit or version, not a floating branch such as `main` or
-   `master`.
+5. **Metadata consistency.** The recorded immutable revision, frozen source
+   snapshot, language, language standard, project toolchain, actual fixture
+   toolchain, and exact commands match the source and machine evidence used.
+   Project and fixture toolchains are separate facts. Every evidence role uses an
+   immutable revision or an explicitly hashed working-tree snapshot, never a
+   floating branch such as `main` or `master`.
 
 All five gates must pass before either `PASS` or `FAIL` can be evidence about the
 card. `FAIL` means the card was validly exercised and its guidance failed;
@@ -193,9 +203,13 @@ card's causal effect.
 ## Optional deterministic controller
 
 `PASS/runtime/skillforge_code_study.py` administers the evidence boundary without
-judging engineering semantics. It copies one bounded source slice, holds the
-cards private until discovery is frozen, freezes the implemented alternative and
-machine evidence, reveals the rubric, and exports a candidate history event.
+judging engineering semantics. Schema v3 copies one bounded source slice and
+hashes it, requires structured source facts and unresolved questions beside the
+human-readable discovery, holds cards private until discovery is frozen, and
+freezes the implemented alternative and machine evidence. It then separates the
+evidence audit from the craft grade. Only a valid audit exposes the craft-grade
+form. Held-out validation requires separate evidence-auditor and craft-grader
+roles. Schema-v2 studies remain readable through `status` but are read-only.
 
 ```bash
 python PASS/runtime/skillforge_code_study.py prepare \
@@ -203,8 +217,10 @@ python PASS/runtime/skillforge_code_study.py prepare \
   --source-root path/to/project \
   --source src/example.cpp --source tests/example_test.cpp \
   --selection-role project-relevant-reference \
+  --evidence-role held-out-validation \
   --subject "Project and subsystem" --revision "commit-or-version" \
-  --language "C++20" --toolchain "compiler and version" \
+  --language "cpp" --language-standard "C++20" \
+  --project-toolchain "project compiler/build system" \
   --decision "The engineering decision under review" \
   --out runs/example
 
@@ -212,16 +228,28 @@ python PASS/runtime/skillforge_code_study.py freeze-discovery --run runs/example
 python PASS/runtime/skillforge_code_study.py open-guidance --run runs/example
 python PASS/runtime/skillforge_code_study.py freeze-work --run runs/example
 python PASS/runtime/skillforge_code_study.py reveal --run runs/example
+python PASS/runtime/skillforge_code_study.py accept-audit --run runs/example
 python PASS/runtime/skillforge_code_study.py finalize \
   --run runs/example --event-id SE_EV_9999 \
   --task "Qualify one card against human code and test an improvement"
 ```
 
-The controller never edits cards or Skillset Memory. A maintainer reviews the
-candidate event and any proposed repair before importing either. Reusable habits
-are exported as structured candidates: the observation, the habit to adopt, how
-to verify it, and whether it belongs in memory, card repair, language support,
-project context only, or nowhere beyond the run.
+The discoverer completes `answer/discovery.json`; the evidence auditor completes
+`grader/audit.json`; and, only after `accept-audit`, the craft grader completes
+`grader/grade.json`. Evidence locations are bounded to frozen source, work and
+answer files with exact line ranges. Type and signature facts require declaration
+evidence; build facts require configuration evidence. Every comparison fact must
+map to its fixture counterpart, the human and alternative implementations need
+distinct locations, and even an `equivalent` result needs a property-sensitive
+check capable of distinguishing them.
+
+The controller never edits cards or Skillset Memory. A maintainer reviews a
+held-out candidate event and any proposed repair before importing either.
+Motivating-example regressions and exploratory studies finalize without a
+candidate event. Reusable habits are exported only from held-out validation as
+structured candidates: the observation, the habit to adopt, how to verify it,
+and whether it belongs in memory, card repair, language support, project context
+only, or nowhere beyond the run.
 
 ## Required review note
 
@@ -231,9 +259,10 @@ Use this compact record for each field test:
 # Software card field test
 
 - Selection role: neutral external corpus | project-relevant reference | interest-led investigation
+- Evidence role: held-out validation | motivating-example regression | exploratory
 - Review subject: repository and revision
 - Evaluation route: maintainer qualification | project application
-- Language and module under test:
+- Language, standard, project toolchain, and fixture toolchain:
 - Primary card: object id
 - Supporting cards: object ids, if any
 - Engineering decision:

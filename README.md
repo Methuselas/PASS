@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.27`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.28`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -318,12 +318,14 @@ They are distinct from Drills and comparative treatment/control studies. See
 
 The optional
 [`PASS/runtime/skillforge_code_study.py`](PASS/runtime/skillforge_code_study.py)
-controller enforces that sequence and exports a candidate history event without
-editing cards or Skillset Memory. Software Engineering releases include the same
-portable helper under `scripts/skillforge_code_study.py`. A grade fails closed
-unless the card condition is supported by deciding declarations, the source
-context and reproduction are faithful, the improvement claim is exercised, and
-the recorded revision/language/toolchain matches the evidence.
+controller enforces that sequence without editing cards or Skillset Memory.
+Software Engineering releases include the same portable helper under
+`scripts/skillforge_code_study.py`. Its structured evidence audit binds deciding
+facts to frozen source lines, dispositions unresolved context, maps those facts
+into the fixture, requires a property-sensitive comparison even for equivalent
+outcomes, and separates project metadata from the actual fixture toolchain. Only
+held-out validation exports a candidate history event; motivating examples are
+regression evidence rather than independent validation.
 
 Each review records why its subject was chosen: from a neutral external pool,
 for relevance to an active project, or from personal interest. These are all
@@ -558,7 +560,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.27`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.28`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

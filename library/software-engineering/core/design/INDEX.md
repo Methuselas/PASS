@@ -26,5 +26,6 @@
 - [Settle the Load-Bearing Decisions Early, Leave the Finishes Open](PAT_settle_load_bearing_decisions_before_finishes.md) - pattern; 0 design. Tags: construction, cost_of_change, design, planning, sequencing.
 - [Split a Deferred Call Into Captured and Supplied](PAT_split_a_deferred_call_into_captured_and_supplied.md) - pattern; 0 design. Tags: api_design, callbacks, deferred_execution, design, lifetime.
 - [State How Robust to Build Before Anyone Builds It](PAT_set_the_robustness_level_deliberately.md) - pattern; 0 design. Tags: architecture, consistency, overengineering, robustness, simplicity.
+- [Store the Derived Value Whose Updates Stay Local](PAT_store_the_derived_value_whose_updates_stay_local.md) - pattern; 0 design. Tags: data_structures, derived_state, design, invalidation, maintenance.
 - [Write Design Notation at the Level of Intent](PAT_write_design_notation_at_the_level_of_intent.md) - pattern; 0 design. Tags: comments, design_notation, detailed_design, intent, pseudocode.
 - [Write Down the Problem in Terms That Name No Solution](PAT_state_the_problem_before_the_solution.md) - pattern; 0 design. Tags: design, problem_definition, requirements, scope.

@@ -6,6 +6,25 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.27 - 2026-09-15
+
+### Added
+
+- Four Software Engineering Patterns extracted from Cormen/Leiserson/Rivest/
+  Stein, covering amortized reasoning over a sequence of operations, choosing a
+  hash table's collision scheme by whether keys are deleted, selecting a stored
+  derived value by how far its updates propagate, and parallelising the combine
+  step of a recursive algorithm so it does not become the critical path.
+
+### Changed
+
+- `PAT_estimate_the_order_before_you_run_it` now warns that the worst case is
+  frequently the routine case rather than an exotic one, since a lookup that
+  finds nothing must examine every candidate.
+- `PAT_sample_a_split_point_you_cannot_afford_to_compute` now reaches the case
+  where there is no expensive parameter, only an input order you were about to
+  assume was benign, and warns that a hand-written shuffle is easily biased.
+
 ## 1.0.0-beta.26 - 2026-09-15
 
 ### Changed

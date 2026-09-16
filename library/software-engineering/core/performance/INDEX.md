@@ -40,10 +40,12 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 - [Ask Whether the Hot Code Can Run Less Often](PAT_ask_whether_the_hot_code_can_run_less_often.md) - pattern; 4 final. Tags: design, optimization, performance, profiling, tuning.
 - [Ask Whether the Problem Grows With the Machine](PAT_ask_whether_the_problem_grows_with_the_machine.md) - pattern; 0 design. Tags: concurrency, estimation, measurement, performance, scalability.
+- [Bound the Sequence When One Operation Is Occasionally Expensive](PAT_bound_the_sequence_when_one_operation_is_occasionally_expensive.md) - pattern; 0 design. Tags: amortized_analysis, cost_model, data_structures, latency, performance.
 - [Build a Pool for a Hot Allocation](AP_build_a_pool_for_a_hot_allocation.md) - ap; 4 final. Tags: allocation, performance, pooling, resource_management, tuning.
 - [Check for Memory Saturation Before Adding Threads](PAT_check_for_memory_saturation_before_adding_threads.md) - pattern; 0 design. Tags: concurrency, hardware, memory, performance, scalability.
 - [Check the Last-Used Entry Before Searching](PAT_check_the_last_used_slot_before_searching.md) - pattern; 3 rough. Tags: caching, data_structures, locality, lookup, performance.
 - [Choose Lazy or Eager by How Often the Result Is Actually Needed](PAT_choose_lazy_or_eager_by_how_often_the_result_is_needed.md) - pattern; 0 design. Tags: caching, design, optimization, performance, trade_offs.
+- [Choose the Collision Scheme by Whether You Delete](PAT_choose_the_collision_scheme_by_whether_you_delete.md) - pattern; 0 design. Tags: data_structures, deletion, hashing, load_factor, performance.
 - [Choose the Data Structure for the Dominant Access Pattern](PAT_choose_the_data_structure_for_the_dominant_access_pattern.md) - pattern; 0 design. Tags: caching, data_structures, design, memory, performance.
 - [Choose the Level Before You Touch the Code](PAT_choose_the_level_before_tuning_the_code.md) - pattern; 0 design. Tags: architecture, optimization, performance, requirements.
 - [Confirm a Branch Is Mispredicted Before Optimizing It](PAT_confirm_a_branch_is_mispredicted_before_optimizing_it.md) - pattern; 4 final. Tags: branches, hardware, measurement, performance, profiling.

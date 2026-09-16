@@ -40,7 +40,7 @@ from typing import Any
 import yaml
 
 SCHEMA_VERSION = 1
-RELEASE_MANIFEST_SCHEMA_VERSION = 2
+RELEASE_MANIFEST_SCHEMA_VERSION = 3
 DOMAIN_RE = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 SHA256_RE = re.compile(r"[0-9a-f]{64}")
 SEMVER_RE = re.compile(

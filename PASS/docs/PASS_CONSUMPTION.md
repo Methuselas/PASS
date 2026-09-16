@@ -140,10 +140,12 @@ the AP is not adding orchestration value.
 A software card field test is not a Drill and does not require a control arm. It
 selects one card and one bounded slice of human-written software, reads the real
 implementation and its surrounding constraints, records what the human design
-does, builds and exercises a small card-guided proof of concept, and compares the
-two designs. The result asks whether the card survives contact with real code and
-guides the current engineering work correctly—not whether a model changed or
-whether access to PASS caused a statistically measurable treatment effect.
+does before card exposure, then builds both a reproduction and a PASS-guided
+alternative. Equivalent checks establish whether the card survives contact with
+real code and whether PASS improves a named engineering property, leaves the
+human design preferable, exposes a tradeoff, or produces an equivalent design.
+The result does not claim a model changed or that access to PASS caused a
+statistically measurable treatment effect.
 
 Use this full protocol when a maintainer is qualifying cards. An ordinary user
 who asks for help with a software project receives normal card-guided project
@@ -166,6 +168,15 @@ Use one reviewer, one primary card, one source slice, and one proof of concept.
 Finish and report before selecting another. The complete protocol and review-note
 template are in
 [`SOFTWARE_CARD_FIELD_TESTS.md`](SOFTWARE_CARD_FIELD_TESTS.md).
+
+Where Python is available, `runtime/skillforge_code_study.py` enforces the
+source-first boundary and frozen artifacts. Its sequence is `prepare` →
+`freeze-discovery` → `open-guidance` → `freeze-work` → `reveal` → `finalize`.
+The agent must implement the attempted improvement in `student/work/`; prose
+alone cannot pass. The controller exports a candidate history event but never
+changes cards or Skillset Memory. It carries reusable coding habits as reviewable
+candidates with an observation, an adoption rule, a verification method, and a
+disposition rather than silently turning one project's technique into canon.
 
 Begin qualification with the authored language module. A core card exercised
 only through one language has verified support in that language; it does not yet

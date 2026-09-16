@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.24`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.25`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -308,9 +308,22 @@ and never put source provenance or practice history into canon. See
 ## Testing software cards against real code
 
 Software card field tests apply one card to one bounded slice of human-written
-software, build a small proof of concept, and compare engineering decisions.
+software. They freeze a source-first reconstruction of the human design before
+opening the card, reproduce the relevant decision, implement a PASS-guided
+alternative, and exercise both under equivalent checks. The conclusion states
+whether PASS improved a named engineering property, the human design remains
+preferable, the choices serve different constraints, or they are equivalent.
 They are distinct from Drills and comparative treatment/control studies. See
 [`PASS/docs/SOFTWARE_CARD_FIELD_TESTS.md`](PASS/docs/SOFTWARE_CARD_FIELD_TESTS.md).
+
+The optional
+[`PASS/runtime/skillforge_code_study.py`](PASS/runtime/skillforge_code_study.py)
+controller enforces that sequence and exports a candidate history event without
+editing cards or Skillset Memory. Software Engineering releases include the same
+portable helper under `scripts/skillforge_code_study.py`. A grade fails closed
+unless the card condition is supported by deciding declarations, the source
+context and reproduction are faithful, the improvement claim is exercised, and
+the recorded revision/language/toolchain matches the evidence.
 
 Each review records why its subject was chosen: from a neutral external pool,
 for relevance to an active project, or from personal interest. These are all
@@ -545,7 +558,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.24`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.25`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

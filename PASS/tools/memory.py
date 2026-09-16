@@ -68,7 +68,7 @@ VALIDITY_VALUES = {"valid", "invalid"}
 EVENT_KIND_VALUES = {"performance", "metadata_correction", "evidence_correction"}
 RUN_TYPE_VALUES = {
     "portability-probe", "blind-drill-sitting", "deterministic-regression",
-    "comparative-study",
+    "comparative-study", "software-card-field-test",
 }
 TRAINING_STAGE_VALUES = {
     "qualification", "baseline", "practice", "isolation", "retention", "transfer",

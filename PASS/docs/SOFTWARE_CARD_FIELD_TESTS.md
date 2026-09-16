@@ -2,7 +2,7 @@
 
 status: active
 owner: docs/domains/software-engineering
-last_reviewed: 2026-09-07
+last_reviewed: 2026-09-15
 
 A software card field test asks a practical question: **does this card guide an
 agent to understand, reproduce, or improve a real engineering decision found in
@@ -88,6 +88,59 @@ map keeps repeated reviews aligned without turning one user's corpus into PASS
 canon or a release dependency. If no map exists, classify only the current
 subject from the user's stated reason for selecting it and continue.
 
+## Three-pass Code Apprenticeship
+
+A field test that is also meant to improve agent coding habits uses three
+separate passes:
+
+1. **Human-design discovery.** Read the implementation, declarations, call
+   sites, tests, build settings and failure paths before opening the card under
+   test. Reconstruct what the design owns, promises, assumes and protects, then
+   freeze that account. This prevents the card from rewriting the observation.
+2. **Card qualification.** Open one primary Pattern or AP plus a bounded support
+   bundle. Establish whether the card applies, reproduce the human decision in a
+   small artifact, and identify agreement, disagreement, missing language
+   support, or a card that is correct but coarser than the practice.
+3. **PASS-guided improvement.** Name one property to improve, implement the
+   smallest card-guided alternative, preserve the real contract and constraints,
+   and exercise both designs with equivalent checks. Conclude whether PASS
+   improved the design, the human design remains preferable, the alternatives
+   serve different constraints, or they are equivalent.
+
+The third pass is mandatory in a Code Apprenticeship study. "Cleaner" is not an
+improvement result. The comparison must name the property—correctness, safety,
+ownership, interface clarity, failure handling, testability, maintainability,
+performance, or another explicit engineering consequence—and support it with
+behavior and constraints.
+
+### Evidence gates
+
+A Code Apprenticeship grade fails closed at five gates:
+
+1. **Card condition.** Every fact that decides the primary card's `IF` condition
+   is established from the actual declaration or configuration. A name, cast,
+   comment, use, or customary spelling is not evidence of a declared type,
+   signature, ownership rule, lifetime, or build setting.
+2. **Source context.** No unavailable or unresolved fact decides whether the card
+   applies. If one does, the run is `INVALID`, the qualification is `not_tested`,
+   and the missing files must be added before a fresh run.
+3. **Reproduction fidelity.** The isolated artifact preserves the source facts
+   that decide the comparison. A fixture that changes a relevant type,
+   precondition, language mode, or toolchain constraint does not reproduce the
+   human decision.
+4. **Improvement exercise.** The checks exercise the named improvement property.
+   Passing ordinary examples establishes only those examples; it cannot prove
+   greater robustness, range, safety, or portability. An improvement claim needs
+   a check capable of distinguishing the designs on that property.
+5. **Metadata consistency.** The recorded revision, language, and toolchain match
+   the source and machine evidence actually used. A neutral external corpus uses
+   an immutable commit or version, not a floating branch such as `main` or
+   `master`.
+
+All five gates must pass before either `PASS` or `FAIL` can be evidence about the
+card. `FAIL` means the card was validly exercised and its guidance failed;
+`INVALID` means the run never earned the right to judge the card.
+
 ## One-card, one-slice protocol
 
 Run one bounded review at a time. One review may use a small prerequisite chain
@@ -96,39 +149,79 @@ coherent source-code slice.
 
 1. **Name the engineering decision.** State what the review is trying to learn
    and why the selected source is relevant.
-2. **Read the primary card completely.** Follow its prerequisites and load only
+2. **Read the real implementation source-first.** Inspect the implementation,
+   declarations, call sites, tests, build configuration, and failure paths needed
+   to establish the card's `IF` condition. A single convenient file is not
+   automatically the review boundary. Do not infer a declaration from a cast:
+   the cast proves only the requested conversion, not the operand's source type.
+3. **Freeze the discovery before opening the card.** Record the human design,
+   apparent constraints, tradeoffs, evidence and uncertainties. Human code is
+   precedent, not infallible ground truth, and the frozen account may not be
+   tidied after PASS guidance becomes visible.
+4. **Read the primary card completely.** Follow its prerequisites and load only
    the few cards needed to apply it. Prefer a language-specific card when the
    code is in an authored language; use core cards where the real decision calls
    for them rather than testing the whole core first.
-3. **Read the real implementation.** Inspect the implementation, declarations,
-   call sites, tests, build configuration, and failure paths needed to establish
-   the card's `IF` condition. A single convenient file is not automatically the
-   review boundary.
-4. **Make notes before judging.** Record the human design, apparent constraints,
-   tradeoffs, and uncertainties. Human code is evidence and precedent, not
-   infallible ground truth.
-5. **Build a small proof of concept.** Reproduce the decision in an isolated
-   artifact small enough to understand. Apply the card and the lessons learned
-   from the human implementation; do not recreate the entire project.
-6. **Exercise it.** Compile and run the proof of concept. Include a failure,
-   misuse, or boundary case when the claimed behavior is enforcement or
-   robustness. Preserve the machine output.
-7. **Compare the designs.** Compare the proof of concept with the human code in
+5. **Reproduce the human decision.** Build a small isolated artifact that
+   preserves the relevant declared types, behavior and constraints. Do not
+   recreate the entire project.
+6. **Implement a PASS-guided alternative.** Name one improvement target and
+   produce the smallest alternative the card bundle supports. A proposed rewrite
+   or prose sketch is not an implementation.
+7. **Exercise both designs.** Compile and run equivalent checks. Include a
+   failure, misuse, or boundary case when the claimed behavior is enforcement or
+   robustness. Include a check that could distinguish the designs on any property
+   claimed as an improvement. Preserve the machine output.
+8. **Compare the designs.** Compare the alternative with the human code in
    terms of behavior, constraints, clarity, ownership, failure handling,
    testability, and language idiom. Counts of assertions, comments, files,
    attributes, or lines may describe the artifacts but never decide which is
    better.
-8. **Attribute the result.** Decide whether the evidence concerns the card,
+9. **Attribute the result.** Decide whether the evidence concerns the card,
    missing language specialization, retrieval, application, incomplete source
    context, the proof-of-concept fixture, or the toolchain.
-9. **Record and stop.** Write the empirical result to Skillset Memory and report
+10. **Record and stop.** Write the empirical result to Skillset Memory and report
    the single review. Do not launch another source, card, model, or repetition
    automatically.
 
-The proof of concept is intentionally informed by both the card and the human
-code. This workflow tests whether the card guides the current execution correctly
-when confronted with real constraints. It does not claim a model changed, and it
-does not isolate the card's causal effect.
+The reproduction and alternative are intentionally informed by the human code
+and the bounded card bundle, respectively. This workflow tests whether the card
+guides the current execution and whether PASS can improve on precedent under the
+same constraints. It does not claim a model changed, and it does not isolate the
+card's causal effect.
+
+## Optional deterministic controller
+
+`PASS/runtime/skillforge_code_study.py` administers the evidence boundary without
+judging engineering semantics. It copies one bounded source slice, holds the
+cards private until discovery is frozen, freezes the implemented alternative and
+machine evidence, reveals the rubric, and exports a candidate history event.
+
+```bash
+python PASS/runtime/skillforge_code_study.py prepare \
+  --primary-card PAT_example \
+  --source-root path/to/project \
+  --source src/example.cpp --source tests/example_test.cpp \
+  --selection-role project-relevant-reference \
+  --subject "Project and subsystem" --revision "commit-or-version" \
+  --language "C++20" --toolchain "compiler and version" \
+  --decision "The engineering decision under review" \
+  --out runs/example
+
+python PASS/runtime/skillforge_code_study.py freeze-discovery --run runs/example
+python PASS/runtime/skillforge_code_study.py open-guidance --run runs/example
+python PASS/runtime/skillforge_code_study.py freeze-work --run runs/example
+python PASS/runtime/skillforge_code_study.py reveal --run runs/example
+python PASS/runtime/skillforge_code_study.py finalize \
+  --run runs/example --event-id SE_EV_9999 \
+  --task "Qualify one card against human code and test an improvement"
+```
+
+The controller never edits cards or Skillset Memory. A maintainer reviews the
+candidate event and any proposed repair before importing either. Reusable habits
+are exported as structured candidates: the observation, the habit to adopt, how
+to verify it, and whether it belongs in memory, card repair, language support,
+project context only, or nowhere beyond the run.
 
 ## Required review note
 
@@ -147,9 +240,17 @@ Use this compact record for each field test:
 - Source slice inspected: implementation, declarations, call sites, tests, build files
 - Card IF established:
 
-## Human implementation notes
+## Frozen human-design discovery
 
-## Proof of concept
+## Primary card and bounded support bundle
+
+## Human-design reproduction
+
+## PASS-guided alternative
+
+- Improvement target:
+- Preserved contract and constraints:
+- Outcome: improved | human-preferred | tradeoff | equivalent
 
 ## Machine evidence
 
@@ -158,6 +259,10 @@ Use this compact record for each field test:
 ## Attribution
 
 ## Memory disposition
+
+- Habit candidate:
+- Verification:
+- Disposition: memory-candidate | card-repair | language-support | context-only | no-retention
 ```
 
 Repository identity and revision belong in the empirical review note so the
@@ -171,6 +276,11 @@ A valid field test can show that a card:
 - gives a model enough guidance to build and exercise a working example;
 - helps the model find a genuine defect in human code and demonstrate the defect
   with source context or machine evidence;
+- helps an agent implement an alternative that improves a named engineering
+  property while preserving the human design's contract and constraints;
+- shows that the human design remains preferable or that two sound designs serve
+  different constraints, which is a successful comparison rather than a forced
+  PASS improvement;
 - misses a constraint, language idiom, precondition, or failure mode;
 - is correct but was retrieved or applied badly; or
 - helps the model revise its own design after studying human precedent.
@@ -244,6 +354,13 @@ Stop and report before continuing when:
 - the verdict has become a proxy count rather than an engineering comparison;
 - required source context cannot be established;
 - the proof of concept cannot exercise the claimed decision;
+- a type, signature, ownership, lifetime, or build fact needed to establish the
+  card's condition has been inferred rather than read from its declaration;
+- the reproduction changes a fact that decides the comparison;
+- the recorded revision, language, or toolchain disagrees with the evidence;
+- the PASS-guided alternative is described but not implemented;
+- improvement is asserted from style, line count, or another proxy rather than
+  behavior and constraints;
 - the review subject's selection role was recorded incorrectly; or
 - the work is being reframed as a treatment/control study without explicit
   approval.

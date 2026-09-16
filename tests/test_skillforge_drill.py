@@ -879,6 +879,7 @@ class SkillForgeDrillTests(unittest.TestCase):
                 (release / "RELEASE_MANIFEST.json").read_text(encoding="utf-8")
             )
             self.assertFalse(manifest["drill_runner"])
+            self.assertFalse(manifest["code_study_runner"])
 
 
 if __name__ == "__main__":

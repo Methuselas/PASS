@@ -36,7 +36,7 @@ FORBIDDEN = {
 }
 MEMORY_DIR = "memory"
 MEMORY_STORE = "skill_memory.yaml"
-RELEASE_MANIFEST_SCHEMA_VERSION = 2
+RELEASE_MANIFEST_SCHEMA_VERSION = 3
 RELEASE_LEGAL_FILES = (
     "CONTRIBUTING.md",
     "LICENSE.md",
@@ -877,6 +877,16 @@ def manifest_problems(path: Path, manifest: dict[str, Any]) -> list[str]:
                 problems.append("release manifest lacks a drill_runner boolean")
             elif manifest["drill_runner"] != expected_drill_runner:
                 problems.append("release manifest drill_runner does not match packaged cards")
+            expected_code_study_runner = any(
+                card.relative_to(path / "library").parts[0] == "software-engineering"
+                for card, _data in packaged_objects.values()
+            )
+            if not isinstance(manifest.get("code_study_runner"), bool):
+                problems.append("release manifest lacks a code_study_runner boolean")
+            elif manifest["code_study_runner"] != expected_code_study_runner:
+                problems.append(
+                    "release manifest code_study_runner does not match packaged cards"
+                )
             problems.extend(
                 auxiliary_manifest_problems(path, manifest, declared, packaged_objects)
             )
@@ -897,6 +907,7 @@ def write_skill(
     description: str,
     runtime_profile: str,
     has_drills: bool,
+    has_code_study: bool,
     memory_domains: list[str] | None = None,
     owned_domains: list[str] | None = None,
     auxiliary_groups: list[dict[str, Any]] | None = None,
@@ -995,6 +1006,21 @@ def write_skill(
             "unavailable, follow the same prepare → produce → freeze → reveal → grade "
             "order manually from the card.\n"
         )
+    if has_code_study:
+        body += (
+            "\n## Software Code Apprenticeship\n\n"
+            "`scripts/skillforge_code_study.py` administers bounded study of real "
+            "human-written software. It freezes a source-first reconstruction before "
+            "opening the exact Pattern/AP bundle, then requires an implemented "
+            "PASS-guided alternative, equivalent machine checks, and an explicit "
+            "comparison. Use `prepare` → `freeze-discovery` → `open-guidance` → "
+            "`freeze-work` → `reveal` → `finalize`. A valid card qualification is "
+            "PASS or FAIL; blocked evidence is INVALID. The improvement conclusion "
+            "must say whether PASS improved the design, the human design remains "
+            "preferable, the choices serve different constraints, or they are "
+            "equivalent. The helper exports a candidate history event and never edits "
+            "cards or Skillset Memory.\n"
+        )
     if consumer_instructions:
         barriers_path = path / "references" / "execution-barriers.md"
         barriers_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1050,10 +1076,12 @@ def vendor_runtime(
     runtime_profile: str,
     deployment_profile: str | None,
     has_drills: bool,
+    has_code_study: bool,
 ) -> None:
     root = runtime_root()
     resolver = root / "skillforge_runtime.py"
     drill_runner = root / "skillforge_drill.py"
+    code_study_runner = root / "skillforge_code_study.py"
     profile = root / "profiles" / f"{runtime_profile}.yaml"
     if not resolver.is_file():
         raise ValueError(f"SkillForge resolver not found: {resolver}")
@@ -1061,11 +1089,15 @@ def vendor_runtime(
         raise ValueError(f"runtime profile not found: {profile}")
     if has_drills and not drill_runner.is_file():
         raise ValueError(f"SkillForge Drill runner not found: {drill_runner}")
+    if has_code_study and not code_study_runner.is_file():
+        raise ValueError(f"SkillForge Code Apprenticeship runner not found: {code_study_runner}")
     (staging / "scripts").mkdir(parents=True, exist_ok=True)
     (staging / "runtime").mkdir(parents=True, exist_ok=True)
     shutil.copy2(resolver, staging / "scripts" / "skillforge_runtime.py")
     if has_drills:
         shutil.copy2(drill_runner, staging / "scripts" / "skillforge_drill.py")
+    if has_code_study:
+        shutil.copy2(code_study_runner, staging / "scripts" / "skillforge_code_study.py")
     shutil.copy2(profile, staging / "runtime" / "profile.yaml")
     if deployment_profile:
         source = root / "deployment_profiles" / f"{deployment_profile}.yaml"
@@ -1168,6 +1200,25 @@ def runtime_release_problems(path: Path) -> list[str]:
             return [f"Drill runner returned invalid discovery JSON: {exc}"]
         if {item.get("object_id") for item in discovered} != set(drill_cards):
             return ["Drill runner discovery does not match packaged Drill objects"]
+    software_cards = [
+        object_id
+        for object_id, (_card_path, data) in object_index(
+            path / "library", _modules
+        )[0].items()
+        if isinstance(data.get("library_path"), list)
+        and data["library_path"]
+        and data["library_path"][0] == "software-engineering"
+    ]
+    code_study_runner = path / "scripts" / "skillforge_code_study.py"
+    if software_cards and not code_study_runner.is_file():
+        return ["missing vendored SkillForge Code Apprenticeship runner"]
+    if not software_cards and code_study_runner.exists():
+        return ["SkillForge Code Apprenticeship runner shipped without software cards"]
+    if software_cards:
+        result = run_python(code_study_runner, "--help")
+        if result.returncode:
+            detail = (result.stdout + "\n" + result.stderr).strip()
+            return [f"Code Apprenticeship runner failed to start: {detail}"]
     return []
 
 
@@ -1268,6 +1319,14 @@ def build(
         for object_id, (_path, data) in by_id.items()
         if object_id in set(objects) | auxiliary_ids
     )
+    packaged_ids = set(objects) | auxiliary_ids
+    has_code_study = any(
+        isinstance(data.get("library_path"), list)
+        and data["library_path"]
+        and data["library_path"][0] == "software-engineering"
+        for object_id, (_path, data) in by_id.items()
+        if object_id in packaged_ids
+    )
     display_name = str(spec.get("name") or recipe.stem)
     skill_name = str(spec.get("skill_name") or slugify(display_name))
     description = str(spec.get("description") or f"Use for tasks requiring the {display_name} SkillForge skillset.")
@@ -1304,7 +1363,9 @@ def build(
             staging, auxiliary_groups
         )
 
-        vendor_runtime(staging, runtime_profile, deployment_profile, has_drills)
+        vendor_runtime(
+            staging, runtime_profile, deployment_profile, has_drills, has_code_study
+        )
         stage_legal_files(staging)
         memory_domains = stage_memory(staging, mem, owned_domains) if mem.is_dir() else []
 
@@ -1334,11 +1395,13 @@ def build(
             "memory_domains": memory_domains,
             "runtime_profile": runtime_profile,
             "drill_runner": has_drills,
+            "code_study_runner": has_code_study,
             "deployment_profile": deployment_profile,
             "quality_gates": quality,
         }
         write_skill(
             staging, skill_name, display_name, description, runtime_profile, has_drills,
+            has_code_study,
             memory_domains, sorted(owned_domains), shipped_auxiliary_groups,
         )
         # Freeze before hashing, so the manifest describes files in the state the

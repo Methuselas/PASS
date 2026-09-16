@@ -271,7 +271,8 @@ event_kind      performance (default) | metadata_correction | evidence_correctio
 delivery        how the skill reached the runtime; "unknown" recorded honestly
                 beats the field omitted
 run_type        portability-probe | blind-drill-sitting |
-                deterministic-regression | comparative-study
+                deterministic-regression | comparative-study |
+                software-card-field-test
 program_purpose skillset-improvement; current Drill evidence qualifies and
                 repairs PASS rather than claiming persistent learner-memory or
                 model-weight changes

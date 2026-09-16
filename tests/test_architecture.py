@@ -162,7 +162,7 @@ def write_authority_manifest(
     path.write_text(
         json.dumps(
             {
-                "schema_version": 2,
+                "schema_version": 3,
                 "pass_version": "1.0.0-beta.5",
                 "skill_name": skill_name,
                 "owned_domains": owned_domains or [],
@@ -535,7 +535,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
             )
             self.assertEqual(build.returncode, 0, build.stdout + build.stderr)
             manifest = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
-            self.assertEqual(manifest["schema_version"], 2)
+            self.assertEqual(manifest["schema_version"], 3)
             self.assertEqual(manifest["owned_domains"], ["fixture-primary"])
             self.assertEqual(len(manifest["auxiliary_groups"]), 1)
             group = manifest["auxiliary_groups"][0]

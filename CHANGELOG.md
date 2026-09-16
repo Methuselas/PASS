@@ -6,6 +6,38 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.25 - 2026-09-15
+
+### Added
+
+- Added the portable Software Code Apprenticeship controller. It freezes a
+  source-first reconstruction of one bounded human-code slice before exposing an
+  exact Pattern/AP bundle, then requires an implemented PASS-guided alternative,
+  equivalent machine evidence, and a closed comparison outcome.
+- Reusable coding habits now leave the controller as structured candidates with
+  an observation, adoption rule, verification method, and explicit disposition;
+  they are never silently promoted from one codebase into canon or memory.
+- Code Apprenticeship grades distinguish whether PASS improved the design, the
+  human design remains preferable, the choices serve different constraints, or
+  they are equivalent. Qualification remains PASS/FAIL/INVALID and cannot be
+  decided by style preference, line counts, or another proxy.
+- Code Apprenticeship grades now fail closed unless the card condition is backed
+  by deciding source declarations, the source context is complete, the
+  reproduction preserves those facts, the claimed improvement is exercised,
+  and revision/language/toolchain metadata matches the evidence. Neutral corpus
+  runs reject floating revisions such as `main` and `master`.
+- Software Engineering releases now vendor the controller and declare it in
+  release-manifest schema 3. Finalization exports a reviewable
+  `software-card-field-test` history candidate without editing cards or Skillset
+  Memory.
+
+### Changed
+
+- The software field-test protocol now has three explicit passes: human-design
+  discovery, card qualification, and PASS-guided improvement. Human precedent is
+  neither treated as infallible nor merely imitated; the agent must preserve the
+  real contract and test whether PASS can improve a named engineering property.
+
 ## 1.0.0-beta.24 - 2026-09-15
 
 ### Added

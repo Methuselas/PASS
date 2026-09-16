@@ -6,6 +6,21 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.37 - 2026-09-16
+
+### Added
+
+- Three software-engineering core cards that close the CLRS run (chapters 16, 25,
+  29 and 31): searching only a form every solution can be rearranged into;
+  deciding with a random test whose error shrinks with each trial; and composing an
+  associative step by doubling.
+
+### Changed
+
+- Two refinements from CLRS chapters 33 and 35: the cheapest exact geometric
+  predicate uses only additions, subtractions and multiplications; an approximation
+  ratio is proved against a computable bound the optimum cannot beat, and that bound
+  per instance is a ceiling on the gap.
 ## 1.0.0-beta.36 - 2026-09-16
 
 ### Added

@@ -49,6 +49,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Choose the Collision Scheme by Whether You Delete](PAT_choose_the_collision_scheme_by_whether_you_delete.md) - pattern; 0 design. Tags: data_structures, deletion, hashing, load_factor, performance.
 - [Choose the Data Structure for the Dominant Access Pattern](PAT_choose_the_data_structure_for_the_dominant_access_pattern.md) - pattern; 0 design. Tags: caching, data_structures, design, memory, performance.
 - [Choose the Level Before You Touch the Code](PAT_choose_the_level_before_tuning_the_code.md) - pattern; 0 design. Tags: architecture, optimization, performance, requirements.
+- [Compose an Associative Step by Doubling](PAT_compose_an_associative_step_by_doubling.md) - pattern; 0 design. Tags: algorithm_design, complexity, exponentiation, repeated_squaring.
 - [Confirm a Branch Is Mispredicted Before Optimizing It](PAT_confirm_a_branch_is_mispredicted_before_optimizing_it.md) - pattern; 4 final. Tags: branches, hardware, measurement, performance, profiling.
 - [Count the Dependency Chain, Not the Operations](PAT_count_the_dependency_chain_not_the_operations.md) - pattern; 4 final. Tags: hardware, loops, optimization, performance, tuning.
 - [Establish That the Work Divides Before Dividing It](PAT_decide_if_the_problem_is_worth_parallelizing.md) - pattern; 0 design. Tags: concurrency, parallelism, performance, trade_offs, tuning.

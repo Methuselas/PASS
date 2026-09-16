@@ -22,6 +22,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Choose the Problem's Representation Before Solving It](PAT_choose_a_problem_representation_before_solving.md) - pattern; 0 design. Tags: cognition, models, problem_solving, representation.
 - [Cue Yourself With the Domain, Not With a Generic Problem-Solving Frame](PAT_use_domain_specific_cues_not_generic_problem_frames.md) - pattern; 0 design. Tags: deliberate_practice, problem_solving, retrieval, transfer.
 - [Decide Whether the Split or the Combine Does the Work](PAT_decide_whether_the_split_or_the_combine_does_the_work.md) - pattern; 0 design. Tags: algorithm_design, decomposition, performance, recursion.
+- [Decide With a Random Test Whose Error Shrinks With Each Trial](PAT_decide_with_a_random_test_whose_error_shrinks_with_each_trial.md) - pattern; 0 design. Tags: algorithm_choice, probability, randomized_algorithms, verification.
 - [Define the Subproblems and Let Their Dependencies Set the Order](PAT_define_the_subproblems_and_let_their_dependencies_set_the_order.md) - pattern; 0 design. Tags: algorithm_design, decomposition, dynamic_programming, memory.
 - [Detect a Degrading Run and Switch to a Bounded Method](PAT_detect_a_degrading_run_and_switch_to_a_bounded_method.md) - pattern; 0 design. Tags: adversarial_input, algorithm_design, guarantees, robustness, worst_case.
 - [Estimate a Count by Random Sampling When Enumeration Is Intractable](PAT_estimate_a_count_by_random_sampling_when_enumeration_is_intractable.md) - pattern; 0 design. Tags: algorithm_design, estimation, intractability, probabilistic.
@@ -44,6 +45,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Reduce Your Problem to One That Is Already Solved](PAT_reduce_your_problem_to_one_that_is_already_solved.md) - pattern; 0 design. Tags: algorithm_design, problem_framing, reduction, reuse.
 - [Return a Certificate the Answer Can Be Checked Against](PAT_return_a_certificate_the_answer_can_be_checked_against.md) - pattern; 0 design. Tags: algorithm_design, optimization, trust, verification.
 - [Sample a Split Point You Cannot Afford to Compute](PAT_sample_a_split_point_you_cannot_afford_to_compute.md) - pattern; 0 design. Tags: algorithm_design, expected_cost, randomization, recursion.
+- [Search Only a Form Every Solution Can Be Rearranged Into](PAT_search_only_a_form_every_solution_can_be_rearranged_into.md) - pattern; 0 design. Tags: algorithm_design, optimization, problem_framing, search_space.
 - [State the Approximation Guarantee You Actually Have](PAT_state_the_approximation_guarantee_you_actually_have.md) - pattern; 0 design. Tags: algorithm_design, approximation, heuristics, honesty.
 - [Surface the Notional Machine Hiding in Your Team's Vocabulary](DRILL_surface_notional_machines_from_code_vocabulary.md) - drill; 1 skeleton. Tags: mental_model, notional_machine, problem_solving, vocabulary.
 - [Sweep Sorted Events and Compare Only Neighbors](PAT_sweep_sorted_events_and_compare_only_neighbors.md) - pattern; 0 design. Tags: algorithm_design, ordering, performance, search.

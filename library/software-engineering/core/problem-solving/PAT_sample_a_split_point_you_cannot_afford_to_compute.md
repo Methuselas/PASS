@@ -19,6 +19,8 @@ tags:
 - recursion
 cross_links:
 - rel: related_to
+  target_object_id: PAT_detect_a_degrading_run_and_switch_to_a_bounded_method
+- rel: related_to
   target_object_id: PAT_decide_whether_the_split_or_the_combine_does_the_work
 - rel: related_to
   target_object_id: PAT_estimate_the_order_before_you_run_it
@@ -46,6 +48,8 @@ variants: []
 
 ## Don't
 - Don't substitute a fixed rule for the random choice and assume you have the same guarantee. Always taking the first element is fast to compute and turns already-sorted input into the worst case, which is exactly the input most likely to arrive.
+- Don't count on the draw to rescue heavily repeated values. When the candidates are all equal, every choice splits the work into everything but one element and nothing, however it is drawn: a randomly pivoted partition into smaller-or-equal and larger made exactly n(n−1)/2 comparisons on n equal values — 499,500 for a thousand, 7,998,000 for four thousand. The repair is in the partition rather than the draw: set the values equal to the chosen one aside in the same pass so they leave the recursion, and the same input took one comparison per element.
+- Don't assume the caller cannot see the coins. The guarantee holds against an input fixed before the draws are made. Code the caller supplies that runs inside the algorithm — a comparison routine is the usual case — can decide how the values compare only as it is asked, choosing each answer to make the chosen split a bad one, and so drive a randomized sort to its worst case; so can a caller able to predict the generator. Where either is possible, the random choice needs a watchdog that bounds the run.
 - Don't confuse an expected bound with an average over typical data. One is a property of the algorithm and survives any input; the other is a claim about the world that stops holding when the world changes.
 - Don't assume a shuffle you wrote yourself is uniform. The obvious in-place version — walk the array and swap each element with one drawn from anywhere in the array — is biased, and the correct version differs only in drawing from the positions at or after the current one. Both produce output that looks thoroughly shuffled and passes every casual inspection, and only the second makes every arrangement equally likely. A guarantee resting on randomness is only as good as the randomness, so the shuffle is part of what has to be correct rather than a detail beneath it.
 - Don't spend real effort improving the choice before checking whether it changes the growth rate. Sampling a few candidates and taking their middle value tightens the constant, and the constant was not what made the naive version slow.
@@ -56,8 +60,9 @@ variants: []
 - How many draws are expected before an acceptable one appears?
 - Is your bound over the algorithm's own randomness, or over inputs you are assuming?
 - What happens on the improbable bad run, and can the system tolerate it?
+- Can the input be dominated by repeated values, and does the partition set equal values aside?
 
 ## Notes
 The argument has three moves and all three are needed. First, relax the target from the best boundary to a band of good-enough ones. Second, show the band is a constant fraction of all possibilities, so a blind draw hits it with constant probability. Third, observe that a constant number of expected attempts multiplies the cost by a constant and therefore leaves the growth rate alone. Any of the three missing and the argument does not close; together they convert a circular requirement into a linear expected cost.
 
-The distinction between randomness in the algorithm and assumptions about the input is the part that is easy to state and easy to forget under pressure. Deriving a bound from the algorithm's own coin flips means no caller can construct a bad case on purpose, because the caller does not control the coins. Deriving it from expected inputs means the bound holds until someone supplies unexpected ones, and the inputs most likely to be supplied — already ordered, all equal, reversed — are the ones the naive fixed choice handles worst.
+The distinction between randomness in the algorithm and assumptions about the input is the part that is easy to state and easy to forget under pressure. Deriving a bound from the algorithm's own coin flips means no caller can construct a bad case on purpose, because the caller does not control the coins — provided the caller cannot watch them being tossed. Deriving it from expected inputs means the bound holds until someone supplies unexpected ones, and the inputs most likely to be supplied — already ordered, reversed — are the ones the naive fixed choice handles worst, and heavily repeated values defeat every choice of a two-way split, random or not.

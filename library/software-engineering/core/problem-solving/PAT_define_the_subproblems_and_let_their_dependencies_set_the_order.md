@@ -40,13 +40,14 @@ variants: []
 - Pick the subproblem from the handful of shapes that keep recurring, because the shape tells you the count before you write anything. A prefix of one sequence gives a linear number of them; prefixes of two sequences give the product of the two lengths; a contiguous window within one sequence gives a square; a subtree of a rooted tree gives exactly one per node.
 - Require that each subproblem is answerable from smaller ones alone. If answering it needs something the same size or larger, the dependencies contain a cycle, there is no order that respects them, and the decomposition has to change rather than the code.
 - Read the running time off the edges. The work is visiting each subproblem once, looking at what feeds into it, and usually doing a fixed amount per incoming edge — so the total is the number of edges, and a decomposition with too many dependencies is expensive for a reason you can see before implementing it.
-- Retain a value only while something still unsolved depends on it. A layered dependency structure that appears to need a full grid frequently needs two rows, because everything older has already been consumed, and that reduction is available whenever the dependencies reach back a bounded distance.
+- Retain a value only while something still unsolved depends on it. A layered dependency structure that appears to need a full grid frequently needs two rows, because everything older has already been consumed, and that reduction is available whenever the dependencies reach back a bounded distance. The reduction pays only when the value is all you report: rows discarded as their consumers finish take their choices with them, so an answer that has to be reconstructed needs the choices kept for every subproblem on its path.
 - Store which choice produced each value, not only the value. Without it you can report what the best answer costs and not what it is, and reconstructing it afterwards means solving the problem again — it is dull bookkeeping and it is the difference between an answer and a number.
 - Reach for this after the specialised methods have failed, not before. It applies far more widely than the techniques that exploit a particular structure, and it pays for that generality in both time and memory, so a problem that yields to a structural argument should be solved that way.
 
 ## Don't
 - Don't start by writing the recurrence. The recurrence is a consequence of the subproblem definition, and starting there means committing to a decomposition before checking whether it has the properties that make it work.
 - Don't define the subproblems in terms of the answer you want. A subproblem has to be a question you could ask independently and look up, and one phrased as "the part of the best solution that lies here" cannot be evaluated without already knowing the solution.
+- Don't assume the best whole is assembled from the best parts until you have checked that the parts cannot compete for the same resources. A shortest route split at a point on it has independent halves, because a place visited by both would form a loop that could be cut out; a longest route that may not revisit anything does not, because the best first half spends places the best second half needs, and joining them can produce something that is not a valid route at all. Check it the way the proof does: replace one part by a better answer to its own subproblem and confirm the whole is still legal and no worse.
 - Don't confuse a subproblem count with a running time. The count sets the table size; the running time is the count multiplied by what each one costs, and a decomposition with few subproblems that each scan everything can be the slower of two candidates.
 - Don't hold the entire table because it was convenient to allocate. Memory is the usual reason this technique is rejected in practice, and the value that must be retained is often a small frontier rather than the whole history.
 
@@ -56,6 +57,7 @@ variants: []
 - How many dependency edges are there, and what work happens per edge?
 - Which values can be discarded once the subproblems consuming them are done?
 - Do you record the choice as well as the cost, so the answer can be reported?
+- If a part is replaced by a better answer to its own subproblem, is the whole still a valid solution?
 
 ## Notes
 The dependency graph here is never handed to you. It is created by the definition you choose, its nodes are the subproblems you named, and its edges are the places one answer feeds another — which is why the definition is the design and everything after it is consequence. Two people solving the same problem this way can produce structures of completely different sizes, and the difference shows up as the running time.

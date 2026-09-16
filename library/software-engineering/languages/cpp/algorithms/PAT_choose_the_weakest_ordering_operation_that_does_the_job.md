@@ -12,7 +12,7 @@ lane_fit: both
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: language
-foundation_object_id: none
+foundation_object_id: PAT_ask_for_the_least_order_the_consumer_needs
 tags:
 - cpp
 - algorithms
@@ -20,6 +20,8 @@ tags:
 - performance
 - readability
 cross_links:
+- rel: related_to
+  target_object_id: PAT_ask_for_the_least_order_the_consumer_needs
 - rel: related_to
   target_object_id: PAT_give_an_ordered_container_a_comparison_type_that_is_a_strict_weak_ordering
 - rel: related_to

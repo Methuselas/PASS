@@ -38,6 +38,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 ## Objects
 
+- [Ask for the Least Order the Consumer Needs](PAT_ask_for_the_least_order_the_consumer_needs.md) - pattern; 0 design. Tags: algorithm_choice, performance, selection, sorting.
 - [Ask Whether the Hot Code Can Run Less Often](PAT_ask_whether_the_hot_code_can_run_less_often.md) - pattern; 4 final. Tags: design, optimization, performance, profiling, tuning.
 - [Ask Whether the Problem Grows With the Machine](PAT_ask_whether_the_problem_grows_with_the_machine.md) - pattern; 0 design. Tags: concurrency, estimation, measurement, performance, scalability.
 - [Bound the Sequence When One Operation Is Occasionally Expensive](PAT_bound_the_sequence_when_one_operation_is_occasionally_expensive.md) - pattern; 0 design. Tags: amortized_analysis, cost_model, data_structures, latency, performance.
@@ -74,6 +75,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Read Wall, CPU, and Thread Time Together](PAT_read_wall_cpu_and_thread_time_together.md) - pattern; 4 final. Tags: benchmarking, concurrency, diagnosis, measurement, performance.
 - [Report the Spread, Not Just the Number](PAT_report_the_spread_not_just_the_number.md) - pattern; 4 final. Tags: benchmarking, measurement, performance, reporting, statistics.
 - [Reproduce the Real Context Before Believing a Micro-Benchmark](PAT_reproduce_the_real_context_before_believing_a_microbenchmark.md) - pattern; 4 final. Tags: benchmarking, measurement, optimization, performance, validity.
+- [Sort by What the Keys Are Once Comparisons Are the Cost](PAT_sort_by_what_the_keys_are_once_comparisons_are_the_cost.md) - pattern; 0 design. Tags: algorithm_choice, lower_bound, performance, sorting.
 - [Spend Computation to Buy Sequential Access](PAT_spend_computation_to_buy_sequential_access.md) - pattern; 4 final. Tags: algorithms, caching, memory, performance, trade_offs.
 - [Trade a Branch for Unconditional Work](PAT_trade_a_branch_for_unconditional_work.md) - pattern; 4 final. Tags: branches, hardware, optimization, performance, readability.
 - [Treat a Compound Condition as Several Branches](PAT_treat_a_compound_condition_as_several_branches.md) - pattern; 4 final. Tags: branches, control_flow, hardware, optimization, performance.

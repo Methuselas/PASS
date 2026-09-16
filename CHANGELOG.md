@@ -6,6 +6,23 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.34 - 2026-09-16
+
+### Added
+
+- Two software-engineering core performance cards from CLRS chapters 8 and 9:
+  asking for the least order the consumer needs (selection instead of a full
+  sort), and sorting by key values once a comparison sort is the measured cost.
+  The first becomes the foundation of the C++ weakest-ordering-operation card.
+
+### Changed
+
+- Three problem-solving refinements from CLRS chapters 4, 7 and 15: find a
+  recursion's hand-off size by measuring on the target machine; randomized
+  partitioning does not rescue repeated keys or survive an observing adversary;
+  optimal parts must compose into a legal whole, and a frontier-only table cannot
+  reconstruct the answer.
+
 ## 1.0.0-beta.33 - 2026-09-16
 
 ### Changed

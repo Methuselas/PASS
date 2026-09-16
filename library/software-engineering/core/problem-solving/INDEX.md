@@ -43,6 +43,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Prune a Partial Candidate Before You Finish Building It](PAT_prune_a_partial_candidate_before_you_finish_building_it.md) - pattern; 0 design. Tags: algorithm_design, intractability, pruning, search.
 - [Reduce the Problem Until You Can Already Solve It](PAT_reduce_the_problem_until_you_can_already_solve_it.md) - pattern; 0 design. Tags: constraints, decomposition, getting_unstuck, problem_solving.
 - [Reduce Your Problem to One That Is Already Solved](PAT_reduce_your_problem_to_one_that_is_already_solved.md) - pattern; 0 design. Tags: algorithm_design, problem_framing, reduction, reuse.
+- [Resume a Failed Match Where What It Read Still Allows](PAT_resume_a_failed_match_where_what_it_read_still_allows.md) - pattern; 0 design. Tags: algorithm_design, pattern_matching, preprocessing, string_search.
 - [Return a Certificate the Answer Can Be Checked Against](PAT_return_a_certificate_the_answer_can_be_checked_against.md) - pattern; 0 design. Tags: algorithm_design, optimization, trust, verification.
 - [Sample a Split Point You Cannot Afford to Compute](PAT_sample_a_split_point_you_cannot_afford_to_compute.md) - pattern; 0 design. Tags: algorithm_design, expected_cost, randomization, recursion.
 - [Search Only a Form Every Solution Can Be Rearranged Into](PAT_search_only_a_form_every_solution_can_be_rearranged_into.md) - pattern; 0 design. Tags: algorithm_design, optimization, problem_framing, search_space.

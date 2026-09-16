@@ -6,6 +6,19 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.40 - 2026-09-16
+
+### Added
+
+- Two software-engineering core cards from Sedgewick and Flajolet, chapters 6 to 8:
+  sorting a compact order instead of large records and applying it once by cycles,
+  and resuming a failed pattern match where what it read still allows.
+
+### Changed
+
+- The counted cost-model card now states the input model on what a method receives,
+  not on the structures it builds.
+
 ## 1.0.0-beta.39 - 2026-09-16
 
 ### Added

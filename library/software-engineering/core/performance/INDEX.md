@@ -80,6 +80,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Reproduce the Real Context Before Believing a Micro-Benchmark](PAT_reproduce_the_real_context_before_believing_a_microbenchmark.md) - pattern; 4 final. Tags: benchmarking, measurement, optimization, performance, validity.
 - [Size Each Node to One Transfer of the Slow Tier](PAT_size_each_node_to_one_transfer_of_the_slow_tier.md) - pattern; 0 design. Tags: cost_model, data_structures, performance, secondary_storage.
 - [Sort by What the Keys Are Once Comparisons Are the Cost](PAT_sort_by_what_the_keys_are_once_comparisons_are_the_cost.md) - pattern; 0 design. Tags: algorithm_choice, lower_bound, performance, sorting.
+- [Sort the Order, Not the Records, When Records Are Costly to Move](PAT_sort_the_order_not_the_records_when_records_are_costly_to_move.md) - pattern; 0 design. Tags: data_movement, memory_access, permutation, sorting.
 - [Spend Computation to Buy Sequential Access](PAT_spend_computation_to_buy_sequential_access.md) - pattern; 4 final. Tags: algorithms, caching, memory, performance, trade_offs.
 - [Trade a Branch for Unconditional Work](PAT_trade_a_branch_for_unconditional_work.md) - pattern; 4 final. Tags: branches, hardware, optimization, performance, readability.
 - [Treat a Compound Condition as Several Branches](PAT_treat_a_compound_condition_as_several_branches.md) - pattern; 4 final. Tags: branches, control_flow, hardware, optimization, performance.

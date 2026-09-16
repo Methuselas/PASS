@@ -6,6 +6,25 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.38 - 2026-09-16
+
+### Fixed
+
+- Code Apprenticeship schema v4 defaults review forms to same-reader, requires
+  declared separate auditor/grader roles for every valid study, and explicitly
+  reports that the controller cannot verify actual context isolation. Portable
+  Software Engineering instructions require fresh reviewers and an external
+  administrator when the implementer's host cannot provide them.
+- Evidence locations reject blank-only ranges. Metadata and every improvement
+  check require machine-output evidence, not implementation snippets alone.
+- New studies pin the controller implementation fingerprint and fail closed if
+  it changes. Schema-v2/v3 records remain status-readable and otherwise read-only;
+  old studies, cards, memory, and the stopped burn-in batch are preserved.
+- Negative-case regression tests cover premature craft grading, frozen work/audit
+  tampering, invalid evidence, missing machine-output locations, false default
+  separation, and changed controller fingerprints. Canary and authorized-batch
+  stopping guidance no longer imply that green transitions prove rejection checks.
+
 ## 1.0.0-beta.37 - 2026-09-16
 
 ### Added

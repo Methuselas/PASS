@@ -126,14 +126,20 @@ class SkillForgeCodeStudyTests(unittest.TestCase):
             "int answer() { return 42; }\n", encoding="utf-8"
         )
 
-    def reveal_complete_run(self, name: str = "study") -> Path:
-        run = self.prepare(name)
+    def reveal_pending_run(
+        self, name: str = "study", evidence_role: str = "held-out-validation"
+    ) -> Path:
+        run = self.prepare(name, evidence_role)
         self.write_discovery(run)
         study.freeze_discovery(run)
         study.open_guidance(run)
         self.write_guided_work(run)
         study.freeze_work(run)
         study.reveal(run)
+        return run
+
+    def reveal_complete_run(self, name: str = "study") -> Path:
+        run = self.reveal_pending_run(name)
         self.complete_audit(run)
         study.accept_audit(run)
         return run
@@ -211,6 +217,7 @@ class SkillForgeCodeStudyTests(unittest.TestCase):
         path = run / "grader" / "grade.json"
         grade = json.loads(path.read_text(encoding="utf-8"))
         grade.update({
+            "grader_relation": "separate",
             "qualification_result": "pass" if passing else "fail",
             "improvement_outcome": "improved",
             "next_action": "project-trial" if passing else "card-repair",
@@ -488,15 +495,141 @@ class SkillForgeCodeStudyTests(unittest.TestCase):
                 "Review one decision.", self.root / "escape",
             )
 
-    def test_schema_two_studies_are_status_only(self) -> None:
+    def test_legacy_studies_are_status_only(self) -> None:
+        for version in (2, 3):
+            with self.subTest(version=version):
+                run = self.prepare(f"legacy-{version}")
+                path = run / "controller" / "run.json"
+                metadata = study.load_run(run)[1]
+                metadata["schema_version"] = version
+                metadata.pop("controller_sha256")
+                path.write_text(json.dumps(metadata), encoding="utf-8")
+                self.assertEqual(study.load_run(run)[1]["schema_version"], version)
+                with self.assertRaisesRegex(study.StudyError, "read-only"):
+                    study.freeze_discovery(run)
+                result = subprocess.run(
+                    [sys.executable, str(RUNTIME_PATH), "status", "--run", str(run)],
+                    capture_output=True, text=True,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                status = json.loads(result.stdout)
+                self.assertTrue(status["legacy_read_only"])
+                self.assertIsNone(status["controller_sha256"])
+
+    def test_forms_do_not_prefill_claims_of_separate_contexts(self) -> None:
         run = self.prepare()
-        run_path = run / "controller" / "run.json"
-        metadata = json.loads(run_path.read_text(encoding="utf-8"))
-        metadata["schema_version"] = 2
-        run_path.write_text(json.dumps(metadata), encoding="utf-8")
-        self.assertEqual(study.load_run(run)[1]["schema_version"], 2)
-        with self.assertRaisesRegex(study.StudyError, "read-only"):
-            study.freeze_discovery(run)
+        metadata = study.load_run(run)[1]
+        self.assertEqual(study.audit_template(metadata)["auditor_relation"], "same-reader")
+        self.assertEqual(study.grade_template()["grader_relation"], "same-reader")
+
+    def test_same_reader_audit_is_rejected_in_every_evidence_role(self) -> None:
+        for role in sorted(study.EVIDENCE_ROLES):
+            with self.subTest(role=role):
+                run = self.reveal_pending_run(role, role)
+                audit = self.complete_audit(run)
+                audit["auditor_relation"] = "same-reader"
+                (run / "grader" / "audit.json").write_text(json.dumps(audit), encoding="utf-8")
+                with self.assertRaisesRegex(study.StudyError, "separate evidence auditor"):
+                    study.accept_audit(run)
+                self.assertEqual(study.load_run(run)[1]["state"], "revealed")
+                self.assertFalse((run / "grader" / "grade.json").exists())
+
+    def test_same_reader_craft_grade_is_rejected_in_every_evidence_role(self) -> None:
+        run = self.reveal_complete_run()
+        grade = self.complete_grade(run)
+        grade["grader_relation"] = "same-reader"
+        audit = study.verify_audit(run, study.load_run(run)[1])
+        for role in sorted(study.EVIDENCE_ROLES):
+            with self.subTest(role=role):
+                metadata = dict(study.load_run(run)[1], evidence_role=role)
+                errors = study.validate_grade(grade, metadata, audit)
+                self.assertTrue(any("separate craft grader" in error for error in errors))
+
+    def test_blank_evidence_range_is_rejected(self) -> None:
+        run = self.prepare()
+        source = run / "student" / "source" / "src" / "value.cpp"
+        source.write_text("\n \t\nconst int answer() { return 42; }\n", encoding="utf-8")
+        locator = {"area": "source", "path": "src/value.cpp", "start_line": 1,
+                   "end_line": 2, "kind": "declaration"}
+        errors = study.validate_locator(locator, run, {"source"}, "declaration")
+        self.assertTrue(any("only blank lines" in error for error in errors))
+        locator["end_line"] = 3
+        self.assertEqual(study.validate_locator(locator, run, {"source"}, "declaration"), [])
+
+    def test_implementation_locators_cannot_replace_machine_evidence(self) -> None:
+        run = self.reveal_complete_run()
+        metadata = study.load_run(run)[1]
+        audit = study.verify_audit(run, metadata)
+        code = {"area": "work", "path": "improved.cpp", "start_line": 1,
+                "end_line": 1, "kind": "implementation"}
+        for field in ("metadata", "improvement_checks"):
+            with self.subTest(field=field):
+                changed = json.loads(json.dumps(audit))
+                owner = changed[field] if field == "metadata" else changed[field][0]
+                owner["evidence"] = [code]
+                errors = study.validate_audit(changed, metadata, run)
+                self.assertTrue(any("requires machine-output evidence" in error for error in errors))
+
+    def test_premature_craft_grade_cannot_finalize_or_export(self) -> None:
+        run = self.reveal_pending_run()
+        path = run / "grader" / "grade.json"
+        path.write_text(json.dumps(study.grade_template()), encoding="utf-8")
+        self.complete_grade(run)
+        with self.assertRaisesRegex(study.StudyError, "requires evidence-audited"):
+            study.finalize(run, "SE_EV_9990", "Premature craft grade must be rejected.")
+        self.assertFalse((run / "study_result.json").exists())
+        self.assertFalse((run / "candidate_training_event.json").exists())
+
+    def test_controller_fingerprint_is_recorded_and_enforced(self) -> None:
+        for fingerprint in (None, "0" * 64):
+            with self.subTest(fingerprint=fingerprint):
+                run = self.prepare(f"fingerprint-{fingerprint is None}")
+                path = run / "controller" / "run.json"
+                metadata = study.load_run(run)[1]
+                self.assertEqual(metadata["controller_sha256"], study.digest_file(RUNTIME_PATH))
+                metadata["controller_sha256"] = fingerprint
+                path.write_text(json.dumps(metadata), encoding="utf-8")
+                with self.assertRaisesRegex(study.StudyError, "controller fingerprint"):
+                    study.freeze_discovery(run)
+
+    def test_result_does_not_claim_controller_verified_role_isolation(self) -> None:
+        run = self.reveal_complete_run()
+        self.complete_grade(run)
+        study.finalize(run, "SE_EV_9991", "Validate structural administration.")
+        result = json.loads((run / "study_result.json").read_text(encoding="utf-8"))
+        self.assertFalse(result["role_isolation_verified_by_controller"])
+        self.assertEqual(result["controller_sha256"], study.digest_file(RUNTIME_PATH))
+
+    def test_mutating_work_or_accepted_audit_fails_closed(self) -> None:
+        for changed_area, message in (("work", "study work changed"),
+                                      ("audit", "evidence audit changed")):
+            with self.subTest(area=changed_area):
+                run = self.reveal_complete_run(changed_area)
+                self.complete_grade(run)
+                path = (run / "student" / "work" / "improved.cpp" if changed_area == "work"
+                        else run / "grader" / "audit.json")
+                path.write_text(path.read_text(encoding="utf-8") + "\n ", encoding="utf-8")
+                with self.assertRaisesRegex(study.StudyError, message):
+                    study.finalize(run, "SE_EV_9989", "Reject frozen-artifact changes.")
+                self.assertFalse((run / "study_result.json").exists())
+                self.assertFalse((run / "candidate_training_event.json").exists())
+
+    def test_invalid_audit_never_exposes_or_uses_a_craft_grade(self) -> None:
+        run = self.reveal_pending_run()
+        audit_path = run / "grader" / "audit.json"
+        audit = json.loads(audit_path.read_text(encoding="utf-8"))
+        audit["invalid_reason"] = "Fixture does not reproduce the deciding source constraint."
+        audit["blocker_attribution"] = "fixture"
+        audit_path.write_text(json.dumps(audit), encoding="utf-8")
+        study.accept_audit(run)
+        grade_path = run / "grader" / "grade.json"
+        self.assertFalse(grade_path.exists())
+        grade_path.write_text(json.dumps(study.grade_template()), encoding="utf-8")
+        self.complete_grade(run)
+        event = study.finalize(run, "SE_EV_9988", "Invalid evidence is not a card result.")
+        self.assertEqual(event["validity"], "invalid")
+        result = json.loads((run / "study_result.json").read_text(encoding="utf-8"))
+        self.assertIsNone(result["grade"])
 
     def test_software_release_vendors_the_code_apprenticeship_runner(self) -> None:
         release = self.root / "release"

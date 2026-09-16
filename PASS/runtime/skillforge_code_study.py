@@ -26,8 +26,8 @@ from typing import Any, Iterable
 import yaml
 
 
-SCHEMA_VERSION = 3
-READABLE_SCHEMA_VERSIONS = {2, SCHEMA_VERSION}
+SCHEMA_VERSION = 4
+READABLE_SCHEMA_VERSIONS = {2, 3, SCHEMA_VERSION}
 PROGRAM_PURPOSE = "skillset-improvement"
 RUN_TYPE = "software-card-field-test"
 STATES = {
@@ -342,9 +342,12 @@ def validate_locator(
     if not isinstance(end, int) or isinstance(end, bool) or end < start:
         errors.append(f"{label}.end_line must be an integer at least start_line")
         return errors
-    line_count = len(path.read_text(encoding="utf-8", errors="replace").splitlines())
+    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+    line_count = len(lines)
     if end > line_count:
         errors.append(f"{label} ends at line {end}, beyond {relative.as_posix()}:{line_count}")
+    elif not any(line.strip() for line in lines[start - 1:end]):
+        errors.append(f"{label} cites only blank lines; cite the actual evidence")
     return errors
 
 
@@ -464,6 +467,12 @@ engineering decision is unavailable, keep it unresolved and stop for more source
 context instead of turning the hypothesis into a fact. Do not open `controller/`,
 the repository library, or any answer-bearing material. Do not modify `source/`;
 copy anything you need to change into `work/`.
+
+This conversation may perform discovery and implementation only. Evidence audit
+and craft grading require two different fresh reviewer contexts, not role-name
+changes in this conversation. If your host cannot create them, hand the frozen
+work to an external administrator and stop before self-auditing. An authorized
+batch may continue only through its administrator's actual review workflow.
 """
 
 
@@ -559,10 +568,18 @@ configuration, implementation, call-site, test, and machine-output.
 - Metadata copied exactly from the frozen run, plus the actual fixture toolchain,
   exact commands, and machine-evidence locations.
 
+Metadata and every improvement check need at least one machine-output locator;
+implementation snippets alone cannot establish that a command ran. Inspect the
+output and command themselves, not merely the locator's kind label.
+
 Set every gate to pass with specific evidence only when all five structures are
 complete. Otherwise set `validity` to invalid, name the blocker attribution and
-reason, leave every gate not_tested, and stop. A valid held-out audit requires a
-separate auditor role.
+reason, leave every gate not_tested, and stop. Every valid audit requires a
+separate auditor in a fresh context, including exploratory controller tests.
+Do not audit your own implementation. The template defaults to same-reader;
+change it only to describe actual separation. The controller validates this
+declaration, not the existence or isolation of the context. The administrator
+must verify the real session boundary before accepting this audit.
 """
 
 
@@ -581,7 +598,9 @@ The overall qualification is pass only when every criterion passes. Conclude
 improved, human-preferred, tradeoff, or equivalent. Equivalent is allowed only
 when the audit's property-sensitive checks observed no difference; the other
 three outcomes require an observed difference. One study never proves skill
-attribution. A held-out validation requires a separate craft grader.
+attribution. Every craft grade requires a separate grader in a fresh context,
+not the implementer or evidence auditor. The administrator must verify actual
+context isolation; this controller cannot prove it from a relation label.
 
 Motivating-example regressions and exploratory studies cannot retain habit
 candidates or request habit promotion, card repair, or language-support changes;
@@ -595,7 +614,7 @@ def audit_template(run: dict[str, Any]) -> dict[str, Any]:
         "validity": "invalid",
         "invalid_reason": "complete this evidence audit",
         "blocker_attribution": "unresolved",
-        "auditor_relation": "separate",
+        "auditor_relation": "same-reader",
         "card_if_status": "not-established",
         "card_if_fact_ids": [],
         "comparison_fact_ids": [],
@@ -627,7 +646,7 @@ def audit_template(run: dict[str, Any]) -> dict[str, Any]:
 def grade_template() -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
-        "grader_relation": "separate",
+        "grader_relation": "same-reader",
         "qualification_result": "not_tested",
         "improvement_outcome": "not_tested",
         "next_action": "repair-administration",
@@ -667,6 +686,11 @@ def require_current_schema(run: dict[str, Any]) -> None:
         raise StudyError(
             f"schema-v{run.get('schema_version')} studies are read-only; "
             f"start a fresh schema-v{SCHEMA_VERSION} study"
+        )
+    if run.get("controller_sha256") != digest_file(Path(__file__)):
+        raise StudyError(
+            "controller fingerprint is missing or changed; start a fresh study "
+            "with this controller instead of continuing under different rules"
         )
 
 
@@ -749,6 +773,7 @@ def prepare(
     run: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "run_id": uuid.uuid4().hex,
+        "controller_sha256": digest_file(Path(__file__)),
         "state": "prepared",
         "revision_number": 0,
         "created_at": now_utc(),
@@ -919,13 +944,18 @@ def invalidate(run_path: Path, reason: str) -> dict[str, Any]:
 
 def validate_locator_list(
     value: Any, root: Path, allowed_areas: set[str], label: str,
-    *, required: bool = True,
+    *, required: bool = True, machine_output: bool = False,
 ) -> list[str]:
     if not isinstance(value, list) or (required and not value):
         return [f"{label} must be a{' non-empty' if required else ''} list"]
     errors: list[str] = []
     for index, locator in enumerate(value, start=1):
         errors.extend(validate_locator(locator, root, allowed_areas, f"{label} {index}"))
+    if machine_output and not any(
+        isinstance(locator, dict) and locator.get("kind") == "machine-output"
+        for locator in value
+    ):
+        errors.append(f"{label} requires machine-output evidence, not only implementation locators")
     return errors
 
 
@@ -952,10 +982,9 @@ def validate_audit(audit: dict[str, Any], run: dict[str, Any], root: Path) -> li
         errors.append(f"auditor_relation must be one of {sorted(GRADER_RELATIONS)}")
     if (
         validity == "valid"
-        and run.get("evidence_role") == "held-out-validation"
         and audit.get("auditor_relation") != "separate"
     ):
-        errors.append("held-out validation requires a separate evidence auditor")
+        errors.append("a valid audit requires a separate evidence auditor in every evidence role")
 
     gates = audit.get("gates")
     if not isinstance(gates, list):
@@ -1104,7 +1133,8 @@ def validate_audit(audit: dict[str, Any], run: dict[str, Any], root: Path) -> li
         if not str(check.get("result") or "").strip():
             errors.append(f"{label}.result is required")
         errors.extend(validate_locator_list(
-            check.get("evidence"), root, {"work", "answer"}, f"{label} evidence"
+            check.get("evidence"), root, {"work", "answer"}, f"{label} evidence",
+            machine_output=True,
         ))
     if not capable:
         errors.append("at least one improvement check must be capable of distinguishing the designs")
@@ -1131,7 +1161,8 @@ def validate_audit(audit: dict[str, Any], run: dict[str, Any], root: Path) -> li
         ):
             errors.append("metadata.commands must be a non-empty list of exact commands")
         errors.extend(validate_locator_list(
-            metadata.get("evidence"), root, {"answer", "work"}, "metadata evidence"
+            metadata.get("evidence"), root, {"answer", "work"}, "metadata evidence",
+            machine_output=True,
         ))
     return errors
 
@@ -1182,11 +1213,8 @@ def validate_grade(
         errors.append(f"grade schema_version must be {SCHEMA_VERSION}")
     if grade.get("grader_relation") not in GRADER_RELATIONS:
         errors.append(f"grader_relation must be one of {sorted(GRADER_RELATIONS)}")
-    if (
-        run.get("evidence_role") == "held-out-validation"
-        and grade.get("grader_relation") != "separate"
-    ):
-        errors.append("held-out validation requires a separate craft grader")
+    if grade.get("grader_relation") != "separate":
+        errors.append("a craft grade requires a separate craft grader in every evidence role")
     for key in ("artifact_quality", "process_validity", "skill_attribution"):
         if grade.get(key) not in SCORES:
             errors.append(f"{key} must be one of {sorted(SCORES)}")
@@ -1400,6 +1428,8 @@ def finalize(
                 raise StudyError("invalid craft grade: " + "; ".join(errors))
     result = {
         "schema_version": SCHEMA_VERSION,
+        "controller_sha256": run["controller_sha256"],
+        "role_isolation_verified_by_controller": False,
         "validity": (
             "invalid" if audit is None else audit["validity"]
         ),
@@ -1509,6 +1539,9 @@ def main(argv: list[str] | None = None) -> int:
                 "run": str(root),
                 "schema_version": run["schema_version"],
                 "legacy_read_only": run["schema_version"] != SCHEMA_VERSION,
+                "controller_sha256": run.get("controller_sha256"),
+                "controller_matches": run.get("controller_sha256") == digest_file(Path(__file__)),
+                "role_isolation_verified_by_controller": False,
                 "state": run["state"],
                 "primary_card_id": run["primary_card_id"],
                 "supporting_card_ids": run["supporting_card_ids"],

@@ -15,9 +15,24 @@ consumer_instructions:
 - >-
   A field test against human-written software is not a Drill or control study.
   Use one primary card, one coherent source slice, one proof of concept, and one
-  reviewer; inspect declarations, call sites, tests, build context, and failure
+  implementer; inspect declarations, call sites, tests, build context, and failure
   paths, compare engineering decisions rather than proxy counts, then report and
-  stop before another review.
+  stop before another review unless it is inside an explicitly authorized batch.
+- >-
+  For a Code Apprenticeship study, use a fresh evidence-auditor context and a
+  different fresh craft-grader context, separate from the implementer and each
+  other, including exploratory controller tests. The administrator must verify
+  actual session isolation; JSON relation labels are declarations, not proof.
+  A host without isolated reviewers must freeze the work and hand it to an
+  external administrator, never audit or grade its own work. An invalid audit
+  prevents craft grading; a valid grade is binary PASS/FAIL, never partial.
+- >-
+  A controller canary requires executed frozen-artifact mutation, invalid-audit,
+  and premature craft-grade rejection checks with retained output. Successful
+  workflow transitions alone cannot establish a passed canary. Continue an
+  authorized batch to its declared count unless a real stopping condition is
+  reached; do not invent intermediate approval checkpoints. A stopped invalid
+  or contaminated batch requires explicit approval for any fresh batch.
 - >-
   Declare why the review subject was selected: neutral external corpus,
   project-relevant reference, or interest-led investigation. A ranking catalog

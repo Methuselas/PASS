@@ -102,6 +102,9 @@ class SoftwareEngineeringReleaseProfileTests(unittest.TestCase):
         self.assertIn("at most two concurrent sub-agents", instructions)
         self.assertIn("Confirmed contamination", instructions)
         self.assertIn("never triggers an automatic retry", instructions)
+        self.assertIn("fresh evidence-auditor", instructions)
+        self.assertIn("different fresh craft-grader", instructions)
+        self.assertIn("never audit or grade its own work", instructions)
 
     def test_field_test_protocol_distinguishes_source_roles_and_stops(self) -> None:
         protocol = FIELD_TESTS.read_text(encoding="utf-8")
@@ -109,7 +112,10 @@ class SoftwareEngineeringReleaseProfileTests(unittest.TestCase):
         self.assertIn("Project-relevant reference", protocol)
         self.assertIn("Interest-led investigation", protocol)
         self.assertIn("Ready for a project trial", protocol)
-        self.assertIn("one reviewer and no automatic repetitions", protocol)
+        self.assertIn("one implementer plus the separate evidence-auditor", protocol)
+        self.assertIn("explicitly authorized", protocol)
+        self.assertIn("role_isolation_verified_by_controller: false", protocol)
+        self.assertIn("Schema-v2 and v3", protocol)
         self.assertIn("The user does not need a catalog", protocol)
         self.assertIn("ask one plain-language question", protocol)
         self.assertIn("Qualification is not ordinary use", protocol)

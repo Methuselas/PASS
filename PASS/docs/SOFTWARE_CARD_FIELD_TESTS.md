@@ -2,7 +2,7 @@
 
 status: active
 owner: docs/domains/software-engineering
-last_reviewed: 2026-09-15
+last_reviewed: 2026-09-16
 
 A software card field test asks a practical question: **does this card guide an
 agent to understand, reproduce, or improve a real engineering decision found in
@@ -190,9 +190,10 @@ coherent source-code slice.
 9. **Attribute the result.** Decide whether the evidence concerns the card,
    missing language specialization, retrieval, application, incomplete source
    context, the proof-of-concept fixture, or the toolchain.
-10. **Record and stop.** Write the empirical result to Skillset Memory and report
-   the single review. Do not launch another source, card, model, or repetition
-   automatically.
+10. **Record and report.** Write the empirical result to Skillset Memory and
+   report the single review. Stop unless the next study is within an explicitly
+   authorized batch; do not invent a new approval checkpoint inside that batch.
+   Its stopping rules, including contamination, still take precedence.
 
 The reproduction and alternative are intentionally informed by the human code
 and the bounded card bundle, respectively. This workflow tests whether the card
@@ -203,13 +204,17 @@ card's causal effect.
 ## Optional deterministic controller
 
 `PASS/runtime/skillforge_code_study.py` administers the evidence boundary without
-judging engineering semantics. Schema v3 copies one bounded source slice and
+judging engineering semantics. Schema v4 copies one bounded source slice and
 hashes it, requires structured source facts and unresolved questions beside the
 human-readable discovery, holds cards private until discovery is frozen, and
 freezes the implemented alternative and machine evidence. It then separates the
 evidence audit from the craft grade. Only a valid audit exposes the craft-grade
-form. Held-out validation requires separate evidence-auditor and craft-grader
-roles. Schema-v2 studies remain readable through `status` but are read-only.
+form. Every valid study, including an exploratory controller test, requires
+separate evidence-auditor and craft-grader roles in fresh contexts. Forms default
+to `same-reader`, never to an unearned claim of separation. Schema-v2 and v3
+studies remain readable through `status` but are read-only; they are not migrated
+or retroactively requalified. New runs record the controller's SHA256 and cannot
+continue if that implementation changes during the study.
 
 ```bash
 python PASS/runtime/skillforge_code_study.py prepare \
@@ -242,6 +247,38 @@ evidence; build facts require configuration evidence. Every comparison fact must
 map to its fixture counterpart, the human and alternative implementations need
 distinct locations, and even an `equivalent` result needs a property-sensitive
 check capable of distinguishing them.
+
+Blank-only line ranges are rejected. Metadata and every improvement check require
+at least one `machine-output` location; implementation snippets alone cannot
+establish execution. A location's kind label still does not prove that the
+content is genuine output or supports the claim. The evidence auditor must read
+the cited content, verify commands and results, and reject unsupported claims.
+
+The controller cannot create contexts or verify their independence. The
+administrator must arrange an implementer, a fresh evidence auditor, and a
+different fresh craft grader, then verify the actual session boundaries. An
+operator who cannot do that may produce discovery and frozen work for an external
+administrator, but must stop before auditing or grading its own work. Switching
+role names in one conversation is not separation. Results and `status` explicitly
+report `role_isolation_verified_by_controller: false`; relation fields remain
+declarations, not proof. No result should be imported solely because its JSON
+passes structural validation.
+
+Before declaring a controller canary passed, execute the negative checks and
+retain their output: frozen source/discovery/work mutation rejection,
+unsupported-audit rejection, and premature craft-grade/finalize rejection. The
+focused automated suite includes these disposable-fixture checks:
+
+```bash
+python -m unittest discover -s tests -p test_skillforge_code_study.py -v
+```
+
+A passing successful-path study is not a substitute for that rejection coverage.
+This suite tests administration, not cards, models, or engineering capability.
+It does not authorize or resume an empirical batch. A contaminated/invalidated
+batch stays stopped until the user explicitly approves a fresh batch. For any
+approved multi-study batch, its declared run count and stopping condition govern
+continuation; do not invent an approval checkpoint between authorized runs.
 
 The controller never edits cards or Skillset Memory. A maintainer reviews a
 held-out candidate event and any proposed repair before importing either.
@@ -394,6 +431,8 @@ Stop and report before continuing when:
 - the work is being reframed as a treatment/control study without explicit
   approval.
 
-A field test uses one reviewer and no automatic repetitions. It may use ordinary
-tools to inspect, build, and test code, but it does not need parallel model arms.
-Finish and report the review before proposing another.
+A field test uses one implementer plus the separate evidence-auditor and
+craft-grader contexts; these can execute sequentially. It may use ordinary tools
+to inspect, build, and test code, but it does not need parallel treatment/control
+arms. There are no automatic repetitions beyond a user's explicitly authorized
+batch. Finish and report the review before proposing another.

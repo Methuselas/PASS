@@ -42,6 +42,7 @@ variants: []
 ## Do
 - In a derived copy constructor, name the base in the member initialization list, `Base(rhs)`; in a derived copy assignment, call `Base::operator=(rhs)` before copying the derived members.
 - When you add a data member or a base class, update every copying function (and constructor) to include it.
+- Apply the same completeness to a hand-written move constructor or move assignment, and pass the source on with `std::move`. Inside either one the parameter is a named reference and therefore an lvalue, so `Base(rhs)` in the initializer selects the base's copy constructor rather than its move constructor — measured, it copied the base part and moved nothing, with no warning at the highest level — and the same holds for each member initialized from the corresponding member of `rhs`.
 
 ## Don't
 - Don't count on the compiler to flag a partial copy; once you write your own copying functions it stays silent even at maximum warnings, so a forgotten member or base is copied wrong.

@@ -6,6 +6,24 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.31 - 2026-09-16
+
+### Changed
+
+- C++ currency batches 2 to 6: seven cards connect their decision to a C++11, C++20
+  or C++23 facility — moving the base and members in a hand-written move,
+  surviving self-move assignment, `std::out_ptr` for output-parameter acquisition
+  and pointer-to-pointer interfaces, `std::ranges::swap`, `std::reference_wrapper`
+  for an always-present but retargeted referent, and `consteval` beside
+  `constexpr`.
+
+### Fixed
+
+- `PAT_use_private_inheritance_judiciously` no longer claims composition cannot
+  obtain the empty-base size saving. Under C++20 a member marked
+  `[[no_unique_address]]` may take no storage; the card now records that MSVC
+  honours only its vendor spelling of the attribute.
+
 ## 1.0.0-beta.30 - 2026-09-16
 
 ### Changed

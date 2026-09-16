@@ -41,6 +41,7 @@ variants: []
 - Prefer the Rule of Zero so tested standard value and ownership types supply self-assignment behavior. Write a custom copy assignment operator only when the class owns semantics its members cannot express.
 - Order the statements so the new resource is acquired before the old one is freed: remember the original pointer, point to a fresh copy of the source's resource, then delete the original.
 - Add an identity test only when it avoids material work or is required by the chosen algorithm. Copy-and-swap and carefully ordered memberwise assignment can be naturally self-safe without a dedicated branch.
+- Hold a hand-written move assignment to the same standard. Aliasing reaches it just as it reaches copying — moving an element onto itself when two indices coincide — and one that releases its own resource before taking the source's does not even fail consistently: measured, releasing and then assigning the source's handle before emptying the source left the object empty, while releasing and then exchanging the source's handle out left it holding the handle it had just released. The standard library promises only a valid but unspecified state after self-move for its own types, and that is the bar to meet: the object must stay safe to destroy and to assign to.
 
 ## Don't
 - Don't delete the current resource and then copy from the source; if the source is the same object, you have destroyed the very thing you were about to copy, leaving a pointer to freed memory.

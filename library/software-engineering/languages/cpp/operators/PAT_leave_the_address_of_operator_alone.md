@@ -42,6 +42,7 @@ variants: []
 
 ## Do
 - Give the access a name. A caller that must reach the wrapped address writes a call that says so, which is visible at the call site and cannot be triggered by accident.
+- For an owning smart pointer that an interface taking a pointer to pointer must fill in, the named access already exists under C++23: pass `std::out_ptr` wrapping the smart pointer, which hands the interface a pointer to write through and gives the written value to the smart pointer's own reset when the statement ends, so the owner's bookkeeping sees it. On the C++20 path, receive into a raw local and reset the owner from it immediately.
 - Treat the identity operations as reserved. Taking an address is not a behavior your type gets to define any more than its own storage is; the things built on top of it — containers, algorithms, allocators, anything that stores a pointer to an element — are entitled to assume the usual meaning.
 - Where the wrapper is supposed to be substitutable for what it wraps, accept that the substitution stops short of this. Getting one operation closer to the imitation is not worth the class of failure it opens.
 

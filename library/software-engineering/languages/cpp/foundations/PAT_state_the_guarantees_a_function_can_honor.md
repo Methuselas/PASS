@@ -23,6 +23,8 @@ cross_links:
 - rel: related_to
   target_object_id: PAT_define_your_code_contract_explicitly
 - rel: related_to
+  target_object_id: PAT_use_template_metaprogramming
+- rel: related_to
   target_object_id: PAT_lift_a_stable_runtime_value_to_compile_time
 - rel: related_to
   target_object_id: PAT_understand_special_member_generation
@@ -47,6 +49,7 @@ variants: []
 - Declare a genuinely non-throwing function `noexcept`. Generic code can inspect the declaration, overload resolution can depend on it, and an escaping exception calls `std::terminate`; any code-generation benefit is toolchain and target dependent rather than the contract's justification.
 - Give the promise priority on move operations, swap, and deallocation because library code inspects it. During vector reallocation, a copyable type with a potentially throwing move may be copied to preserve the strong guarantee; a non-copyable type may still have to be moved, with the resulting guarantee governed by the container operation's specification.
 - Mark a suitable function `constexpr` so it *may* participate in constant evaluation. A call becomes a constant expression only when its arguments and executed path satisfy constant-expression rules and the surrounding context requires or permits it; ordinary runtime calls remain available.
+- Distinguish that promise from the stronger one C++20 adds. `constexpr` says a call may be evaluated at compile time; `consteval` says every call must be, which is the right promise only when no run-time call should ever exist. `PAT_use_template_metaprogramming` owns choosing between them.
 - Notice what a compile-time value unlocks: array sizes, template arguments, enumerator values, and alignment specifiers all require one, and a function that can produce it can be used in all of those places. An object declared compile-time-constant is also const.
 - Treat both as part of the signature rather than as annotations. A caller may write code that depends on the guarantee, and a later revision that withdraws it breaks that caller — which is the ordinary consequence of changing an interface, and worth recognizing as one before the promise is made.
 

@@ -34,12 +34,13 @@ variants: []
 
 ## Pattern Rule
 **IF** you are declaring a variable, data member, parameter, or return type whose job is to refer indirectly to some other object
-**THEN** take a reference when there will always be an object to refer to and you will never need to refer to a different one, and a pointer the moment either of those can fail
+**THEN** take a reference when there will always be an object to refer to and you will never need to refer to a different one, a `std::reference_wrapper` when there will always be one but it must be retargeted, and a pointer the moment the object can be absent
 **ELSE** where an operator's syntax requires that its result be assignable — subscripting is the common case — a reference is the only workable return type whatever the two answers were.
 
 ## Do
 - Settle the two facts about the design first, because the language enforces both answers rather than merely encouraging them: a reference must be initialized where it is declared, and assigning through one changes the referred-to object's value, never which object is referred to.
 - Drop the validity test in functions that take references. A function taking a pointer generally has to check it before dereferencing; the same function taking a reference does not, because the caller could not have supplied nothing.
+- Use `std::reference_wrapper` for the case the other two handle badly. It cannot be default-constructed or bound to a temporary, so it has no null state to check; assigning to it rebinds rather than writing through — measured, assignment moved it to a second object and left the first untouched — and unlike a reference it can be stored in a container and reassigned as a member.
 - Return a reference from subscripting so clients write the assignment directly. Returning a pointer would force the extra dereference at every call, which reads as though the container held pointers rather than values.
 
 ## Don't

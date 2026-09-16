@@ -43,6 +43,7 @@ variants: []
 - Write a public member swap that exchanges the internal pointers and never throws.
 - Add a non-member swap in the same namespace that calls the member, so argument-dependent lookup finds it.
 - When you call swap yourself, write `using std::swap;` and then call swap unqualified, so the best version is chosen.
+- Under the C++20 floor, prefer `std::ranges::swap(a, b)` for those calls. It performs the same lookup for the type's own swap and falls back to moving when there is none, in one call that cannot be written wrong — whereas qualifying the two-step call as `std::swap` silently bypasses the type's own swap, and omitting the using-declaration breaks the call for any type that has none.
 - Verify the standard nothrow-swappable trait for the type (and the corresponding concepts where used) so generic code can rely on the guarantee.
 
 ## Don't

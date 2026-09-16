@@ -43,6 +43,7 @@ variants: []
 
 ## Do
 - Acquire the resource and hand it to the managing object in the same statement (Resource Acquisition Is Initialization), so it is guarded the instant it exists.
+- Keep that single statement even when an API hands the resource back through an output parameter. Under C++23, pass `std::out_ptr` wrapping the owning smart pointer as that parameter, and the owner receives the resource when the statement ends; on the C++20 path, receive it into a raw local and give it to its owner in the very next statement, with nothing between the two that can throw.
 - For heap objects use a ready-made smart pointer, and start with `std::unique_ptr` rather than `std::shared_ptr`: exclusive ownership is cheaper and clearer, and it can be moved into shared ownership later. `std::auto_ptr` was removed in C++17 and is not an option in the C++20 baseline.
 - Let the manager's destructor perform the release, so it happens automatically on every path out of the scope.
 

@@ -43,12 +43,12 @@ variants: []
 
 ## Pattern Rule
 **IF** you need to know how much a computation can gain from more processors — before committing to a parallel design, or before sizing the machine you will run it on
-**THEN** treat it as a graph of steps with dependency edges and take two numbers from its structure: the total number of steps, and the length of the longest chain that must run in order — their ratio is the maximum speedup available, and therefore the largest processor count worth paying for
+**THEN** treat it as a graph of steps with dependency edges and take two numbers from its structure: the total number of steps, and the length of the longest chain that must run in order — their ratio is the maximum speedup available and the number of processors the work keeps busy on average
 **ELSE** where the work is a fixed set of independent items with no dependencies at all, the longest chain is one step, the parallelism is simply the item count, and there is nothing to derive.
 
 ## Do
 - Take both numbers from the algorithm rather than from a profile, because both are structural and available before any code exists. The total step count is what one processor would execute. The longest dependent chain is what unlimited processors could not shorten. For a recursively defined algorithm both fall directly out of its recurrences, which is why this is a design-time instrument rather than a measurement.
-- Read the ratio as the processor count worth having. It is the average amount of work available at each point along the critical path, so it estimates how many processors could be kept busy — and it says plainly that using substantially more than that buys nothing at all.
+- Read the ratio as the ceiling on speedup, and the widest level as the processor count that reaches it. The ratio is the average amount of work available at each point along the critical path, but the work is rarely spread that evenly. Give each step a level one past its latest prerequisite, and count the steps in the largest level. On random layered task graphs with ratios of 85 to 93 and a widest level of 400, a processor count equal to the ratio gave speedups of 52 to 57, twice that gave 68 to 75, and 400 processors reached the full ratio. A divide-and-conquer tree over 65,536 leaves, with a ratio of 7,710, gave 4,520 at 7,710 processors and reached the full ratio only at 65,536.
 - Hold the two floors and notice which one binds. Execution time cannot beat the total work divided by the processors, and it cannot beat the longest chain. When the first is larger, more processors help; when the second is larger, they do not, and the only remedy is restructuring the algorithm to shorten the chain.
 - Prefer this to reasoning about a sequential fraction wherever the algorithm's structure is known. Asking what proportion of a program must run serially is hard to answer honestly and easy to guess wrong; asking how long the longest dependency chain is has a structural answer you can derive.
 - Recompute the chain when you restructure, not the total work. The work usually stays roughly the same — the same operations still have to happen — while the chain is exactly what a restructuring moves, so it is the number that tells you whether the restructuring achieved anything.
@@ -57,14 +57,14 @@ variants: []
 
 ## Don't
 - Don't read the parallelism figure as a prediction of speedup. It assumes every step costs the same, that any ready task can be placed on any idle processor instantly, and that nothing else constrains the machine — so it is an upper bound on what the algorithm permits, not a forecast of what the program will do.
-- Don't add processors when the chain is what binds. Past the point where the ratio is exhausted, additional processors have nothing to run, and the money buys idle hardware while the finish time stays exactly where it was.
+- Don't add processors past the widest level. Beyond it no level has work for them, the money buys idle hardware, and the finish time stays at the length of the chain. Between the ratio and the widest level, extra processors still shorten the run, but each does less work on average, so paying for them is an efficiency decision. At the ratio, the graphs above ran at 59–61% efficiency; at the widest level, 12–23%.
 - Don't confuse the total work with elapsed time. A design that lowers the total work while lengthening the chain can be slower on a large machine and faster on a small one, and only separating the two numbers makes that visible.
 - Don't let a design with less parallelism lose on that basis alone. One that uses far less memory can beat a more parallel rival that thrashes, and the model deliberately ignores memory entirely.
 - Don't skip the analysis because the answer looks obviously large. Knowing that a computation could keep millions of processors busy is what tells you the algorithm is not the constraint — which redirects the effort to where the constraint actually is.
 
 ## Checklist
 - What is the total number of steps, and what is the longest chain of dependent ones?
-- What is their ratio, and how does it compare to the processors you actually have?
+- What is their ratio, how wide is the widest level, and where do the processors you actually have fall between them?
 - Which of the two floors binds at that processor count?
 - Does the scheduler ever leave a processor idle while a task is ready?
 - If the chain binds, what restructuring would shorten it?

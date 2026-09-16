@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.42 - 2026-09-16
+
+### Changed
+
+- The work-and-span card no longer claims that processors beyond the work/span ratio
+  buy nothing: it separates the ratio (the speedup ceiling) from the widest level (the
+  processor count that reaches it), with measured speedups from simulated task graphs.
+- The dependency-classification card now asks for a schedule before a loop nest with a
+  true dependency is called sequential, with measured anti-diagonal and tiled runs.
+
 ## 1.0.0-beta.41 - 2026-09-16
 
 ### Added

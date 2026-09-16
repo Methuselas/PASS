@@ -7,4 +7,5 @@
 - [Bound an Arithmetic Expression Before You Trust It](PAT_bound_an_arithmetic_expression_before_trusting_it.md) - pattern; 3 rough. Tags: integers, numbers, overflow, type_conversion.
 - [Describe Data by Meaning When It Leaves the Machine](PAT_describe_data_by_meaning_when_it_leaves_the_machine.md) - pattern; 0 design. Tags: data_types, design, distributed, interfaces, portability.
 - [Make the Default Value Mean Invalid](PAT_make_the_default_value_mean_invalid.md) - pattern; 2 block. Tags: defensive_programming, enumerated_types, initialization, type_safety.
+- [Solve a Linear System by Factoring, Not by Inverting](PAT_solve_a_linear_system_by_factoring_not_by_inverting.md) - pattern; 3 rough. Tags: floating_point, linear_algebra, numerical_stability, precision.
 - [Treat Floating-Point Arithmetic as Approximate](PAT_treat_floating_point_arithmetic_as_approximate.md) - pattern; 3 rough. Tags: floating_point, numbers, precision, rounding.

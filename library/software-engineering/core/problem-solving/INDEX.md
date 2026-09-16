@@ -18,6 +18,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Check Whether the Problem Is a Known Hard One in Disguise](PAT_check_whether_the_problem_is_a_known_hard_one_in_disguise.md) - pattern; 0 design. Tags: algorithm_design, estimation, intractability, reduction.
 - [Choose an Explanatory Metaphor by What the Audience Already Knows](PAT_choose_explanatory_metaphors_by_audience_schemata.md) - pattern; 4 final. Tags: mental_model, notional_machine, onboarding, teaching.
   - Variants: `Treat Borrowed Keywords as Metaphors Nobody Chose` (context).
+- [Choose the Path Method by What the Weights Can Be](PAT_choose_the_path_method_by_what_the_weights_can_be.md) - pattern; 0 design. Tags: algorithm_choice, graphs, scheduling, shortest_paths.
 - [Choose the Problem's Representation Before Solving It](PAT_choose_a_problem_representation_before_solving.md) - pattern; 0 design. Tags: cognition, models, problem_solving, representation.
 - [Cue Yourself With the Domain, Not With a Generic Problem-Solving Frame](PAT_use_domain_specific_cues_not_generic_problem_frames.md) - pattern; 0 design. Tags: deliberate_practice, problem_solving, retrieval, transfer.
 - [Decide Whether the Split or the Combine Does the Work](PAT_decide_whether_the_split_or_the_combine_does_the_work.md) - pattern; 0 design. Tags: algorithm_design, decomposition, performance, recursion.

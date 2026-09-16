@@ -6,6 +6,20 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.36 - 2026-09-16
+
+### Added
+
+- Two software-engineering core cards from CLRS chapters 24, 25 and 28: choosing
+  a shortest-path method by whether the network can have cycles and negative
+  costs (including all-pairs choice by density and one-time cost adjustment), and
+  solving a linear system by factoring with row exchanges rather than by inverting.
+
+### Changed
+
+- One problem-solving refinement from CLRS chapter 26: whole-number capacities
+  give whole-number flows, so one-to-one assignment reduces to flow without paying
+  for the whole-number requirement.
 ## 1.0.0-beta.35 - 2026-09-16
 
 ### Added

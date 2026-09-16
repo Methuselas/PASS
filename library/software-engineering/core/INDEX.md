@@ -263,7 +263,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Concurrency](concurrency/INDEX.md) - 60 object(s).
 - [Contracts](contracts/INDEX.md) - 9 object(s).
 - [Control Flow](control-flow/INDEX.md) - 15 object(s).
-- [Data Types](data-types/INDEX.md) - 4 object(s).
+- [Data Types](data-types/INDEX.md) - 5 object(s).
 - [Deliberate Practice](deliberate-practice/INDEX.md) - 14 object(s).
 - [Dependencies](dependencies/INDEX.md) - 3 object(s).
 - [Design](design/INDEX.md) - 27 object(s).
@@ -271,7 +271,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Hard To Misuse](hard-to-misuse/INDEX.md) - 14 object(s).
 - [Modularity](modularity/INDEX.md) - 15 object(s).
 - [Performance](performance/INDEX.md) - 43 object(s).
-- [Problem Solving](problem-solving/INDEX.md) - 35 object(s).
+- [Problem Solving](problem-solving/INDEX.md) - 36 object(s).
 - [Readability](readability/INDEX.md) - 32 object(s).
 - [Refactoring](refactoring/INDEX.md) - 11 object(s).
 - [Reusability](reusability/INDEX.md) - 9 object(s).

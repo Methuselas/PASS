@@ -6,6 +6,24 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.46 - 2026-09-16
+
+### Changed
+
+- Require relevant language-agnostic Software Engineering core Patterns, APs and
+  Drills to be reviewed against each new or extended language module's instructional
+  books and cards, with target-version/toolchain checks for executable claims.
+  Keep one shared core owner; distinguish authoring review from empirical qualification.
+- Require workspace files to use existing purpose buckets and task-owned directories.
+  Verify durable integration or completion before removing owned scratch and staging
+  copies; protect original inputs, other tasks and explicit evidence holds. Route
+  these rules through both agent entrypoints, portable authoring and runtime instructions.
+
+### Added
+
+- Focused regression checks for the language-book/core review gate, workspace lifecycle
+  and instruction routing. No automatic cleanup or apprenticeship-controller change.
+
 ## 1.0.0-beta.45 - 2026-09-16
 
 ### Changed

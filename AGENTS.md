@@ -47,6 +47,11 @@ The prose after each lead is this file's own.
   that cannot be deleted and regenerated from the cards has become a second
   database.
 - **`archive/` is retired material.** Nothing active may depend on it.
+- **Workspace files have a task owner, a purpose directory, and a cleanup condition.**
+  Use existing purpose buckets, never loose generated files in `workspace/`.
+  After verified integration or completion, remove owned scratch and redundant
+  staging copies; preserve explicit evidence holds, original inputs and other
+  tasks. Check exact deletion targets. See `PASS/docs/PASS_RUN.md` §Workspace lifecycle.
 - **Every release ships `metaskills` and its complete prerequisite closure.** A
   build that omits a referenced card is broken even when the source library
   validates.

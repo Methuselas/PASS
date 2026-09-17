@@ -847,6 +847,31 @@ class ValidatorScopeTests(unittest.TestCase):
 
 
 class RepositoryShapeTests(unittest.TestCase):
+    def test_workspace_lifecycle_is_routed_and_protects_retained_work(self) -> None:
+        lead = "Workspace files have a task owner, a purpose directory, and a cleanup condition."
+        for filename, heading in (
+            ("AGENTS.md", "## Non-negotiable boundaries"),
+            ("CLAUDE.md", "## Hard rules"),
+        ):
+            with self.subTest(file=filename):
+                self.assertIn(lead, agent_rule_leads(filename, heading))
+                self.assertIn("§Workspace lifecycle", (ROOT / filename).read_text(encoding="utf-8"))
+        procedure = (ROOT / "PASS/docs/PASS_RUN.md").read_text(encoding="utf-8")
+        lifecycle = procedure.split("### Workspace lifecycle", 1)[1].split("\n###", 1)[0]
+        for requirement in (
+            "task-named directory", "existing", "loose generated files",
+            "verify the accepted content", "remove the task-owned scratch",
+            "redundant staging copies", "invalid or", "contaminated-run evidence",
+            "original user inputs", "exact deletion targets", "Stop for direction",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, lifecycle)
+        closure = procedure.split("## 4. Close", 1)[1].split("### Stopping early", 1)[0]
+        self.assertIn("§Workspace", closure)
+        self.assertIn("cleanup condition", closure)
+        authoring_skill = (ROOT / "PASS/SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("§Workspace", authoring_skill)
+
     def test_repo_agent_skill_discovery_folders_are_present(self) -> None:
         for folder in (".claude/skills", ".agents/skills"):
             self.assertTrue((ROOT / folder).is_dir(), folder)

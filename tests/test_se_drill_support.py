@@ -92,6 +92,31 @@ class CppPilotPacketTests(unittest.TestCase):
 
 
 class SoftwareEngineeringReleaseProfileTests(unittest.TestCase):
+    def test_language_books_review_shared_core_without_forking_it(self) -> None:
+        contract = (ROOT / "PASS/docs/PASS_LIBRARY.md").read_text(encoding="utf-8")
+        section = contract.split("### Software core and language compatibility", 1)[1].split("\n##", 1)[0]
+        for requirement in (
+            "creating or extending a language module", "instructional books",
+            "core Patterns, APs and Drills", "declared language version",
+            "new language cards", "valid and misuse/boundary cases",
+            "Human-code field tests supplement", "never fork core",
+            "remain unverified", "not an empirical qualification",
+        ):
+            with self.subTest(requirement=requirement):
+                self.assertIn(requirement, section)
+        run = (ROOT / "PASS/docs/PASS_RUN.md").read_text(encoding="utf-8")
+        self.assertIn("select the relevant existing core", run)
+        self.assertIn("§Software core and language compatibility", run)
+        for discovery_root in (".agents", ".claude"):
+            skill = (ROOT / discovery_root / "skills/software-engineering/SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("§Software core and language compatibility", skill)
+        profile = yaml.safe_load(PROFILE.read_text(encoding="utf-8"))
+        instructions = "\n".join(profile["consumer_instructions"])
+        self.assertIn("language's instructional books", instructions)
+        self.assertIn("not required for ordinary use", instructions)
+        self.assertIn("task-named directory", instructions)
+        self.assertIn("explicit hold and cleanup condition", instructions)
+
     def test_release_uses_the_software_engineering_profile(self) -> None:
         recipe = yaml.safe_load(RECIPE.read_text(encoding="utf-8"))
         self.assertEqual(recipe["runtime_profile"], "software-engineering")

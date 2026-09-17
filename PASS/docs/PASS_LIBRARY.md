@@ -55,6 +55,30 @@ a foundation the package does not contain.
 
 Module metadata is local. PASS does not require a global module registry.
 
+### Software core and language compatibility
+
+Software Engineering `core` cards are language-agnostic decisions, not C++ cards
+and not automatically verified in every language. Keep one canonical core owner.
+
+When creating or extending a language module from instructional books, review
+the relevant existing core Patterns, APs and Drills against each book's actual
+language instruction. Select core owners per instructional unit, not by a
+whole-core prerequisite sweep. Check their assumptions, actions and examples
+against the declared language version and the new language cards. Exercise
+executable claims with valid and misuse/boundary cases on the target toolchain;
+assess design judgments against the book's real examples and constraints, not
+compiler success alone. A module dependency or schema pass is not compatibility
+evidence. Human-code field tests supplement this book-driven review; they do not
+replace it.
+
+Put language syntax, idioms and necessary exceptions in the language module.
+Repair a falsely universal core claim at its existing owner; never fork core per
+language or turn the shared decision into one language's implementation. Report
+which core decisions were checked, which required specialization or repair, and
+which remain unverified. Keep this account in the bounded run/delta report, not a
+new registry, coverage database or source locator on a card. Authoring review is
+not an empirical qualification or a requirement imposed on ordinary users.
+
 A folder and a module are not required to be the same granularity. If two navigation folders contain mutually dependent knowledge, they may live inside one larger source module rather than creating an artificial module cycle.
 
 ## Object identifiers

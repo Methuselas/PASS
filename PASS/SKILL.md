@@ -48,6 +48,10 @@ knowledge. Mark inference, uncertainty, and deferred review explicitly.
 Author in **one** domain per run. Duplicate-guard against that domain only; do not
 search or modify another. Cards may reference their own domain plus `metaskills`.
 
+When using the repository workspace, follow `docs/PASS_RUN.md` §Workspace
+lifecycle: choose an existing purpose bucket and task directory, then remove
+owned scratch after verified integration/completion, respecting evidence holds.
+
 Treat AP authoring as **orchestration authoring**, not merely another extraction
 shape. A source may teach an AP directly, but a stable AP may also be synthesized
 from accepted Patterns when a recurring action needs dependable ordering, gates,

@@ -55,7 +55,21 @@ consumer_instructions:
   learned from a language-specific source or has evidence from only one language.
   Language modules add realization, idioms, constraints, and exceptions; never
   duplicate or fork the core library per language.
+- >-
+  Core is language-agnostic, not C++-only and not automatically verified for a
+  new language. When authoring or extending language cards, review relevant core
+  Patterns, APs and Drills against that language's instructional books and the
+  new cards, with target-version/toolchain checks for executable claims. Keep
+  one core owner; put language realization in its module. Book-driven authoring
+  review is not empirical qualification and is not required for ordinary use.
 - Before administering a Software Engineering Drill, declare whether the run is a portability probe, blind Drill sitting, deterministic regression, or comparative study. Do not treat one type as evidence for another.
+- >-
+  When using a repository workspace, use its existing purpose buckets and a
+  task-named directory, never loose generated files at its root. After verified
+  integration or completion, remove owned scratch and redundant staging copies.
+  Preserve original inputs, other tasks and evidence needed for review or
+  diagnosis; state each explicit hold and cleanup condition in the task note.
+  Resolve exact owned deletion targets and stop if ownership is unclear.
 - An ordinary portability probe or Drill sitting uses one taker. A comparative pilot uses at most one treatment/control pair and at most two concurrent sub-agents. Any continuation requires approval naming the exact additional run count, model, maximum concurrency, and stopping condition, and each pair must be reported before another is launched.
 - Keep the taker packet separate from the grader packet, state that required artifacts must be produced rather than described, and freeze the answer before revealing the Success Check or mutation cases.
 - When a claimed capability is enforcement, retain compiler or test output from both a valid case and a deliberate misuse or breakage case. Counts of assertions, guards, comments, attributes, files, or lines are diagnostics and never determine the verdict.

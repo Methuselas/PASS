@@ -2,7 +2,7 @@
 
 status: active
 owner: docs/domains/corpus
-last_reviewed: 2026-08-18
+last_reviewed: 2026-09-16
 supersedes: the read/extract/place/validate loop previously documented here
 
 Read `PASS_DOCTRINE.md` and `PASS_SCHEMA.md` first.
@@ -69,6 +69,27 @@ Repository-wide uniqueness is checked at integration.
 **Protected semantics.** This procedure does not reopen settled domain theory.
 For Art specifically, the P/C framework and the frozen Stages architecture are
 not modified unless that work is explicitly opened.
+
+### Workspace lifecycle
+
+Before creating work files, choose one task-named directory under the existing
+purpose bucket: `workspace/authoring/`, `builds/`, `code-studies/`, `drill-runs/`
+or `handoffs/`. Put reusable tools, release recipes, inputs and deliverables in
+their existing `tools/`, `release-recipes/`, `sources/` and `releases/` buckets.
+Do not drop loose generated files or new ad-hoc buckets in the workspace root.
+Keep extraction, probes, logs and build outputs inside the task's area; do not
+create a workspace registry or authoring sidecar to track them.
+
+At integration or completion, verify the accepted content at its durable
+destination and remove the task-owned scratch and redundant staging copies.
+Completed scratch is not permanent storage. Preserve an explicitly retained
+deliverable or evidence needed for review/diagnosis, including invalid or
+contaminated-run evidence; state its purpose and cleanup condition in the task's
+existing note or handoff. Do not delete it merely because execution ended.
+Never sweep another task, original user inputs, shared sources/tools/recipes or
+user-owned files. Resolve and check exact deletion targets inside the owned task
+directory before removing anything; report what was removed. Stop for direction
+if ownership, retention or the durable destination is unclear.
 
 ### Session boundaries are not unit boundaries
 
@@ -192,6 +213,11 @@ For each unit, name the region(s) of your own domain it will land in and count
 the cards already there. Coverage is **per unit against its region** — never per
 book, never per lane. A single source routinely contains both saturated and empty
 units.
+
+For Software Engineering language books, also select the relevant existing core
+owners for compatibility review alongside the new language cards. Follow
+`PASS_LIBRARY.md` §Software core and language compatibility; language-agnostic
+ownership is not permission to skip the language's instructional books.
 
 Predict the **disposition mix**, not a card count:
 
@@ -658,7 +684,9 @@ knowledge materially improve a recurring complete action whose orchestration is
 missing or stale?** If no, close normally. If yes, run §2.8 as a separate approved
 AP synthesis move; do not force it into the last source unit.
 
-Discard the run state. The accepted cards are what remains.
+Discard the run state. The accepted cards are what remains. Complete §Workspace
+lifecycle: verify the durable destination, remove owned scratch and staging
+copies, and report any explicit evidence/deliverable hold and its cleanup condition.
 
 ### Stopping early
 

@@ -10,6 +10,12 @@ description: >-
 
 Use PASS's universal engineering library plus the relevant language module.
 
+Core cards are language-agnostic, not C++-only and not language-unchecked.
+When authoring or extending language cards from books, use PASS-authoring and
+`PASS/docs/PASS_LIBRARY.md` §Software core and language compatibility. Review
+relevant core owners against that language's instruction; do not fork core or
+assume prior-language evidence establishes compatibility.
+
 ## Targeted retrieval
 
 Do not preload the core or language master indexes. Restate the engineering

@@ -6,6 +6,35 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.47 - 2026-09-16
+
+### Added
+
+- A `software-engineering/languages/python` module, registered in the Software
+  Engineering release recipe, runtime profile and skill descriptions. The runtime
+  profile honors a project's declared `requires-python` and otherwise targets the
+  current stable CPython.
+- Two Python cards, checked on CPython 3.14.7: keeping names off built-ins and
+  importable modules (including a local file that breaks a standard-library import),
+  and testing a missing value with `is None` rather than truthiness.
+
+### Changed
+
+- Core cards checked against Python from *Beyond the Basic Stuff with Python*
+  chapters 3 to 6 no longer assume a compiler where the decision does not need one:
+  coding style, layout, name length, dedicated types, time types, the ambiguous-choice
+  card, exhaustive enum handling and its Drill, writing in the language you are in,
+  and the multi-way decision Action Protocol.
+- Narrowed false universal claims: a dedicated type does not stop positional
+  arguments being swapped at construction; parentheses change the meaning of a
+  comparison chain where chains have their own meaning; a global is aliased through a
+  parameter only by reference or in-place mutation; a flag required by name states
+  its direction.
+- Added to core: blank lines as the layout choice a formatter leaves to you, units
+  in names when no type carries them, requiring arguments by name where the language
+  can, naming compared string values, not sharing one constant between coinciding
+  meanings, and stubs that fail when called.
+
 ## 1.0.0-beta.46 - 2026-09-16
 
 ### Changed

@@ -44,6 +44,7 @@ variants: []
 - Keep short names distinct to the eye as well as to the memory. `l` is nearly identical to `1`, and a confusable glyph defeats the fast pattern recognition a reader uses to group code before reading it.
 - Weigh clarity against the cost of holding the name in mind. Full words beat abbreviations and single letters for both defect-finding and comprehension, but longer names are harder and slower to recall, and the driver is syllable count rather than character count — so a name is a balance, not a one-way improvement.
 - If a team adopts a systematic prefix or suffix, let it encode the value's semantic kind or the role it plays — `cX` for a count of X, `rw` and `col` for a row and a column that are both plain integers — and never its data type.
+- Put the unit in the name when no type carries it. A unit is a semantic kind, not a data type, so `timeoutMs` or `weightKg` is not type-prefixing; prefer a type that carries the unit where one exists.
 
 ## Don't
 - Don't use a comment to say what a badly-named thing is; a reader deep in a long file then has to scroll back to the declaration to recall what `s` means.

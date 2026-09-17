@@ -38,6 +38,7 @@ variants: []
 
 ## Do
 - Use named arguments so the call reads without opening the definition: `sendMessage(message: "hello", priority: 1, allowRetry: true)`.
+- Where the language can require an argument to be passed by name, require it for flags and same-typed values, so the unreadable call cannot be written at all.
 - Where the language lacks them, use a conventional workaround engineers recognize — object destructuring of a params object in TypeScript achieves the same association of names to values.
 - As a last resort for something like a four-integer `BoundingBox(10, 50, 20, 5)` constructor, add inline argument comments (`/* top= */ 10`), accepting they can go stale.
 

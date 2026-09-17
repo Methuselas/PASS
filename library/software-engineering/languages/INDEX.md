@@ -45,3 +45,4 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 ## Topics
 
 - [Cpp](cpp/INDEX.md) - 202 object(s).
+- [Python](python/INDEX.md) - 2 object(s).

@@ -41,7 +41,7 @@ variants: []
 ## Do
 - Replace an if-statement that handles some values and implicitly assumes the rest: an `isOutcomeSafe` that only special-cases `COMPANY_WILL_GO_BUST` silently rules a future `WORLD_WILL_END` "safe."
 - Make an unhandled value a fail-fast programming error. Where the compiler refuses a non-exhaustive match outright, that refusal is the whole mechanism and nothing further is needed; where it does not, throw an unchecked exception after the switch and back it with a unit test that calls the function for every enum value.
-- Put the throw after the switch, not in a `default` case, so the compiler's exhaustiveness warning still fires as a second layer of protection.
+- Put the throw after the switch, not in a `default` case. Where the compiler warns on a non-exhaustive switch, a default case silences that warning; where nothing checks exhaustiveness — a pattern match with no case for a value simply falls through — the throw after the switch and the all-values test are the only layers, so neither can be skipped.
 
 ## Don't
 - Don't add a `default` case that returns a value; it silently absorbs new enum values — defaulting a new `COMPANY_WILL_AVOID_LAWSUIT` to "not safe" is just a different wrong answer.

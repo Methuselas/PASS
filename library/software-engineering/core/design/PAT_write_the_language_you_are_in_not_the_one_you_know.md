@@ -35,7 +35,7 @@ variants: []
 
 ## Pattern Rule
 **IF** you are writing in a language you know less well than one you know deeply
-**THEN** inspect the result for constructs you reached for because your stronger language has them, and for capabilities of the current language you have not touched at all — code that compiles is not evidence that it is written in this language.
+**THEN** inspect the result for constructs you reached for because your stronger language has them, and for capabilities of the current language you have not touched at all — code that runs is not evidence that it is written in this language.
 
 ## Do
 - Read your own output asking which language it was really written in. The failure is invisible from inside because every individual line is valid; it shows only in aggregate, as a shape belonging somewhere else.
@@ -45,7 +45,7 @@ variants: []
 - Spend the familiarity where it pays. Three or more years in a language is worth roughly 30 percent productivity over equivalent engineers new to it, which is the size of the gap you are working against when you write in an unfamiliar one.
 
 ## Don't
-- Don't take compiling, passing tests, and reviewing cleanly as evidence you have used the language. Disguised code satisfies all three.
+- Don't take running, passing tests, and reviewing cleanly as evidence you have used the language. Disguised code satisfies all three.
 - Don't conclude the language is deficient before checking whether you have looked for its facility. The judgment that a language cannot do something is unreliable from inside a stronger language's habits.
 - Don't fix this by importing idioms wholesale either. A construct still has to be the best tool for the job at hand, not merely native to the language.
 

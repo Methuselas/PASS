@@ -42,7 +42,8 @@ variants: []
 ## Do
 - Judge a scheme against four criteria rather than against taste: does it represent the logical structure *accurately*, can it be applied *consistently* without a pile of exceptions, does it make the code easier to *read*, and does it *survive modification*.
 - Prefer a scheme that makes good code look good and bad code look bad over one that makes all code look good. A scheme that beautifies everything has destroyed the signal you were formatting to produce, and in practice prioritising structure rarely produces ugly code — unless the logic is ugly, which is the point.
-- Never let whitespace claim a structure the language does not have. Three statements indented under an unbraced loop tell a human that all three repeat and tell the compiler that one does; `x = 3+4 * 2+7` spaced that way reads as 63 and evaluates as 18. Layout that tells the reader a different story than it tells the machine is a defect waiting for a maintainer, not a style preference.
+- Never let whitespace claim a structure the language does not have. Three statements indented under an unbraced loop, in a language where braces rather than indentation mark the block, tell a human that all three repeat and tell the language that one does; `x = 3+4 * 2+7` spaced that way reads as 63 and evaluates as 18. Layout that tells the reader a different story than it tells the machine is a defect waiting for a maintainer, not a style preference.
+- Separate a routine's steps with blank lines according to what each group of statements does. It is the layout decision an automatic formatter leaves to you, because only the meaning of the code says where one step ends — a routine that checks its input, splits it, and then validates each part reads as distinct groups even without comments.
 - Give each statement its own line so that complexity stays visible. Statements that are complex should look complex and statements that are simple should look simple — packing several onto one line hides how much is happening and makes the line count lie about the work.
 - Reject any scheme in which changing one line forces you to change its neighbours. That is what condemns layouts aligned to the width of a preceding token: lengthen the first line and every aligned line below it has to move, so the scheme fights every edit and decays the moment someone is in a hurry.
 - Settle a disagreement by naming which criterion each side is weighting. Most layout arguments are two people optimising different things without saying so, and stating the criteria converts an argument about taste into one about tradeoffs that can actually be resolved.
@@ -53,7 +54,7 @@ variants: []
 - Don't conclude that good names and good comments will carry poorly laid-out code. They will not: the same routine with identical names and identical comments is unreadable at bad layout and clear at good layout, because the layout is what lets the rest of the effort become visible.
 
 ## Checklist
-- Does the indentation match what the compiler will actually do?
+- Does the layout match what the language will actually do?
 - Would changing one line here force you to reformat several others?
 - Does this arrangement make a complicated statement look complicated?
 - If you are arguing about this, which of the four criteria is each side weighting?

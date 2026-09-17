@@ -7,6 +7,11 @@ consumer_instructions:
   facilities only as clearly labeled options, retain a C++20 path, and verify
   both compiler and standard-library support before relying on them.
 - >-
+  Honor a Python project's declared requires-python and supported interpreters.
+  If the project declares none, target the current stable CPython release.
+  Label anything that needs a newer version than the project supports, and
+  verify it on the interpreter that will run the code.
+- >-
   Distinguish maintainer qualification from ordinary project application. A
   maintainer asking to test cards uses the field-test protocol; an ordinary user
   asking for help with software does not need a catalog or qualification run.

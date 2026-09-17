@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_sequence_load_bearing_adventure_scenes_by_dependency
+object_id: PAT_sequence_load_bearing_adventure_scenes_by_dependency
 object_type: pattern
 name: Sequence Load-Bearing Adventure Scenes by Dependency
 library_path:
@@ -20,7 +20,7 @@ tags:
   - transitions
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_anchor_episodic_adventure_to_stable_mission_spine
+    target_object_id: PAT_anchor_episodic_adventure_to_stable_mission_spine
 reference:
   source_title: "Famine in Far-Go"
   author: "Michael Price"

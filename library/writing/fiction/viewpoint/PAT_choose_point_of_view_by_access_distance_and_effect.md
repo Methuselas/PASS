@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+object_id: PAT_choose_point_of_view_by_access_distance_and_effect
 object_type: pattern
 name: Choose Point of View by Access Distance and Effect
 library_path:
@@ -20,13 +20,13 @@ tags:
   - access
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_filter_setting_through_character_consciousness
+    target_object_id: PAT_filter_setting_through_character_consciousness
   - rel: related_to
-    target_object_id: writing_fiction_inhabit_unsympathetic_characters_from_inside
+    target_object_id: PAT_inhabit_unsympathetic_characters_from_inside
   - rel: related_to
-    target_object_id: writing_fiction_design_first_person_telling_situation
+    target_object_id: PAT_design_the_first_person_telling_situation
   - rel: related_to
-    target_object_id: writing_fiction_use_alternating_first_person_narrators_to_complicate_interpretation
+    target_object_id: PAT_use_alternating_first_person_narrators_to_complicate_interpretation
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

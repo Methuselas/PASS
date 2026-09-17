@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_structure_multiple_viewpoint_narratives_by_function_and_orientation
+object_id: PAT_structure_multiple_viewpoint_narratives_by_function_and_orientation
 object_type: pattern
 name: Structure Multiple-Viewpoint Narratives by Function and Orientation
 library_path:
@@ -20,15 +20,15 @@ tags:
   - reader_orientation
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
   - rel: related_to
-    target_object_id: writing_fiction_keep_point_of_view_knowledge_and_access_consistent
+    target_object_id: PAT_keep_point_of_view_knowledge_and_access_consistent
   - rel: related_to
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
   - rel: related_to
-    target_object_id: writing_fiction_stage_disclosure_to_sustain_reader_inference
+    target_object_id: PAT_stage_disclosure_to_sustain_reader_inference
   - rel: related_to
-    target_object_id: writing_fiction_use_diaries_and_letters_as_active_story_documents
+    target_object_id: PAT_use_diaries_and_letters_as_active_story_documents
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_shape_stanzas_around_movement_and_pause
+object_id: PAT_shape_stanzas_around_movement_and_pause
 object_type: pattern
 name: Shape Stanzas Around Movement and Pause
 library_path:
@@ -20,9 +20,9 @@ tags:
   - white_space
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_break_lines_to_control_pace_and_expectation
+    target_object_id: PAT_break_poetic_lines_to_control_pace_and_expectation
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

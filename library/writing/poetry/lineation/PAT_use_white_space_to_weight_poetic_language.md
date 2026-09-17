@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_use_white_space_to_weight_language
+object_id: PAT_use_white_space_to_weight_poetic_language
 object_type: pattern
 name: Use White Space to Weight Poetic Language
 library_path:
@@ -20,11 +20,11 @@ tags:
   - pacing
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_sustain_intensity_beyond_meter_and_lineation
+    target_object_id: PAT_sustain_poetic_intensity_beyond_meter_and_lineation
   - rel: related_to
-    target_object_id: writing_poetry_break_lines_to_control_pace_and_expectation
+    target_object_id: PAT_break_poetic_lines_to_control_pace_and_expectation
   - rel: related_to
-    target_object_id: writing_poetry_shape_stanzas_around_movement_and_pause
+    target_object_id: PAT_shape_stanzas_around_movement_and_pause
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

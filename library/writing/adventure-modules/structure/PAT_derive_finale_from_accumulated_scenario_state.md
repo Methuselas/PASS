@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_derive_finale_from_accumulated_scenario_state
+object_id: PAT_derive_finale_from_accumulated_scenario_state
 object_type: pattern
 name: Derive the Finale from Accumulated Scenario State
 library_path:
@@ -20,9 +20,9 @@ tags:
   - state_tracking
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_anchor_episodic_adventure_to_stable_mission_spine
+    target_object_id: PAT_anchor_episodic_adventure_to_stable_mission_spine
   - rel: related_to
-    target_object_id: writing_adventure_modules_write_reactive_location_as_stateful_response_system
+    target_object_id: PAT_write_reactive_location_as_stateful_response_system
 reference:
   source_title: "The Arasaka Brainworm"
   author: "Thomas M. Kane"

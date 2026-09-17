@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_differentiate_character_voices_through_parallel_monologues
+object_id: DRILL_differentiate_character_voices_through_parallel_monologues
 object_type: drill
 name: Differentiate Character Voices through Parallel Monologues
 library_path:
@@ -21,13 +21,13 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
+    target_object_id: PAT_let_relationship_and_setting_shape_dialogue
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
   - rel: related_to
-    target_object_id: writing_read_draft_aloud_to_defamiliarize_it
+    target_object_id: PAT_read_draft_aloud_to_defamiliarize_it
   - rel: related_to
-    target_object_id: writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility
+    target_object_id: DRILL_audit_marked_character_speech_for_individuality_accuracy_and_legibility
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
@@ -62,7 +62,7 @@ Choose two characters with different desires, knowledge, and relationships to on
 4. Draft the second monologue at a similar length, changing sentence movement, pace, directness, figurative habits, and selection of detail as the person and relation require.
 5. Read both aloud. Mark places where the characters share the same polished syntax, explanation habits, jokes, or emotional vocabulary without a credible reason.
 6. Exchange one sentence between the monologues. If it survives unchanged, revise it around the receiving speaker's attention, knowledge, motive, and social permission.
-7. Remove phonetic spelling, catchphrases, profanity, or verbal tics that serve only as identity labels. When a retained voice depends on unfamiliar dialect, multilingual wording, accent marking, or a speech difference, run `writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility` before treating the distinction as credible.
+7. Remove phonetic spelling, catchphrases, profanity, or verbal tics that serve only as identity labels. When a retained voice depends on unfamiliar dialect, multilingual wording, accent marking, or a speech difference, run `DRILL_audit_marked_character_speech_for_individuality_accuracy_and_legibility` before treating the distinction as credible.
 8. Compare what each voice conceals, assumes, and tries to make the listener do. Revise until those differences affect more than sound.
 
 ## Success Check

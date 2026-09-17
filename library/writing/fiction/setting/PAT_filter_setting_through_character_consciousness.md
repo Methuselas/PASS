@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_filter_setting_through_character_consciousness
+object_id: PAT_filter_setting_through_character_consciousness
 object_type: pattern
 name: Filter Setting through Character Consciousness
 library_path:
@@ -21,9 +21,9 @@ tags:
   - description
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
+    target_object_id: PAT_let_relationship_and_setting_shape_dialogue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

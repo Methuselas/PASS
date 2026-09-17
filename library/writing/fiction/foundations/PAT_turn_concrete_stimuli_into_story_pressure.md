@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_turn_concrete_stimuli_into_story_pressure
+object_id: PAT_turn_concrete_stimuli_into_story_pressure
 object_type: pattern
 name: Turn Concrete Stimuli into Story Pressure
 library_path:
@@ -20,11 +20,11 @@ tags:
   - conflict
 cross_links:
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_round_characters_from_contradiction_and_desire
   - rel: related_to
-    target_object_id: writing_fiction_choose_setting_to_intensify_character_and_conflict
+    target_object_id: PAT_choose_setting_to_intensify_character_and_conflict
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_shape_sound_to_reinforce_meaning
+object_id: PAT_shape_sound_to_reinforce_meaning
 object_type: pattern
 name: Shape Sound to Reinforce Meaning
 library_path: [writing, foundations, language]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [creative_writing, sound, musicality, onomatopoeia, revision]
 cross_links:
   - rel: related_to
-    target_object_id: writing_read_draft_aloud_to_defamiliarize_it
+    target_object_id: PAT_read_draft_aloud_to_defamiliarize_it
   - rel: related_to
-    target_object_id: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+    target_object_id: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

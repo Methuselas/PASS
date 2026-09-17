@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
+object_id: PAT_partition_adventure_module_information_by_reader_role_and_reveal_state
 object_type: pattern
 name: Partition Adventure-Module Information by Reader Role and Reveal State
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: medium
-foundation_object_id: writing_calibrate_context_to_audience_and_venue
+foundation_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 tags:
   - adventure_modules
   - audience

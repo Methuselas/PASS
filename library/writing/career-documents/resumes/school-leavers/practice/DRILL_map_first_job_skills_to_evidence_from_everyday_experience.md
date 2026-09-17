@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_map_first_job_skills_to_evidence_from_everyday_experience
+object_id: DRILL_map_first_job_skills_to_evidence_from_everyday_experience
 object_type: drill
 name: Map First-Job Skills to Evidence from Everyday Experience
 library_path:
@@ -22,9 +22,9 @@ tags:
   - evidence_mapping
 cross_links:
   - rel: teaches
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
   - rel: teaches
-    target_object_id: writing_open_resume_with_employer_relevant_evidence
+    target_object_id: PAT_open_resume_with_employer_relevant_evidence
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

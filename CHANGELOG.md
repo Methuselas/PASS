@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.44 - 2026-09-16
+
+### Fixed
+
+- Repaired all 318 Writing card IDs to match their type-prefixed filename stems,
+  including foundation links, cross-links, and references within card bodies.
+  Card teaching content and placement are preserved.
+- Updated dependent documentation examples, test fixtures, and current Writing
+  memory owner references to the repaired IDs; training history is preserved.
+
 ## 1.0.0-beta.43 - 2026-09-16
 
 ### Added

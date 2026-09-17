@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_interrogate_photograph_as_bounded_evidence
+object_id: DRILL_interrogate_a_photograph_as_bounded_evidence
 object_type: drill
 name: Interrogate a Photograph as Bounded Evidence
 library_path:
@@ -21,13 +21,13 @@ tags:
   - research
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_verify_checkable_facts_and_research_necessary_context
+    target_object_id: PAT_verify_checkable_facts_and_research_necessary_context
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_drill_draft_life_writing_opening_from_unremembered_event
+    target_object_id: DRILL_draft_a_life_writing_opening_from_an_unremembered_event
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Derek Neale

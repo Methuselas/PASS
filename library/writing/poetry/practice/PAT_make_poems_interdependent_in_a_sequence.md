@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_make_poems_interdependent_in_sequence
+object_id: PAT_make_poems_interdependent_in_a_sequence
 object_type: pattern
 name: Make Poems Interdependent in a Sequence
 library_path: [writing, poetry, practice]
@@ -12,11 +12,11 @@ foundation_object_id: none
 tags: [poetry, sequence, ordering, transition, thematic_structure]
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_infer_working_theme_from_recurring_evidence
+    target_object_id: PAT_infer_a_working_theme_from_recurring_poetic_evidence
   - rel: related_to
-    target_object_id: writing_poetry_use_title_as_active_frame
+    target_object_id: PAT_use_a_poem_title_as_an_active_frame
   - rel: related_to
-    target_object_id: writing_poetry_shape_stanzas_around_movement_and_pause
+    target_object_id: PAT_shape_stanzas_around_movement_and_pause
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

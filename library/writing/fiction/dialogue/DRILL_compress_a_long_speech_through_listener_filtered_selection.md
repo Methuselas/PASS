@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_compress_long_speech_through_listener_filtered_selection
+object_id: DRILL_compress_a_long_speech_through_listener_filtered_selection
 object_type: drill
 name: Compress a Long Speech through Listener-Filtered Selection
 library_path:
@@ -24,13 +24,13 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_choose_direct_or_reported_dialogue_by_effect
+    target_object_id: PAT_choose_direct_or_reported_dialogue_by_effect
   - rel: related_to
-    target_object_id: writing_fiction_compress_real_speech_into_purposeful_dialogue
+    target_object_id: PAT_compress_real_speech_into_purposeful_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_combine_dialogue_with_action_thought_and_silence
+    target_object_id: PAT_combine_dialogue_with_action_thought_and_silence
   - rel: related_to
-    target_object_id: writing_fiction_drill_stage_and_audit_multi_speaker_dialogue_scene
+    target_object_id: DRILL_stage_and_audit_a_multi_speaker_dialogue_scene
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

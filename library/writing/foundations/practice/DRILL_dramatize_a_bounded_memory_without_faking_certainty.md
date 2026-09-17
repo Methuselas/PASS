@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_dramatize_bounded_memory_without_faking_certainty
+object_id: DRILL_dramatize_a_bounded_memory_without_faking_certainty
 object_type: drill
 name: Dramatize a Bounded Memory without Faking Certainty
 library_path:
@@ -20,11 +20,11 @@ tags:
   - uncertainty
 cross_links:
   - rel: teaches
-    target_object_id: writing_choose_truth_contract_before_shaping_real_material
+    target_object_id: PAT_choose_truth_contract_before_shaping_real_material
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_fiction_transform_real_people_into_composite_characters
+    target_object_id: PAT_transform_real_people_into_composite_characters
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
@@ -57,7 +57,7 @@ Choose one remembered place, person, or event containing a perceptual or emotion
 2. Draft the moment in present tense for a short fixed length. Use ordinary actions, exact sensory particulars, and what the earlier self noticed, feared, wanted, misunderstood, or could not yet know.
 3. Admit uncertainty where it belongs instead of pausing to solve every gap. Do not add an image merely because a vivid scene seems to require one.
 4. After drafting, mark each consequential detail as securely remembered, externally supported, inferred, uncertain, or invented.
-5. For nonfiction, activate `writing_choose_truth_contract_before_shaping_real_material` and `writing_creative_nonfiction_interrogate_memory_before_claiming_precision`; qualify, paraphrase, verify, or remove precision that exceeds its basis.
+5. For nonfiction, activate `PAT_choose_truth_contract_before_shaping_real_material` and `PAT_interrogate_memory_before_claiming_precision`; qualify, paraphrase, verify, or remove precision that exceeds its basis.
 6. For fiction, use the memory as a starting pressure rather than a transcript. Transform identities, motives, setting, sequence, and outcome as needed, while keeping researched or presented factual claims accurate.
 7. Reread for temporal shape. Ensure the scene's turn arises through selected action and perception rather than through a retrospective conclusion the earlier self could not have formed.
 8. Rewrite once in past tense or from a later reflective vantage and compare the available hindsight, distance, and uncertainty. Retain the stance that best serves the chosen contract and effect, and name the effect it produces that the other one did not. Both stances are defensible, so the choice is only legible through what it bought.

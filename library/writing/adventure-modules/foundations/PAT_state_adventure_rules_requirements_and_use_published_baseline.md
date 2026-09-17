@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_state_rules_requirements_and_use_published_baseline
+object_id: PAT_state_adventure_rules_requirements_and_use_published_baseline
 object_type: pattern
 name: State Adventure Rules Requirements and Use the Published Baseline
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: medium
-foundation_object_id: writing_adventure_modules_write_context_for_interpretive_handoff
+foundation_object_id: PAT_write_adventure_context_for_interpretive_handoff
 tags:
   - adventure_modules
   - rules
@@ -20,7 +20,7 @@ tags:
   - portability
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_write_portable_scenario_with_explicit_adaptation_seams
+    target_object_id: PAT_write_portable_scenario_with_explicit_adaptation_seams
 reference:
   source_title: "How to Write Adventure Modules That Don't Suck!"
   author: Kevin W. Melka

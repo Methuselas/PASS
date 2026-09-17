@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+object_id: PAT_build_round_characters_from_contradiction_and_desire
 object_type: pattern
 name: Build Round Characters from Contradiction and Desire
 library_path:
@@ -21,7 +21,7 @@ tags:
   - contradiction
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_build_plot_from_causal_consequences
+    target_object_id: PAT_build_plot_from_causal_consequences
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

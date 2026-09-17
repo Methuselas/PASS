@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_reduce_story_to_logline
+object_id: DRILL_reduce_story_to_a_logline
 object_type: drill
 name: Reduce a Story to a Logline
 library_path:
@@ -20,11 +20,11 @@ tags:
   - diagnosis
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_build_plot_from_causal_consequences
+    target_object_id: PAT_build_plot_from_causal_consequences
   - rel: related_to
-    target_object_id: writing_fiction_begin_at_point_of_attack
+    target_object_id: PAT_begin_at_the_point_of_attack
   - rel: related_to
-    target_object_id: writing_fiction_reinforce_story_structure_through_repetition_and_variation
+    target_object_id: PAT_reinforce_story_structure_through_repetition_and_variation
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

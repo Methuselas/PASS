@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_transform_documentary_material_into_a_fictional_artifact
+object_id: DRILL_transform_documentary_material_into_a_fictional_artifact
 object_type: drill
 name: Transform Documentary Material into a Fictional Artifact
 library_path:
@@ -22,15 +22,15 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_use_diaries_and_letters_as_active_story_documents
+    target_object_id: PAT_use_diaries_and_letters_as_active_story_documents
   - rel: related_to
-    target_object_id: writing_choose_truth_contract_before_shaping_real_material
+    target_object_id: PAT_choose_truth_contract_before_shaping_real_material
   - rel: related_to
-    target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
+    target_object_id: PAT_ground_real_and_imagined_settings_in_accurate_detail
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
   - rel: related_to
-    target_object_id: writing_fiction_stage_disclosure_to_sustain_reader_inference
+    target_object_id: PAT_stage_disclosure_to_sustain_reader_inference
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

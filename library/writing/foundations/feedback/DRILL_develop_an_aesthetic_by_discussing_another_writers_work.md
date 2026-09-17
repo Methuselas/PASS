@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_discuss_another_writer_to_form_aesthetic
+object_id: DRILL_develop_an_aesthetic_by_discussing_another_writers_work
 object_type: drill
 name: Develop an Aesthetic by Discussing Another Writer's Work
 library_path:

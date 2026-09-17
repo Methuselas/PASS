@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
+object_id: PAT_ground_real_and_imagined_settings_in_accurate_detail
 object_type: pattern
 name: Ground Real and Imagined Settings in Accurate Detail
 library_path:
@@ -21,9 +21,9 @@ tags:
   - credibility
 cross_links:
   - rel: related_to
-    target_object_id: writing_choose_truth_contract_before_shaping_real_material
+    target_object_id: PAT_choose_truth_contract_before_shaping_real_material
   - rel: related_to
-    target_object_id: writing_fiction_match_story_scope_to_required_accumulation
+    target_object_id: PAT_match_story_scope_to_required_accumulation
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

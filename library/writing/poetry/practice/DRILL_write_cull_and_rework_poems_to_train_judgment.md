@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_write_cull_rework_for_judgment
+object_id: DRILL_write_cull_and_rework_poems_to_train_judgment
 object_type: drill
 name: Write, Cull, and Rework Poems to Train Judgment
 library_path:
@@ -19,9 +19,9 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_reassess_inspired_drafts_after_distance
+    target_object_id: PAT_reassess_inspired_drafts_after_distance
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_write_context_for_interpretive_handoff
+object_id: PAT_write_adventure_context_for_interpretive_handoff
 object_type: pattern
 name: Write Adventure Context for Interpretive Handoff
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: medium
-foundation_object_id: writing_calibrate_context_to_audience_and_venue
+foundation_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 tags:
   - adventure_modules
   - context
@@ -20,7 +20,7 @@ tags:
   - game_master
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
+    target_object_id: PAT_partition_adventure_module_information_by_reader_role_and_reveal_state
 reference:
   source_title: "How to Write Adventure Modules That Don't Suck!"
   author: Jobe Bittman

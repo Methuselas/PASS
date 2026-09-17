@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_signal_and_revise_genre_expectations
+object_id: PAT_signal_and_revise_genre_expectations
 object_type: pattern
 name: Signal and Revise Genre Expectations
 library_path:
@@ -20,13 +20,13 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
   - rel: related_to
-    target_object_id: writing_fiction_shape_style_as_response_to_story_situation
+    target_object_id: PAT_shape_style_as_response_to_story_situation
   - rel: related_to
-    target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
+    target_object_id: PAT_ground_real_and_imagined_settings_in_accurate_detail
   - rel: related_to
-    target_object_id: writing_fiction_portray_characters_beyond_direct_experience_with_accountable_imagination
+    target_object_id: PAT_portray_characters_beyond_direct_experience_with_accountable_imagination
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

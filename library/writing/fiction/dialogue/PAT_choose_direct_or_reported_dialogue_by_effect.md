@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_choose_direct_or_reported_dialogue_by_effect
+object_id: PAT_choose_direct_or_reported_dialogue_by_effect
 object_type: pattern
 name: Choose Direct or Reported Dialogue by Effect
 library_path:
@@ -21,11 +21,11 @@ tags:
   - viewpoint
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_fiction_compress_real_speech_into_purposeful_dialogue
+    target_object_id: PAT_compress_real_speech_into_purposeful_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_drill_compress_long_speech_through_listener_filtered_selection
+    target_object_id: DRILL_compress_a_long_speech_through_listener_filtered_selection
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

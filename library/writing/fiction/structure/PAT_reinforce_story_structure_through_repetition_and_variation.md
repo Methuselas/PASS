@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_reinforce_story_structure_through_repetition_and_variation
+object_id: PAT_reinforce_story_structure_through_repetition_and_variation
 object_type: pattern
 name: Reinforce Story Structure Through Repetition and Variation
 library_path:
@@ -20,9 +20,9 @@ tags:
 - motifs
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_anchor_narrative_time_in_dramatic_present_and_habitual_world
+  target_object_id: PAT_anchor_narrative_time_in_a_dramatic_present_and_habitual_world
 - rel: related_to
-  target_object_id: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+  target_object_id: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

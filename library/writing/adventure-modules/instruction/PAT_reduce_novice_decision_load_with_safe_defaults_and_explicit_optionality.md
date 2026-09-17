@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_reduce_novice_decision_load_with_safe_defaults_and_explicit_optionality
+object_id: PAT_reduce_novice_decision_load_with_safe_defaults_and_explicit_optionality
 object_type: pattern
 name: Reduce Novice Decision Load with Safe Defaults and Explicit Optionality
 library_path:
@@ -20,7 +20,7 @@ tags:
   - onboarding
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
+    target_object_id: PAT_partition_adventure_module_information_by_reader_role_and_reveal_state
 reference:
   source_title: "The Keep on the Borderlands"
   author: "Gary Gygax"

@@ -1,5 +1,5 @@
 ---
-object_id: writing_answer_application_forms_as_complete_standalone_evidence
+object_id: PAT_answer_application_forms_as_complete_standalone_evidence
 object_type: pattern
 name: Answer Application Forms as Complete Standalone Evidence
 library_path:
@@ -21,9 +21,9 @@ tags:
   - declarations
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
   - rel: related_to
-    target_object_id: writing_build_career_evidence_inventory_before_drafting
+    target_object_id: PAT_build_career_evidence_inventory_before_drafting
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_decompose_compound_selection_criteria_before_drafting
+object_id: DRILL_decompose_compound_selection_criteria_before_drafting
 object_type: drill
 name: Decompose Compound Selection Criteria Before Drafting
 library_path:
@@ -21,9 +21,9 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_decode_selection_criteria_into_evidence_obligations
+    target_object_id: PAT_decode_selection_criteria_into_evidence_obligations
   - rel: teaches
-    target_object_id: writing_answer_each_selection_criterion_as_a_standalone_evidence_case
+    target_object_id: PAT_answer_each_selection_criterion_as_a_standalone_evidence_case
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

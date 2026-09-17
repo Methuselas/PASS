@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_use_alternating_first_person_narrators_to_complicate_interpretation
+object_id: PAT_use_alternating_first_person_narrators_to_complicate_interpretation
 object_type: pattern
 name: Use Alternating First-Person Narrators to Complicate Interpretation
 library_path:
@@ -20,11 +20,11 @@ tags:
   - reader_allegiance
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
   - rel: related_to
-    target_object_id: writing_fiction_design_first_person_telling_situation
+    target_object_id: PAT_design_the_first_person_telling_situation
   - rel: related_to
-    target_object_id: writing_fiction_drill_differentiate_character_voices_through_parallel_monologues
+    target_object_id: DRILL_differentiate_character_voices_through_parallel_monologues
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_choose_subject_for_open_ended_exploration
+object_id: PAT_choose_subject_for_open_ended_exploration
 object_type: pattern
 name: Choose a Subject for Open-Ended Exploration
 library_path:
@@ -20,9 +20,9 @@ tags:
   - exploration
 cross_links:
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_make_personal_presence_part_of_inquiry
+    target_object_id: PAT_make_personal_presence_part_of_inquiry
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

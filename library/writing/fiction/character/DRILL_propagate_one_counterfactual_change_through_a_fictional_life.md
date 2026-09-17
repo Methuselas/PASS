@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_propagate_one_counterfactual_change_through_fictional_life
+object_id: DRILL_propagate_one_counterfactual_change_through_a_fictional_life
 object_type: drill
 name: Propagate One Counterfactual Change through a Fictional Life
 library_path:
@@ -21,11 +21,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_transform_real_people_into_composite_characters
+    target_object_id: PAT_transform_real_people_into_composite_characters
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: related_to
-    target_object_id: writing_choose_truth_contract_before_shaping_real_material
+    target_object_id: PAT_choose_truth_contract_before_shaping_real_material
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

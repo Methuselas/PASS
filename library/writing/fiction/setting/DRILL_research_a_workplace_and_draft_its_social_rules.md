@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_research_workplace_and_draft_social_rules
+object_id: DRILL_research_a_workplace_and_draft_its_social_rules
 object_type: drill
 name: Research a Workplace and Draft Its Social Rules
 library_path: [writing, fiction, setting]
@@ -12,15 +12,15 @@ foundation_object_id: none
 tags: [fiction, setting, workplace, interview, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_build_institutional_settings_as_rule_bound_social_worlds
+    target_object_id: PAT_build_institutional_settings_as_rule_bound_social_worlds
   - rel: related_to
-    target_object_id: writing_conduct_prepared_and_responsive_interviews
+    target_object_id: PAT_conduct_prepared_and_responsive_interviews
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
 confidence: high
 references: []
-target_skill: writing_fiction_build_institutional_settings_as_rule_bound_social_worlds
+target_skill: PAT_build_institutional_settings_as_rule_bound_social_worlds
 variants: []
 ---
 

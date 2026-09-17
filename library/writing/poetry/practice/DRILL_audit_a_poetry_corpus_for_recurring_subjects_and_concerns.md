@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_audit_corpus_for_recurring_subjects_and_concerns
+object_id: DRILL_audit_a_poetry_corpus_for_recurring_subjects_and_concerns
 object_type: drill
 name: Audit a Poetry Corpus for Recurring Subjects and Concerns
 library_path: [writing, poetry, practice]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, theme, corpus, close_reading, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_infer_working_theme_from_recurring_evidence
+    target_object_id: PAT_infer_a_working_theme_from_recurring_poetic_evidence
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

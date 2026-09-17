@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_draft_life_writing_opening_from_unremembered_event
+object_id: DRILL_draft_a_life_writing_opening_from_an_unremembered_event
 object_type: drill
 name: Draft a Life-Writing Opening from an Unremembered Event
 library_path:
@@ -20,13 +20,13 @@ tags:
   - reconstruction
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_open_with_specific_question_or_pressure
+    target_object_id: PAT_open_with_specific_question_or_pressure
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_verify_checkable_facts_and_research_necessary_context
+    target_object_id: PAT_verify_checkable_facts_and_research_necessary_context
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

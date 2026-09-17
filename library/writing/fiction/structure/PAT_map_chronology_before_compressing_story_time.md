@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_map_chronology_before_compressing_story_time
+object_id: PAT_map_chronology_before_compressing_story_time
 object_type: pattern
 name: Map Chronology Before Compressing Story Time
 library_path:
@@ -20,15 +20,15 @@ tags:
   - compression
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_match_story_scope_to_required_accumulation
+    target_object_id: PAT_match_story_scope_to_required_accumulation
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+    target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
   - rel: related_to
-    target_object_id: writing_fiction_allocate_scene_and_summary_by_narrative_pressure
+    target_object_id: PAT_allocate_scene_and_summary_by_narrative_pressure
   - rel: related_to
-    target_object_id: writing_fiction_anchor_narrative_time_in_dramatic_present_and_habitual_world
+    target_object_id: PAT_anchor_narrative_time_in_a_dramatic_present_and_habitual_world
   - rel: related_to
-    target_object_id: writing_fiction_foreshadow_consequence_while_withholding_route
+    target_object_id: PAT_foreshadow_a_consequence_while_withholding_its_route
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey
@@ -69,4 +69,4 @@ variants: []
 - No continuity error depends on the order in which the draft happened to be written.
 
 ## Notes
-Narrative time is selected time, not a transcript of duration. The underlying chronology contains the larger field of imagined events; the presented story chooses, omits, and rearranges from that field. A lifetime can pass in one sentence while a remembered second occupies pages. Mapping establishes what happened and when; `writing_fiction_anchor_narrative_time_in_dramatic_present_and_habitual_world` organizes present and recurrent time, while `writing_fiction_allocate_scene_and_summary_by_narrative_pressure` decides how much narrative space each selected event receives. That freedom works only when the writer remains oriented beneath the arrangement. Knowledgeable omission strengthens a story because the visible portion rests on a coherent whole; omission from ignorance leaves a hole that readers feel even when they cannot name it.
+Narrative time is selected time, not a transcript of duration. The underlying chronology contains the larger field of imagined events; the presented story chooses, omits, and rearranges from that field. A lifetime can pass in one sentence while a remembered second occupies pages. Mapping establishes what happened and when; `PAT_anchor_narrative_time_in_a_dramatic_present_and_habitual_world` organizes present and recurrent time, while `PAT_allocate_scene_and_summary_by_narrative_pressure` decides how much narrative space each selected event receives. That freedom works only when the writer remains oriented beneath the arrangement. Knowledgeable omission strengthens a story because the visible portion rests on a coherent whole; omission from ignorance leaves a hole that readers feel even when they cannot name it.

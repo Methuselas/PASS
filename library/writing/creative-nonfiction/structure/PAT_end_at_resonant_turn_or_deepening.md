@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_end_at_resonant_turn_or_deepening
+object_id: PAT_end_at_resonant_turn_or_deepening
 object_type: pattern
 name: End at a Resonant Turn or Deepening
 library_path:
@@ -20,11 +20,11 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+    target_object_id: PAT_choose_structure_from_discovered_connections
   - rel: related_to
-    target_object_id: writing_control_irony_to_preserve_reader_trust
+    target_object_id: PAT_control_irony_to_preserve_reader_trust
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

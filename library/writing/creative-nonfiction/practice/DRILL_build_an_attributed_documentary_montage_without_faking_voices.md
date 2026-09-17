@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_build_attributed_documentary_montage_without_faking_voices
+object_id: DRILL_build_an_attributed_documentary_montage_without_faking_voices
 object_type: drill
 name: Build an Attributed Documentary Montage without Faking Voices
 library_path:
@@ -20,11 +20,11 @@ tags:
   - attribution
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_verify_checkable_facts_and_research_necessary_context
+    target_object_id: PAT_verify_checkable_facts_and_research_necessary_context
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+    target_object_id: PAT_choose_structure_from_discovered_connections
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

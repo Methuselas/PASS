@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_write_daily_haiku_to_train_concise_attention
+object_id: DRILL_write_daily_haiku_to_train_concise_attention
 object_type: drill
 name: Write Daily Haiku to Train Concise Attention
 library_path:
@@ -20,14 +20,14 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_ground_haiku_in_present_sensory_perception
+    target_object_id: PAT_ground_haiku_in_present_sensory_perception
   - rel: related_to
-    target_object_id: writing_poetry_learn_form_before_varying_its_rules
+    target_object_id: PAT_learn_poetic_form_before_varying_its_rules
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
 confidence: high
-target_skill: writing_poetry_ground_haiku_in_present_sensory_perception
+target_skill: PAT_ground_haiku_in_present_sensory_perception
 references: []
 variants: []
 ---

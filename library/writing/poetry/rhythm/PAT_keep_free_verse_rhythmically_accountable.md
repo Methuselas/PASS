@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_keep_free_verse_rhythmically_accountable
+object_id: PAT_keep_free_verse_rhythmically_accountable
 object_type: pattern
 name: Keep Free Verse Rhythmically Accountable
 library_path:
@@ -20,11 +20,11 @@ tags:
   - breath
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_sustain_intensity_beyond_meter_and_lineation
+    target_object_id: PAT_sustain_poetic_intensity_beyond_meter_and_lineation
   - rel: related_to
-    target_object_id: writing_poetry_break_lines_to_control_pace_and_expectation
+    target_object_id: PAT_break_poetic_lines_to_control_pace_and_expectation
   - rel: related_to
-    target_object_id: writing_read_draft_aloud_to_defamiliarize_it
+    target_object_id: PAT_read_draft_aloud_to_defamiliarize_it
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

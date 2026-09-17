@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_redraft_one_conversation_across_communication_channels
+object_id: DRILL_redraft_one_conversation_across_communication_channels
 object_type: drill
 name: Redraft One Conversation across Communication Channels
 library_path:
@@ -22,11 +22,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
+    target_object_id: PAT_let_relationship_and_setting_shape_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_combine_dialogue_with_action_thought_and_silence
+    target_object_id: PAT_combine_dialogue_with_action_thought_and_silence
   - rel: related_to
-    target_object_id: writing_fiction_compress_real_speech_into_purposeful_dialogue
+    target_object_id: PAT_compress_real_speech_into_purposeful_dialogue
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

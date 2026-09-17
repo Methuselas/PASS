@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+object_id: PAT_preserve_factual_accountability_while_using_literary_craft
 object_type: pattern
 name: Preserve Factual Accountability While Using Literary Craft
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_choose_truth_contract_before_shaping_real_material
+foundation_object_id: PAT_choose_truth_contract_before_shaping_real_material
 tags:
   - creative_nonfiction
   - truth
@@ -20,7 +20,7 @@ tags:
   - genre_contract
 cross_links:
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

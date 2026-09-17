@@ -1,5 +1,5 @@
 ---
-object_id: writing_control_public_career_profile_visibility_and_disclosure
+object_id: PAT_control_public_career_profile_visibility_and_disclosure
 object_type: pattern
 name: Control Public Career-Profile Visibility and Disclosure
 library_path:
@@ -21,7 +21,7 @@ tags:
   - professional_networks
 cross_links:
   - rel: related_to
-    target_object_id: writing_control_online_resume_visibility_and_currency
+    target_object_id: PAT_control_online_resume_visibility_and_currency
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

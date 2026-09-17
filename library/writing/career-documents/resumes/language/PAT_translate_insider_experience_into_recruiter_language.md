@@ -1,5 +1,5 @@
 ---
-object_id: writing_translate_insider_experience_into_recruiter_language
+object_id: PAT_translate_insider_experience_into_recruiter_language
 object_type: pattern
 name: Translate Insider Experience into Recruiter Language
 library_path:
@@ -12,7 +12,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_calibrate_context_to_audience_and_venue
+foundation_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 tags:
   - resume_writing
   - plain_language
@@ -21,7 +21,7 @@ tags:
   - active_voice
 cross_links:
   - rel: related_to
-    target_object_id: writing_use_recognizable_job_language_for_resume_discovery
+    target_object_id: PAT_use_recognizable_job_language_for_resume_discovery
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

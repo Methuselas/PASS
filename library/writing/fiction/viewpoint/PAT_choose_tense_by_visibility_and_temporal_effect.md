@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_choose_tense_by_visibility_and_temporal_effect
+object_id: PAT_choose_tense_by_visibility_and_temporal_effect
 object_type: pattern
 name: Choose Tense by Visibility and Temporal Effect
 library_path:
@@ -20,9 +20,9 @@ tags:
   - narration
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
   - rel: related_to
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

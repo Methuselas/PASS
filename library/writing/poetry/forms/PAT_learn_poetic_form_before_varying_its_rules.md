@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_learn_form_before_varying_its_rules
+object_id: PAT_learn_poetic_form_before_varying_its_rules
 object_type: pattern
 name: Learn a Poetic Form Before Varying Its Rules
 library_path:
@@ -20,11 +20,11 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
   - rel: related_to
-    target_object_id: writing_poetry_shape_stanzas_around_movement_and_pause
+    target_object_id: PAT_shape_stanzas_around_movement_and_pause
   - rel: related_to
-    target_object_id: writing_poetry_make_rhyme_serve_sense_and_effect
+    target_object_id: PAT_make_rhyme_serve_sense_and_effect
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

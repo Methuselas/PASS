@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_draft_illness_as_a_situated_character_pressure
+object_id: DRILL_draft_illness_as_a_situated_character_pressure
 object_type: drill
 name: Draft Illness as a Situated Character Pressure
 library_path:
@@ -23,11 +23,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+    target_object_id: PAT_treat_character_bodies_as_lived_conditions
   - rel: related_to
-    target_object_id: writing_fiction_portray_characters_beyond_direct_experience_with_accountable_imagination
+    target_object_id: PAT_portray_characters_beyond_direct_experience_with_accountable_imagination
   - rel: related_to
-    target_object_id: writing_fiction_build_institutional_settings_as_rule_bound_social_worlds
+    target_object_id: PAT_build_institutional_settings_as_rule_bound_social_worlds
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

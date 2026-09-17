@@ -1,5 +1,5 @@
 ---
-object_id: writing_trace_reader_effects_to_craft_choices
+object_id: PAT_trace_reader_effects_to_craft_choices
 object_type: pattern
 name: Trace Reader Effects to Craft Choices
 library_path:
@@ -20,7 +20,7 @@ tags:
   - apprenticeship
 cross_links:
   - rel: related_to
-    target_object_id: writing_synthesize_literary_influences_into_voice
+    target_object_id: PAT_synthesize_literary_influences_into_original_voice
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

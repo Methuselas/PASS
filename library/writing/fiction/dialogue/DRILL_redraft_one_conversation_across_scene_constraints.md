@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_redraft_one_conversation_across_scene_constraints
+object_id: DRILL_redraft_one_conversation_across_scene_constraints
 object_type: drill
 name: Redraft One Conversation across Scene Constraints
 library_path:
@@ -23,11 +23,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
+    target_object_id: PAT_let_relationship_and_setting_shape_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_filter_setting_through_character_consciousness
+    target_object_id: PAT_filter_setting_through_character_consciousness
   - rel: related_to
-    target_object_id: writing_fiction_build_plot_from_causal_consequences
+    target_object_id: PAT_build_plot_from_causal_consequences
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

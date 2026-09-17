@@ -1,5 +1,5 @@
 ---
-object_id: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+object_id: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
 object_type: pattern
 name: Shape Sentence Rhythm Through Length Structure and Punctuation
 library_path: [writing, foundations, language]
@@ -12,13 +12,13 @@ foundation_object_id: none
 tags: [creative_writing, sentence_rhythm, syntax, punctuation, revision]
 cross_links:
   - rel: related_to
-    target_object_id: writing_shape_sound_to_reinforce_meaning
+    target_object_id: PAT_shape_sound_to_reinforce_meaning
   - rel: related_to
-    target_object_id: writing_read_draft_aloud_to_defamiliarize_it
+    target_object_id: PAT_read_draft_aloud_to_defamiliarize_it
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
   - rel: related_to
-    target_object_id: writing_drill_map_repetition_by_scale_placement_and_effect
+    target_object_id: DRILL_map_repetition_by_scale_placement_and_effect
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey
@@ -67,9 +67,9 @@ variants:
 - An oral reading reveals neither accidental sing-song regularity nor breaks the speaker cannot control.
 
 ## Notes
-Rhythm arises from the time a sentence asks the reader to inhabit: how long it postpones completion, how clauses balance or resist one another, where breath and emphasis fall, and whether a pattern repeats or breaks. Punctuation can offer several defensible cadences, but each option first has to preserve intelligible syntax and the intended relation. Oral reading is the diagnostic route owned by `writing_read_draft_aloud_to_defamiliarize_it`; the decisions here interpret what that test reveals and change the sentence-level movement rather than merely flagging awkwardness.
+Rhythm arises from the time a sentence asks the reader to inhabit: how long it postpones completion, how clauses balance or resist one another, where breath and emphasis fall, and whether a pattern repeats or breaks. Punctuation can offer several defensible cadences, but each option first has to preserve intelligible syntax and the intended relation. Oral reading is the diagnostic route owned by `PAT_read_draft_aloud_to_defamiliarize_it`; the decisions here interpret what that test reveals and change the sentence-level movement rather than merely flagging awkwardness.
 
-When recurrence is difficult to judge, `writing_drill_map_repetition_by_scale_placement_and_effect` separates grammatical, lexical, syntactic, and thematic patterns and compares them against a variation-heavy rewrite. Retain exactness when accumulated context or placement performs the intended pressure; vary it when recurrence only makes the prose mannered or indistinct.
+When recurrence is difficult to judge, `DRILL_map_repetition_by_scale_placement_and_effect` separates grammatical, lexical, syntactic, and thematic patterns and compares them against a variation-heavy rewrite. Retain exactness when accumulated context or placement performs the intended pressure; vary it when recurrence only makes the prose mannered or indistinct.
 
 
 `writing_variant_treat_conjunctions_as_rhythmic_and_logical_joints` makes connective tissue audible. Two clauses joined by `and` do not move like the same clauses joined by `but`, subordinated with `although`, separated by a stop, or left in asyndeton. Repeated conjunctions can create persistence, accumulation, childishness, argument, obsession, or oral momentum; repeated subordination can create qualification, hesitation, hierarchy, or delay. Study the writer's habits across enough sentences to distinguish a mannerism from one local necessity, then preserve only connective choices that still express the intended relation in the new work.

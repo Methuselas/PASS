@@ -1,5 +1,5 @@
 ---
-object_id: writing_use_working_title_as_temporary_attention_cue
+object_id: PAT_use_working_title_as_temporary_attention_cue
 object_type: pattern
 name: Use a Working Title as a Temporary Attention Cue
 library_path:
@@ -20,9 +20,9 @@ tags:
   - project_identity
 cross_links:
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: foundation_of
-    target_object_id: writing_poetry_use_title_as_active_frame
+    target_object_id: PAT_use_a_poem_title_as_an_active_frame
 reference:
   source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand

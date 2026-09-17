@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_map_repetition_by_scale_placement_and_effect
+object_id: DRILL_map_repetition_by_scale_placement_and_effect
 object_type: drill
 name: Map Repetition by Scale Placement and Effect
 library_path:
@@ -20,11 +20,11 @@ tags:
   - revision
 cross_links:
   - rel: teaches
-    target_object_id: writing_trace_reader_effects_to_craft_choices
+    target_object_id: PAT_trace_reader_effects_to_craft_choices
   - rel: related_to
-    target_object_id: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+    target_object_id: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
   - rel: related_to
-    target_object_id: writing_fiction_reinforce_story_structure_through_repetition_and_variation
+    target_object_id: PAT_reinforce_story_structure_through_repetition_and_variation
 reference:
   source_title: "The Art of Fiction"
   author: David Lodge

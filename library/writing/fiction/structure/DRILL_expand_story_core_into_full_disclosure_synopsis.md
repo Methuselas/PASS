@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_expand_story_core_into_full_disclosure_synopsis
+object_id: DRILL_expand_story_core_into_full_disclosure_synopsis
 object_type: drill
 name: Expand a Story Core into a Full-Disclosure Synopsis
 library_path:
@@ -20,9 +20,9 @@ tags:
   - feedback
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_write_full_disclosure_synopsis
+    target_object_id: PAT_write_full_disclosure_fiction_synopsis
   - rel: related_to
-    target_object_id: writing_fiction_drill_reduce_story_to_logline
+    target_object_id: DRILL_reduce_story_to_a_logline
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

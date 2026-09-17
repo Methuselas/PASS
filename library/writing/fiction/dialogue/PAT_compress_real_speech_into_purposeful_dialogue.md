@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_compress_real_speech_into_purposeful_dialogue
+object_id: PAT_compress_real_speech_into_purposeful_dialogue
 object_type: pattern
 name: Compress Real Speech into Purposeful Dialogue
 library_path:
@@ -20,13 +20,13 @@ tags:
   - rhythm
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_build_plot_from_causal_consequences
+    target_object_id: PAT_build_plot_from_causal_consequences
   - rel: related_to
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+    target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
   - rel: related_to
-    target_object_id: writing_fiction_drill_stage_and_audit_multi_speaker_dialogue_scene
+    target_object_id: DRILL_stage_and_audit_a_multi_speaker_dialogue_scene
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

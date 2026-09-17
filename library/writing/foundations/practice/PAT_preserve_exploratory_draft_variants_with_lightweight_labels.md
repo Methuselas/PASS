@@ -1,5 +1,5 @@
 ---
-object_id: writing_preserve_exploratory_draft_variants_with_lightweight_labels
+object_id: PAT_preserve_exploratory_draft_variants_with_lightweight_labels
 object_type: pattern
 name: Preserve Exploratory Draft Variants with Lightweight Labels
 library_path:
@@ -20,11 +20,11 @@ tags:
   - discovery
 cross_links:
   - rel: related_to
-    target_object_id: writing_separate_generative_and_evaluative_writing_modes
+    target_object_id: PAT_separate_generative_and_evaluative_writing_modes
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand

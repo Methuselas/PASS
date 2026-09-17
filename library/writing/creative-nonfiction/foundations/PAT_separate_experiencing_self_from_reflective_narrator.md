@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_separate_experiencing_self_from_reflective_narrator
+object_id: PAT_separate_experiencing_self_from_reflective_narrator
 object_type: pattern
 name: Separate the Experiencing Self from the Reflective Narrator
 library_path:
@@ -20,13 +20,13 @@ tags:
   - characterization
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_make_personal_presence_part_of_inquiry
+    target_object_id: PAT_make_personal_presence_part_of_inquiry
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_portray_real_people_through_selective_behavioral_detail
+    target_object_id: PAT_portray_real_people_through_selective_behavioral_detail
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_drill_recast_life_writing_event_across_tense_and_narrator_distance
+    target_object_id: DRILL_recast_a_life_writing_event_across_tense_and_narrator_distance
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_reveal_character_through_contrasting_everyday_conduct
+object_id: DRILL_reveal_character_through_contrasting_everyday_conduct
 object_type: drill
 name: Reveal Character through Contrasting Everyday Conduct
 library_path:
@@ -23,11 +23,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_fiction_drill_research_workplace_and_draft_social_rules
+    target_object_id: DRILL_research_a_workplace_and_draft_its_social_rules
   - rel: related_to
-    target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+    target_object_id: PAT_treat_character_bodies_as_lived_conditions
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

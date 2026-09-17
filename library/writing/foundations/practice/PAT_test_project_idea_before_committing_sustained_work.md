@@ -1,5 +1,5 @@
 ---
-object_id: writing_test_project_idea_before_committing_sustained_work
+object_id: PAT_test_project_idea_before_committing_sustained_work
 object_type: pattern
 name: Test a Project Idea Before Committing Sustained Work
 library_path:
@@ -20,11 +20,11 @@ tags:
   - commitment
 cross_links:
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: related_to
-    target_object_id: writing_build_sustainable_writing_practice_around_real_constraints
+    target_object_id: PAT_build_a_sustainable_writing_practice_around_real_constraints
 confidence: high
 references: []
 variants: []
@@ -61,4 +61,4 @@ variants: []
 - Once committed, normal fatigue is handled as a process problem rather than mistaken automatically for evidence that the original selection was wrong.
 
 ## Notes
-Early attraction and durable commitment are different tests. A premise can be worth capturing yet not worth the hours needed to research, draft, revise, and finish it now. Conversely, a project that survives an initial scope probe and keeps generating consequential possibilities has earned more than momentary enthusiasm. Make the selection decision before large investment when possible; once the work is deliberately underway, use `writing_build_sustainable_writing_practice_around_real_constraints` for ordinary fluctuations in energy rather than continually auditioning replacement projects.
+Early attraction and durable commitment are different tests. A premise can be worth capturing yet not worth the hours needed to research, draft, revise, and finish it now. Conversely, a project that survives an initial scope probe and keeps generating consequential possibilities has earned more than momentary enthusiasm. Make the selection decision before large investment when possible; once the work is deliberately underway, use `PAT_build_a_sustainable_writing_practice_around_real_constraints` for ordinary fluctuations in energy rather than continually auditioning replacement projects.

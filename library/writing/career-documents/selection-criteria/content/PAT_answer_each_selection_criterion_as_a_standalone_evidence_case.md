@@ -1,5 +1,5 @@
 ---
-object_id: writing_answer_each_selection_criterion_as_a_standalone_evidence_case
+object_id: PAT_answer_each_selection_criterion_as_a_standalone_evidence_case
 object_type: pattern
 name: Answer Each Selection Criterion as a Standalone Evidence Case
 library_path:
@@ -21,9 +21,9 @@ tags:
   - public_sector
 cross_links:
   - rel: related_to
-    target_object_id: writing_decode_selection_criteria_into_evidence_obligations
+    target_object_id: PAT_decode_selection_criteria_into_evidence_obligations
   - rel: related_to
-    target_object_id: writing_answer_application_forms_as_complete_standalone_evidence
+    target_object_id: PAT_answer_application_forms_as_complete_standalone_evidence
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

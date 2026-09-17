@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
+object_id: PAT_let_relationship_and_setting_shape_dialogue
 object_type: pattern
 name: Let Relationship and Setting Shape Dialogue
 library_path:
@@ -21,13 +21,13 @@ tags:
 - register
 cross_links:
 - rel: related_to
-  target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+  target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
 - rel: related_to
-  target_object_id: writing_make_nonstandard_language_deliberate
+  target_object_id: PAT_make_nonstandard_language_a_deliberate_craft_choice
 - rel: related_to
-  target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+  target_object_id: PAT_build_round_characters_from_contradiction_and_desire
 - rel: related_to
-  target_object_id: writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility
+  target_object_id: DRILL_audit_marked_character_speech_for_individuality_accuracy_and_legibility
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

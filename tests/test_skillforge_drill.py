@@ -579,9 +579,22 @@ class SkillForgeDrillTests(unittest.TestCase):
             drill.finalize(run, "SOFTWAREENGINEERING_EV_9985", "Qualify a Drill.")
 
     def test_semantic_writing_object_ids_resolve_by_type_not_prefix(self) -> None:
-        cards = drill.select_teaching_cards(
+        library = self.root / "semantic-writing-library"
+        card_path = library / "writing" / "practice" / "example.md"
+        card_path.parent.mkdir(parents=True)
+        text = drill.select_teaching_cards(
             LIBRARY,
-            ["writing_adventure_modules_scale_clue_detail_without_gating_forward_motion"],
+            ["PAT_scale_clue_detail_without_gating_forward_motion"],
+            "writing",
+        )[0].text.replace(
+            "object_id: PAT_scale_clue_detail_without_gating_forward_motion",
+            "object_id: semantic_clue_detail_pattern",
+            1,
+        )
+        card_path.write_text(text, encoding="utf-8")
+        cards = drill.select_teaching_cards(
+            library,
+            ["semantic_clue_detail_pattern"],
             "writing",
         )
         self.assertEqual(cards[0].object_type, "pattern")

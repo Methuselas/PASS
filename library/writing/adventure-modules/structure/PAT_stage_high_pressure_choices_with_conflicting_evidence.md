@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_stage_high_pressure_choices_with_conflicting_evidence
+object_id: PAT_stage_high_pressure_choices_with_conflicting_evidence
 object_type: pattern
 name: Stage High-Pressure Choices with Conflicting Evidence
 library_path:
@@ -20,9 +20,9 @@ tags:
   - consequences
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
+    target_object_id: PAT_partition_adventure_module_information_by_reader_role_and_reveal_state
   - rel: related_to
-    target_object_id: writing_adventure_modules_scale_clue_detail_without_gating_forward_motion
+    target_object_id: PAT_scale_clue_detail_without_gating_forward_motion
 reference:
   source_title: "An Act of Treason"
   author: "Jan Hendrik Friedrich and Michael Chumbler"

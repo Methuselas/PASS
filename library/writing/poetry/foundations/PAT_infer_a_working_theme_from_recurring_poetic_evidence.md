@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_infer_working_theme_from_recurring_evidence
+object_id: PAT_infer_a_working_theme_from_recurring_poetic_evidence
 object_type: pattern
 name: Infer a Working Theme from Recurring Poetic Evidence
 library_path: [writing, poetry, foundations]
@@ -12,11 +12,11 @@ foundation_object_id: none
 tags: [poetry, theme, subject, corpus, discovery]
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_derive_personal_essay_theme_from_recurring_life_evidence
+    target_object_id: PAT_derive_a_personal_essay_theme_from_recurring_life_evidence
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

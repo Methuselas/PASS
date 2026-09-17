@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_cast_and_recast_iambic_pentameter
+object_id: DRILL_cast_and_recast_natural_syntax_into_iambic_pentameter
 object_type: drill
 name: Cast and Recast Natural Syntax into Iambic Pentameter
 library_path: [writing, poetry, rhythm]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, iambic_pentameter, meter, syntax, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_scan_and_vary_meter_deliberately
+    target_object_id: PAT_scan_and_vary_meter_deliberately
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

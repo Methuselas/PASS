@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_escalate_central_conflict_through_middle
+object_id: PAT_escalate_central_conflict_through_the_middle
 object_type: pattern
 name: Escalate Central Conflict Through the Middle
 library_path:
@@ -20,9 +20,9 @@ tags:
   - transitions
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_build_plot_from_causal_consequences
+    target_object_id: PAT_build_plot_from_causal_consequences
   - rel: related_to
-    target_object_id: writing_fiction_begin_at_point_of_attack
+    target_object_id: PAT_begin_at_the_point_of_attack
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

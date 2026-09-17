@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_expand_then_compress_unusual_incident
+object_id: DRILL_expand_then_compress_an_unusual_incident
 object_type: drill
 name: Expand Then Compress an Unusual Incident
 library_path: [writing, poetry, voice]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, narrative, omission, motive, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_withhold_motive_when_detail_supports_inference
+    target_object_id: PAT_withhold_motive_in_narrative_poetry_only_when_detail_supports_inference
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

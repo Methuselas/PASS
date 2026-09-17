@@ -596,7 +596,7 @@ class AuxiliaryReleaseTests(unittest.TestCase):
             recipe.write_text(
                 "name: bad\nmodules: [game-design/adventures]\n"
                 "auxiliary:\n  - domain: art\n"
-                "    objects: [writing_choose_diction_to_serve_purpose_and_tone]\n",
+                "    objects: [PAT_choose_diction_to_serve_purpose_and_tone]\n",
                 encoding="utf-8",
             )
             result = run("build", recipe, Path(dest) / "out")

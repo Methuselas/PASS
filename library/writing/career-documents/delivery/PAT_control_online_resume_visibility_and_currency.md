@@ -1,5 +1,5 @@
 ---
-object_id: writing_control_online_resume_visibility_and_currency
+object_id: PAT_control_online_resume_visibility_and_currency
 object_type: pattern
 name: Control Online Resume Visibility and Currency
 library_path:

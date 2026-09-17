@@ -1,5 +1,5 @@
 ---
-object_id: writing_choose_diction_to_serve_purpose_and_tone
+object_id: PAT_choose_diction_to_serve_purpose_and_tone
 object_type: pattern
 name: Choose Diction to Serve Purpose and Tone
 library_path:
@@ -20,9 +20,9 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_make_nonstandard_language_deliberate
+    target_object_id: PAT_make_nonstandard_language_a_deliberate_craft_choice
   - rel: related_to
-    target_object_id: writing_replace_received_language_with_precise_distinctive_phrasing
+    target_object_id: PAT_replace_received_language_with_precise_distinctive_phrasing
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

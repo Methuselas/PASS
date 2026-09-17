@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_split_apparent_crisis_into_distinct_causal_threads
+object_id: PAT_split_apparent_crisis_into_distinct_causal_threads
 object_type: pattern
 name: Split an Apparent Crisis into Distinct Causal Threads
 library_path:
@@ -20,9 +20,9 @@ tags:
   - revelations
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
+    target_object_id: PAT_partition_adventure_module_information_by_reader_role_and_reveal_state
   - rel: related_to
-    target_object_id: writing_adventure_modules_sequence_load_bearing_adventure_scenes_by_dependency
+    target_object_id: PAT_sequence_load_bearing_adventure_scenes_by_dependency
 reference:
   source_title: "Maidens of Moordoth"
   author: "Bill Logan"

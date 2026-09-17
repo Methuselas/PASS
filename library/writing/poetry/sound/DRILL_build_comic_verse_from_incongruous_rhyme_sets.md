@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_build_comic_verse_from_incongruous_rhyme_sets
+object_id: DRILL_build_comic_verse_from_incongruous_rhyme_sets
 object_type: drill
 name: Build Comic Verse from Incongruous Rhyme Sets
 library_path: [writing, poetry, sound]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, rhyme, comedy, play, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_make_rhyme_serve_sense_and_effect
+    target_object_id: PAT_make_rhyme_serve_sense_and_effect
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_build_a_peripheral_witness_account_from_mixed_knowledge_routes
+object_id: DRILL_build_a_peripheral_witness_account_from_mixed_knowledge_routes
 object_type: drill
 name: Build a Peripheral Witness Account from Mixed Knowledge Routes
 library_path:
@@ -22,12 +22,12 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_design_first_person_telling_situation
+    target_object_id: PAT_design_the_first_person_telling_situation
   - rel: teaches
-    target_object_id: writing_fiction_keep_point_of_view_knowledge_and_access_consistent
+    target_object_id: PAT_keep_point_of_view_knowledge_and_access_consistent
   - rel: related_to
-    target_object_id: writing_fiction_design_unreliable_narration_with_readable_evidence
-target_skill: writing_fiction_design_first_person_telling_situation
+    target_object_id: PAT_design_unreliable_narration_with_readable_evidence
+target_skill: PAT_design_the_first_person_telling_situation
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

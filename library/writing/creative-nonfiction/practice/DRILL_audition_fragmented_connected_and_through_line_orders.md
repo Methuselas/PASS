@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_audition_fragmented_connected_and_through_line_orders
+object_id: DRILL_audition_fragmented_connected_and_through_line_orders
 object_type: drill
 name: Audition Fragmented, Connected, and Through-Line Orders
 library_path:
@@ -21,16 +21,16 @@ tags:
   - through_line
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+    target_object_id: PAT_choose_structure_from_discovered_connections
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Sara Haslam
 confidence: high
-target_skill: writing_creative_nonfiction_choose_structure_from_discovered_connections
+target_skill: PAT_choose_structure_from_discovered_connections
 references: []
 variants: []
 ---

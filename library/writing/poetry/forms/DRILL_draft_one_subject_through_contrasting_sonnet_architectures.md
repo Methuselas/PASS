@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_draft_subject_through_contrasting_sonnet_architectures
+object_id: DRILL_draft_one_subject_through_contrasting_sonnet_architectures
 object_type: drill
 name: Draft One Subject Through Contrasting Sonnet Architectures
 library_path: [writing, poetry, forms]
@@ -12,11 +12,11 @@ foundation_object_id: none
 tags: [poetry, sonnet, volta, structure, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_learn_form_before_varying_its_rules
+    target_object_id: PAT_learn_poetic_form_before_varying_its_rules
   - rel: teaches
-    target_object_id: writing_poetry_turn_sonnet_before_closure
+    target_object_id: PAT_turn_sonnet_before_closure
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

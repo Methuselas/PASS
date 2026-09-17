@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_write_portable_scenario_with_explicit_adaptation_seams
+object_id: PAT_write_portable_scenario_with_explicit_adaptation_seams
 object_type: pattern
 name: Write a Portable Scenario with Explicit Adaptation Seams
 library_path:
@@ -20,7 +20,7 @@ tags:
   - integration
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_anchor_episodic_adventure_to_stable_mission_spine
+    target_object_id: PAT_anchor_episodic_adventure_to_stable_mission_spine
 reference:
   source_title: "Maidens of Moordoth"
   author: "Bill Logan"

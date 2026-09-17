@@ -1,5 +1,5 @@
 ---
-object_id: writing_account_for_career_interruptions_without_distorting_dates
+object_id: PAT_account_for_career_interruptions_without_distorting_dates
 object_type: pattern
 name: Account for Career Interruptions Without Distorting Dates
 library_path:

@@ -1,5 +1,5 @@
 ---
-object_id: writing_track_each_submission_as_distinct_transaction
+object_id: PAT_track_each_submission_as_distinct_transaction
 object_type: pattern
 name: Track Each Writing Submission as a Distinct Transaction
 library_path:
@@ -20,7 +20,7 @@ tags:
   - follow_up
 cross_links:
   - rel: related_to
-    target_object_id: writing_compare_publication_outlets_by_work_specific_tradeoffs
+    target_object_id: PAT_compare_publication_outlets_by_work_specific_tradeoffs
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

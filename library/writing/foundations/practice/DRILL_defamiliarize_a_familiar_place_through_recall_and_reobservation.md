@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_defamiliarize_familiar_place_through_recall_and_reobservation
+object_id: DRILL_defamiliarize_a_familiar_place_through_recall_and_reobservation
 object_type: drill
 name: Defamiliarize a Familiar Place through Recall and Reobservation
 library_path:
@@ -20,9 +20,9 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: teaches
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

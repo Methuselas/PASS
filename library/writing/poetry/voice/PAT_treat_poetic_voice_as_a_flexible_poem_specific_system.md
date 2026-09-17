@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_treat_voice_as_flexible_poem_specific_system
+object_id: PAT_treat_poetic_voice_as_a_flexible_poem_specific_system
 object_type: pattern
 name: Treat Poetic Voice as a Flexible Poem-Specific System
 library_path: [writing, poetry, voice]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, voice, diction, syntax, rhythm, flexibility]
 cross_links:
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
   - rel: related_to
-    target_object_id: writing_replace_received_language_with_precise_distinctive_phrasing
+    target_object_id: PAT_replace_received_language_with_precise_distinctive_phrasing
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

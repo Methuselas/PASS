@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_infer_absent_character_from_domestic_space
+object_id: DRILL_infer_an_absent_character_from_a_domestic_space
 object_type: drill
 name: Infer an Absent Character from a Domestic Space
 library_path: [writing, fiction, setting]
@@ -12,13 +12,13 @@ foundation_object_id: none
 tags: [fiction, setting, character, possessions, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_reveal_character_through_possessions_and_inhabited_space
+    target_object_id: PAT_reveal_character_through_possessions_and_inhabited_space
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
 confidence: high
 references: []
-target_skill: writing_fiction_reveal_character_through_possessions_and_inhabited_space
+target_skill: PAT_reveal_character_through_possessions_and_inhabited_space
 variants: []
 ---
 

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_end_selected_story_without_exhausting_larger_life
+object_id: PAT_end_the_selected_story_without_exhausting_the_larger_life
 object_type: pattern
 name: End the Selected Story Without Exhausting the Larger Life
 library_path:
@@ -20,9 +20,9 @@ tags:
   - reader_inference
 cross_links:
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+    target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
   - rel: related_to
-    target_object_id: writing_fiction_scale_character_change_to_story_length
+    target_object_id: PAT_scale_character_change_to_story_length
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

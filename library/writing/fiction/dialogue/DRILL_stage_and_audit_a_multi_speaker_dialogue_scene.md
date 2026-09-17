@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_stage_and_audit_multi_speaker_dialogue_scene
+object_id: DRILL_stage_and_audit_a_multi_speaker_dialogue_scene
 object_type: drill
 name: Stage and Audit a Multi-Speaker Dialogue Scene
 library_path:
@@ -22,13 +22,13 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_orient_speakers_with_unobtrusive_formatting_and_tags
+    target_object_id: PAT_orient_speakers_with_unobtrusive_formatting_and_tags
   - rel: related_to
-    target_object_id: writing_fiction_compress_real_speech_into_purposeful_dialogue
+    target_object_id: PAT_compress_real_speech_into_purposeful_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_drill_map_character_relationships_by_knowledge_and_pressure
+    target_object_id: DRILL_map_character_relationships_by_knowledge_and_pressure
   - rel: related_to
-    target_object_id: writing_fiction_drill_differentiate_character_voices_through_parallel_monologues
+    target_object_id: DRILL_differentiate_character_voices_through_parallel_monologues
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

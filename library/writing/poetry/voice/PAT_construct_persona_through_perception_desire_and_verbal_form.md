@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_construct_persona_through_perception_desire_and_verbal_form
+object_id: PAT_construct_persona_through_perception_desire_and_verbal_form
 object_type: pattern
 name: Construct Persona Through Perception Desire and Verbal Form
 library_path: [writing, poetry, voice]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, persona, speaker, empathy, nonhuman]
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_treat_voice_as_flexible_poem_specific_system
+    target_object_id: PAT_treat_poetic_voice_as_a_flexible_poem_specific_system
   - rel: related_to
-    target_object_id: writing_fiction_portray_characters_beyond_direct_experience_with_accountable_imagination
+    target_object_id: PAT_portray_characters_beyond_direct_experience_with_accountable_imagination
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

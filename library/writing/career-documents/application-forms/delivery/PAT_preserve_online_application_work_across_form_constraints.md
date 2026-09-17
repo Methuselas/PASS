@@ -1,5 +1,5 @@
 ---
-object_id: writing_preserve_online_application_work_across_form_constraints
+object_id: PAT_preserve_online_application_work_across_form_constraints
 object_type: pattern
 name: Preserve Online Application Work Across Form Constraints
 library_path:
@@ -21,9 +21,9 @@ tags:
   - submission_records
 cross_links:
   - rel: related_to
-    target_object_id: writing_answer_application_forms_as_complete_standalone_evidence
+    target_object_id: PAT_answer_application_forms_as_complete_standalone_evidence
   - rel: related_to
-    target_object_id: writing_package_emailed_application_documents_for_reliable_routing
+    target_object_id: PAT_package_emailed_application_documents_for_reliable_routing
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

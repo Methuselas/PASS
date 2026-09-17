@@ -1,5 +1,5 @@
 ---
-object_id: writing_choose_career_network_platforms_by_audience_and_maintenance_cost
+object_id: PAT_choose_career_network_platforms_by_audience_and_maintenance_cost
 object_type: pattern
 name: Choose Career-Network Platforms by Audience and Maintenance Cost
 library_path:
@@ -21,7 +21,7 @@ tags:
   - maintenance
 cross_links:
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

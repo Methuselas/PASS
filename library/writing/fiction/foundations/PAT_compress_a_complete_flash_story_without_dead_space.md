@@ -1,5 +1,5 @@
 ---
-object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+object_id: PAT_compress_a_complete_flash_story_without_dead_space
 object_type: pattern
 name: Compress a Complete Flash Story Without Dead Space
 library_path:
@@ -20,11 +20,11 @@ tags:
   - endings
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_match_story_scope_to_required_accumulation
+    target_object_id: PAT_match_story_scope_to_required_accumulation
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
   - rel: related_to
-    target_object_id: writing_fiction_end_selected_story_without_exhausting_larger_life
+    target_object_id: PAT_end_the_selected_story_without_exhausting_the_larger_life
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

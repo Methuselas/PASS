@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_research_until_findings_change_the_draft
+object_id: DRILL_research_until_findings_change_the_draft
 object_type: drill
 name: Research until Findings Change the Draft
 library_path:
@@ -21,11 +21,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_verify_checkable_facts_and_research_necessary_context
+    target_object_id: PAT_verify_checkable_facts_and_research_necessary_context
   - rel: related_to
-    target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
+    target_object_id: PAT_ground_real_and_imagined_settings_in_accurate_detail
   - rel: related_to
-    target_object_id: writing_choose_truth_contract_before_shaping_real_material
+    target_object_id: PAT_choose_truth_contract_before_shaping_real_material
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

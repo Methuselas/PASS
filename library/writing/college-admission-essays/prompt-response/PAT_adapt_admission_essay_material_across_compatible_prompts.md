@@ -1,5 +1,5 @@
 ---
-object_id: writing_college_admission_essays_adapt_material_across_compatible_prompts
+object_id: PAT_adapt_admission_essay_material_across_compatible_prompts
 object_type: pattern
 name: Adapt Admission Essay Material Across Compatible Prompts
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_calibrate_context_to_audience_and_venue
+foundation_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 tags:
   - college_admission_essays
   - supplemental_essays
@@ -20,7 +20,7 @@ tags:
   - institutional_fit
 cross_links:
   - rel: related_to
-    target_object_id: writing_college_admission_essays_choose_material_that_adds_applicant_meaning
+    target_object_id: PAT_choose_admission_essay_material_that_adds_applicant_meaning
 reference:
   source_title: College Admission Essays For Dummies
   author: Jessica Brenner and Geraldine Woods

@@ -1,5 +1,5 @@
 ---
-object_id: writing_collect_fragments_before_demanding_complete_draft
+object_id: PAT_collect_fragments_before_demanding_complete_draft
 object_type: pattern
 name: Collect Fragments Before Demanding a Complete Draft
 library_path:
@@ -21,13 +21,13 @@ tags:
   - memory
 cross_links:
   - rel: related_to
-    target_object_id: writing_recover_block_by_lowering_hurdle
+    target_object_id: PAT_recover_from_writing_block_by_lowering_the_hurdle
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
   - rel: related_to
-    target_object_id: writing_fiction_transform_real_people_into_composite_characters
+    target_object_id: PAT_transform_real_people_into_composite_characters
   - rel: related_to
-    target_object_id: writing_freewrite_to_discover_what_draft_is_about
+    target_object_id: PAT_freewrite_to_discover_what_the_draft_is_about
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

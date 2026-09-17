@@ -1,5 +1,5 @@
 ---
-object_id: writing_recover_block_by_lowering_hurdle
+object_id: PAT_recover_from_writing_block_by_lowering_the_hurdle
 object_type: pattern
 name: Recover from Writing Block by Lowering the Hurdle
 library_path:
@@ -19,11 +19,11 @@ tags:
   - task_scoping
 cross_links:
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

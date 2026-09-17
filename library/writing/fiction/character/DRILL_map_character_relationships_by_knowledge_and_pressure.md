@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_map_character_relationships_by_knowledge_and_pressure
+object_id: DRILL_map_character_relationships_by_knowledge_and_pressure
 object_type: drill
 name: Map Character Relationships by Knowledge and Pressure
 library_path:
@@ -21,11 +21,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_ap_develop_and_reveal_a_short_story_character
+    target_object_id: AP_develop_and_reveal_a_short_story_character
   - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_round_characters_from_contradiction_and_desire
   - rel: related_to
-    target_object_id: writing_fiction_stage_disclosure_to_sustain_reader_inference
+    target_object_id: PAT_stage_disclosure_to_sustain_reader_inference
 reference:
   source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand

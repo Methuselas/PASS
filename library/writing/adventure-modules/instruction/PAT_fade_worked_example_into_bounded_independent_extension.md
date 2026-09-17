@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_fade_worked_example_into_bounded_independent_extension
+object_id: PAT_fade_worked_example_into_bounded_independent_extension
 object_type: pattern
 name: Fade a Worked Example into Bounded Independent Extension
 library_path:
@@ -20,7 +20,7 @@ tags:
   - apprenticeship
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_write_portable_scenario_with_explicit_adaptation_seams
+    target_object_id: PAT_write_portable_scenario_with_explicit_adaptation_seams
 reference:
   source_title: "The Keep on the Borderlands"
   author: "Gary Gygax"

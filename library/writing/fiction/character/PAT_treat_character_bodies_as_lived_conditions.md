@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+object_id: PAT_treat_character_bodies_as_lived_conditions
 object_type: pattern
 name: Treat Character Bodies as Lived Conditions
 library_path:
@@ -21,11 +21,11 @@ tags:
   - interactive_narrative
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_portray_characters_beyond_direct_experience_with_accountable_imagination
+    target_object_id: PAT_portray_characters_beyond_direct_experience_with_accountable_imagination
   - rel: related_to
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_fiction_filter_setting_through_character_consciousness
+    target_object_id: PAT_filter_setting_through_character_consciousness
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

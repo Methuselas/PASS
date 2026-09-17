@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_recast_life_writing_event_across_tense_and_narrator_distance
+object_id: DRILL_recast_a_life_writing_event_across_tense_and_narrator_distance
 object_type: drill
 name: Recast a Life-Writing Event across Tense and Narrator Distance
 library_path:
@@ -21,16 +21,16 @@ tags:
   - memory
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_separate_experiencing_self_from_reflective_narrator
+    target_object_id: PAT_separate_experiencing_self_from_reflective_narrator
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Sara Haslam
 confidence: high
-target_skill: writing_creative_nonfiction_separate_experiencing_self_from_reflective_narrator
+target_skill: PAT_separate_experiencing_self_from_reflective_narrator
 references: []
 variants: []
 ---

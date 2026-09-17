@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_generate_working_titles_from_story_elements
+object_id: DRILL_generate_working_titles_from_story_elements
 object_type: drill
 name: Generate Working Titles from Story Elements
 library_path:
@@ -20,9 +20,9 @@ tags:
   - reader_expectation
 cross_links:
   - rel: teaches
-    target_object_id: writing_use_working_title_as_temporary_attention_cue
+    target_object_id: PAT_use_working_title_as_temporary_attention_cue
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
 reference:
   source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand

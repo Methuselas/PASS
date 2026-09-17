@@ -1,5 +1,5 @@
 ---
-object_id: writing_separate_revision_from_editing_and_proofreading
+object_id: PAT_separate_revision_from_editing_and_proofreading
 object_type: pattern
 name: Separate Revision from Editing and Proofreading
 library_path:

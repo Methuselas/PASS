@@ -1,5 +1,5 @@
 ---
-object_id: writing_maintain_career_profile_through_current_evidence_and_useful_participation
+object_id: PAT_maintain_career_profile_through_current_evidence_and_useful_participation
 object_type: pattern
 name: Maintain a Career Profile Through Current Evidence and Useful Participation
 library_path:
@@ -21,9 +21,9 @@ tags:
   - participation
 cross_links:
   - rel: related_to
-    target_object_id: writing_control_online_resume_visibility_and_currency
+    target_object_id: PAT_control_online_resume_visibility_and_currency
   - rel: related_to
-    target_object_id: writing_build_discoverable_career_profile_as_broad_professional_overview
+    target_object_id: PAT_build_discoverable_career_profile_as_broad_professional_overview
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

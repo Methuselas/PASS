@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+object_id: PAT_interrogate_memory_before_claiming_precision
 object_type: pattern
 name: Interrogate Memory Before Claiming Precision
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+foundation_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
 tags:
   - creative_nonfiction
   - memory
@@ -20,9 +20,9 @@ tags:
   - accuracy
 cross_links:
   - rel: related_to
-    target_object_id: writing_choose_truth_contract_before_shaping_real_material
+    target_object_id: PAT_choose_truth_contract_before_shaping_real_material
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_make_personal_presence_part_of_inquiry
+    target_object_id: PAT_make_personal_presence_part_of_inquiry
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

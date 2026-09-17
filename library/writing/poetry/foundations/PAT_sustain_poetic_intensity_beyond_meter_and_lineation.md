@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_sustain_intensity_beyond_meter_and_lineation
+object_id: PAT_sustain_poetic_intensity_beyond_meter_and_lineation
 object_type: pattern
 name: Sustain Poetic Intensity Beyond Meter and Lineation
 library_path:

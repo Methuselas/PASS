@@ -1,5 +1,5 @@
 ---
-object_id: writing_balance_symbols_between_cliche_and_obscurity
+object_id: PAT_balance_symbols_between_cliche_and_obscurity
 object_type: pattern
 name: Balance Symbols Between Cliche and Obscurity
 library_path:
@@ -20,9 +20,9 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

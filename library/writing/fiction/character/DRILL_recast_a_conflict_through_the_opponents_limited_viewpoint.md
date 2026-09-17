@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_recast_conflict_through_opponents_limited_viewpoint
+object_id: DRILL_recast_a_conflict_through_the_opponents_limited_viewpoint
 object_type: drill
 name: Recast a Conflict through the Opponent's Limited Viewpoint
 library_path:
@@ -20,15 +20,15 @@ tags:
   - conflict
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_inhabit_unsympathetic_characters_from_inside
+    target_object_id: PAT_inhabit_unsympathetic_characters_from_inside
   - rel: related_to
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
 confidence: high
 references: []
-target_skill: writing_fiction_inhabit_unsympathetic_characters_from_inside
+target_skill: PAT_inhabit_unsympathetic_characters_from_inside
 variants: []
 ---
 

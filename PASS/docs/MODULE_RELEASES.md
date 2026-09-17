@@ -21,7 +21,7 @@ modules:
 auxiliary:
   - domain: writing
     objects:
-      - writing_ap_revise_creative_draft_from_diagnosis_to_final_proof
+      - AP_revise_creative_draft_from_diagnosis_to_final_proof
   - domain: art
     objects:
       - AP_project_plan_and_elevation_into_perspective

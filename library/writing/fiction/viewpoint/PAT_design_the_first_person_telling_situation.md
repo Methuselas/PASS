@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_design_first_person_telling_situation
+object_id: PAT_design_the_first_person_telling_situation
 object_type: pattern
 name: Design the First-Person Telling Situation
 library_path:
@@ -20,11 +20,11 @@ tags:
   - retrospective_narration
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
   - rel: related_to
-    target_object_id: writing_fiction_choose_tense_by_visibility_and_temporal_effect
+    target_object_id: PAT_choose_tense_by_visibility_and_temporal_effect
   - rel: related_to
-    target_object_id: writing_fiction_keep_point_of_view_knowledge_and_access_consistent
+    target_object_id: PAT_keep_point_of_view_knowledge_and_access_consistent
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

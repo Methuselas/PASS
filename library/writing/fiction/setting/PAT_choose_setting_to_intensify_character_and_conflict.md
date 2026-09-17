@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_choose_setting_to_intensify_character_and_conflict
+object_id: PAT_choose_setting_to_intensify_character_and_conflict
 object_type: pattern
 name: Choose Setting to Intensify Character and Conflict
 library_path:
@@ -21,9 +21,9 @@ tags:
 - place
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+  target_object_id: PAT_build_round_characters_from_contradiction_and_desire
 - rel: related_to
-  target_object_id: writing_fiction_escalate_central_conflict_through_middle
+  target_object_id: PAT_escalate_central_conflict_through_the_middle
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

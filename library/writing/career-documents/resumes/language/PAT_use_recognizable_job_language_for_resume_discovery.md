@@ -1,5 +1,5 @@
 ---
-object_id: writing_use_recognizable_job_language_for_resume_discovery
+object_id: PAT_use_recognizable_job_language_for_resume_discovery
 object_type: pattern
 name: Use Recognizable Job Language for Resume Discovery
 library_path:

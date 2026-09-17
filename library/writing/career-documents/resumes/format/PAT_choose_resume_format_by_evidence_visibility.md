@@ -1,5 +1,5 @@
 ---
-object_id: writing_choose_resume_format_by_evidence_visibility
+object_id: PAT_choose_resume_format_by_evidence_visibility
 object_type: pattern
 name: Choose Resume Format by Evidence Visibility
 library_path:
@@ -21,7 +21,7 @@ tags:
   - recruiter_reading
 cross_links:
   - rel: prerequisite_for
-    target_object_id: writing_account_for_career_interruptions_without_distorting_dates
+    target_object_id: PAT_account_for_career_interruptions_without_distorting_dates
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

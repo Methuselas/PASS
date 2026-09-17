@@ -1,5 +1,5 @@
 ---
-object_id: writing_open_resume_with_employer_relevant_evidence
+object_id: PAT_open_resume_with_employer_relevant_evidence
 object_type: pattern
 name: Open a Resume with Employer-Relevant Evidence
 library_path:
@@ -20,7 +20,7 @@ tags:
   - first_page
 cross_links:
   - rel: prerequisite_for
-    target_object_id: writing_show_current_readiness_after_extended_career_break
+    target_object_id: PAT_show_current_readiness_after_extended_career_break
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

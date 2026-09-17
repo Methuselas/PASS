@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_write_pregenerated_roles_as_playable_decision_positions
+object_id: PAT_write_pregenerated_roles_as_playable_decision_positions
 object_type: pattern
 name: Write Pregenerated Roles as Playable Decision Positions
 library_path:
@@ -20,7 +20,7 @@ tags:
   - characterization
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
+    target_object_id: PAT_partition_adventure_module_information_by_reader_role_and_reveal_state
 reference:
   source_title: "An Act of Treason"
   author: "Jan Hendrik Friedrich and Michael Chumbler"

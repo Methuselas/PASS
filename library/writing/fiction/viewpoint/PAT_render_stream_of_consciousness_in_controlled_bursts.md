@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_render_stream_of_consciousness_in_controlled_bursts
+object_id: PAT_render_stream_of_consciousness_in_controlled_bursts
 object_type: pattern
 name: Render Stream of Consciousness in Controlled Bursts
 library_path:
@@ -20,9 +20,9 @@ tags:
   - mental_state
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_shape_style_as_response_to_story_situation
+    target_object_id: PAT_shape_style_as_response_to_story_situation
   - rel: related_to
-    target_object_id: writing_fiction_keep_point_of_view_knowledge_and_access_consistent
+    target_object_id: PAT_keep_point_of_view_knowledge_and_access_consistent
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

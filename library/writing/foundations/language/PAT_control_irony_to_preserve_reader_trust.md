@@ -1,5 +1,5 @@
 ---
-object_id: writing_control_irony_to_preserve_reader_trust
+object_id: PAT_control_irony_to_preserve_reader_trust
 object_type: pattern
 name: Control Irony to Preserve Reader Trust
 library_path:
@@ -20,9 +20,9 @@ tags:
 - revision
 cross_links:
 - rel: related_to
-  target_object_id: writing_calibrate_context_to_audience_and_venue
+  target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 - rel: related_to
-  target_object_id: writing_read_draft_aloud_to_defamiliarize_it
+  target_object_id: PAT_read_draft_aloud_to_defamiliarize_it
 reference:
   source_title: 'Creative Writing: Four Genres in Brief'
   author: David Starkey

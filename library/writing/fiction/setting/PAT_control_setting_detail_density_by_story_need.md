@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_control_setting_detail_density_by_story_need
+object_id: PAT_control_setting_detail_density_by_story_need
 object_type: pattern
 name: Control Setting Detail Density by Story Need
 library_path:
@@ -21,9 +21,9 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+    target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

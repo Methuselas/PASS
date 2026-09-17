@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_make_personal_presence_part_of_inquiry
+object_id: PAT_make_personal_presence_part_of_inquiry
 object_type: pattern
 name: Make Personal Presence Part of the Inquiry
 library_path:
@@ -21,9 +21,9 @@ tags:
   - authorial_position
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
   - rel: related_to
-    target_object_id: writing_control_irony_to_preserve_reader_trust
+    target_object_id: PAT_control_irony_to_preserve_reader_trust
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

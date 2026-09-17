@@ -1,5 +1,5 @@
 ---
-object_id: writing_ground_professional_reputation_in_role_relevant_evidence
+object_id: PAT_ground_professional_reputation_in_role_relevant_evidence
 object_type: pattern
 name: Ground a Professional Reputation in Role-Relevant Evidence
 library_path:
@@ -21,9 +21,9 @@ tags:
   - feedback
 cross_links:
   - rel: related_to
-    target_object_id: writing_build_career_evidence_inventory_before_drafting
+    target_object_id: PAT_build_career_evidence_inventory_before_drafting
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

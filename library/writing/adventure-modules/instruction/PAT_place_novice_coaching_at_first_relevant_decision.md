@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_place_novice_coaching_at_first_relevant_decision
+object_id: PAT_place_novice_coaching_at_first_relevant_decision
 object_type: pattern
 name: Place Novice Coaching at the First Relevant Decision
 library_path:
@@ -20,7 +20,7 @@ tags:
   - point_of_use
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
+    target_object_id: PAT_partition_adventure_module_information_by_reader_role_and_reveal_state
 reference:
   source_title: "The Keep on the Borderlands"
   author: "Gary Gygax"

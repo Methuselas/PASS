@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_balance_emotional_regard_with_particular_character_evidence
+object_id: DRILL_balance_emotional_regard_with_particular_character_evidence
 object_type: drill
 name: Balance Emotional Regard with Particular Character Evidence
 library_path:
@@ -20,11 +20,11 @@ tags:
   - revision
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_portray_real_people_through_selective_behavioral_detail
+    target_object_id: PAT_portray_real_people_through_selective_behavioral_detail
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_audit_harm_and_privacy_when_portraying_real_people
+    target_object_id: PAT_audit_harm_and_privacy_when_portraying_real_people
   - rel: related_to
-    target_object_id: writing_trace_reader_effects_to_craft_choices
+    target_object_id: PAT_trace_reader_effects_to_craft_choices
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Derek Neale

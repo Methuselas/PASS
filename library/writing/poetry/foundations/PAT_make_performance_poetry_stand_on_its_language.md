@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_make_performance_language_stand_alone
+object_id: PAT_make_performance_poetry_stand_on_its_language
 object_type: pattern
 name: Make Performance Poetry Stand on Its Language
 library_path:
@@ -19,9 +19,9 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_sustain_intensity_beyond_meter_and_lineation
+    target_object_id: PAT_sustain_poetic_intensity_beyond_meter_and_lineation
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

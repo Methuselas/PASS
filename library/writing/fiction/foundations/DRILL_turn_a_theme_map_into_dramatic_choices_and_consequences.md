@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_turn_a_theme_map_into_dramatic_choices_and_consequences
+object_id: DRILL_turn_a_theme_map_into_dramatic_choices_and_consequences
 object_type: drill
 name: Turn a Theme Map into Dramatic Choices and Consequences
 library_path:
@@ -21,11 +21,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: related_to
-    target_object_id: writing_fiction_embody_story_meaning_in_concrete_action_and_detail
+    target_object_id: PAT_embody_story_meaning_in_concrete_action_and_detail
   - rel: related_to
-    target_object_id: writing_fiction_build_plot_from_causal_consequences
+    target_object_id: PAT_build_plot_from_causal_consequences
 reference:
   source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand

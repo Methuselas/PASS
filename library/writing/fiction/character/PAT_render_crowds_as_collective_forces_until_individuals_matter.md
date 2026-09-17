@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_render_crowds_as_collective_forces_until_individuals_matter
+object_id: PAT_render_crowds_as_collective_forces_until_individuals_matter
 object_type: pattern
 name: Render Crowds as Collective Forces until Individuals Matter
 library_path:
@@ -22,13 +22,13 @@ tags:
   - compression
 cross_links:
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_cast_without_flattening_main_characters
+    target_object_id: PAT_compress_cast_without_flattening_main_characters
   - rel: related_to
-    target_object_id: writing_fiction_orient_speakers_with_unobtrusive_formatting_and_tags
+    target_object_id: PAT_orient_speakers_with_unobtrusive_formatting_and_tags
   - rel: related_to
-    target_object_id: writing_fiction_use_specific_sensory_details_to_imply_larger_conditions
+    target_object_id: PAT_use_specific_sensory_details_to_imply_larger_conditions
   - rel: related_to
-    target_object_id: writing_fiction_allocate_scene_and_summary_by_narrative_pressure
+    target_object_id: PAT_allocate_scene_and_summary_by_narrative_pressure
 confidence: medium
 references: []
 variants: []

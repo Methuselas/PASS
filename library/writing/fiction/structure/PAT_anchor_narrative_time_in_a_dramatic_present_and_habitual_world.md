@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_anchor_narrative_time_in_dramatic_present_and_habitual_world
+object_id: PAT_anchor_narrative_time_in_a_dramatic_present_and_habitual_world
 object_type: pattern
 name: Anchor Narrative Time in a Dramatic Present and Habitual World
 library_path:
@@ -20,9 +20,9 @@ tags:
   - backstory
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
   - rel: related_to
-    target_object_id: writing_fiction_allocate_scene_and_summary_by_narrative_pressure
+    target_object_id: PAT_allocate_scene_and_summary_by_narrative_pressure
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

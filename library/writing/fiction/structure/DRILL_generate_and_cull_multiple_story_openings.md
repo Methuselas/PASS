@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_generate_and_cull_multiple_story_openings
+object_id: DRILL_generate_and_cull_multiple_story_openings
 object_type: drill
 name: Generate and Cull Multiple Story Openings
 library_path:
@@ -20,8 +20,8 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_begin_at_point_of_attack
-target_skill: writing_fiction_begin_at_point_of_attack
+    target_object_id: PAT_begin_at_the_point_of_attack
+target_skill: PAT_begin_at_the_point_of_attack
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

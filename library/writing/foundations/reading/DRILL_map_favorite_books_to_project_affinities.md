@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_map_favorite_books_to_project_affinities
+object_id: DRILL_map_favorite_books_to_project_affinities
 object_type: drill
 name: Map Favorite Books to Project Affinities
 library_path:
@@ -20,9 +20,9 @@ tags:
   - craft_analysis
 cross_links:
   - rel: teaches
-    target_object_id: writing_synthesize_literary_influences_into_voice
+    target_object_id: PAT_synthesize_literary_influences_into_original_voice
   - rel: related_to
-    target_object_id: writing_trace_reader_effects_to_craft_choices
+    target_object_id: PAT_trace_reader_effects_to_craft_choices
 reference:
   source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand

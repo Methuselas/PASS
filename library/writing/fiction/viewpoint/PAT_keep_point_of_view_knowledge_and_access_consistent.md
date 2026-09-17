@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_keep_point_of_view_knowledge_and_access_consistent
+object_id: PAT_keep_point_of_view_knowledge_and_access_consistent
 object_type: pattern
 name: Keep Point-of-View Knowledge and Access Consistent
 library_path:
@@ -20,11 +20,11 @@ tags:
   - head_hopping
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
   - rel: related_to
-    target_object_id: writing_fiction_filter_setting_through_character_consciousness
+    target_object_id: PAT_filter_setting_through_character_consciousness
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+    target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

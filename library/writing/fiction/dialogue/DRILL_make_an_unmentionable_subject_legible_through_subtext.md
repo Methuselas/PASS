@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_make_an_unmentionable_subject_legible_through_subtext
+object_id: DRILL_make_an_unmentionable_subject_legible_through_subtext
 object_type: drill
 name: Make an Unmentionable Subject Legible through Subtext
 library_path:
@@ -22,11 +22,11 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_combine_dialogue_with_action_thought_and_silence
+    target_object_id: PAT_combine_dialogue_with_action_thought_and_silence
   - rel: related_to
-    target_object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
+    target_object_id: PAT_let_relationship_and_setting_shape_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_stage_disclosure_to_sustain_reader_inference
+    target_object_id: PAT_stage_disclosure_to_sustain_reader_inference
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

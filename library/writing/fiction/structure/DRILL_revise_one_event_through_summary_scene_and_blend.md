@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_revise_one_event_through_summary_scene_and_blend
+object_id: DRILL_revise_one_event_through_summary_scene_and_blend
 object_type: drill
 name: Revise One Event through Summary Scene and Blend
 library_path:
@@ -21,9 +21,9 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_allocate_scene_and_summary_by_narrative_pressure
+    target_object_id: PAT_allocate_scene_and_summary_by_narrative_pressure
   - rel: related_to
-    target_object_id: writing_fiction_choose_direct_or_reported_dialogue_by_effect
+    target_object_id: PAT_choose_direct_or_reported_dialogue_by_effect
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

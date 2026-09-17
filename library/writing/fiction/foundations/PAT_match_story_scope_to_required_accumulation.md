@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_match_story_scope_to_required_accumulation
+object_id: PAT_match_story_scope_to_required_accumulation
 object_type: pattern
 name: Match Story Scope to Required Accumulation
 library_path:
@@ -20,9 +20,9 @@ tags:
   - pacing
 cross_links:
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+    target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

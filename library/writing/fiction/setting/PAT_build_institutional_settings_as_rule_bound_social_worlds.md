@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_build_institutional_settings_as_rule_bound_social_worlds
+object_id: PAT_build_institutional_settings_as_rule_bound_social_worlds
 object_type: pattern
 name: Build Institutional Settings as Rule-Bound Social Worlds
 library_path:
@@ -20,9 +20,9 @@ tags:
 - hierarchy
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_choose_setting_to_intensify_character_and_conflict
+  target_object_id: PAT_choose_setting_to_intensify_character_and_conflict
 - rel: related_to
-  target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
+  target_object_id: PAT_ground_real_and_imagined_settings_in_accurate_detail
 reference:
   source_title: 'Creative Writing: A Workbook with Readings'
   author: Linda Anderson

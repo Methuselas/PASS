@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_revise_clause_load_without_flattening_complexity
+object_id: DRILL_revise_clause_load_without_flattening_complexity
 object_type: drill
 name: Revise Clause Load without Flattening Complexity
 library_path:
@@ -21,10 +21,10 @@ tags:
   - analytical_writing
 cross_links:
   - rel: teaches
-    target_object_id: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+    target_object_id: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
 confidence: high
 references: []
-target_skill: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+target_skill: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
 variants:
   - variant_id: writing_variant_diagnose_conceptual_density_below_length_threshold
     variant_name: Diagnose Conceptual Density Below the Length Threshold

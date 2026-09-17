@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_orient_speakers_with_unobtrusive_formatting_and_tags
+object_id: PAT_orient_speakers_with_unobtrusive_formatting_and_tags
 object_type: pattern
 name: Orient Speakers with Unobtrusive Formatting and Tags
 library_path:
@@ -21,9 +21,9 @@ tags:
   - clarity
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_compress_real_speech_into_purposeful_dialogue
+    target_object_id: PAT_compress_real_speech_into_purposeful_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_drill_stage_and_audit_multi_speaker_dialogue_scene
+    target_object_id: DRILL_stage_and_audit_a_multi_speaker_dialogue_scene
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

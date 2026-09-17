@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_draft_through_discovery
+object_id: PAT_draft_poems_through_discovery
 object_type: pattern
 name: Draft Poems Through Discovery
 library_path:
@@ -19,7 +19,7 @@ tags:
   - generative_constraints
 cross_links:
   - rel: related_to
-    target_object_id: writing_recover_block_by_lowering_hurdle
+    target_object_id: PAT_recover_from_writing_block_by_lowering_the_hurdle
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey
@@ -79,7 +79,7 @@ variants:
 - The ending feels earned by the draft's movement rather than attached to a preset lesson.
 
 ## Notes
-Discovery does not require an unstructured process. `writing_poetry_variant_enter_discovery_through_traditional_form` uses inherited form as a generative constraint: the rules narrow the field while the writer remains alert to unforeseen language and meaning. Use `writing_collect_fragments_before_demanding_complete_draft` when charged pieces need to accumulate before any one of them can sustain a poem.
+Discovery does not require an unstructured process. `writing_poetry_variant_enter_discovery_through_traditional_form` uses inherited form as a generative constraint: the rules narrow the field while the writer remains alert to unforeseen language and meaning. Use `PAT_collect_fragments_before_demanding_complete_draft` when charged pieces need to accumulate before any one of them can sustain a poem.
 
 `writing_poetry_variant_enter_discovery_through_expanding_rhyme_families` lets sound precede subject. Move from exact matches toward consonantal, assonantal, rhythmic, phrase-level, and more distant echoes, then begin another field from an outer discovery. Compose from the associations but restore ordinary selection afterward: a rhyme can earn attention without earning a place in the finished poem.
 

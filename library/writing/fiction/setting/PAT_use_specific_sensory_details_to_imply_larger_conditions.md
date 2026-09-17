@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_use_specific_sensory_details_to_imply_larger_conditions
+object_id: PAT_use_specific_sensory_details_to_imply_larger_conditions
 object_type: pattern
 name: Use Specific Sensory Details to Imply Larger Conditions
 library_path:
@@ -21,9 +21,9 @@ tags:
   - atmosphere
 cross_links:
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
   - rel: related_to
-    target_object_id: writing_fiction_filter_setting_through_character_consciousness
+    target_object_id: PAT_filter_setting_through_character_consciousness
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

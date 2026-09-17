@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_open_with_specific_question_or_pressure
+object_id: PAT_open_with_specific_question_or_pressure
 object_type: pattern
 name: Open with a Specific Question or Pressure
 library_path:
@@ -20,11 +20,11 @@ tags:
   - reader_orientation
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_subject_for_open_ended_exploration
+    target_object_id: PAT_choose_subject_for_open_ended_exploration
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+    target_object_id: PAT_choose_structure_from_discovered_connections
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

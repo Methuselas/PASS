@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_portray_characters_beyond_direct_experience_with_accountable_imagination
+object_id: PAT_portray_characters_beyond_direct_experience_with_accountable_imagination
 object_type: pattern
 name: Portray Characters Beyond Direct Experience with Accountable Imagination
 library_path:
@@ -21,15 +21,15 @@ tags:
   - imagination
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_round_characters_from_contradiction_and_desire
   - rel: related_to
-    target_object_id: writing_drill_research_until_findings_change_the_draft
+    target_object_id: DRILL_research_until_findings_change_the_draft
   - rel: related_to
-    target_object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
+    target_object_id: PAT_let_relationship_and_setting_shape_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_transform_real_people_into_composite_characters
+    target_object_id: PAT_transform_real_people_into_composite_characters
   - rel: related_to
-    target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+    target_object_id: PAT_treat_character_bodies_as_lived_conditions
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

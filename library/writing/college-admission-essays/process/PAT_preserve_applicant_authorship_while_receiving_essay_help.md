@@ -1,5 +1,5 @@
 ---
-object_id: writing_college_admission_essays_preserve_applicant_authorship_while_receiving_help
+object_id: PAT_preserve_applicant_authorship_while_receiving_essay_help
 object_type: pattern
 name: Preserve Applicant Authorship While Receiving Essay Help
 library_path:
@@ -20,15 +20,15 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_college_admission_essays_choose_material_that_adds_applicant_meaning
+    target_object_id: PAT_choose_admission_essay_material_that_adds_applicant_meaning
   - rel: related_to
-    target_object_id: writing_conduct_prepared_and_responsive_interviews
+    target_object_id: PAT_conduct_prepared_and_responsive_interviews
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_receive_workshop_feedback_without_defending_draft
+    target_object_id: PAT_receive_workshop_feedback_without_defending_the_draft
   - rel: related_to
-    target_object_id: writing_weight_feedback_by_criteria_and_experience
+    target_object_id: PAT_weight_creative_feedback_by_criteria_and_reader_experience
 reference:
   source_title: College Admission Essays For Dummies
   author: Jessica Brenner and Geraldine Woods

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility
+object_id: DRILL_audit_marked_character_speech_for_individuality_accuracy_and_legibility
 object_type: drill
 name: Audit Marked Character Speech for Individuality Accuracy and Legibility
 library_path:
@@ -25,13 +25,13 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_make_nonstandard_language_deliberate
+    target_object_id: PAT_make_nonstandard_language_a_deliberate_craft_choice
   - rel: related_to
-    target_object_id: writing_fiction_let_relationship_and_setting_shape_dialogue
+    target_object_id: PAT_let_relationship_and_setting_shape_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_portray_characters_beyond_direct_experience_with_accountable_imagination
+    target_object_id: PAT_portray_characters_beyond_direct_experience_with_accountable_imagination
   - rel: related_to
-    target_object_id: writing_fiction_drill_differentiate_character_voices_through_parallel_monologues
+    target_object_id: DRILL_differentiate_character_voices_through_parallel_monologues
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

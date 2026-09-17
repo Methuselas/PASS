@@ -1,5 +1,5 @@
 ---
-object_id: writing_curate_portfolio_around_strong_relevant_and_varied_evidence
+object_id: PAT_curate_portfolio_around_strong_relevant_and_varied_evidence
 object_type: pattern
 name: Curate a Portfolio Around Strong, Relevant, and Varied Evidence
 library_path:
@@ -21,9 +21,9 @@ tags:
   - authorship
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
   - rel: related_to
-    target_object_id: writing_control_public_career_profile_visibility_and_disclosure
+    target_object_id: PAT_control_public_career_profile_visibility_and_disclosure
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

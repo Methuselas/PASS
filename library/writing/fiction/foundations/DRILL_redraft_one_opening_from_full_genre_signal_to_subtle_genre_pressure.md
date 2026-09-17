@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_redraft_opening_from_full_genre_signal_to_subtle_genre_pressure
+object_id: DRILL_redraft_one_opening_from_full_genre_signal_to_subtle_genre_pressure
 object_type: drill
 name: Redraft One Opening from Full Genre Signal to Subtle Genre Pressure
 library_path:
@@ -20,7 +20,7 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_signal_and_revise_genre_expectations
+    target_object_id: PAT_signal_and_revise_genre_expectations
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

@@ -1,5 +1,5 @@
 ---
-object_id: writing_decode_selection_criteria_into_evidence_obligations
+object_id: PAT_decode_selection_criteria_into_evidence_obligations
 object_type: pattern
 name: Decode Selection Criteria into Evidence Obligations
 library_path:
@@ -21,7 +21,7 @@ tags:
   - public_sector
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

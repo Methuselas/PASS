@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_build_plot_from_causal_consequences
+object_id: PAT_build_plot_from_causal_consequences
 object_type: pattern
 name: Build Plot from Causal Consequences
 library_path:
@@ -20,7 +20,7 @@ tags:
 - consequences
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_escalate_central_conflict_through_middle
+  target_object_id: PAT_escalate_central_conflict_through_the_middle
 reference:
   source_title: 'Creative Writing: Four Genres in Brief'
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_proofread_application_materials_with_independent_passes
+object_id: PAT_proofread_application_materials_with_independent_passes
 object_type: pattern
 name: Proofread Application Materials with Independent Passes
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_proofread_stable_draft_through_independent_passes
+foundation_object_id: PAT_proofread_a_stable_draft_through_independent_passes
 tags:
   - job_applications
   - proofreading
@@ -20,7 +20,7 @@ tags:
   - quality_control
 cross_links:
   - rel: related_to
-    target_object_id: writing_separate_revision_from_editing_and_proofreading
+    target_object_id: PAT_separate_revision_from_editing_and_proofreading
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

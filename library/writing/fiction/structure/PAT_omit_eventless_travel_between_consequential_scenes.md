@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_omit_eventless_travel_between_consequential_scenes
+object_id: PAT_omit_eventless_travel_between_consequential_scenes
 object_type: pattern
 name: Omit Eventless Travel between Consequential Scenes
 library_path: [writing, fiction, structure]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [fiction, scene_transition, travel, compression, pacing]
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
   - rel: related_to
-    target_object_id: writing_fiction_control_setting_detail_density_by_story_need
+    target_object_id: PAT_control_setting_detail_density_by_story_need
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

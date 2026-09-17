@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_embody_abstraction_through_every_sense
+object_id: DRILL_embody_an_abstraction_through_every_sense
 object_type: drill
 name: Embody an Abstraction Through Every Sense
 library_path: [writing, poetry, imagery]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, abstraction, senses, personification, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
   - rel: related_to
-    target_object_id: writing_make_figurative_language_unexpected_and_fitting
+    target_object_id: PAT_make_figurative_language_unexpected_and_fitting
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: W. N. Herbert

@@ -1,5 +1,5 @@
 ---
-object_id: writing_conform_manuscript_to_receiver_current_requirements
+object_id: PAT_conform_manuscript_to_receiver_current_requirements
 object_type: pattern
 name: Conform a Manuscript to the Receiver's Current Requirements
 library_path:
@@ -20,9 +20,9 @@ tags:
   - readability
 cross_links:
   - rel: related_to
-    target_object_id: writing_proofread_stable_draft_through_independent_passes
+    target_object_id: PAT_proofread_a_stable_draft_through_independent_passes
   - rel: related_to
-    target_object_id: writing_make_proof_corrections_unambiguous
+    target_object_id: PAT_make_proof_corrections_unambiguous
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

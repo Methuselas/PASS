@@ -1,5 +1,5 @@
 ---
-object_id: writing_write_factual_outlet_specific_query
+object_id: PAT_write_factual_outlet_specific_query
 object_type: pattern
 name: Write a Factual Outlet-Specific Query
 library_path:
@@ -20,9 +20,9 @@ tags:
   - professional_communication
 cross_links:
   - rel: related_to
-    target_object_id: writing_match_finished_work_to_outlet_actual_list
+    target_object_id: PAT_match_finished_work_to_an_outlets_actual_list
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

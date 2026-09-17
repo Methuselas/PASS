@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_build_and_rescan_alliterative_address
+object_id: DRILL_build_and_rescan_an_alliterative_address
 object_type: drill
 name: Build and Rescan an Alliterative Address
 library_path:
@@ -20,7 +20,7 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_structure_accentual_lines_with_stressed_alliteration
+    target_object_id: PAT_structure_accentual_lines_with_stressed_alliteration
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

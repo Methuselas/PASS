@@ -1,5 +1,5 @@
 ---
-object_id: writing_receive_workshop_feedback_without_defending_draft
+object_id: PAT_receive_workshop_feedback_without_defending_the_draft
 object_type: pattern
 name: Receive Workshop Feedback Without Defending the Draft
 library_path:
@@ -20,9 +20,9 @@ tags:
   - listening
 cross_links:
   - rel: related_to
-    target_object_id: writing_weight_feedback_by_criteria_and_experience
+    target_object_id: PAT_weight_creative_feedback_by_criteria_and_reader_experience
   - rel: related_to
-    target_object_id: writing_drill_discuss_another_writer_to_form_aesthetic
+    target_object_id: DRILL_develop_an_aesthetic_by_discussing_another_writers_work
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

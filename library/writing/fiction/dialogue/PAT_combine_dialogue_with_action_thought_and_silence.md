@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_combine_dialogue_with_action_thought_and_silence
+object_id: PAT_combine_dialogue_with_action_thought_and_silence
 object_type: pattern
 name: Combine Dialogue with Action Thought and Silence
 library_path:
@@ -21,11 +21,11 @@ tags:
   - interiority
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_fiction_compress_real_speech_into_purposeful_dialogue
+    target_object_id: PAT_compress_real_speech_into_purposeful_dialogue
   - rel: related_to
-    target_object_id: writing_fiction_drill_compress_long_speech_through_listener_filtered_selection
+    target_object_id: DRILL_compress_a_long_speech_through_listener_filtered_selection
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

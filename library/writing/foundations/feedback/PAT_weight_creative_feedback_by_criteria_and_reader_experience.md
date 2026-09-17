@@ -1,5 +1,5 @@
 ---
-object_id: writing_weight_feedback_by_criteria_and_experience
+object_id: PAT_weight_creative_feedback_by_criteria_and_reader_experience
 object_type: pattern
 name: Weight Creative Feedback by Criteria and Reader Experience
 library_path:

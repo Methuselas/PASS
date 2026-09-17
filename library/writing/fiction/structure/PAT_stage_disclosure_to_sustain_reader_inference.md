@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_stage_disclosure_to_sustain_reader_inference
+object_id: PAT_stage_disclosure_to_sustain_reader_inference
 object_type: pattern
 name: Stage Disclosure to Sustain Reader Inference
 library_path:
@@ -20,11 +20,11 @@ tags:
 - reader_inference
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_foreshadow_consequence_while_withholding_route
+  target_object_id: PAT_foreshadow_a_consequence_while_withholding_its_route
 - rel: related_to
-  target_object_id: writing_fiction_allocate_scene_and_summary_by_narrative_pressure
+  target_object_id: PAT_allocate_scene_and_summary_by_narrative_pressure
 - rel: related_to
-  target_object_id: writing_fiction_design_unreliable_narration_with_readable_evidence
+  target_object_id: PAT_design_unreliable_narration_with_readable_evidence
 reference:
   source_title: 'Creative Writing: A Workbook with Readings'
   author: Linda Anderson

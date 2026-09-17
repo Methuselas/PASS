@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_translate_graphic_sequence_into_lean_prose
+object_id: DRILL_translate_graphic_sequence_into_lean_prose
 object_type: drill
 name: Translate a Graphic Sequence into Lean Prose
 library_path:
@@ -20,12 +20,12 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_compress_short_essay_around_active_inquiry
+    target_object_id: PAT_compress_short_essay_around_active_inquiry
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
-target_skill: writing_creative_nonfiction_compress_short_essay_around_active_inquiry
+    target_object_id: PAT_choose_structure_from_discovered_connections
+target_skill: PAT_compress_short_essay_around_active_inquiry
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

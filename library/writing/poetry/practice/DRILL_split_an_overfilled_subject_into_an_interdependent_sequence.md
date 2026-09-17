@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_split_overfilled_subject_into_sequence
+object_id: DRILL_split_an_overfilled_subject_into_an_interdependent_sequence
 object_type: drill
 name: Split an Overfilled Subject into an Interdependent Sequence
 library_path: [writing, poetry, practice]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, sequence, subject, structure, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_make_poems_interdependent_in_sequence
+    target_object_id: PAT_make_poems_interdependent_in_a_sequence
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

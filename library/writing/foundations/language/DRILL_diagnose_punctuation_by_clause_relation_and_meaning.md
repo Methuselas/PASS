@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_diagnose_punctuation_by_clause_relation_and_meaning
+object_id: DRILL_diagnose_punctuation_by_clause_relation_and_meaning
 object_type: drill
 name: Diagnose Punctuation by Clause Relation and Meaning
 library_path:
@@ -20,13 +20,13 @@ tags:
   - rhythm
 cross_links:
   - rel: teaches
-    target_object_id: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+    target_object_id: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
 confidence: high
 references: []
-target_skill: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+target_skill: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
 variants: []
 ---
 

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_transform_real_people_into_composite_characters
+object_id: PAT_transform_real_people_into_composite_characters
 object_type: pattern
 name: Transform Real People into Composite Characters
 library_path:
@@ -20,9 +20,9 @@ tags:
   - composite-character
 cross_links:
   - rel: related_to
-    target_object_id: writing_choose_truth_contract_before_shaping_real_material
+    target_object_id: PAT_choose_truth_contract_before_shaping_real_material
   - rel: related_to
-    target_object_id: writing_fiction_drill_propagate_one_counterfactual_change_through_fictional_life
+    target_object_id: DRILL_propagate_one_counterfactual_change_through_a_fictional_life
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

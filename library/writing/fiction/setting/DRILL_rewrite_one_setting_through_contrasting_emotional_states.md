@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_rewrite_one_setting_through_contrasting_emotional_states
+object_id: DRILL_rewrite_one_setting_through_contrasting_emotional_states
 object_type: drill
 name: Rewrite One Setting through Contrasting Emotional States
 library_path: [writing, fiction, setting]
@@ -12,13 +12,13 @@ foundation_object_id: none
 tags: [fiction, setting, emotion, viewpoint, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_filter_setting_through_character_consciousness
+    target_object_id: PAT_filter_setting_through_character_consciousness
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
 confidence: high
 references: []
-target_skill: writing_fiction_filter_setting_through_character_consciousness
+target_skill: PAT_filter_setting_through_character_consciousness
 variants: []
 ---
 

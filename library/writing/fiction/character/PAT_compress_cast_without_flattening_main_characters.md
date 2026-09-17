@@ -1,5 +1,5 @@
 ---
-object_id: writing_flash_fiction_compress_cast_without_flattening_main_characters
+object_id: PAT_compress_cast_without_flattening_main_characters
 object_type: pattern
 name: Compress Cast without Flattening Main Characters
 library_path:
@@ -21,11 +21,11 @@ tags:
   - naming
 cross_links:
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+    target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
   - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_round_characters_from_contradiction_and_desire
   - rel: related_to
-    target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+    target_object_id: PAT_treat_character_bodies_as_lived_conditions
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

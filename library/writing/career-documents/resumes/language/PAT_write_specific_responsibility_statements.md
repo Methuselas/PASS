@@ -1,5 +1,5 @@
 ---
-object_id: writing_write_specific_responsibility_statements
+object_id: PAT_write_specific_responsibility_statements
 object_type: pattern
 name: Write Specific Responsibility Statements
 library_path:

@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_generate_and_order_multisensory_image_field
+object_id: DRILL_generate_and_order_a_multisensory_image_field
 object_type: drill
 name: Generate and Order a Multisensory Image Field
 library_path: [writing, poetry, imagery]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, imagery, senses, sequence, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_order_image_sequences_to_carry_thought
+    target_object_id: PAT_order_image_sequences_to_carry_poetic_thought
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: W. N. Herbert

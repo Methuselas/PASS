@@ -1,5 +1,5 @@
 ---
-object_id: writing_compare_publication_outlets_by_work_specific_tradeoffs
+object_id: PAT_compare_publication_outlets_by_work_specific_tradeoffs
 object_type: pattern
 name: Compare Publication Outlets by Work-Specific Tradeoffs
 library_path:
@@ -20,7 +20,7 @@ tags:
   - competitions
 cross_links:
   - rel: related_to
-    target_object_id: writing_match_finished_work_to_outlet_actual_list
+    target_object_id: PAT_match_finished_work_to_an_outlets_actual_list
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

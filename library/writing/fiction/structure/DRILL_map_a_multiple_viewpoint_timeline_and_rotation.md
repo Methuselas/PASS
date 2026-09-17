@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_map_multiple_viewpoint_timeline_and_rotation
+object_id: DRILL_map_a_multiple_viewpoint_timeline_and_rotation
 object_type: drill
 name: Map a Multiple-Viewpoint Timeline and Rotation
 library_path:
@@ -20,12 +20,12 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_structure_multiple_viewpoint_narratives_by_function_and_orientation
+    target_object_id: PAT_structure_multiple_viewpoint_narratives_by_function_and_orientation
   - rel: teaches
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
   - rel: related_to
-    target_object_id: writing_fiction_keep_point_of_view_knowledge_and_access_consistent
-target_skill: writing_fiction_structure_multiple_viewpoint_narratives_by_function_and_orientation
+    target_object_id: PAT_keep_point_of_view_knowledge_and_access_consistent
+target_skill: PAT_structure_multiple_viewpoint_narratives_by_function_and_orientation
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

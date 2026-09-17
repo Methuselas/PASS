@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_scan_contrasting_lines_for_rhythm
+object_id: DRILL_scan_contrasting_lines_to_train_rhythmic_hearing
 object_type: drill
 name: Scan Contrasting Lines to Train Rhythmic Hearing
 library_path:
@@ -20,9 +20,9 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_scan_and_vary_meter_deliberately
+    target_object_id: PAT_scan_and_vary_meter_deliberately
   - rel: teaches
-    target_object_id: writing_poetry_keep_free_verse_rhythmically_accountable
+    target_object_id: PAT_keep_free_verse_rhythmically_accountable
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_embody_story_meaning_in_concrete_action_and_detail
+object_id: PAT_embody_story_meaning_in_concrete_action_and_detail
 object_type: pattern
 name: Embody Story Meaning in Concrete Action and Detail
 library_path:
@@ -20,13 +20,13 @@ tags:
 - dramatic_action
 cross_links:
 - rel: related_to
-  target_object_id: writing_replace_abstractions_with_specific_sensory_images
+  target_object_id: PAT_replace_abstractions_with_specific_sensory_images
 - rel: related_to
-  target_object_id: writing_balance_symbols_between_cliche_and_obscurity
+  target_object_id: PAT_balance_symbols_between_cliche_and_obscurity
 - rel: related_to
-  target_object_id: writing_fiction_use_specific_sensory_details_to_imply_larger_conditions
+  target_object_id: PAT_use_specific_sensory_details_to_imply_larger_conditions
 - rel: related_to
-  target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+  target_object_id: PAT_reveal_character_incrementally_through_behavior
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

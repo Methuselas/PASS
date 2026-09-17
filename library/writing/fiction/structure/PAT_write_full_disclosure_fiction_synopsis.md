@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_write_full_disclosure_synopsis
+object_id: PAT_write_full_disclosure_fiction_synopsis
 object_type: pattern
 name: Write a Full-Disclosure Fiction Synopsis
 library_path:
@@ -20,7 +20,7 @@ tags:
   - conflict
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_drill_reduce_story_to_logline
+    target_object_id: DRILL_reduce_story_to_a_logline
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

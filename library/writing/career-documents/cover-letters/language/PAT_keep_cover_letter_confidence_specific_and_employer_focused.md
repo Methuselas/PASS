@@ -1,5 +1,5 @@
 ---
-object_id: writing_keep_cover_letter_confidence_specific_and_employer_focused
+object_id: PAT_keep_cover_letter_confidence_specific_and_employer_focused
 object_type: pattern
 name: Keep Cover-Letter Confidence Specific and Employer-Focused
 library_path:
@@ -12,7 +12,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_choose_diction_to_serve_purpose_and_tone
+foundation_object_id: PAT_choose_diction_to_serve_purpose_and_tone
 tags:
   - cover_letters
   - tone
@@ -21,7 +21,7 @@ tags:
   - plain_language
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

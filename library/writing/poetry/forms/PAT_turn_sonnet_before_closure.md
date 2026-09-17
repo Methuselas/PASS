@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_turn_sonnet_before_closure
+object_id: PAT_turn_sonnet_before_closure
 object_type: pattern
 name: Turn a Sonnet Before Closure
 library_path:
@@ -20,11 +20,11 @@ tags:
   - argument
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_learn_form_before_varying_its_rules
+    target_object_id: PAT_learn_poetic_form_before_varying_its_rules
   - rel: related_to
-    target_object_id: writing_poetry_shape_stanzas_around_movement_and_pause
+    target_object_id: PAT_shape_stanzas_around_movement_and_pause
   - rel: related_to
-    target_object_id: writing_poetry_make_rhyme_serve_sense_and_effect
+    target_object_id: PAT_make_rhyme_serve_sense_and_effect
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

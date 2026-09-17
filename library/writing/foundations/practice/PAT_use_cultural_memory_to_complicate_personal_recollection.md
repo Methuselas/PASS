@@ -1,5 +1,5 @@
 ---
-object_id: writing_use_cultural_memory_to_complicate_personal_recollection
+object_id: PAT_use_cultural_memory_to_complicate_personal_recollection
 object_type: pattern
 name: Use Cultural Memory to Complicate Personal Recollection
 library_path:
@@ -21,11 +21,11 @@ tags:
   - voice
 cross_links:
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_choose_truth_contract_before_shaping_real_material
+    target_object_id: PAT_choose_truth_contract_before_shaping_real_material
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

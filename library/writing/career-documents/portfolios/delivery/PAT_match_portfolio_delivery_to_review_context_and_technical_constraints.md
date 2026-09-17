@@ -1,5 +1,5 @@
 ---
-object_id: writing_match_portfolio_delivery_to_review_context_and_technical_constraints
+object_id: PAT_match_portfolio_delivery_to_review_context_and_technical_constraints
 object_type: pattern
 name: Match Portfolio Delivery to Review Context and Technical Constraints
 library_path:
@@ -21,9 +21,9 @@ tags:
   - submission
 cross_links:
   - rel: related_to
-    target_object_id: writing_curate_portfolio_around_strong_relevant_and_varied_evidence
+    target_object_id: PAT_curate_portfolio_around_strong_relevant_and_varied_evidence
   - rel: related_to
-    target_object_id: writing_package_emailed_application_documents_for_reliable_routing
+    target_object_id: PAT_package_emailed_application_documents_for_reliable_routing
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

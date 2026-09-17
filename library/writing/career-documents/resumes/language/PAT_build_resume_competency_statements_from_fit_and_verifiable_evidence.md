@@ -1,5 +1,5 @@
 ---
-object_id: writing_build_resume_competency_statements_from_fit_and_verifiable_evidence
+object_id: PAT_build_resume_competency_statements_from_fit_and_verifiable_evidence
 object_type: pattern
 name: Build Resume Competency Statements from Fit and Verifiable Evidence
 library_path:
@@ -21,7 +21,7 @@ tags:
   - evidence
 cross_links:
   - rel: related_to
-    target_object_id: writing_open_resume_with_employer_relevant_evidence
+    target_object_id: PAT_open_resume_with_employer_relevant_evidence
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

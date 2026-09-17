@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_test_draft_through_independent_operator_handoff
+object_id: PAT_test_adventure_draft_through_independent_operator_handoff
 object_type: pattern
 name: Test an Adventure Draft Through Independent Operator Handoff
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: medium
-foundation_object_id: writing_calibrate_context_to_audience_and_venue
+foundation_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 tags:
   - adventure_modules
   - handoff
@@ -20,9 +20,9 @@ tags:
   - game_master
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_write_context_for_interpretive_handoff
+    target_object_id: PAT_write_adventure_context_for_interpretive_handoff
   - rel: related_to
-    target_object_id: writing_adventure_modules_orient_operator_with_compact_adventure_flow_overview
+    target_object_id: PAT_orient_operator_with_compact_adventure_flow_overview
 reference:
   source_title: "How to Write Adventure Modules That Don't Suck!"
   author: Brendan J. LaSalle

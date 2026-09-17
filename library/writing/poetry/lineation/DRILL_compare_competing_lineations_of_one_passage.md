@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_compare_competing_lineations
+object_id: DRILL_compare_competing_lineations_of_one_passage
 object_type: drill
 name: Compare Competing Lineations of One Passage
 library_path:
@@ -20,7 +20,7 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_break_lines_to_control_pace_and_expectation
+    target_object_id: PAT_break_poetic_lines_to_control_pace_and_expectation
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

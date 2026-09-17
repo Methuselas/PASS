@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_redraft_under_competing_titles
+object_id: DRILL_redraft_one_poem_under_competing_titles
 object_type: drill
 name: Redraft One Poem Under Competing Titles
 library_path:
@@ -20,7 +20,7 @@ tags:
   - reader_expectation
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_use_title_as_active_frame
+    target_object_id: PAT_use_a_poem_title_as_an_active_frame
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

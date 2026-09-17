@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_cut_a_narrative_by_half_without_flattening_it
+object_id: DRILL_cut_a_narrative_by_half_without_flattening_it
 object_type: drill
 name: Cut a Narrative by Half without Flattening It
 library_path:
@@ -20,9 +20,9 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
   - rel: related_to
-    target_object_id: writing_separate_generative_and_evaluative_writing_modes
+    target_object_id: PAT_separate_generative_and_evaluative_writing_modes
 reference:
   source_title: "Steering the Craft"
   author: Ursula K. Le Guin

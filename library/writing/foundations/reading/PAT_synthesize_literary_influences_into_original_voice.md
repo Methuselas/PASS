@@ -1,5 +1,5 @@
 ---
-object_id: writing_synthesize_literary_influences_into_voice
+object_id: PAT_synthesize_literary_influences_into_original_voice
 object_type: pattern
 name: Synthesize Literary Influences into Original Voice
 library_path:

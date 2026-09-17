@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_test_a_characters_inviolable_core
+object_id: DRILL_test_a_characters_inviolable_core
 object_type: drill
 name: Test a Character's Claimed Inviolable Core
 library_path:
@@ -21,11 +21,11 @@ tags:
   - vulnerability
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_scale_character_change_to_story_length
+    target_object_id: PAT_scale_character_change_to_story_length
   - rel: related_to
-    target_object_id: writing_fiction_build_plot_from_causal_consequences
+    target_object_id: PAT_build_plot_from_causal_consequences
   - rel: related_to
-    target_object_id: writing_fiction_reinforce_story_structure_through_repetition_and_variation
+    target_object_id: PAT_reinforce_story_structure_through_repetition_and_variation
 reference:
   source_title: Nineteen Eighty-Four
   author: George Orwell

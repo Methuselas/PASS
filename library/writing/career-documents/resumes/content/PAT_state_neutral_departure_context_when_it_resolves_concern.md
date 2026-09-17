@@ -1,5 +1,5 @@
 ---
-object_id: writing_state_neutral_departure_context_when_it_resolves_concern
+object_id: PAT_state_neutral_departure_context_when_it_resolves_concern
 object_type: pattern
 name: State Neutral Departure Context When It Resolves Concern
 library_path:
@@ -21,7 +21,7 @@ tags:
   - employment_history
 cross_links:
   - rel: related_to
-    target_object_id: writing_account_for_career_interruptions_without_distorting_dates
+    target_object_id: PAT_account_for_career_interruptions_without_distorting_dates
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

@@ -1,5 +1,5 @@
 ---
-object_id: writing_conduct_prepared_and_responsive_interviews
+object_id: PAT_conduct_prepared_and_responsive_interviews
 object_type: pattern
 name: Conduct Prepared and Responsive Interviews
 library_path:
@@ -20,9 +20,9 @@ tags:
   - profile
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_verify_checkable_facts_and_research_necessary_context
+    target_object_id: PAT_verify_checkable_facts_and_research_necessary_context
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_audit_harm_and_privacy_when_portraying_real_people
+    target_object_id: PAT_audit_harm_and_privacy_when_portraying_real_people
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

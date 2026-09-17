@@ -1,5 +1,5 @@
 ---
-object_id: writing_scale_work_history_detail_by_role_relevance
+object_id: PAT_scale_work_history_detail_by_role_relevance
 object_type: pattern
 name: Scale Work-History Detail by Role Relevance
 library_path:
@@ -20,9 +20,9 @@ tags:
   - chronology
 cross_links:
   - rel: prerequisite_for
-    target_object_id: writing_preserve_employer_continuity_through_name_changes
+    target_object_id: PAT_preserve_employer_continuity_through_name_changes
   - rel: prerequisite_for
-    target_object_id: writing_write_specific_responsibility_statements
+    target_object_id: PAT_write_specific_responsibility_statements
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

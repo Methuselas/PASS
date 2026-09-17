@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_move_across_time_with_concrete_summary_and_brief_scenes
+object_id: PAT_move_across_time_with_concrete_summary_and_brief_scenes
 object_type: pattern
 name: Move across Time with Concrete Summary and Brief Scenes
 library_path:
@@ -20,11 +20,11 @@ tags:
   - compression
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_build_brief_scene_from_place_people_and_stakes
+    target_object_id: PAT_build_brief_scene_from_place_people_and_stakes
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_compress_short_essay_around_active_inquiry
+    target_object_id: PAT_compress_short_essay_around_active_inquiry
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+    target_object_id: PAT_choose_structure_from_discovered_connections
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

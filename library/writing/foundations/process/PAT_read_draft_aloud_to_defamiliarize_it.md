@@ -1,5 +1,5 @@
 ---
-object_id: writing_read_draft_aloud_to_defamiliarize_it
+object_id: PAT_read_draft_aloud_to_defamiliarize_it
 object_type: pattern
 name: Read a Draft Aloud to Defamiliarize It
 library_path:
@@ -20,7 +20,7 @@ tags:
   - defamiliarization
 cross_links:
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

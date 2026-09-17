@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_build_nonhuman_persona_from_observation
+object_id: DRILL_build_a_nonhuman_persona_from_observation
 object_type: drill
 name: Build a Nonhuman Persona from Observation
 library_path: [writing, poetry, voice]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, persona, observation, nonhuman, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_construct_persona_through_perception_desire_and_verbal_form
+    target_object_id: PAT_construct_persona_through_perception_desire_and_verbal_form
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

@@ -1,5 +1,5 @@
 ---
-object_id: writing_replace_abstractions_with_specific_sensory_images
+object_id: PAT_replace_abstractions_with_specific_sensory_images
 object_type: pattern
 name: Replace Abstractions with Specific Sensory Images
 library_path: [writing, foundations, language]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [creative_writing, imagery, sensory_detail, specificity, revision]
 cross_links:
   - rel: related_to
-    target_object_id: writing_make_figurative_language_unexpected_and_fitting
+    target_object_id: PAT_make_figurative_language_unexpected_and_fitting
   - rel: related_to
-    target_object_id: writing_replace_received_language_with_precise_distinctive_phrasing
+    target_object_id: PAT_replace_received_language_with_precise_distinctive_phrasing
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

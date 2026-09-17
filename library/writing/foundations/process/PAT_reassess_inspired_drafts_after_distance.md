@@ -1,5 +1,5 @@
 ---
-object_id: writing_reassess_inspired_drafts_after_distance
+object_id: PAT_reassess_inspired_drafts_after_distance
 object_type: pattern
 name: Reassess Inspired Drafts After Distance
 library_path:

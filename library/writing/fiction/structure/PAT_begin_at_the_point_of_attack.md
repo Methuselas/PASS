@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_begin_at_point_of_attack
+object_id: PAT_begin_at_the_point_of_attack
 object_type: pattern
 name: Begin Fiction at the Point of Attack
 library_path:
@@ -20,9 +20,9 @@ tags:
   - exposition
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
   - rel: related_to
-    target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+    target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

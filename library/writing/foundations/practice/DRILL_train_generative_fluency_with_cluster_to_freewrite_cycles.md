@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_train_generative_fluency_with_cluster_to_freewrite_cycles
+object_id: DRILL_train_generative_fluency_with_cluster_to_freewrite_cycles
 object_type: drill
 name: Train Generative Fluency with Cluster-to-Freewrite Cycles
 library_path:
@@ -20,11 +20,11 @@ tags:
   - freewriting
 cross_links:
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: related_to
-    target_object_id: writing_freewrite_to_discover_what_draft_is_about
+    target_object_id: PAT_freewrite_to_discover_what_the_draft_is_about
   - rel: related_to
-    target_object_id: writing_build_sustainable_writing_practice_around_real_constraints
+    target_object_id: PAT_build_a_sustainable_writing_practice_around_real_constraints
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

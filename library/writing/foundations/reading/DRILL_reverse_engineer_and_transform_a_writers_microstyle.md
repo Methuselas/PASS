@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_reverse_engineer_and_transform_a_writer_microstyle
+object_id: DRILL_reverse_engineer_and_transform_a_writers_microstyle
 object_type: drill
 name: Reverse-Engineer and Transform a Writer's Microstyle
 library_path:
@@ -23,13 +23,13 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_synthesize_literary_influences_into_voice
+    target_object_id: PAT_synthesize_literary_influences_into_original_voice
   - rel: related_to
-    target_object_id: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+    target_object_id: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
   - rel: related_to
-    target_object_id: writing_fiction_shape_style_as_response_to_story_situation
+    target_object_id: PAT_shape_style_as_response_to_story_situation
 confidence: high
 references: []
 target_skill: Reverse-engineering repeated prose habits and transforming them into a broader original style repertoire without copying a mentor's verbal fingerprint

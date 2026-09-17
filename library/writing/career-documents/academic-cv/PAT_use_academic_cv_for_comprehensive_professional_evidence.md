@@ -1,5 +1,5 @@
 ---
-object_id: writing_use_academic_cv_for_comprehensive_professional_evidence
+object_id: PAT_use_academic_cv_for_comprehensive_professional_evidence
 object_type: pattern
 name: Use an Academic CV for Comprehensive Professional Evidence
 library_path:
@@ -20,7 +20,7 @@ tags:
   - professional_accomplishments
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

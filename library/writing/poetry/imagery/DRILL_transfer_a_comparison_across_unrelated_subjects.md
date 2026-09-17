@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_transfer_comparison_across_unrelated_subjects
+object_id: DRILL_transfer_a_comparison_across_unrelated_subjects
 object_type: drill
 name: Transfer a Comparison Across Unrelated Subjects
 library_path: [writing, poetry, imagery]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, metaphor, comparison, transfer, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_make_figurative_language_unexpected_and_fitting
+    target_object_id: PAT_make_figurative_language_unexpected_and_fitting
   - rel: related_to
-    target_object_id: writing_poetry_drill_build_poem_around_productive_comparison
+    target_object_id: DRILL_build_poem_around_productive_comparison
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: W. N. Herbert

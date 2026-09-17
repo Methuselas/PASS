@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_use_diaries_and_letters_as_active_story_documents
+object_id: PAT_use_diaries_and_letters_as_active_story_documents
 object_type: pattern
 name: Use Diaries and Letters as Active Story Documents
 library_path:
@@ -21,13 +21,13 @@ tags:
 - interactive_narrative
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_design_first_person_telling_situation
+  target_object_id: PAT_design_the_first_person_telling_situation
 - rel: related_to
-  target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+  target_object_id: PAT_map_chronology_before_compressing_story_time
 - rel: related_to
-  target_object_id: writing_fiction_stage_disclosure_to_sustain_reader_inference
+  target_object_id: PAT_stage_disclosure_to_sustain_reader_inference
 - rel: related_to
-  target_object_id: writing_fiction_ground_real_and_imagined_settings_in_accurate_detail
+  target_object_id: PAT_ground_real_and_imagined_settings_in_accurate_detail
 reference:
   source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand

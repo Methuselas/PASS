@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_build_brief_scene_from_place_people_and_stakes
+object_id: PAT_build_brief_scene_from_place_people_and_stakes
 object_type: pattern
 name: Build a Brief Scene from Place, People, and Stakes
 library_path:
@@ -20,13 +20,13 @@ tags:
   - compression
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_compress_short_essay_around_active_inquiry
+    target_object_id: PAT_compress_short_essay_around_active_inquiry
   - rel: related_to
-    target_object_id: writing_fiction_control_setting_detail_density_by_story_need
+    target_object_id: PAT_control_setting_detail_density_by_story_need
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

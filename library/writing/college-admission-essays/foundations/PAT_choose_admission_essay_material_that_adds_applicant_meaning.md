@@ -1,5 +1,5 @@
 ---
-object_id: writing_college_admission_essays_choose_material_that_adds_applicant_meaning
+object_id: PAT_choose_admission_essay_material_that_adds_applicant_meaning
 object_type: pattern
 name: Choose Admission Essay Material That Adds Applicant Meaning
 library_path:
@@ -20,9 +20,9 @@ tags:
   - self_portrayal
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_select_a_candid_essay_self_for_the_inquiry
+    target_object_id: PAT_select_a_candid_essay_self_for_the_inquiry
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: College Admission Essays For Dummies
   author: Jessica Brenner and Geraldine Woods

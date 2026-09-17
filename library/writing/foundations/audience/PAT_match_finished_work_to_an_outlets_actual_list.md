@@ -1,5 +1,5 @@
 ---
-object_id: writing_match_finished_work_to_outlet_actual_list
+object_id: PAT_match_finished_work_to_an_outlets_actual_list
 object_type: pattern
 name: Match Finished Work to an Outlet's Actual List
 library_path:
@@ -20,7 +20,7 @@ tags:
   - genre
 cross_links:
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

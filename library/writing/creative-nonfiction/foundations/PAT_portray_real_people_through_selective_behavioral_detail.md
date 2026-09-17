@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_portray_real_people_through_selective_behavioral_detail
+object_id: PAT_portray_real_people_through_selective_behavioral_detail
 object_type: pattern
 name: Portray Real People through Selective Behavioral Detail
 library_path:
@@ -20,11 +20,11 @@ tags:
   - caricature
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
   - rel: related_to
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_round_characters_from_contradiction_and_desire
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

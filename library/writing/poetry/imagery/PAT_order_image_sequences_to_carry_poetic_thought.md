@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_order_image_sequences_to_carry_thought
+object_id: PAT_order_image_sequences_to_carry_poetic_thought
 object_type: pattern
 name: Order Image Sequences to Carry Poetic Thought
 library_path: [writing, poetry, imagery]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, imagery, sequence, rhetoric, association]
 cross_links:
   - rel: related_to
-    target_object_id: writing_make_figurative_language_unexpected_and_fitting
+    target_object_id: PAT_make_figurative_language_unexpected_and_fitting
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: W. N. Herbert

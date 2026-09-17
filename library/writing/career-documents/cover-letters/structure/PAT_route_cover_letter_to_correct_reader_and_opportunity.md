@@ -1,5 +1,5 @@
 ---
-object_id: writing_route_cover_letter_to_correct_reader_and_opportunity
+object_id: PAT_route_cover_letter_to_correct_reader_and_opportunity
 object_type: pattern
 name: Route a Cover Letter to the Correct Reader and Opportunity
 library_path:
@@ -21,7 +21,7 @@ tags:
   - contact_details
 cross_links:
   - rel: related_to
-    target_object_id: writing_package_emailed_application_documents_for_reliable_routing
+    target_object_id: PAT_package_emailed_application_documents_for_reliable_routing
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

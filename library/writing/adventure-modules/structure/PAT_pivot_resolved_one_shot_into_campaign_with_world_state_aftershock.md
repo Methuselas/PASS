@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_pivot_resolved_one_shot_into_campaign_with_world_state_aftershock
+object_id: PAT_pivot_resolved_one_shot_into_campaign_with_world_state_aftershock
 object_type: pattern
 name: Pivot a Resolved One-Shot into a Campaign with a World-State Aftershock
 library_path:
@@ -20,9 +20,9 @@ tags:
   - transitions
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_derive_finale_from_accumulated_scenario_state
+    target_object_id: PAT_derive_finale_from_accumulated_scenario_state
   - rel: related_to
-    target_object_id: writing_adventure_modules_anchor_episodic_adventure_to_stable_mission_spine
+    target_object_id: PAT_anchor_episodic_adventure_to_stable_mission_spine
 reference:
   source_title: "An Act of Treason"
   author: "Jan Hendrik Friedrich and Michael Chumbler"

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_test_structural_recurrence_with_exact_repetition_and_varied_echo
+object_id: DRILL_test_structural_recurrence_with_exact_repetition_and_varied_echo
 object_type: drill
 name: Test Structural Recurrence with Exact Repetition and Varied Echo
 library_path:
@@ -20,7 +20,7 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_reinforce_story_structure_through_repetition_and_variation
+    target_object_id: PAT_reinforce_story_structure_through_repetition_and_variation
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

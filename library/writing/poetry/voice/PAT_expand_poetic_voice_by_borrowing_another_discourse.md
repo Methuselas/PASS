@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_expand_voice_by_borrowing_another_discourse
+object_id: PAT_expand_poetic_voice_by_borrowing_another_discourse
 object_type: pattern
 name: Expand Poetic Voice by Borrowing Another Discourse
 library_path: [writing, poetry, voice]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, voice, discourse, subject_range, invention]
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
   - rel: related_to
-    target_object_id: writing_poetry_transform_source_material_into_standalone_poem
+    target_object_id: PAT_transform_source_material_into_a_standalone_poem
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

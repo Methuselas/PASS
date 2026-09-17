@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_move_between_conversational_exploration_and_formal_argument
+object_id: PAT_move_between_conversational_exploration_and_formal_argument
 object_type: pattern
 name: Move Between Conversational Exploration and Formal Argument
 library_path:
@@ -20,11 +20,11 @@ tags:
   - structure
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_subject_for_open_ended_exploration
+    target_object_id: PAT_choose_subject_for_open_ended_exploration
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

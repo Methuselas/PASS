@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_harvest_and_refine_overheard_speech
+object_id: DRILL_harvest_and_refine_overheard_speech
 object_type: drill
 name: Harvest and Refine Overheard Speech
 library_path:
@@ -21,10 +21,10 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_compress_real_speech_into_purposeful_dialogue
+    target_object_id: PAT_compress_real_speech_into_purposeful_dialogue
   - rel: related_to
-    target_object_id: writing_make_nonstandard_language_deliberate
-target_skill: writing_fiction_compress_real_speech_into_purposeful_dialogue
+    target_object_id: PAT_make_nonstandard_language_a_deliberate_craft_choice
+target_skill: PAT_compress_real_speech_into_purposeful_dialogue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

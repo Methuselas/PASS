@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_inhabit_unsympathetic_characters_from_inside
+object_id: PAT_inhabit_unsympathetic_characters_from_inside
 object_type: pattern
 name: Inhabit Unsympathetic Characters from Inside
 library_path:
@@ -20,7 +20,7 @@ tags:
   - point-of-view
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_round_characters_from_contradiction_and_desire
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

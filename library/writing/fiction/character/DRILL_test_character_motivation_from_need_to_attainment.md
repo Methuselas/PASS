@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_test_character_motivation_from_need_to_attainment
+object_id: DRILL_test_character_motivation_from_need_to_attainment
 object_type: drill
 name: Test Character Motivation from Need to Attainment
 library_path:
@@ -22,10 +22,10 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_round_characters_from_contradiction_and_desire
   - rel: related_to
-    target_object_id: writing_fiction_build_plot_from_causal_consequences
-target_skill: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_plot_from_causal_consequences
+target_skill: PAT_build_round_characters_from_contradiction_and_desire
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

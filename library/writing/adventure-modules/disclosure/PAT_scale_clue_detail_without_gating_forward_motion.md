@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_scale_clue_detail_without_gating_forward_motion
+object_id: PAT_scale_clue_detail_without_gating_forward_motion
 object_type: pattern
 name: Scale Clue Detail Without Gating Forward Motion
 library_path:
@@ -20,9 +20,9 @@ tags:
   - partial_success
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_partition_information_by_reader_role_and_reveal_state
+    target_object_id: PAT_partition_adventure_module_information_by_reader_role_and_reveal_state
   - rel: related_to
-    target_object_id: writing_adventure_modules_sequence_load_bearing_adventure_scenes_by_dependency
+    target_object_id: PAT_sequence_load_bearing_adventure_scenes_by_dependency
 reference:
   source_title: "Famine in Far-Go"
   author: "Michael Price"

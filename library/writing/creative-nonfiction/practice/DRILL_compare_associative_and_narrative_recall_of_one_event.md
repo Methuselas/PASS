@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_compare_associative_and_narrative_recall
+object_id: DRILL_compare_associative_and_narrative_recall_of_one_event
 object_type: drill
 name: Compare Associative and Narrative Recall of One Event
 library_path:
@@ -21,13 +21,13 @@ tags:
   - causality
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+    target_object_id: PAT_choose_structure_from_discovered_connections
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Derek Neale

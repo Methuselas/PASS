@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_derive_personal_essay_theme_from_recurring_life_evidence
+object_id: PAT_derive_a_personal_essay_theme_from_recurring_life_evidence
 object_type: pattern
 name: Derive a Personal Essay Theme from Recurring Life Evidence
 library_path:
@@ -20,13 +20,13 @@ tags:
   - topic_selection
 cross_links:
   - rel: related_to
-    target_object_id: writing_freewrite_to_discover_what_draft_is_about
+    target_object_id: PAT_freewrite_to_discover_what_the_draft_is_about
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_subject_for_open_ended_exploration
+    target_object_id: PAT_choose_subject_for_open_ended_exploration
   - rel: related_to
-    target_object_id: writing_college_admission_essays_choose_material_that_adds_applicant_meaning
+    target_object_id: PAT_choose_admission_essay_material_that_adds_applicant_meaning
 reference:
   source_title: College Admission Essays For Dummies
   author: Jessica Brenner and Geraldine Woods

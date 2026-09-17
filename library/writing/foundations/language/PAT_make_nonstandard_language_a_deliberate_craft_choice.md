@@ -1,5 +1,5 @@
 ---
-object_id: writing_make_nonstandard_language_deliberate
+object_id: PAT_make_nonstandard_language_a_deliberate_craft_choice
 object_type: pattern
 name: Make Nonstandard Language a Deliberate Craft Choice
 library_path:
@@ -20,7 +20,7 @@ tags:
 - voice
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_drill_audit_marked_character_speech_for_individuality_accuracy_and_legibility
+  target_object_id: DRILL_audit_marked_character_speech_for_individuality_accuracy_and_legibility
 reference:
   source_title: 'Creative Writing: Four Genres in Brief'
   author: David Starkey

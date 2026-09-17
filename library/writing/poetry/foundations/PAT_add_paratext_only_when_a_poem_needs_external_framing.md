@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_add_paratext_for_external_framing
+object_id: PAT_add_paratext_only_when_a_poem_needs_external_framing
 object_type: pattern
 name: Add Paratext Only When a Poem Needs External Framing
 library_path:
@@ -20,7 +20,7 @@ tags:
   - attribution
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_transform_source_material_into_standalone_poem
+    target_object_id: PAT_transform_source_material_into_a_standalone_poem
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

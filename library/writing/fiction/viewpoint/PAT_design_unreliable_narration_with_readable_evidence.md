@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_design_unreliable_narration_with_readable_evidence
+object_id: PAT_design_unreliable_narration_with_readable_evidence
 object_type: pattern
 name: Design Unreliable Narration with Readable Evidence
 library_path:
@@ -20,9 +20,9 @@ tags:
   - reader_trust
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
   - rel: related_to
-    target_object_id: writing_control_irony_to_preserve_reader_trust
+    target_object_id: PAT_control_irony_to_preserve_reader_trust
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

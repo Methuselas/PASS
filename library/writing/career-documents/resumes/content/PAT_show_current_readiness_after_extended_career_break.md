@@ -1,5 +1,5 @@
 ---
-object_id: writing_show_current_readiness_after_extended_career_break
+object_id: PAT_show_current_readiness_after_extended_career_break
 object_type: pattern
 name: Show Current Readiness After an Extended Career Break
 library_path:

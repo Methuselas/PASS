@@ -1,5 +1,5 @@
 ---
-object_id: writing_choose_truth_contract_before_shaping_real_material
+object_id: PAT_choose_truth_contract_before_shaping_real_material
 object_type: pattern
 name: Choose a Truth Contract Before Shaping Real Material
 library_path:
@@ -20,7 +20,7 @@ tags:
   - genre
 cross_links:
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

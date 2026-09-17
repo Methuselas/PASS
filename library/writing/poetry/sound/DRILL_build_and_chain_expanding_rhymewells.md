@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_build_and_chain_expanding_rhymewells
+object_id: DRILL_build_and_chain_expanding_rhymewells
 object_type: drill
 name: Build and Chain Expanding Rhymewells
 library_path: [writing, poetry, sound]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, rhyme, diction, discovery, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
   - rel: related_to
-    target_object_id: writing_poetry_make_rhyme_serve_sense_and_effect
+    target_object_id: PAT_make_rhyme_serve_sense_and_effect
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

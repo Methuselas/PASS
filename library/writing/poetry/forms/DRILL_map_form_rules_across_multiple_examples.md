@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_map_form_rules_across_multiple_examples
+object_id: DRILL_map_form_rules_across_multiple_examples
 object_type: drill
 name: Map Poetic Form Rules Across Multiple Examples
 library_path:
@@ -20,7 +20,7 @@ tags:
   - analysis
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_learn_form_before_varying_its_rules
+    target_object_id: PAT_learn_poetic_form_before_varying_its_rules
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_foreshadow_consequence_while_withholding_route
+object_id: PAT_foreshadow_a_consequence_while_withholding_its_route
 object_type: pattern
 name: Foreshadow a Consequence While Withholding Its Route
 library_path:
@@ -20,9 +20,9 @@ tags:
   - titles
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
   - rel: related_to
-    target_object_id: writing_fiction_begin_at_point_of_attack
+    target_object_id: PAT_begin_at_the_point_of_attack
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

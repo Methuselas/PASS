@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_trace_character_continuity_across_a_whole_life_timeline
+object_id: DRILL_trace_character_continuity_across_a_whole_life_timeline
 object_type: drill
 name: Trace Character Continuity across a Whole-Life Timeline
 library_path:
@@ -21,13 +21,13 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
   - rel: related_to
-    target_object_id: writing_fiction_drill_build_hidden_character_profile
+    target_object_id: DRILL_build_a_hidden_character_profile
   - rel: related_to
-    target_object_id: writing_fiction_scale_character_change_to_story_length
+    target_object_id: PAT_scale_character_change_to_story_length
   - rel: related_to
-    target_object_id: writing_fiction_end_selected_story_without_exhausting_larger_life
+    target_object_id: PAT_end_the_selected_story_without_exhausting_the_larger_life
 reference:
   source_title: Creative Writing Exercises For Dummies
   author: Maggie Hamand

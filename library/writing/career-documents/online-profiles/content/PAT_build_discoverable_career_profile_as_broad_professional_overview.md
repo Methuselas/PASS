@@ -1,5 +1,5 @@
 ---
-object_id: writing_build_discoverable_career_profile_as_broad_professional_overview
+object_id: PAT_build_discoverable_career_profile_as_broad_professional_overview
 object_type: pattern
 name: Build a Discoverable Career Profile as a Broad Professional Overview
 library_path:
@@ -21,13 +21,13 @@ tags:
   - professional_evidence
 cross_links:
   - rel: related_to
-    target_object_id: writing_build_career_evidence_inventory_before_drafting
+    target_object_id: PAT_build_career_evidence_inventory_before_drafting
   - rel: related_to
-    target_object_id: writing_use_recognizable_job_language_for_resume_discovery
+    target_object_id: PAT_use_recognizable_job_language_for_resume_discovery
   - rel: related_to
-    target_object_id: writing_turn_added_value_into_resume_achievements
+    target_object_id: PAT_turn_added_value_into_resume_achievements
   - rel: related_to
-    target_object_id: writing_account_for_career_interruptions_without_distorting_dates
+    target_object_id: PAT_account_for_career_interruptions_without_distorting_dates
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

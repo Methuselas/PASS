@@ -1,5 +1,5 @@
 ---
-object_id: writing_submit_credential_evidence_without_risking_originals_or_sensitive_data
+object_id: PAT_submit_credential_evidence_without_risking_originals_or_sensitive_data
 object_type: pattern
 name: Submit Credential Evidence Without Risking Originals or Sensitive Data
 library_path:
@@ -20,9 +20,9 @@ tags:
   - supporting_documents
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
   - rel: related_to
-    target_object_id: writing_control_public_career_profile_visibility_and_disclosure
+    target_object_id: PAT_control_public_career_profile_visibility_and_disclosure
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

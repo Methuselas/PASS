@@ -1,5 +1,5 @@
 ---
-object_id: writing_build_career_evidence_inventory_before_drafting
+object_id: PAT_build_career_evidence_inventory_before_drafting
 object_type: pattern
 name: Build a Career-Evidence Inventory Before Drafting
 library_path:
@@ -20,9 +20,9 @@ tags:
   - evidence
 cross_links:
   - rel: prerequisite_for
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
   - rel: prerequisite_for
-    target_object_id: writing_prepare_referees_before_submission
+    target_object_id: PAT_prepare_referees_before_submission
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

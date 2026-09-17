@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_ground_haiku_in_present_sensory_perception
+object_id: PAT_ground_haiku_in_present_sensory_perception
 object_type: pattern
 name: Ground Haiku in Present Sensory Perception
 library_path:
@@ -20,11 +20,11 @@ tags:
   - perception
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_learn_form_before_varying_its_rules
+    target_object_id: PAT_learn_poetic_form_before_varying_its_rules
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

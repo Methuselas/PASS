@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_draft_from_random_concrete_words
+object_id: DRILL_draft_from_random_concrete_words
 object_type: drill
 name: Draft from Random Concrete Words
 library_path:
@@ -20,9 +20,9 @@ tags:
   - imagery
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

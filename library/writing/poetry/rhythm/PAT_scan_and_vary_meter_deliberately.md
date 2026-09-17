@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_scan_and_vary_meter_deliberately
+object_id: PAT_scan_and_vary_meter_deliberately
 object_type: pattern
 name: Scan and Vary Meter Deliberately
 library_path:
@@ -20,9 +20,9 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_break_lines_to_control_pace_and_expectation
+    target_object_id: PAT_break_poetic_lines_to_control_pace_and_expectation
   - rel: related_to
-    target_object_id: writing_read_draft_aloud_to_defamiliarize_it
+    target_object_id: PAT_read_draft_aloud_to_defamiliarize_it
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

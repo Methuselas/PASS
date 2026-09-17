@@ -1,5 +1,5 @@
 ---
-object_id: writing_preserve_employer_continuity_through_name_changes
+object_id: PAT_preserve_employer_continuity_through_name_changes
 object_type: pattern
 name: Preserve Employer Continuity Through Name Changes
 library_path:

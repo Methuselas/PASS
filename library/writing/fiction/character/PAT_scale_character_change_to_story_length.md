@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_scale_character_change_to_story_length
+object_id: PAT_scale_character_change_to_story_length
 object_type: pattern
 name: Scale Character Change to Story Length
 library_path:
@@ -20,9 +20,9 @@ tags:
 - flash-fiction
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_build_plot_from_causal_consequences
+  target_object_id: PAT_build_plot_from_causal_consequences
 - rel: related_to
-  target_object_id: writing_flash_fiction_compress_complete_story_without_dead_space
+  target_object_id: PAT_compress_a_complete_flash_story_without_dead_space
 reference:
   source_title: 'Creative Writing: Four Genres in Brief'
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_use_title_as_active_frame
+object_id: PAT_use_a_poem_title_as_an_active_frame
 object_type: pattern
 name: Use a Poem Title as an Active Frame
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_use_working_title_as_temporary_attention_cue
+foundation_object_id: PAT_use_working_title_as_temporary_attention_cue
 tags:
   - poetry
   - titles
@@ -20,7 +20,7 @@ tags:
   - reader_expectation
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

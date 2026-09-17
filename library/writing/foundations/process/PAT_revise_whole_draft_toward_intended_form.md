@@ -1,5 +1,5 @@
 ---
-object_id: writing_revise_whole_draft_toward_intended_form
+object_id: PAT_revise_whole_draft_toward_intended_form
 object_type: pattern
 name: Revise the Whole Draft Toward Its Intended Form
 library_path:
@@ -20,7 +20,7 @@ tags:
   - redrafting
 cross_links:
   - rel: related_to
-    target_object_id: writing_reassess_inspired_drafts_after_distance
+    target_object_id: PAT_reassess_inspired_drafts_after_distance
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_withhold_motive_when_detail_supports_inference
+object_id: PAT_withhold_motive_in_narrative_poetry_only_when_detail_supports_inference
 object_type: pattern
 name: Withhold Motive in Narrative Poetry Only When Detail Supports Inference
 library_path: [writing, poetry, voice]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, narrative, omission, inference, mystery]
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_transform_source_material_into_standalone_poem
+    target_object_id: PAT_transform_source_material_into_a_standalone_poem
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

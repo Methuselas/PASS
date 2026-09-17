@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+object_id: PAT_choose_structure_from_discovered_connections
 object_type: pattern
 name: Choose Structure from Discovered Connections
 library_path:
@@ -22,11 +22,11 @@ tags:
   - lyric_essay
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_subject_for_open_ended_exploration
+    target_object_id: PAT_choose_subject_for_open_ended_exploration
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_move_between_conversational_exploration_and_formal_argument
+    target_object_id: PAT_move_between_conversational_exploration_and_formal_argument
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

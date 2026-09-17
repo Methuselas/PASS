@@ -1,5 +1,5 @@
 ---
-object_id: writing_design_resume_for_on_screen_scanning
+object_id: PAT_design_resume_for_on_screen_scanning
 object_type: pattern
 name: Design a Resume for On-Screen Scanning
 library_path:
@@ -21,7 +21,7 @@ tags:
   - visual_hierarchy
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

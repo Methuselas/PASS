@@ -1,5 +1,5 @@
 ---
-object_id: writing_package_emailed_application_documents_for_reliable_routing
+object_id: PAT_package_emailed_application_documents_for_reliable_routing
 object_type: pattern
 name: Package Emailed Application Documents for Reliable Routing
 library_path:

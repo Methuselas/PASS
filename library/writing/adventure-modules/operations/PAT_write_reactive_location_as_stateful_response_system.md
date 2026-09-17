@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_write_reactive_location_as_stateful_response_system
+object_id: PAT_write_reactive_location_as_stateful_response_system
 object_type: pattern
 name: Write a Reactive Location as a Stateful Response System
 library_path:
@@ -20,7 +20,7 @@ tags:
   - state_tracking
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_write_generative_frame_for_unscripted_scenes
+    target_object_id: PAT_write_generative_frame_for_unscripted_scenes
 reference:
   source_title: "The Arasaka Brainworm"
   author: "Thomas M. Kane"

@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_map_setting_for_spatial_continuity
+object_id: DRILL_map_setting_for_spatial_continuity
 object_type: drill
 name: Map Setting for Spatial Continuity
 library_path:
@@ -21,8 +21,8 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_choose_setting_to_intensify_character_and_conflict
-target_skill: writing_fiction_choose_setting_to_intensify_character_and_conflict
+    target_object_id: PAT_choose_setting_to_intensify_character_and_conflict
+target_skill: PAT_choose_setting_to_intensify_character_and_conflict
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

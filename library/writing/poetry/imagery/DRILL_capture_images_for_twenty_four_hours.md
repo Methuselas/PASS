@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_capture_images_for_twenty_four_hours
+object_id: DRILL_capture_images_for_twenty_four_hours
 object_type: drill
 name: Capture Images for Twenty-Four Hours
 library_path: [writing, poetry, imagery]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, imagery, observation, notebook, deliberate_practice]
 cross_links:
   - rel: related_to
-    target_object_id: writing_ap_use_writers_notebook_from_capture_to_draft
+    target_object_id: AP_use_a_writers_notebook_from_capture_to_draft
   - rel: teaches
-    target_object_id: writing_make_figurative_language_unexpected_and_fitting
+    target_object_id: PAT_make_figurative_language_unexpected_and_fitting
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: W. N. Herbert

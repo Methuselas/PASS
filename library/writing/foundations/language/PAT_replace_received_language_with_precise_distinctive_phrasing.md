@@ -1,5 +1,5 @@
 ---
-object_id: writing_replace_received_language_with_precise_distinctive_phrasing
+object_id: PAT_replace_received_language_with_precise_distinctive_phrasing
 object_type: pattern
 name: Replace Received Language with Precise Distinctive Phrasing
 library_path:
@@ -20,11 +20,11 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
   - rel: related_to
-    target_object_id: writing_synthesize_literary_influences_into_voice
+    target_object_id: PAT_synthesize_literary_influences_into_original_voice
   - rel: related_to
-    target_object_id: writing_make_figurative_language_unexpected_and_fitting
+    target_object_id: PAT_make_figurative_language_unexpected_and_fitting
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

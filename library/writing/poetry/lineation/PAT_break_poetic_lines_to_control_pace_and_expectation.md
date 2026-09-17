@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_break_lines_to_control_pace_and_expectation
+object_id: PAT_break_poetic_lines_to_control_pace_and_expectation
 object_type: pattern
 name: Break Poetic Lines to Control Pace and Expectation
 library_path:
@@ -20,9 +20,9 @@ tags:
   - emphasis
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_sustain_intensity_beyond_meter_and_lineation
+    target_object_id: PAT_sustain_poetic_intensity_beyond_meter_and_lineation
   - rel: related_to
-    target_object_id: writing_read_draft_aloud_to_defamiliarize_it
+    target_object_id: PAT_read_draft_aloud_to_defamiliarize_it
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

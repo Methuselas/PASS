@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_audit_diary_across_entry_revision_and_publication_layers
+object_id: DRILL_audit_a_diary_across_entry_revision_and_publication_layers
 object_type: drill
 name: Audit a Diary across Entry, Revision, and Publication Layers
 library_path:
@@ -20,13 +20,13 @@ tags:
   - editorial_layers
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+    target_object_id: PAT_choose_structure_from_discovered_connections
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

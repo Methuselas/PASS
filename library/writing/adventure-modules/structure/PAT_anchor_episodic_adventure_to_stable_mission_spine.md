@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_anchor_episodic_adventure_to_stable_mission_spine
+object_id: PAT_anchor_episodic_adventure_to_stable_mission_spine
 object_type: pattern
 name: Anchor an Episodic Adventure to a Stable Mission Spine
 library_path:

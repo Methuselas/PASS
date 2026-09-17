@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_build_communities_as_interdependent_social_worlds
+object_id: PAT_build_communities_as_interdependent_social_worlds
 object_type: pattern
 name: Build Communities as Interdependent Social Worlds
 library_path:
@@ -21,13 +21,13 @@ tags:
   - social_world
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_choose_setting_to_intensify_character_and_conflict
+    target_object_id: PAT_choose_setting_to_intensify_character_and_conflict
   - rel: related_to
-    target_object_id: writing_fiction_build_institutional_settings_as_rule_bound_social_worlds
+    target_object_id: PAT_build_institutional_settings_as_rule_bound_social_worlds
   - rel: related_to
-    target_object_id: writing_fiction_drill_map_character_relationships_by_knowledge_and_pressure
+    target_object_id: DRILL_map_character_relationships_by_knowledge_and_pressure
   - rel: related_to
-    target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+    target_object_id: PAT_build_round_characters_from_contradiction_and_desire
 confidence: high
 references: []
 variants:

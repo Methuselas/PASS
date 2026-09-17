@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_allocate_scene_and_summary_by_narrative_pressure
+object_id: PAT_allocate_scene_and_summary_by_narrative_pressure
 object_type: pattern
 name: Allocate Scene and Summary by Narrative Pressure
 library_path:
@@ -21,13 +21,13 @@ tags:
   - reader_inference
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_map_chronology_before_compressing_story_time
+    target_object_id: PAT_map_chronology_before_compressing_story_time
   - rel: related_to
-    target_object_id: writing_fiction_choose_direct_or_reported_dialogue_by_effect
+    target_object_id: PAT_choose_direct_or_reported_dialogue_by_effect
   - rel: related_to
-    target_object_id: writing_fiction_control_setting_detail_density_by_story_need
+    target_object_id: PAT_control_setting_detail_density_by_story_need
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

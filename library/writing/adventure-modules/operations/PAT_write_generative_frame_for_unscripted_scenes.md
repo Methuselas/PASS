@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_write_generative_frame_for_unscripted_scenes
+object_id: PAT_write_generative_frame_for_unscripted_scenes
 object_type: pattern
 name: Write a Generative Frame for Unscripted Adventure Scenes
 library_path:

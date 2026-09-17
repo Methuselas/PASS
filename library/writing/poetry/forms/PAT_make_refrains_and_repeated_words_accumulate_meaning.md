@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_make_refrains_and_repeated_words_accumulate_meaning
+object_id: PAT_make_refrains_and_repeated_words_accumulate_meaning
 object_type: pattern
 name: Make Refrains and Repeated Words Accumulate Meaning
 library_path:
@@ -20,11 +20,11 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_learn_form_before_varying_its_rules
+    target_object_id: PAT_learn_poetic_form_before_varying_its_rules
   - rel: related_to
-    target_object_id: writing_poetry_make_rhyme_serve_sense_and_effect
+    target_object_id: PAT_make_rhyme_serve_sense_and_effect
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

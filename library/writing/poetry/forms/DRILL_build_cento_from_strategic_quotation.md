@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_build_cento_from_strategic_quotation
+object_id: DRILL_build_cento_from_strategic_quotation
 object_type: drill
 name: Build a Cento from Strategic Quotation
 library_path:
@@ -20,9 +20,9 @@ tags:
   - juxtaposition
 cross_links:
   - rel: related_to
-    target_object_id: writing_synthesize_literary_influences_into_voice
+    target_object_id: PAT_synthesize_literary_influences_into_original_voice
   - rel: related_to
-    target_object_id: writing_poetry_learn_form_before_varying_its_rules
+    target_object_id: PAT_learn_poetic_form_before_varying_its_rules
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

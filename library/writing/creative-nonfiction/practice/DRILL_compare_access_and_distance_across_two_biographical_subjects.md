@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_compare_access_and_distance_across_two_biographical_subjects
+object_id: DRILL_compare_access_and_distance_across_two_biographical_subjects
 object_type: drill
 name: Compare Access and Distance across Two Biographical Subjects
 library_path:
@@ -20,13 +20,13 @@ tags:
   - research
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_make_personal_presence_part_of_inquiry
+    target_object_id: PAT_make_personal_presence_part_of_inquiry
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_verify_checkable_facts_and_research_necessary_context
+    target_object_id: PAT_verify_checkable_facts_and_research_necessary_context
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_portray_real_people_through_selective_behavioral_detail
+    target_object_id: PAT_portray_real_people_through_selective_behavioral_detail
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_audit_harm_and_privacy_when_portraying_real_people
+    target_object_id: PAT_audit_harm_and_privacy_when_portraying_real_people
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

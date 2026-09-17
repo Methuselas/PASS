@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_build_hidden_character_profile
+object_id: DRILL_build_a_hidden_character_profile
 object_type: drill
 name: Build a Hidden Character Profile
 library_path:
@@ -20,8 +20,8 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
-target_skill: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
+target_skill: PAT_reveal_character_incrementally_through_behavior
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

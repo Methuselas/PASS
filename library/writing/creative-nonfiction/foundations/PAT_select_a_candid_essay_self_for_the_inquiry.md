@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_select_a_candid_essay_self_for_the_inquiry
+object_id: PAT_select_a_candid_essay_self_for_the_inquiry
 object_type: pattern
 name: Select a Candid Essay Self for the Inquiry
 library_path:
@@ -20,11 +20,11 @@ tags:
   - contradiction
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_make_personal_presence_part_of_inquiry
+    target_object_id: PAT_make_personal_presence_part_of_inquiry
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_separate_experiencing_self_from_reflective_narrator
+    target_object_id: PAT_separate_experiencing_self_from_reflective_narrator
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_interrogate_memory_before_claiming_precision
+    target_object_id: PAT_interrogate_memory_before_claiming_precision
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_compare_full_and_slant_rhyme_across_parallel_drafts
+object_id: DRILL_compare_full_and_slant_rhyme_across_parallel_drafts
 object_type: drill
 name: Compare Full and Slant Rhyme Across Parallel Drafts
 library_path: [writing, poetry, sound]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, rhyme, slant_rhyme, comparison, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_make_rhyme_serve_sense_and_effect
+    target_object_id: PAT_make_rhyme_serve_sense_and_effect
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

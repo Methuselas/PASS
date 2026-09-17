@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_transform_source_material_into_standalone_poem
+object_id: PAT_transform_source_material_into_a_standalone_poem
 object_type: pattern
 name: Transform Source Material into a Standalone Poem
 library_path:
@@ -20,9 +20,9 @@ tags:
   - drafting
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_draft_through_discovery
+    target_object_id: PAT_draft_poems_through_discovery
   - rel: related_to
-    target_object_id: writing_synthesize_literary_influences_into_voice
+    target_object_id: PAT_synthesize_literary_influences_into_original_voice
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

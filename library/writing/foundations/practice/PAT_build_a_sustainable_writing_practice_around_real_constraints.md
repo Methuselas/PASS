@@ -1,5 +1,5 @@
 ---
-object_id: writing_build_sustainable_writing_practice_around_real_constraints
+object_id: PAT_build_a_sustainable_writing_practice_around_real_constraints
 object_type: pattern
 name: Build a Sustainable Writing Practice Around Real Constraints
 library_path:
@@ -20,11 +20,11 @@ tags:
   - constraints
 cross_links:
   - rel: related_to
-    target_object_id: writing_recover_block_by_lowering_hurdle
+    target_object_id: PAT_recover_from_writing_block_by_lowering_the_hurdle
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_separate_generative_and_evaluative_writing_modes
+    target_object_id: PAT_separate_generative_and_evaluative_writing_modes
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
@@ -70,4 +70,4 @@ variants: []
 ## Notes
 A writing habit courts discovery and completion by making the writer repeatedly available to the work. Some productive sessions add language; others cut, reconnect, diagnose, or correct existing material, so word-count growth is not a universal measure of progress. Constancy matters because entry becomes more familiar and material remains active between sessions, but constancy need not mean a long daily appointment. A short recurring practice, several protected sessions per week, or another stable cadence can serve when it survives the writer's actual life and produces work.
 
-Rituals and locations are experiments, not prerequisites or signs of seriousness. Keep a cue when it helps attention settle; discard it when maintaining the cue becomes more elaborate than writing. Use `writing_recover_block_by_lowering_hurdle` when an established session still stalls, and use `writing_separate_generative_and_evaluative_writing_modes` when external judgment or premature correction interrupts production.
+Rituals and locations are experiments, not prerequisites or signs of seriousness. Keep a cue when it helps attention settle; discard it when maintaining the cue becomes more elaborate than writing. Use `PAT_recover_from_writing_block_by_lowering_the_hurdle` when an established session still stalls, and use `PAT_separate_generative_and_evaluative_writing_modes` when external judgment or premature correction interrupts production.

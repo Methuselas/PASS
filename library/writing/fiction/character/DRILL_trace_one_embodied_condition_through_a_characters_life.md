@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_trace_one_embodied_condition_through_a_characters_life
+object_id: DRILL_trace_one_embodied_condition_through_a_characters_life
 object_type: drill
 name: Trace One Embodied Condition through a Character's Life
 library_path:
@@ -22,15 +22,15 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+    target_object_id: PAT_treat_character_bodies_as_lived_conditions
   - rel: related_to
-    target_object_id: writing_fiction_drill_trace_character_continuity_across_a_whole_life_timeline
+    target_object_id: DRILL_trace_character_continuity_across_a_whole_life_timeline
   - rel: related_to
-    target_object_id: writing_fiction_drill_propagate_one_counterfactual_change_through_fictional_life
+    target_object_id: DRILL_propagate_one_counterfactual_change_through_a_fictional_life
   - rel: related_to
-    target_object_id: writing_fiction_portray_characters_beyond_direct_experience_with_accountable_imagination
+    target_object_id: PAT_portray_characters_beyond_direct_experience_with_accountable_imagination
   - rel: related_to
-    target_object_id: writing_fiction_drill_draft_illness_as_a_situated_character_pressure
+    target_object_id: DRILL_draft_illness_as_a_situated_character_pressure
 reference:
   source_title: "Creative Writing Exercises For Dummies"
   author: Maggie Hamand

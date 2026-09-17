@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_compose_thought_in_small_verse_units
+object_id: DRILL_compose_thought_in_couplet_tercet_and_quatrain
 object_type: drill
 name: Compose Thought in Couplet, Tercet, and Quatrain
 library_path: [writing, poetry, lineation]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, stanza, couplet, tercet, quatrain, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_shape_stanzas_around_movement_and_pause
+    target_object_id: PAT_shape_stanzas_around_movement_and_pause
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

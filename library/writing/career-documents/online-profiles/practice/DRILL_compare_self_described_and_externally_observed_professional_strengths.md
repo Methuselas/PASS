@@ -1,5 +1,5 @@
 ---
-object_id: writing_drill_compare_self_described_and_externally_observed_professional_strengths
+object_id: DRILL_compare_self_described_and_externally_observed_professional_strengths
 object_type: drill
 name: Compare Self-Described and Externally Observed Professional Strengths
 library_path:
@@ -21,7 +21,7 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_ground_professional_reputation_in_role_relevant_evidence
+    target_object_id: PAT_ground_professional_reputation_in_role_relevant_evidence
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_audition_competing_manuscript_orders
+object_id: DRILL_audition_competing_orders_for_a_small_poetry_manuscript
 object_type: drill
 name: Audition Competing Orders for a Small Poetry Manuscript
 library_path: [writing, poetry, practice]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, manuscript, ordering, selection, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_make_poems_interdependent_in_sequence
+    target_object_id: PAT_make_poems_interdependent_in_a_sequence
   - rel: related_to
-    target_object_id: writing_poetry_infer_working_theme_from_recurring_evidence
+    target_object_id: PAT_infer_a_working_theme_from_recurring_poetic_evidence
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

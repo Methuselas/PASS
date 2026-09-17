@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_orient_operator_with_compact_adventure_flow_overview
+object_id: PAT_orient_operator_with_compact_adventure_flow_overview
 object_type: pattern
 name: Orient the Operator with a Compact Adventure Flow Overview
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: medium
-foundation_object_id: writing_adventure_modules_write_context_for_interpretive_handoff
+foundation_object_id: PAT_write_adventure_context_for_interpretive_handoff
 tags:
   - adventure_modules
   - overview
@@ -20,9 +20,9 @@ tags:
   - game_master
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_sequence_load_bearing_adventure_scenes_by_dependency
+    target_object_id: PAT_sequence_load_bearing_adventure_scenes_by_dependency
   - rel: related_to
-    target_object_id: writing_adventure_modules_structure_encounter_entries_for_live_retrieval
+    target_object_id: PAT_structure_encounter_entries_for_live_retrieval
 reference:
   source_title: "How to Write Adventure Modules That Don't Suck!"
   author: Kevin W. Melka

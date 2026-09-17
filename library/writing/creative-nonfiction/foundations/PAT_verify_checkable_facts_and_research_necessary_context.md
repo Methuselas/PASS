@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_verify_checkable_facts_and_research_necessary_context
+object_id: PAT_verify_checkable_facts_and_research_necessary_context
 object_type: pattern
 name: Verify Checkable Facts and Research Necessary Context
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+foundation_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
 tags:
   - creative_nonfiction
   - fact_checking
@@ -20,9 +20,9 @@ tags:
   - context
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_subject_for_open_ended_exploration
+    target_object_id: PAT_choose_subject_for_open_ended_exploration
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

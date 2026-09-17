@@ -1,5 +1,5 @@
 ---
-object_id: writing_structure_cover_letter_around_contact_purpose_evidence_and_next_step
+object_id: PAT_structure_cover_letter_around_contact_purpose_evidence_and_next_step
 object_type: pattern
 name: Structure a Cover Letter Around Contact Purpose, Evidence, and Next Step
 library_path:
@@ -21,9 +21,9 @@ tags:
   - conclusions
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
   - rel: related_to
-    target_object_id: writing_choose_cover_letter_frame_by_contact_context
+    target_object_id: PAT_choose_cover_letter_frame_by_contact_context
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

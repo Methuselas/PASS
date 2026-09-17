@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_shape_style_as_response_to_story_situation
+object_id: PAT_shape_style_as_response_to_story_situation
 object_type: pattern
 name: Shape Style as a Response to Story Situation
 library_path:
@@ -20,13 +20,13 @@ tags:
 - diction
 cross_links:
 - rel: related_to
-  target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+  target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
 - rel: related_to
-  target_object_id: writing_replace_received_language_with_precise_distinctive_phrasing
+  target_object_id: PAT_replace_received_language_with_precise_distinctive_phrasing
 - rel: related_to
-  target_object_id: writing_revise_whole_draft_toward_intended_form
+  target_object_id: PAT_revise_whole_draft_toward_intended_form
 - rel: related_to
-  target_object_id: writing_fiction_render_stream_of_consciousness_in_controlled_bursts
+  target_object_id: PAT_render_stream_of_consciousness_in_controlled_bursts
 reference:
   source_title: 'Creative Writing: Four Genres in Brief'
   author: David Starkey

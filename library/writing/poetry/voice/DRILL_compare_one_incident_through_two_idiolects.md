@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_compare_incident_through_two_idiolects
+object_id: DRILL_compare_one_incident_through_two_idiolects
 object_type: drill
 name: Compare One Incident Through Two Idiolects
 library_path: [writing, poetry, voice]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, voice, idiolect, perspective, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_treat_voice_as_flexible_poem_specific_system
+    target_object_id: PAT_treat_poetic_voice_as_a_flexible_poem_specific_system
   - rel: teaches
-    target_object_id: writing_poetry_construct_persona_through_perception_desire_and_verbal_form
+    target_object_id: PAT_construct_persona_through_perception_desire_and_verbal_form
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

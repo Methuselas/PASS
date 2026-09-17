@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_reveal_character_through_possessions_and_inhabited_space
+object_id: PAT_reveal_character_through_possessions_and_inhabited_space
 object_type: pattern
 name: Reveal Character through Possessions and Inhabited Space
 library_path: [writing, fiction, setting]
@@ -12,11 +12,11 @@ foundation_object_id: none
 tags: [fiction, setting, character, possessions, clothing, implication]
 cross_links:
   - rel: related_to
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_fiction_filter_setting_through_character_consciousness
+    target_object_id: PAT_filter_setting_through_character_consciousness
   - rel: related_to
-    target_object_id: writing_fiction_use_specific_sensory_details_to_imply_larger_conditions
+    target_object_id: PAT_use_specific_sensory_details_to_imply_larger_conditions
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

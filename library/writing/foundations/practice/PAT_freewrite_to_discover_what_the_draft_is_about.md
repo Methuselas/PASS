@@ -1,5 +1,5 @@
 ---
-object_id: writing_freewrite_to_discover_what_draft_is_about
+object_id: PAT_freewrite_to_discover_what_the_draft_is_about
 object_type: pattern
 name: Freewrite to Discover What the Draft Is About
 library_path:
@@ -20,11 +20,11 @@ tags:
   - drafting
 cross_links:
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_recover_block_by_lowering_hurdle
+    target_object_id: PAT_recover_from_writing_block_by_lowering_the_hurdle
 reference:
   source_title: College Admission Essays For Dummies
   author: Jessica Brenner and Geraldine Woods

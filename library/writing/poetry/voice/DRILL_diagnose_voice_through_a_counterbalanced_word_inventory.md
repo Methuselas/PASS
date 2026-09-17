@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_counterbalance_word_inventory_for_voice
+object_id: DRILL_diagnose_voice_through_a_counterbalanced_word_inventory
 object_type: drill
 name: Diagnose Voice Through a Counterbalanced Word Inventory
 library_path: [writing, poetry, voice]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, voice, diction, vocabulary, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_treat_voice_as_flexible_poem_specific_system
+    target_object_id: PAT_treat_poetic_voice_as_a_flexible_poem_specific_system
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

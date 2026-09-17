@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_structure_accentual_lines_with_stressed_alliteration
+object_id: PAT_structure_accentual_lines_with_stressed_alliteration
 object_type: pattern
 name: Structure Accentual Lines with Stressed Alliteration
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: genre
-foundation_object_id: writing_shape_sound_to_reinforce_meaning
+foundation_object_id: PAT_shape_sound_to_reinforce_meaning
 tags:
   - poetry
   - alliteration
@@ -20,9 +20,9 @@ tags:
   - rhythm
 cross_links:
   - rel: related_to
-    target_object_id: writing_poetry_keep_free_verse_rhythmically_accountable
+    target_object_id: PAT_keep_free_verse_rhythmically_accountable
   - rel: related_to
-    target_object_id: writing_poetry_ap_revise_rhythm_across_metered_and_free_verse
+    target_object_id: AP_revise_poetic_rhythm_across_metered_and_free_verse
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

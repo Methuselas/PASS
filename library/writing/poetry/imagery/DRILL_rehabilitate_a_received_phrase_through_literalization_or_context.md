@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_rehabilitate_received_phrase_through_literalization_or_context
+object_id: DRILL_rehabilitate_a_received_phrase_through_literalization_or_context
 object_type: drill
 name: Rehabilitate a Received Phrase Through Literalization or Context
 library_path: [writing, poetry, imagery]
@@ -12,7 +12,7 @@ foundation_object_id: none
 tags: [poetry, cliche, vernacular, imagery, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_replace_received_language_with_precise_distinctive_phrasing
+    target_object_id: PAT_replace_received_language_with_precise_distinctive_phrasing
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: W. N. Herbert

@@ -1,5 +1,5 @@
 ---
-object_id: writing_turn_added_value_into_resume_achievements
+object_id: PAT_turn_added_value_into_resume_achievements
 object_type: pattern
 name: Turn Added Value into Resume Achievements
 library_path:
@@ -20,7 +20,7 @@ tags:
   - metrics
 cross_links:
   - rel: related_to
-    target_object_id: writing_target_application_materials_to_employer_criteria
+    target_object_id: PAT_target_application_materials_to_employer_criteria
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

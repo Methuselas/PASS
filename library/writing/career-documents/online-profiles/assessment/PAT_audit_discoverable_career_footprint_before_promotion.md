@@ -1,5 +1,5 @@
 ---
-object_id: writing_audit_discoverable_career_footprint_before_promotion
+object_id: PAT_audit_discoverable_career_footprint_before_promotion
 object_type: pattern
 name: Audit the Discoverable Career Footprint Before Promotion
 library_path:
@@ -21,7 +21,7 @@ tags:
   - remediation
 cross_links:
   - rel: related_to
-    target_object_id: writing_ground_professional_reputation_in_role_relevant_evidence
+    target_object_id: PAT_ground_professional_reputation_in_role_relevant_evidence
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

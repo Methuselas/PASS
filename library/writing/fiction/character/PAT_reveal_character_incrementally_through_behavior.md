@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_reveal_character_incrementally_through_behavior
+object_id: PAT_reveal_character_incrementally_through_behavior
 object_type: pattern
 name: Reveal Character Incrementally through Behavior
 library_path:
@@ -20,11 +20,11 @@ tags:
 - observation
 cross_links:
 - rel: related_to
-  target_object_id: writing_fiction_build_round_characters_from_contradiction_and_desire
+  target_object_id: PAT_build_round_characters_from_contradiction_and_desire
 - rel: related_to
-  target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+  target_object_id: PAT_treat_character_bodies_as_lived_conditions
 - rel: related_to
-  target_object_id: writing_fiction_drill_reveal_character_through_contrasting_everyday_conduct
+  target_object_id: DRILL_reveal_character_through_contrasting_everyday_conduct
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

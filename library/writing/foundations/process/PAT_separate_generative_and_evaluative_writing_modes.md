@@ -1,5 +1,5 @@
 ---
-object_id: writing_separate_generative_and_evaluative_writing_modes
+object_id: PAT_separate_generative_and_evaluative_writing_modes
 object_type: pattern
 name: Separate Generative and Evaluative Writing Modes
 library_path:
@@ -20,11 +20,11 @@ tags:
   - evaluation
 cross_links:
   - rel: related_to
-    target_object_id: writing_freewrite_to_discover_what_draft_is_about
+    target_object_id: PAT_freewrite_to_discover_what_the_draft_is_about
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: College Admission Essays For Dummies
   author: Jessica Brenner and Geraldine Woods

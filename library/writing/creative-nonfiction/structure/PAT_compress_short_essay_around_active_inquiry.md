@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_compress_short_essay_around_active_inquiry
+object_id: PAT_compress_short_essay_around_active_inquiry
 object_type: pattern
 name: Compress a Short Essay Around Its Active Inquiry
 library_path:
@@ -20,11 +20,11 @@ tags:
   - revision
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_subject_for_open_ended_exploration
+    target_object_id: PAT_choose_subject_for_open_ended_exploration
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_choose_structure_from_discovered_connections
+    target_object_id: PAT_choose_structure_from_discovered_connections
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

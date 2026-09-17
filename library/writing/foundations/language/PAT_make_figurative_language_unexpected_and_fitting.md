@@ -1,5 +1,5 @@
 ---
-object_id: writing_make_figurative_language_unexpected_and_fitting
+object_id: PAT_make_figurative_language_unexpected_and_fitting
 object_type: pattern
 name: Make Figurative Language Unexpected and Fitting
 library_path: [writing, foundations, language]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [creative_writing, figurative_language, metaphor, simile, revision]
 cross_links:
   - rel: related_to
-    target_object_id: writing_replace_abstractions_with_specific_sensory_images
+    target_object_id: PAT_replace_abstractions_with_specific_sensory_images
   - rel: related_to
-    target_object_id: writing_replace_received_language_with_precise_distinctive_phrasing
+    target_object_id: PAT_replace_received_language_with_precise_distinctive_phrasing
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

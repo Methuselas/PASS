@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_contrast_informative_and_consequence_driven_life_portraits
+object_id: DRILL_contrast_informative_and_consequence_driven_life_portraits
 object_type: drill
 name: Contrast Informative and Consequence-Driven Life Portraits
 library_path:
@@ -20,13 +20,13 @@ tags:
   - portrait
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_portray_real_people_through_selective_behavioral_detail
+    target_object_id: PAT_portray_real_people_through_selective_behavioral_detail
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_build_brief_scene_from_place_people_and_stakes
+    target_object_id: PAT_build_brief_scene_from_place_people_and_stakes
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_move_across_time_with_concrete_summary_and_brief_scenes
+    target_object_id: PAT_move_across_time_with_concrete_summary_and_brief_scenes
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

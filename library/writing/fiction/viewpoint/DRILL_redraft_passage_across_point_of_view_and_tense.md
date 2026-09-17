@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_redraft_passage_across_point_of_view_and_tense
+object_id: DRILL_redraft_passage_across_point_of_view_and_tense
 object_type: drill
 name: Redraft a Passage across Point of View and Tense
 library_path:
@@ -20,12 +20,12 @@ tags:
   - practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
   - rel: teaches
-    target_object_id: writing_fiction_choose_tense_by_visibility_and_temporal_effect
+    target_object_id: PAT_choose_tense_by_visibility_and_temporal_effect
   - rel: teaches
-    target_object_id: writing_fiction_design_first_person_telling_situation
-target_skill: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_design_the_first_person_telling_situation
+target_skill: PAT_choose_point_of_view_by_access_distance_and_effect
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

@@ -1,5 +1,5 @@
 ---
-object_id: writing_adventure_modules_write_key_antagonist_as_runnable_behavior_profile
+object_id: PAT_write_key_antagonist_as_runnable_behavior_profile
 object_type: pattern
 name: Write a Key Antagonist as a Runnable Behavior Profile
 library_path:
@@ -11,7 +11,7 @@ lane_fit: skill
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: medium
-foundation_object_id: writing_adventure_modules_write_context_for_interpretive_handoff
+foundation_object_id: PAT_write_adventure_context_for_interpretive_handoff
 tags:
   - adventure_modules
   - antagonists
@@ -20,7 +20,7 @@ tags:
   - live_use
 cross_links:
   - rel: related_to
-    target_object_id: writing_adventure_modules_write_generative_frame_for_unscripted_scenes
+    target_object_id: PAT_write_generative_frame_for_unscripted_scenes
 reference:
   source_title: "How to Write Adventure Modules That Don't Suck!"
   author: Casey W. Christofferson

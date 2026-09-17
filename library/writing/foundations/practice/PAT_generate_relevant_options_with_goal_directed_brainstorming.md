@@ -1,5 +1,5 @@
 ---
-object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
 object_type: pattern
 name: Generate Relevant Options with Goal-Directed Brainstorming
 library_path:
@@ -21,11 +21,11 @@ tags:
   - self_reflection
 cross_links:
   - rel: related_to
-    target_object_id: writing_recover_block_by_lowering_hurdle
+    target_object_id: PAT_recover_from_writing_block_by_lowering_the_hurdle
   - rel: related_to
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: related_to
-    target_object_id: writing_freewrite_to_discover_what_draft_is_about
+    target_object_id: PAT_freewrite_to_discover_what_the_draft_is_about
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

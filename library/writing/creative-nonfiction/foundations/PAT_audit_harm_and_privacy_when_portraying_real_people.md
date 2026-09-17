@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_audit_harm_and_privacy_when_portraying_real_people
+object_id: PAT_audit_harm_and_privacy_when_portraying_real_people
 object_type: pattern
 name: Audit Harm and Privacy When Portraying Real People
 library_path:
@@ -20,13 +20,13 @@ tags:
   - publication
 cross_links:
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_portray_real_people_through_selective_behavioral_detail
+    target_object_id: PAT_portray_real_people_through_selective_behavioral_detail
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_verify_checkable_facts_and_research_necessary_context
+    target_object_id: PAT_verify_checkable_facts_and_research_necessary_context
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
 reference:
   source_title: "Creative Writing: Four Genres in Brief"
   author: David Starkey

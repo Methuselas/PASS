@@ -1,5 +1,5 @@
 ---
-object_id: writing_prepare_referees_before_submission
+object_id: PAT_prepare_referees_before_submission
 object_type: pattern
 name: Prepare Referees Before Submission
 library_path:

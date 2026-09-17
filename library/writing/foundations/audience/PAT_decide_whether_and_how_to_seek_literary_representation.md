@@ -1,5 +1,5 @@
 ---
-object_id: writing_decide_whether_and_how_to_seek_literary_representation
+object_id: PAT_decide_whether_and_how_to_seek_literary_representation
 object_type: pattern
 name: Decide Whether and How to Seek Literary Representation
 library_path:
@@ -20,9 +20,9 @@ tags:
   - rights
 cross_links:
   - rel: related_to
-    target_object_id: writing_ap_research_and_shortlist_publication_outlets
+    target_object_id: AP_research_and_shortlist_publication_outlets
   - rel: related_to
-    target_object_id: writing_ap_prepare_and_send_creative_writing_submission_package
+    target_object_id: AP_prepare_and_send_creative_writing_submission_package
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

@@ -1,5 +1,5 @@
 ---
-object_id: writing_spend_strong_material_in_current_work
+object_id: PAT_spend_strong_material_in_the_current_work
 object_type: pattern
 name: Spend Strong Material in the Current Work
 library_path:
@@ -20,11 +20,11 @@ tags:
   - pacing
 cross_links:
   - rel: related_to
-    target_object_id: writing_generate_relevant_options_with_goal_directed_brainstorming
+    target_object_id: PAT_generate_relevant_options_with_goal_directed_brainstorming
   - rel: related_to
-    target_object_id: writing_test_project_idea_before_committing_sustained_work
+    target_object_id: PAT_test_project_idea_before_committing_sustained_work
   - rel: related_to
-    target_object_id: writing_fiction_begin_at_point_of_attack
+    target_object_id: PAT_begin_at_the_point_of_attack
 reference:
   source_title: "How to Write Adventure Modules That Don't Suck!"
   author: Harley Stroh

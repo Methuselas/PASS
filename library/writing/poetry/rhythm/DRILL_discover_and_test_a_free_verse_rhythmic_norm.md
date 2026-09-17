@@ -1,5 +1,5 @@
 ---
-object_id: writing_poetry_drill_discover_and_test_free_verse_rhythmic_norm
+object_id: DRILL_discover_and_test_a_free_verse_rhythmic_norm
 object_type: drill
 name: Discover and Test a Free-Verse Rhythmic Norm
 library_path: [writing, poetry, rhythm]
@@ -12,9 +12,9 @@ foundation_object_id: none
 tags: [poetry, free_verse, rhythm, scansion, deliberate_practice]
 cross_links:
   - rel: teaches
-    target_object_id: writing_poetry_keep_free_verse_rhythmically_accountable
+    target_object_id: PAT_keep_free_verse_rhythmically_accountable
   - rel: related_to
-    target_object_id: writing_poetry_break_lines_to_control_pace_and_expectation
+    target_object_id: PAT_break_poetic_lines_to_control_pace_and_expectation
 reference: {source_title: "Creative Writing: A Workbook with Readings", author: W. N. Herbert}
 confidence: high
 references: []

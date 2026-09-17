@@ -1,5 +1,5 @@
 ---
-object_id: writing_present_cover_letter_as_concise_companion_document
+object_id: PAT_present_cover_letter_as_concise_companion_document
 object_type: pattern
 name: Present a Cover Letter as a Concise Companion Document
 library_path:
@@ -21,7 +21,7 @@ tags:
   - email
 cross_links:
   - rel: related_to
-    target_object_id: writing_design_resume_for_on_screen_scanning
+    target_object_id: PAT_design_resume_for_on_screen_scanning
 reference:
   source_title: "Writing Resumes & Cover Letters For Dummies, 2nd Australian and New Zealand Edition"
   author: Amanda McCarthy and Kate Southam

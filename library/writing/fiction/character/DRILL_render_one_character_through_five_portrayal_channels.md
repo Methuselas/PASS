@@ -1,5 +1,5 @@
 ---
-object_id: writing_fiction_drill_render_one_character_through_five_portrayal_channels
+object_id: DRILL_render_one_character_through_five_portrayal_channels
 object_type: drill
 name: Render One Character through Five Portrayal Channels
 library_path:
@@ -21,13 +21,13 @@ tags:
   - deliberate_practice
 cross_links:
   - rel: teaches
-    target_object_id: writing_fiction_reveal_character_incrementally_through_behavior
+    target_object_id: PAT_reveal_character_incrementally_through_behavior
   - rel: related_to
-    target_object_id: writing_fiction_combine_dialogue_with_action_thought_and_silence
+    target_object_id: PAT_combine_dialogue_with_action_thought_and_silence
   - rel: related_to
-    target_object_id: writing_fiction_treat_character_bodies_as_lived_conditions
+    target_object_id: PAT_treat_character_bodies_as_lived_conditions
   - rel: related_to
-    target_object_id: writing_fiction_choose_point_of_view_by_access_distance_and_effect
+    target_object_id: PAT_choose_point_of_view_by_access_distance_and_effect
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

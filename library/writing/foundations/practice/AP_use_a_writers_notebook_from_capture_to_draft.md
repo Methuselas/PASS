@@ -1,5 +1,5 @@
 ---
-object_id: writing_ap_use_writers_notebook_from_capture_to_draft
+object_id: AP_use_a_writers_notebook_from_capture_to_draft
 object_type: ap
 name: Use a Writer's Notebook from Capture to Draft
 library_path:
@@ -20,13 +20,13 @@ tags:
   - development
 cross_links:
   - rel: supports
-    target_object_id: writing_collect_fragments_before_demanding_complete_draft
+    target_object_id: PAT_collect_fragments_before_demanding_complete_draft
   - rel: supports
-    target_object_id: writing_preserve_exploratory_draft_variants_with_lightweight_labels
+    target_object_id: PAT_preserve_exploratory_draft_variants_with_lightweight_labels
   - rel: supports
-    target_object_id: writing_freewrite_to_discover_what_draft_is_about
+    target_object_id: PAT_freewrite_to_discover_what_the_draft_is_about
   - rel: supports
-    target_object_id: writing_trace_reader_effects_to_craft_choices
+    target_object_id: PAT_trace_reader_effects_to_craft_choices
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson
@@ -42,13 +42,13 @@ Maintain a low-friction private workspace that catches live material, develops s
 
 ## Steps / Flow
 1. **Choose workable capture conditions.** Select a medium that permits rough entry, is available where material normally appears, and can be browsed later. Use separate portable and home methods when one tool cannot serve both situations. **Advance gate:** an observation can be recorded quickly without protecting the notebook's appearance or opening a complicated filing system.
-2. **Capture particulars while they are live.** Activate `writing_collect_fragments_before_demanding_complete_draft`. Record exact sensory details, phrases, gestures, questions, memories, images, emotional pressures, and partial scenes before deciding what finished work they belong to. Mark borrowed language as a prompt that must be transformed rather than silently absorbed.
-3. **Use the notebook as a practice space.** When a fragment has energy but no direction, activate `writing_freewrite_to_discover_what_draft_is_about`. Write rapidly and privately enough to permit mistakes, associations, and unfinished language. Keep deliberate exercises beside spontaneous entries only when the arrangement remains easy to use.
-4. **Record craft effects from reading.** When another work produces a strong response, activate `writing_trace_reader_effects_to_craft_choices`. Note the effect, the choices that may have produced it, and a technique worth testing rather than recording praise, plot summary, or quotation alone.
+2. **Capture particulars while they are live.** Activate `PAT_collect_fragments_before_demanding_complete_draft`. Record exact sensory details, phrases, gestures, questions, memories, images, emotional pressures, and partial scenes before deciding what finished work they belong to. Mark borrowed language as a prompt that must be transformed rather than silently absorbed.
+3. **Use the notebook as a practice space.** When a fragment has energy but no direction, activate `PAT_freewrite_to_discover_what_the_draft_is_about`. Write rapidly and privately enough to permit mistakes, associations, and unfinished language. Keep deliberate exercises beside spontaneous entries only when the arrangement remains easy to use.
+4. **Record craft effects from reading.** When another work produces a strong response, activate `PAT_trace_reader_effects_to_craft_choices`. Note the effect, the choices that may have produced it, and a technique worth testing rather than recording praise, plot summary, or quotation alone.
 5. **Reread with a development question.** At a regular interval or when a project needs material, browse recent and older entries. Mark fragments with specificity, tension, verbal energy, surprising relation, or a question that continues to press. Do not reorganize the whole collection before making a selection.
 6. **Grow one selected fragment.** Give the material a new pressure: combine it with another entry, change its form or addressee, place a person in action, extend an image, or freewrite from its most charged phrase. **Advance gate:** the result develops a relation, movement, voice, or discovery that was not present in the isolated note.
 7. **Hand the live material to a draft.** Move the developed passage into the working environment for its likely form and compose beyond the notebook entry. Transform private lives, overheard speech, and borrowed material as the draft requires. Return to collection only when the draft genuinely needs new material.
-8. **Keep the system subordinate to writing.** Activate `writing_preserve_exploratory_draft_variants_with_lightweight_labels`; retain only enough separation, labeling, or indexing to retrieve and compare useful entries later. Simplify the method when maintenance delays capture, rereading, or drafting. Stop the notebook cycle when a draft has sufficient pressure to continue on its own.
+8. **Keep the system subordinate to writing.** Activate `PAT_preserve_exploratory_draft_variants_with_lightweight_labels`; retain only enough separation, labeling, or indexing to retrieve and compare useful entries later. Simplify the method when maintenance delays capture, rereading, or drafting. Stop the notebook cycle when a draft has sufficient pressure to continue on its own.
 
 ## Notes
 A writer's notebook is simultaneously a net, a practice room, and a development bench. Those functions become useful through their handoffs: immediate capture preserves heat, unjudged practice expands possibility, rereading selects rather than merely remembers, and development changes a fragment enough to enter composition. Privacy licenses roughness, but the notebook does not need to be a diary, a beautiful object, or a comprehensive archive. Its success is measured by usable attention and movement into writing.

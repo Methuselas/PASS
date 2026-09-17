@@ -1,5 +1,5 @@
 ---
-object_id: writing_calibrate_rhetorical_maturity_and_cognitive_load
+object_id: PAT_calibrate_rhetorical_maturity_and_cognitive_load_to_reader_voice_and_task
 object_type: pattern
 name: Calibrate Rhetorical Maturity and Cognitive Load to Reader Voice and Task
 library_path:
@@ -21,13 +21,13 @@ tags:
   - rhetorical_maturity
 cross_links:
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
   - rel: related_to
-    target_object_id: writing_choose_diction_to_serve_purpose_and_tone
+    target_object_id: PAT_choose_diction_to_serve_purpose_and_tone
   - rel: related_to
-    target_object_id: writing_shape_sentence_rhythm_through_length_structure_and_punctuation
+    target_object_id: PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
   - rel: related_to
-    target_object_id: writing_revise_whole_draft_toward_intended_form
+    target_object_id: PAT_revise_whole_draft_toward_intended_form
 reference:
   source_title: "Alice's Adventures in Wonderland"
   author: Lewis Carroll

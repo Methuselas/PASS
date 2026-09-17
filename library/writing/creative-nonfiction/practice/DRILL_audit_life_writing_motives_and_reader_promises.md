@@ -1,5 +1,5 @@
 ---
-object_id: writing_creative_nonfiction_drill_audit_life_writing_motives_and_reader_promises
+object_id: DRILL_audit_life_writing_motives_and_reader_promises
 object_type: drill
 name: Audit Life-Writing Motives and Reader Promises
 library_path:
@@ -20,11 +20,11 @@ tags:
   - selection
 cross_links:
   - rel: teaches
-    target_object_id: writing_creative_nonfiction_choose_subject_for_open_ended_exploration
+    target_object_id: PAT_choose_subject_for_open_ended_exploration
   - rel: related_to
-    target_object_id: writing_calibrate_context_to_audience_and_venue
+    target_object_id: PAT_calibrate_context_to_intended_audience_and_venue
   - rel: related_to
-    target_object_id: writing_creative_nonfiction_preserve_factual_accountability_while_using_literary_craft
+    target_object_id: PAT_preserve_factual_accountability_while_using_literary_craft
 reference:
   source_title: "Creative Writing: A Workbook with Readings"
   author: Linda Anderson

@@ -49,7 +49,7 @@ variants:
 - Look hardest at features that exist in both languages and behave differently, since that is where a correct-feeling assumption goes unexamined. Java's checked exceptions are the standard case — they must be wrapped in try-catch to compile, they have no C# equivalent, and someone arriving from C# has no reason to suspect the gap.
 - Treat conspicuous surface differences as the safe part. You will notice unfamiliar syntax; you will not notice a familiar construct with different semantics.
 - Expect the hardest resistance where the paradigm shifts under a shared word. Functions exist in both object-oriented and functional languages and work differently, which is why experienced OO programmers struggle with a language like F#.
-- Check your defaults about what the language guarantees. A Java programmer may assume Python also requires variables to be initialized and that the compiler will complain if they forget — a small error, but one that arrives with full confidence.
+- Check your defaults about what the language guarantees. A programmer from a language that rejects a read of an unset variable before the program runs may assume the new language does too, and learn otherwise only when the one path that skips the assignment executes — a small error, but one that arrives with full confidence.
 
 ## Don't
 - Don't treat a wrong assumption here as carelessness. Negative transfer is existing knowledge interfering with new learning, and it operates precisely because you have learned something well.

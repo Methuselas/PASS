@@ -6,6 +6,27 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.45 - 2026-09-16
+
+### Changed
+
+- The software-engineering warnings card now covers every tool that checks code, not
+  only the compiler: a language without a compile step gets these checks from a
+  linter or type checker that must run in the build, and some toolchains hide whole
+  warning categories unless switched on. The error-signalling Action Protocol's
+  warning step now says the same.
+- The defect-finding Action Protocol no longer assumes a memory-unsafe language when
+  listing causes of intermittent failures: it adds orders the language does not
+  promise, such as hashed-collection iteration order, and keeps uninitialized reads
+  and use-after-free for languages that allow them.
+
+### Fixed
+
+- Two core cards stated false Python facts as examples (variadic arguments arriving
+  as a list, and integers being stored by value). Both examples are now written
+  without depending on one language, and the negative-transfer card's
+  uninitialized-variable example is stated precisely.
+
 ## 1.0.0-beta.44 - 2026-09-16
 
 ### Fixed

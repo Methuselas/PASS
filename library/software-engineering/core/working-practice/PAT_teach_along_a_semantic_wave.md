@@ -42,14 +42,14 @@ variants: []
 
 ## Do
 - Start at the top with what the concept is for and why it is worth knowing. A variadic function is useful because it lets you pass as many arguments as the situation requires.
-- **Unpack** downward into the specifics. In Python a `*` marks it, and the arguments arrive as a list — so there are not really multiple arguments, there is one argument holding all of them as elements.
+- **Unpack** downward into the specifics: the syntax that marks a variadic parameter, and what the function actually receives — not really multiple arguments, but one argument holding all of them as elements.
 - **Repack** back upward, stepping away from the details until the learner is comfortable with the general shape again. This is the step that gets skipped and the one that does the storing.
 - Support repacking explicitly by asking what the new concept has in common with things the learner already knows. The integration into long-term memory is relational — "C++ supports variadic functions, Erlang does not" is what repacking produces.
 - Give the learner both registers. Experts naturally talk in generic, abstract terms, and novices need the abstract *and* the concrete, not a choice between them.
 
 ## Don't
 - Don't **high flatline** — staying abstract throughout. A newcomer can learn that Python has variadic functions and why they are useful and, never having seen the syntax, still have everything left to learn.
-- Don't **low flatline** — opening with the details. "You make a variadic function with a `*` and Python sees the arguments as one list" means little to someone who does not yet know when to want one.
+- Don't **low flatline** — opening with the details. "Mark the parameter as variadic and the arguments arrive as one collection" means little to someone who does not yet know when to want one.
 - Don't run a **downward escalator** — descending correctly from abstract to concrete and then moving on without repacking. You have shown the why and the how and left no time to integrate either.
 - Don't assume the descent alone is the teaching. Two of the three antipatterns are failures of the return trip or of never leaving the top; only one is about the detail itself.
 

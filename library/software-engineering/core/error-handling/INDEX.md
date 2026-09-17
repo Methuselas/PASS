@@ -40,5 +40,5 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Return an Outcome and Enforce That Callers Check It](PAT_return_outcome_and_enforce_return_check.md) - pattern; 2 block. Tags: api_design, compiler_enforcement, error_handling, outcome_type.
 - [Signal Absent Values With Null Safety or Optionals](PAT_prefer_null_safety_or_optionals.md) - pattern; 2 block. Tags: error_prevention, null_safety, optionals, types.
 - [Signal One Error Several Ways and Compare the Tradeoffs](DRILL_signal_one_error_multiple_ways.md) - drill; 2 block. Tags: api_design, checked_exceptions, error_handling, result_type.
-- [Treat Compiler Warnings as Potential Bugs](PAT_treat_compiler_warnings_as_potential_bugs.md) - pattern; 3 rough. Tags: code_review, compiler_warnings, error_prevention, static_analysis.
+- [Treat Compiler Warnings as Potential Bugs](PAT_treat_compiler_warnings_as_potential_bugs.md) - pattern; 3 rough. Tags: code_review, compiler_warnings, error_prevention, linters, static_analysis.
   - Variants: `Heed C++ Warnings but Don't Depend on Them` (emphasis).

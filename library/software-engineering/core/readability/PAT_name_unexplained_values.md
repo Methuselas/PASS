@@ -46,13 +46,11 @@ variants:
 - Or name it through a function — a provider function returning the coefficient, or better a helper that performs the conversion (`usTonsToKilograms(mass)`) so callers never see the value at all.
 - If other code might reuse the value or conversion, put it in a shared public utility rather than hiding it in one class.
 - Name a value that two expressions must agree about even where its meaning is plain. Obviousness decides whether a reader understands the value and decides nothing about whether an edit to one site will be matched at the other. A window length that both trims a stored series and divides a total taken across that window explains itself perfectly well and still has to be named, because the alternative is two literals that a later change separates without any sign that it has. This reason is the stronger of the two: the readability one costs a reader time, and this one produces a wrong answer.
-- Name the string values code compares against, not only numbers. A misspelt literal is still a valid value, so the comparison is quietly false; a misspelt name is an error — reported before the program runs where a compiler or checker reads it, and otherwise only when that line executes, which on a rarely taken path may be never in testing.
 - Say which sites depend on it where the dependency is not visible from the name alone. A constant used twice in the same function needs nothing further; one whose second use is a divisor in a different function is exactly the pair a maintainer will break, and a line saying so at the definition is the cheapest guard available.
 
 ## Don't
 - Don't inline an unexplained literal; an engineer swapping `getMassUsTon()` for `getMassKg()` will not know the stray `907.1847` must also go, and silently returns wrong energy.
 - Don't conclude a value needs no name because its meaning is clear. That answers the readability question and no other, and a value whose meaning is obvious while two expressions quietly depend on it is precisely the one that survives review unnamed.
-- Don't give two meanings one name because their values coincide today. Cards in a deck and weeks in a year are both 52; a shared constant makes changing one silently change the other.
 - Don't assume the reader shares your domain knowledge — the kinetic-energy coefficients are meaningless to anyone who does not already know the formula.
 
 ## Checklist

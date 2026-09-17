@@ -6,6 +6,17 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.48 - 2026-09-17
+
+### Removed
+
+- Reverted 1.0.0-beta.45 and 1.0.0-beta.47 in full: the `languages/python` module
+  and its two cards, its release-recipe, runtime-profile and skill-description
+  registration, and every software-engineering core card and Drill edit from the
+  *Beyond the Basic Stuff with Python* run. The run skipped the second source read
+  and the third card read that `PASS/docs/PASS_RUN.md` section 2 requires, so none
+  of its output is trusted.
+
 ## 1.0.0-beta.47 - 2026-09-16
 
 ### Added

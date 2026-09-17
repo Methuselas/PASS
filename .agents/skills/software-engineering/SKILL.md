@@ -3,7 +3,7 @@ name: software-engineering
 description: >-
   Use for software design, implementation, review, debugging, refactoring,
   testing, contracts, readability, modularity, error handling, maintainability,
-  and C++ and Python work in this repository.
+  and C++ work in this repository.
 ---
 
 # Software Engineering

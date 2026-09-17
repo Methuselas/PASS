@@ -45,7 +45,7 @@ variants: []
 - Read a one-character name as a claim rather than as laziness. Naming something `i` states that it is a run-of-the-mill loop counter or array index with no significance outside these few lines, and a reader is entitled to act on that without checking.
 - Scale in both directions. Longer names serve rarely used and widely visible values better; shorter names genuinely do serve local and loop variables better, so this is not a one-way push toward length.
 - Promote the name the moment the value outlives its loop. Something counting records that is still wanted after the loop finishes is `recordCount`, and calling it `i` misreports its reach.
-- Name nested loop indices for what they index. `score[teamIndex][eventIndex]` states which subscript is which; `score[i][j]` makes the reader remember. The specific failure this prevents is index cross-talk — writing `i` in the place where `j` was meant, which no compiler or type checker can catch, because both are in scope and both are integers.
+- Name nested loop indices for what they index. `score[teamIndex][eventIndex]` states which subscript is which; `score[i][j]` makes the reader remember. The specific failure this prevents is index cross-talk — writing `i` in the place where `j` was meant, which the compiler cannot catch because both are in scope and both are integers.
 - Keep `i`, `j`, and `k` for simple loop indices if you use them at all. The convention is established firmly enough that borrowing them for anything else is worse than picking a fresh name.
 
 ## Don't

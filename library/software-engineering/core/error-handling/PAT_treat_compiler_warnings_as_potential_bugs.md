@@ -16,7 +16,6 @@ tags:
 - compiler_warnings
 - error_prevention
 - static_analysis
-- linters
 - code_review
 cross_links:
 - rel: related_to
@@ -43,32 +42,29 @@ variants:
 # Treat Compiler Warnings as Potential Bugs
 
 ## Pattern Rule
-**IF** a tool that checks your code — compiler, interpreter, linter or type checker — emits a warning about it
-**THEN** treat it as an early sign of a possible bug and act on it — fix the underlying issue, or suppress that specific warning with a documented reason — rather than dismissing it because the code still builds and runs.
+**IF** the compiler emits a warning about your code
+**THEN** treat it as an early sign of a possible bug and act on it — fix the underlying issue, or suppress that specific warning with a documented reason — rather than dismissing it because the code still compiles.
 
 ## Do
 - Read what the warning is really telling you: "private member `displayName` can be removed as the value assigned to it is never read" is the compiler pointing straight at a `getDisplayName()` that wrongly returns the real name.
 - Configure warnings as errors where you can, so warnings cannot be silently ignored and every one must be addressed.
-- Know which tool is the warning source for each class of defect. Where the language has no compile step, or its compiler checks little, the checks a compiler would run live in a separate linter or type checker, and a checker that is not part of the build warns nobody — an undefined name can pass every step until the line that uses it runs. Make those tools part of the shared build rather than an editor preference.
-- Confirm that a quiet run is quiet because nothing fired. Some toolchains hide whole categories of warning by default — a deprecation raised inside a dependency can print nothing — so switch every category on, or into errors, in the build and test runs, where the warning reaches someone able to act on it.
 - When a warning is genuinely a false alarm, suppress just that warning with an explanation — a targeted `@Suppress("unused")` plus a comment and an issue link — never by turning warnings off wholesale.
 - Check that a project-wide setting is actually one setting. A build supporting several toolchains configures each of them separately, and two flag sets chosen independently do not report the same defects — one may name a narrowing conversion that the other passes in silence, and neither list announces what it is missing relative to the other. Establish which supported build is weakest on the classes of defect you care about, because that is the one every contributor is really gated by, and a defect the strict build reports is not caught if the lenient one is what runs.
-- Fix the warning level itself as a project-wide setting rather than a personal one. Where each author builds at their own level, the warnings are clean for everyone individually and a flood appears the moment the parts are integrated, which is the worst time to meet them. A shared build script or make file makes the setting the default rather than a matter of discipline.
+- Fix the warning level itself as a project-wide setting rather than a personal one. Where each author compiles at their own level, the warnings are clean for everyone individually and a flood appears the moment the parts are integrated, which is the worst time to meet them. A shared build script or make file makes the setting the default rather than a matter of discipline.
 
 ## Don't
 - Don't dismiss warnings as unimportant because the build passed; an ignored one here hides a bug that leaks a user's real name in place of their display name.
 - Don't silence warnings globally to make them go away; suppress the specific case and record why.
 
 ## Checklist
-- Has every warning, from every checking tool, been either fixed or explicitly suppressed with a reason?
+- Has every compiler warning been either fixed or explicitly suppressed with a reason?
 - Does each suppression name why it is safe, ideally with a tracking link?
 - Are warnings configured to fail the build so none slip through unnoticed?
-- Does the build run every checking tool, with any warning categories hidden by default switched on?
 - Is the warning level set by the project's build, or by whatever each person happens to have configured?
 - If more than one toolchain is supported, do their settings catch the same classes of defect,
   and which of them is the weakest?
 
 ## Notes
-Long's `UserInfo` example shows a warning catching a real, privacy-violating bug that tests might have missed: an unused-field warning is the visible symptom of a getter returning the wrong field. The rule extends the idea of making breakage fail at compile time — warnings are the toolchain's softer signal of suspicious code, and the disciplined end state is a clean build where every warning has been fixed or suppressed with a documented, valid reason.
+Long's `UserInfo` example shows a warning catching a real, privacy-violating bug that tests might have missed: an unused-field warning is the visible symptom of a getter returning the wrong field. The rule extends the idea of making breakage fail at compile time — warnings are the compiler's softer signal of suspicious code, and the disciplined end state is a clean build where every warning has been fixed or suppressed with a documented, valid reason.
 
 Variant `VAR_cpp_warnings_implementation_dependent` (Effective C++, Item 53) adds a C++-specific caveat: a compiler warning that "D::f() hides virtual B::f()" is really flagging a botched override (a const mismatch that hides rather than redefines the base function), so understand each warning before dismissing it — but because warnings are implementation-dependent, compile warning-free at the maximum level while never *depending* on a given warning to catch a mistake, since another compiler may accept the same code silently. Use this emphasis when writing portable C++ across compilers.

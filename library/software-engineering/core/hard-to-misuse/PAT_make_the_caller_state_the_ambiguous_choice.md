@@ -45,12 +45,12 @@ variants: []
 ## Do
 - Choose a parameter type that only spells one meaning, so writing the call is what states the choice. A parameter whose type says the argument is being handed over cannot be confused with one that says it is only being read.
 - Accept that the caller types more. The extra typing is the mechanism, not a cost of it — a reader of the call site learns the answer without opening the callee, and that is what was bought.
-- Prefer a distinguishing type over a positional flag. A bare `true` at the call site restates the ambiguity rather than resolving it, since the reader cannot tell which way round it goes; where a boolean is the honest shape, require it by name so the call reads `reverse=True`.
+- Prefer a distinguishing type over a flag argument. A boolean at the call site restates the ambiguity rather than resolving it, since the reader still cannot tell which way round it goes.
 - Where the ambiguity is about lifetime or ownership, resolve it here rather than in documentation. Ownership questions answered silently are answered again by every reader, and eventually one of them answers wrong.
 
 ## Don't
-- Don't resolve it by picking the reading that is right most of the time. The remaining cases do not fail loudly; they run and do the other thing, and the call site records no evidence that a choice was made at all.
-- Don't rely on the name alone where the types still permit both readings. A name is a claim about intent; a type is a constraint the compiler or type checker applies, and only the second one holds when someone edits the call later.
+- Don't resolve it by picking the reading that is right most of the time. The remaining cases do not fail loudly; they compile, run, and do the other thing, and the call site records no evidence that a choice was made at all.
+- Don't rely on the name alone where the types still permit both readings. A name is a claim about intent; a type is a constraint the compiler applies, and only the second one holds when someone edits the call later.
 - Don't optimize the interface for how little the caller has to type. Fewer characters at the call site is worth having only where nothing ambiguous was elided to get there.
 - Don't answer it in a comment above the function. The confusion happens at the call site, which does not show the comment, and this is the class of mistake that is not discovered by reading the callee.
 

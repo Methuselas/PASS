@@ -31,14 +31,14 @@ variants: []
 # Follow a Consistent Coding Style Guide
 
 ## Pattern Rule
-**IF** a stylistic choice is not dictated by the language — naming casing, indentation width, feature usage, file layout
+**IF** a stylistic choice is not dictated by the compiler — naming casing, indentation, feature usage, file layout
 **THEN** follow the team's agreed coding style guide, because a shared style lets readers rely on conventions to understand code correctly.
 
 ## Do
 - Lean on convention as information: with PascalCase classes and camelCase variables, `ConnectionManager.terminateAll()` reads unmistakably as a call into a class that likely touches global state.
 - Adopt the team or organization style guide as-is where one exists; where none does, take an off-the-shelf one such as a published language style guide rather than inventing conventions.
 - Run a linter to catch style-guide violations and some error-prone patterns automatically, as a cheap first pass.
-- Settle the conventions before construction starts, alongside picking the revision control tool and the toolchain version. Naming, commenting, and layout conventions are specified at a granularity that makes them nearly impossible to retrofit into code that already exists, so the window for the decision closes early.
+- Settle the conventions before construction starts, alongside picking the revision control tool and the compiler version. Naming, commenting, and layout conventions are specified at a granularity that makes them nearly impossible to retrofit into code that already exists, so the window for the decision closes early.
 - Where the choice is genuinely yours — a new project, or a language whose ecosystem has not settled it — pick camel case. It is the one place the evidence favours a specific convention rather than merely a consistent one.
 - Settle the identity-laden conventions mechanically instead of arguing them. Indentation, brace placement, and commenting style are matters of personal style before they are matters of engineering, so run the source through a formatter as a condition of being finished and let the tool make the choice nobody has to concede.
 

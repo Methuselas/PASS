@@ -25,7 +25,7 @@ reference:
   author: Blu + Admin
 confidence: high
 references:
-- image_path: library/art/foundations/form-construction/assets/source_staged_figure_process_1.png
+- image_path: library/art/foundations/form-construction/assets/source_staged_figure_process_1.jpg
   caption: The Step 1 framework becomes oriented head, torso, pelvic, limb, hand, and foot masses before anatomy and final
     contour are added.
   derived_from: universal_step_zero_four_stage_workflow, staged figure process 1

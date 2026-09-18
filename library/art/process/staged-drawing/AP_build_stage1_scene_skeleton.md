@@ -40,7 +40,7 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.jpg
   caption: 'Canonical Broken Gate Stage 1 scene-wide skeleton: the exact accepted
     Stage 0 picture is carried forward as sparse figure gesture/skeleton construction
     plus scene perspective, axes, planes, and object scaffolds.'
@@ -48,7 +48,7 @@ references:
     1
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage1_mannequin_mass_leakage_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage1_mannequin_mass_leakage_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL Stage 1 negative precedent: the scene scaffold
     is structural but humanoids leak Stage 2 mass through cylindrical limbs, solid
     torso volumes, and mannequin joints.'

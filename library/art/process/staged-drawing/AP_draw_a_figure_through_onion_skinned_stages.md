@@ -59,12 +59,12 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.jpg
   caption: 'Canonical Stage 1 authority: sparse scene-wide skeleton construction locates figure action, joints, contacts, perspective, axes, and object frames without Stage 2 mannequin mass.'
   derived_from: guided Broken Gate canonical Drawing precedent run, accepted Stage 1
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/precedent_stage2_observatory_complete_mass_block.png
+- image_path: library/art/process/staged-drawing/assets/precedent_stage2_observatory_complete_mass_block.jpg
   caption: Approved Stage 2 demonstrates complete minimum-mass inventory and controlled expansion from Stage 1.
   derived_from: guided observatory Stage 2 review
   origin: first_party_source

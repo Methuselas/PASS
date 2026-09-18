@@ -37,52 +37,52 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.jpg
   caption: 'Primary universal Stage 0 density authority: a low-information composition root that locks broad picture decisions without developed anatomy, materials, texture, or downstream finish.'
   derived_from: guided Broken Gate canonical Drawing precedent run, accepted Stage 0
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.jpg
   caption: 'Primary Stage 1 authority: the accepted Stage 0 picture carried forward as a sparse scene-wide skeleton of figure gesture/joints, perspective, axes, planes, contacts, and object scaffolds without mannequin mass.'
   derived_from: guided Broken Gate canonical Drawing precedent run, accepted Stage 1
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage2_canonical_complete_mass.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage2_canonical_complete_mass.jpg
   caption: 'Primary Stage 2 authority: complete minimum mass for figures, props, architecture, and environment without premature finish.'
   derived_from: guided Broken Gate canonical Drawing precedent run, accepted Stage 2
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage3_canonical_specific_rough.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage3_canonical_specific_rough.jpg
   caption: 'Primary Stage 3 authority: specific rough/developed pencils establish anatomy, design, props, and architecture while remaining visibly rough and below Drawing closure.'
   derived_from: guided Broken Gate canonical Drawing precedent run, accepted Stage 3
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/positive/broken_gate_stage4_positive_warm_hooded_warrior.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/positive/broken_gate_stage4_positive_warm_hooded_warrior.jpg
   caption: 'CURRENT POSITIVE Stage 4 quality evidence: a strong warm/context-exposed Finished-Pencils successor with resolved lead-face specificity, clear contour decisions, functional spear handling, coherent architecture, and cross-medium Drawing readability. Use as the current stronger quality example, not as cold-retention evidence.'
   derived_from: revised-source warm/context-exposed Broken Gate Stage 4 retest, independently accepted by Dev and Audit on 2026-08-23
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/positive/broken_gate_stage4_positive_clean_retention_spear_runner.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/positive/broken_gate_stage4_positive_clean_retention_spear_runner.jpg
   caption: 'POSITIVE COLD-RETENTION Stage 4 evidence: a genuinely fresh chat independently crossed the Stage 3 to Finished-Pencils boundary under the revised source without warm teaching. The pencil language is somewhat more tonal and the focal face is weaker than the warm quality example, but Drawing closure, continuity, functional readability, and successor-readiness pass.'
   derived_from: revised-source genuinely fresh Broken Gate Stage 4 retention test, independently accepted by Dev and Audit on 2026-08-23
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.jpg
   caption: 'HISTORICAL / UNDER-RESOLVED Stage 4 evidence retained at its legacy path. Later practical testing showed that it is too permissive as a Finished-Pencils quality floor. Use it to recognize under-resolution, not to set a universal Stage 4 mark-density target.'
   derived_from: guided Broken Gate Stage 4 run, later superseded as a positive finish-quality authority by practical retest evidence
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage1_mannequin_mass_leakage_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage1_mannequin_mass_leakage_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL Stage 1 negative precedent: humanoids leak Stage 2 mass through cylindrical limbs, solid torso volume, developed body thickness, and mannequin-style volumetric joints.'
   derived_from: guided Broken Gate Stage 1 rejection and correction
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage3_mixed_stage_environment_ahead_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage3_mixed_stage_environment_ahead_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL Stage 3 negative precedent: the environment advances toward late rendering while figures remain Stage 2 masses.'
   derived_from: guided Broken Gate Stage 3 rejection, mixed-stage failure
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage3_late_surface_drift_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage3_late_surface_drift_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL Stage 3 near-hit: figure specificity is healthy but surface density and line finish drift toward Drawing closure.'
   derived_from: guided Broken Gate Stage 3 tightening review
   origin: first_party_source
@@ -98,15 +98,15 @@ variants: []
 
 ## Do
 - Use the Broken Gate Stages 0–3 sequence under `assets/broken-gate/canonical/` as the **primary positive sequential precedent for registered continuity and Stage 0→3 information separation**. Read it as one composition increasing in Drawing-decision resolution, not as independent style samples.
-- Treat universal Stage 0 as **one cheap, low-information composition ceiling**. Calibrate first against `broken_gate_stage0_canonical_composition.png`: camera, crop/framing, broad subject placement and scale relationships, major silhouettes/masses, leading lines/depth path, negative spaces, hierarchy, and only a broad value/light proposition. Withhold developed anatomy, detailed object construction, materials, texture, finished color, polished lighting, and near-final environment description.
-- Use `precedent_stage0a_standard_marker_chimera.png` only as a supplementary rough mark-language comparator when its broad masses and blunt identifiers remain at or below the Broken Gate Stage 0 ceiling.
+- Treat universal Stage 0 as **one cheap, low-information composition ceiling**. Calibrate first against `broken_gate_stage0_canonical_composition.jpg`: camera, crop/framing, broad subject placement and scale relationships, major silhouettes/masses, leading lines/depth path, negative spaces, hierarchy, and only a broad value/light proposition. Withhold developed anatomy, detailed object construction, materials, texture, finished color, polished lighting, and near-final environment description.
+- Use `precedent_stage0a_standard_marker_chimera.jpg` only as a supplementary rough mark-language comparator when its broad masses and blunt identifiers remain at or below the Broken Gate Stage 0 ceiling.
 - For open composition search, preserve the brief's fixed scene inventory while exploring genuinely different camera/spatial propositions, but keep every candidate under the single universal Stage 0 ceiling. **Do not use any contact sheet, process sheet, or multi-panel image as a productive Stage 0 artifact-form precedent.** A multi-candidate search changes alternatives, not stage density, and each alternative remains its own image artifact.
 - When Stage 0 potential is uncertain, apply `PAT_backcast_stage0_from_stage4_visual_proposition`: imagine the same fixed design as a resolved Stage 4 finished-pencil drawing, collapse it to low-frequency structure, and confirm that the rough composition and simplified finish recover the same proposition without moving major forms.
-- For Stage 1, calibrate first against `broken_gate_stage1_canonical_scene_skeleton.png`: the whole scene should reduce to a sparse skeleton of action lines, head/torso/pelvis orientation primitives, limb centerlines, joint points, contacts, perspective guides, object axes, centerlines, and simple frames. A source may call a conceptual pose scaffold a *mannikin*, but visible cylindrical limbs, solid torso/pelvis bulk, volumetric mannequin joints, developed anatomy, value design, materials, lighting, atmosphere, or texture are Stage 2-or-later information.
-- For Stage 2, calibrate first against `broken_gate_stage2_canonical_complete_mass.png`, with `precedent_stage2_observatory_complete_mass_block.png` as a supplementary comparator. Every important scene object advances together into connected minimum solid form. Stop before design-specific anatomy/surface detail, material rendering, atmosphere, or polished contour.
-- For Stage 3, calibrate first against `broken_gate_stage3_canonical_specific_rough.png`. Spend the major information increase on **specificity**—anatomy, clothing/gear, props, architecture, object identity, designed silhouette, and rough form/value relationships—while retaining visible exploratory mark behavior and meaningful Drawing-resolution work for Stage 4. Use the Broken Gate mixed-stage and late-surface negatives to reject uneven advancement or premature finish, and retain the observatory drift image as a continuity failure.
+- For Stage 1, calibrate first against `broken_gate_stage1_canonical_scene_skeleton.jpg`: the whole scene should reduce to a sparse skeleton of action lines, head/torso/pelvis orientation primitives, limb centerlines, joint points, contacts, perspective guides, object axes, centerlines, and simple frames. A source may call a conceptual pose scaffold a *mannikin*, but visible cylindrical limbs, solid torso/pelvis bulk, volumetric mannequin joints, developed anatomy, value design, materials, lighting, atmosphere, or texture are Stage 2-or-later information.
+- For Stage 2, calibrate first against `broken_gate_stage2_canonical_complete_mass.jpg`, with `precedent_stage2_observatory_complete_mass_block.jpg` as a supplementary comparator. Every important scene object advances together into connected minimum solid form. Stop before design-specific anatomy/surface detail, material rendering, atmosphere, or polished contour.
+- For Stage 3, calibrate first against `broken_gate_stage3_canonical_specific_rough.jpg`. Spend the major information increase on **specificity**—anatomy, clothing/gear, props, architecture, object identity, designed silhouette, and rough form/value relationships—while retaining visible exploratory mark behavior and meaningful Drawing-resolution work for Stage 4. Use the Broken Gate mixed-stage and late-surface negatives to reject uneven advancement or premature finish, and retain the observatory drift image as a continuity failure.
 - **Treat Stage 4 as an explicit calibration exception.** Stage 4 has a **resolution threshold, not one universal rendering-density threshold**. Comic/production pencils, expressive line pencils, tonal graphite, and dense rendered pencil work may differ radically in hatch, tone, white paper, texture, contour density, edge softness, and graphite coverage while still closing Drawing. Calibrate Stage 4 against `AP_finish_stage4_as_finished_pencils`, the exact approved Stage 3 predecessor, and any validated pencil-language-specific positive references; judge whether important Drawing decisions are intentional and closed rather than whether the surface matches one precedent's density.
-- **Current Stage 4 positive visual calibration is validated and current.** Use `positive/broken_gate_stage4_positive_warm_hooded_warrior.png` as the stronger current quality example and `positive/broken_gate_stage4_positive_clean_retention_spear_runner.png` as clean fresh-chat retention evidence. Neither image establishes one universal mark-density target, and neither must remain the permanent primary reference if a stronger validated Stage 4 artifact appears later. `broken_gate_stage4_canonical_finished_pencils.png` remains historical under-resolved evidence only.
+- **Current Stage 4 positive visual calibration is validated and current.** Use `positive/broken_gate_stage4_positive_warm_hooded_warrior.jpg` as the stronger current quality example and `positive/broken_gate_stage4_positive_clean_retention_spear_runner.jpg` as clean fresh-chat retention evidence. Neither image establishes one universal mark-density target, and neither must remain the permanent primary reference if a stronger validated Stage 4 artifact appears later. `broken_gate_stage4_canonical_finished_pencils.jpg` remains historical under-resolved evidence only.
 - Preserve the Rendering ownership firewall during Stage 4 calibration. Dense or tonal graphite does not inherently mean unfinished Drawing, but separately owned appearance development—such as developed light/value/material/atmosphere/edge work beyond Drawing closure—does not become Drawing merely because the physical medium is pencil.
 - Perform calibration twice: before generation to set the stage job, and after generation to inspect the actual artifact rather than trusting its label.
 - When a Stage 0–3 result misses its information class, remove or add the earliest class of information responsible. When Stage 4 misses, diagnose unresolved Drawing decisions, accidental hierarchy, exploratory/redundant marks, upstream drift, or downstream-ownership leakage rather than forcing the image toward one mark-density target.

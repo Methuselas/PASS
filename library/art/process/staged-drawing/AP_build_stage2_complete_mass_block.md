@@ -38,7 +38,7 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage2_canonical_complete_mass.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage2_canonical_complete_mass.jpg
   caption: 'Canonical Broken Gate Stage 2 complete minimum-mass construction: every
     major figure, prop, architecture element, and environment relationship is solidified
     without premature finish.'

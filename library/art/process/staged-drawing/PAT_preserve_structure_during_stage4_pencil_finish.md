@@ -32,22 +32,22 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/positive/broken_gate_stage4_positive_warm_hooded_warrior.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/positive/broken_gate_stage4_positive_warm_hooded_warrior.jpg
   caption: 'CURRENT POSITIVE Stage 4 quality evidence: a strong warm/context-exposed Finished-Pencils successor with resolved lead-face specificity, clear contour decisions, functional spear handling, coherent architecture, and cross-medium Drawing readability. Use as the current stronger quality example, not as cold-retention evidence.'
   derived_from: revised-source warm/context-exposed Broken Gate Stage 4 retest, independently accepted by Dev and Audit on 2026-08-23
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/positive/broken_gate_stage4_positive_clean_retention_spear_runner.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/positive/broken_gate_stage4_positive_clean_retention_spear_runner.jpg
   caption: 'POSITIVE COLD-RETENTION Stage 4 evidence: a genuinely fresh chat independently crossed the Stage 3 to Finished-Pencils boundary under the revised source without warm teaching. The pencil language is somewhat more tonal and the focal face is weaker than the warm quality example, but Drawing closure, continuity, functional readability, and successor-readiness pass.'
   derived_from: revised-source genuinely fresh Broken Gate Stage 4 retention test, independently accepted by Dev and Audit on 2026-08-23
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.jpg
   caption: 'HISTORICAL / UNDER-RESOLVED Stage 4 evidence retained at its legacy path. It preserves much of the approved scene but later testing showed that too much exploratory/busy pencil activity survived; use it as failure evidence for finish-quality calibration, not as the positive Finished-Pencils floor.'
   derived_from: guided Broken Gate Stage 4 run, later superseded as a positive finish-quality authority by practical retest evidence
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage4_edit_target_near_regeneration_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage4_edit_target_near_regeneration_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL Stage 4 debugging precedent: a local tightening request lacked reliable access to the exact accepted predecessor and produced a near-reconstruction with no material targeted improvement.'
   derived_from: guided Broken Gate Stage 4 edit-target failure review
   origin: first_party_source

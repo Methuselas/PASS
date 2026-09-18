@@ -38,7 +38,7 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage3_canonical_specific_rough.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage3_canonical_specific_rough.jpg
   caption: 'Canonical Broken Gate Stage 3 specific rough/developed pencils: anatomy,
     clothing/gear, pursuers, spear handling, architecture, wagon, rubble, and road
     become specific while remaining visibly rough and below finished-pencil density.'
@@ -46,14 +46,14 @@ references:
     3
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage3_mixed_stage_environment_ahead_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage3_mixed_stage_environment_ahead_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL Stage 3 negative precedent: the environment advances
     toward late rendering while the courier and pursuers remain Stage 2 mannequin
     masses.'
   derived_from: guided Broken Gate Stage 3 rejection, mixed-stage failure
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage3_late_surface_drift_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage3_late_surface_drift_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL Stage 3 near-hit: figure specificity is healthy
     but masonry, rubble, wagon, road, and dense line finish overconsume the information
     budget and drift toward finished pencils.'

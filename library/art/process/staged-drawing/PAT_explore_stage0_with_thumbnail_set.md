@@ -30,7 +30,7 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.jpg
   caption: 'Primary universal Stage 0 density authority: a cheap, low-information composition root that resolves camera, framing, placement, major silhouettes/masses, negative spaces, depth path, and broad value/light without developed anatomy, materials, or finish.'
   derived_from: guided Broken Gate canonical Drawing precedent run, accepted Stage 0
   origin: first_party_source

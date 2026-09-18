@@ -32,13 +32,13 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/precedent_stage2_observatory_complete_mass_block.png
+- image_path: library/art/process/staged-drawing/assets/precedent_stage2_observatory_complete_mass_block.jpg
   caption: 'Positive parent precedent: Stage 3 must reveal the specific observatory already contained in these approved masses
     rather than replace them with a new scene.'
   derived_from: approved observatory Stage 2
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/failure_stage3_observatory_composition_drift.png
+- image_path: library/art/process/staged-drawing/assets/failure_stage3_observatory_composition_drift.jpg
   caption: 'Negative continuity precedent: rich rendering, lighting, and detail cannot compensate for changing the figure
     action, telescope role, window location, inventory, camera, and overall composition.'
   derived_from: rejected observatory Stage 3 attempt

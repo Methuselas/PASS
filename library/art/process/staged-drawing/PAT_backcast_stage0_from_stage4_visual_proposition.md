@@ -30,12 +30,12 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.jpg
   caption: 'Primary Stage 0 authority for the Rosetta test: a low-information composition root that preserves the complete picture proposition without downstream detail.'
   derived_from: guided Broken Gate canonical Drawing precedent run, accepted Stage 0
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.jpg
   caption: 'Historical Stage 4 counterpart retained for composition-continuity evidence only: the registered Stage 0 proposition survives forward, but later testing demoted this image from positive Finished-Pencils quality authority.'
   derived_from: guided Broken Gate Stage 4 run, later superseded as a positive finish-quality authority by practical retest evidence
   origin: first_party_source

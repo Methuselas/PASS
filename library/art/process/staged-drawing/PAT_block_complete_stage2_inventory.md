@@ -32,7 +32,7 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/precedent_stage2_observatory_complete_mass_block.png
+- image_path: library/art/process/staged-drawing/assets/precedent_stage2_observatory_complete_mass_block.jpg
   caption: 'Approved Stage 2 observatory block-in: every intended Stage 3 subject is present at minimum solid form, the Stage
     1 layout remains intact, and the drawing avoids lighting, texture, and decorative rendering.'
   derived_from: guided observatory Stage 2 review and human approval

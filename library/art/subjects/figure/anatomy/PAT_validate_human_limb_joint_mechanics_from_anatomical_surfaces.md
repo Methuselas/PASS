@@ -33,7 +33,7 @@ reference:
   author: Multiple accepted sources + MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/subjects/figure/anatomy/assets/limb-mechanics/negative/blu_corkscrew_bullet_dodge_reversed_left_leg.png
+- image_path: library/art/subjects/figure/anatomy/assets/limb-mechanics/negative/blu_corkscrew_bullet_dodge_reversed_left_leg.jpg
   caption: 'NEGATIVE / FAILURE EVIDENCE: the left lower leg emerges with a reversed knee relationship despite otherwise persuasive rendering and attachment continuity. Judge the joint from anatomical front/back surfaces and segment relationships, not from screen direction or polish.'
   derived_from: live Work render reviewed during the 2026-08-24 limb-mechanics repair
   origin: first_party_source

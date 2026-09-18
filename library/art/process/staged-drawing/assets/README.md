@@ -13,7 +13,7 @@ The `broken-gate/` subtree is the registered-successor Drawing precedent. Positi
 
 Broken Gate Stage 0 is the primary universal Stage 0 density authority and Broken Gate Stage 1 is the primary positive Stage 1 authority. Stages 2–3 remain positive sequential calibration authorities.
 
-The file retained at `broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.png` is **historical under-resolved Stage 4 evidence**, not the current positive Finished-Pencils quality floor. Later practical cold testing reproduced its under-resolution. Stage 4 positive visual calibration coverage is temporarily incomplete until a new successor is explicitly validated.
+The file retained at `broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.jpg` is **historical under-resolved Stage 4 evidence**, not the current positive Finished-Pencils quality floor. Later practical cold testing reproduced its under-resolution. Stage 4 positive visual calibration coverage is temporarily incomplete until a new successor is explicitly validated.
 
 Files under `broken-gate/debug/` are explicitly INVALID / NON-CANONICAL negative precedents for:
 
@@ -24,11 +24,11 @@ Files under `broken-gate/debug/` are explicitly INVALID / NON-CANONICAL negative
 
 ## Bounded supplementary runtime evidence
 
-- `precedent_stage0a_standard_marker_chimera.png` — rough mark-language comparator only when used at or below the Broken Gate Stage 0 information ceiling.
+- `precedent_stage0a_standard_marker_chimera.jpg` — rough mark-language comparator only when used at or below the Broken Gate Stage 0 information ceiling.
 
 The historical observatory Stage 0 contact-sheet precedent has been removed from active runtime evidence. It remains development history only: **production-sheet form is not a current Stage 0 artifact-form authority.**
-- `precedent_stage2_observatory_complete_mass_block.png` — supplementary Stage 2 minimum-mass comparator.
-- `failure_stage3_observatory_composition_drift.png` — negative continuity example for Stage 3 fresh-generation drift.
+- `precedent_stage2_observatory_complete_mass_block.jpg` — supplementary Stage 2 minimum-mass comparator.
+- `failure_stage3_observatory_composition_drift.jpg` — negative continuity example for Stage 3 fresh-generation drift.
 
 ## Legacy material
 

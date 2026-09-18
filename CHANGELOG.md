@@ -6,6 +6,28 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.49 - 2026-09-17
+
+### Added
+
+- Stateless ordinary-authoring preflight controller with exact record fields,
+  contiguous unit IDs, explicit card-potential forecasts, and overlap resolution
+  against the active domain's live cards. The repository test suite includes its
+  gate checks and malformed-input regressions.
+
+### Changed
+
+- Merged tested authoring doctrine: canonical-instruction load gate, provisional
+  first-read cards and secondary-subject flags, full second rereads with exclusive
+  reasoned dispositions, semantic and identity checks on the third card read,
+  completion stamps, explicit empty delta buckets, and reasoned taxonomy changes.
+  Only preflight is currently Python-enforced; the three reads remain model
+  procedure.
+- Converted all 17 Art PNG reference assets to JPEG at quality 90, retaining
+  dimensions, asset review sidecars, and the frozen Art Stage instructions.
+  Updated asset links and format-dependent checks. Reference image bytes fell
+  from 23,504,899 to 7,656,950 (67.4 percent smaller).
+
 ## 1.0.0-beta.48 - 2026-09-17
 
 ### Removed

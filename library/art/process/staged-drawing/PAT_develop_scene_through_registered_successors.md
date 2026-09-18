@@ -34,7 +34,7 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.jpg
   caption: 'Canonical Broken Gate Stage 0 composition root: low-information rough
     locks the low three-quarter camera, courier/spear diagonal, wagon anchor, gate
     framing, pursuer arrangement, road depth path, and major negative spaces without
@@ -43,7 +43,7 @@ references:
     0
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.jpg
   caption: 'Canonical Broken Gate Stage 1 scene-wide skeleton: the exact accepted
     Stage 0 picture is carried forward as sparse figure gesture/skeleton construction
     plus scene perspective, axes, planes, and object scaffolds.'
@@ -51,7 +51,7 @@ references:
     1
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage2_canonical_complete_mass.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage2_canonical_complete_mass.jpg
   caption: 'Canonical Broken Gate Stage 2 complete minimum-mass construction: every
     major figure, prop, architecture element, and environment relationship is solidified
     without premature finish.'
@@ -59,7 +59,7 @@ references:
     2
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage3_canonical_specific_rough.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage3_canonical_specific_rough.jpg
   caption: 'Canonical Broken Gate Stage 3 specific rough/developed pencils: anatomy,
     clothing/gear, pursuers, spear handling, architecture, wagon, rubble, and road
     become specific while remaining visibly rough and below finished-pencil density.'
@@ -67,12 +67,12 @@ references:
     3
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage4_canonical_finished_pencils.jpg
   caption: 'Historical Broken Gate Stage 4 successor evidence: useful for registered-continuity review, but later practical testing demoted it from positive Finished-Pencils quality authority because its finish remained under-resolved.'
   derived_from: guided Broken Gate Stage 4 run, later superseded as a positive finish-quality authority by practical retest evidence
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage4_edit_target_near_regeneration_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage4_edit_target_near_regeneration_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL Stage 4 debugging precedent: a local tightening
     request lacked reliable access to the exact accepted predecessor and produced
     a near-reconstruction with no material targeted improvement; it is invalid exact-edit-target evidence and must not be used as a successor authority.'

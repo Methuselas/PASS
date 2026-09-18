@@ -7,17 +7,17 @@ Guided review date: 2026-08-21. Stage 4 finish-quality status revised after prac
 
 `canonical/` retains the accepted registered-successor files. Positive calibration authority currently covers:
 
-1. `broken_gate_stage0_canonical_composition.png` — Search / Composition root.
-2. `broken_gate_stage1_canonical_scene_skeleton.png` — Framework / scene-wide structural skeleton.
-3. `broken_gate_stage2_canonical_complete_mass.png` — Complete minimum-mass construction.
-4. `broken_gate_stage3_canonical_specific_rough.png` — Specific rough / developed pencils.
+1. `broken_gate_stage0_canonical_composition.jpg` — Search / Composition root.
+2. `broken_gate_stage1_canonical_scene_skeleton.jpg` — Framework / scene-wide structural skeleton.
+3. `broken_gate_stage2_canonical_complete_mass.jpg` — Complete minimum-mass construction.
+4. `broken_gate_stage3_canonical_specific_rough.jpg` — Specific rough / developed pencils.
 
-The legacy path `canonical/broken_gate_stage4_canonical_finished_pencils.png` is retained for reference stability, but **later cold testing reproduced its under-resolved finish behavior**. It is no longer an unqualified positive Finished-Pencils quality authority. Treat it as historical evidence of a Stage 4 attempt that preserved much of the lineage but left the terminal Drawing threshold too permissive.
+The legacy path `canonical/broken_gate_stage4_canonical_finished_pencils.jpg` is retained for reference stability, but **later cold testing reproduced its under-resolved finish behavior**. It is no longer an unqualified positive Finished-Pencils quality authority. Treat it as historical evidence of a Stage 4 attempt that preserved much of the lineage but left the terminal Drawing threshold too permissive.
 
 Stage 4 positive visual calibration is now **provisionally restored** under `positive/` with two independently reviewed artifacts:
 
-- `positive/broken_gate_stage4_positive_warm_hooded_warrior.png` — current stronger Stage 4 quality example from a warm/context-exposed retest. Use for positive Finished-Pencils quality calibration, not as cold-retention proof.
-- `positive/broken_gate_stage4_positive_clean_retention_spear_runner.png` — genuinely fresh-chat Stage 4 retention evidence. It is somewhat more tonal and locally weaker in the focal face than the warm quality example, but it independently passes Drawing closure and successor-readiness.
+- `positive/broken_gate_stage4_positive_warm_hooded_warrior.jpg` — current stronger Stage 4 quality example from a warm/context-exposed retest. Use for positive Finished-Pencils quality calibration, not as cold-retention proof.
+- `positive/broken_gate_stage4_positive_clean_retention_spear_runner.jpg` — genuinely fresh-chat Stage 4 retention evidence. It is somewhat more tonal and locally weaker in the focal face than the warm quality example, but it independently passes Drawing closure and successor-readiness.
 
 These are **provisional positive references, not a permanent single universal surface target**. A stronger future Stage 4 artifact may supersede one or both without changing the Stage 4 closure contract.
 
@@ -35,10 +35,10 @@ Both reinforce the same invariant: **Finished Pencils is a resolved state of Dra
 
 Everything under `debug/` is **INVALID / NON-CANONICAL** and must not be treated as an alternate stage or successor:
 
-- `broken_gate_debug_stage1_mannequin_mass_leakage_INVALID.png` — Stage 1 humanoids leak Stage 2 mass.
-- `broken_gate_debug_stage3_mixed_stage_environment_ahead_INVALID.png` — environment advances while figures remain mannequins.
-- `broken_gate_debug_stage3_late_surface_drift_INVALID.png` — healthy specificity but excessive surface finish pushes the whole image too late.
-- `broken_gate_debug_stage4_edit_target_near_regeneration_INVALID.png` — local Stage 4 tightening request produced a near-regeneration when the exact accepted edit target was not reliably available; no material targeted improvement.
+- `broken_gate_debug_stage1_mannequin_mass_leakage_INVALID.jpg` — Stage 1 humanoids leak Stage 2 mass.
+- `broken_gate_debug_stage3_mixed_stage_environment_ahead_INVALID.jpg` — environment advances while figures remain mannequins.
+- `broken_gate_debug_stage3_late_surface_drift_INVALID.jpg` — healthy specificity but excessive surface finish pushes the whole image too late.
+- `broken_gate_debug_stage4_edit_target_near_regeneration_INVALID.jpg` — local Stage 4 tightening request produced a near-regeneration when the exact accepted edit target was not reliably available; no material targeted improvement.
 
 ## Architecture demonstrated
 

@@ -44,8 +44,8 @@ class Stage4ClosureContractTests(unittest.TestCase):
         self.assertIn("Stage 4 as an explicit calibration exception", self.calibration)
         self.assertIn("resolution threshold, not one universal rendering-density threshold", self.calibration)
         self.assertIn("Current Stage 4 positive visual calibration is validated and current", self.calibration)
-        self.assertIn("broken_gate_stage4_positive_warm_hooded_warrior.png", self.calibration)
-        self.assertIn("broken_gate_stage4_positive_clean_retention_spear_runner.png", self.calibration)
+        self.assertIn("broken_gate_stage4_positive_warm_hooded_warrior.jpg", self.calibration)
+        self.assertIn("broken_gate_stage4_positive_clean_retention_spear_runner.jpg", self.calibration)
 
     def test_rendering_owner_firewall_survives_pencil_medium(self) -> None:
         self.assertIn("even if the physical medium remains pencil or graphite", self.ap)

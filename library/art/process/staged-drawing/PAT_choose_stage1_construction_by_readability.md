@@ -32,12 +32,12 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage1_canonical_scene_skeleton.jpg
   caption: 'Primary Stage 1 authority: a sparse scene-wide framework of gesture, joints, axes, perspective, contacts, and simple object scaffolds with mass deferred to Stage 2.'
   derived_from: guided Broken Gate canonical Drawing precedent run, accepted Stage 1
   origin: first_party_source
   review: passed
-- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage1_mannequin_mass_leakage_INVALID.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/debug/broken_gate_debug_stage1_mannequin_mass_leakage_INVALID.jpg
   caption: 'INVALID / NON-CANONICAL boundary example: cylindrical limbs, solid torso volume, volumetric mannequin joints, and developed body thickness are Stage 2 mass leakage, not Stage 1 structure.'
   derived_from: guided Broken Gate Stage 1 rejection and correction
   origin: first_party_source

@@ -40,7 +40,7 @@ reference:
   author: MaDin + GPT
 confidence: high
 references:
-- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.png
+- image_path: library/art/process/staged-drawing/assets/broken-gate/canonical/broken_gate_stage0_canonical_composition.jpg
   caption: 'Canonical Broken Gate Stage 0 composition root: low-information rough
     locks the low three-quarter camera, courier/spear diagonal, wagon anchor, gate
     framing, pursuer arrangement, road depth path, and major negative spaces without

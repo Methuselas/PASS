@@ -2,7 +2,7 @@
 
 status: active
 owner: docs/domains/corpus
-last_reviewed: 2026-09-16
+last_reviewed: 2026-09-17
 supersedes: the read/extract/place/validate loop previously documented here
 
 Read `PASS_DOCTRINE.md` and `PASS_SCHEMA.md` first.
@@ -35,6 +35,14 @@ finished skillset.**
 ---
 
 ## 0. Precedence and scope
+
+**LOAD GATE — canonical project instructions are read before PASS authoring begins.**
+A handoff, summary, recovered run, or prior model memory may help orientation, but
+none substitutes for the active repository instructions. Before preflight, route
+the operation through the current project/agent instructions and read the PASS
+authoring documents they require for this phase. If the required canonical
+instructions cannot be loaded, stop instead of reconstructing the procedure from
+memory.
 
 **Newest accepted canonical state wins.** Where a historical document, an old
 run, a recovered tool, or a handoff conflicts with current accepted state,
@@ -137,6 +145,11 @@ Run once per source, before reading. Output is short: what the source is, how
 many units, and what to expect from each. It is a stateless inspection — it
 writes no persistent state, claims no source, and records nothing about what has
 been read.
+
+**Preflight predicts; unit reading decides.** `Low`, `Medium`, `High`, and `Mixed`
+are triage forecasts, never permission to skip a substantive instructional unit.
+Every substantive unit remains in the plan until the run actually reads and
+adjudicates it.
 
 ### 1.1 Determine the subject from the instruction, not the wrapper
 
@@ -252,19 +265,23 @@ per-chapter descent.
 
 ### 1.5 Preflight output
 
-```
-<title> — <author>
-domain: <lane>     <extent>     text: <quality>
-subject: <what the instruction teaches you to do>
-         (NOT set by front matter)
-mode:    <unit ingestion | curriculum audit>  (provisional)
+Report title, author/source credit, active domain, extent, text quality,
+instructional subject, provisional mode, and provisional unit count. Then use
+one canonical table:
 
-N units
-  u01  <label>   <locator>   -> <region> (<n> prior)   <expected mix>
-  ...
+| Unit | Material | Likely existing-card overlap | Card potential |
+|---|---|---|---|
+| U01 | unit label and source locator | canonical card names, or None identified | Low / Medium / High / Mixed |
 
-no-extract: <front/back matter sections>
-```
+End with explicit no-extract spans, or `none`. Overlap is predicted against the
+active domain's live cards; card potential is a forecast (§1), not a skip gate.
+
+`runtime/pass_authoring_run.py` implements this stateless preflight boundary:
+`preflight template` prints its JSON record; `preflight gate --input <record.json>`
+validates exact fields and live overlap IDs, then renders the table.
+`--validate-only` checks the same gate without rendering. The source-reading and
+card-reading phases below remain model procedure; this controller does not yet
+enforce PASS 1, PASS 2, or PASS 3.
 
 ---
 
@@ -304,23 +321,33 @@ properly read.
 The branches differ in how the source is read. They do not differ in the check on
 what comes out: both end in the third read (§2.6).
 
-### 2.1 First read — deep, and pre-extractive
+### 2.1 First read — deep, generative, and provisional
 
-Read the actual material. Not the contents, not the chapter title, not prior
-knowledge of the subject.
+Read the actual material **in full**. Not the contents, not the chapter title, not
+prior knowledge of the subject.
 
-The first read answers **"what is the author teaching?"** — not "what cards can I
-make?" Its output is *staged information*: provisional decisions, suspected
-overlaps, things that might be methods rather than laws. **It does not produce
-card names.**
+The first read answers **"what is the author teaching, and what durable objects
+might carry it?"** Begin building working cards as soon as a durable decision is
+clear enough to draft. These are provisional objects, not hardened dispositions:
+the second read is allowed to rename, split, merge, refine, variant, replace,
+reinforce, or reject them.
 
-Naming on the first read anchors the second, which then degrades into finding
-support for names already chosen. Staged information does three jobs a hardened
-list cannot:
+Do not let drafting one subject cause another to disappear. When two worthwhile
+subjects arrive together, pursue one far enough to preserve it and **flag the
+other explicitly for PASS 2**. The PASS 1 SitRep records working card drafts,
+suspected overlaps, secondary subjects deferred for the second read, and any
+questions or collisions that could change scope, ownership, placement, or truth.
 
-1. it makes ambiguity visible, which is what generates the questions;
-2. it gives the second read a "was this worth keeping?" reference point;
-3. it leaves the topology free to change.
+The first read therefore preserves ambiguity without postponing authoring:
+
+1. working cards capture durable instruction while the source context is live;
+2. explicit PASS 2 flags preserve competing subjects that would otherwise be
+   dropped;
+3. provisional status leaves topology and disposition free to change on reread.
+
+A PASS 1 SitRep ends with an explicit completion stamp naming the unit
+(`PASS 1: complete — Uxx`) and records every secondary-subject flag that PASS 2
+must resolve. A missing or dangling flag blocks unit closure.
 
 **For visual domains, image inspection is part of reading, not a later
 verification pass.** Read the text, inspect every page of the bounded scope, then
@@ -378,7 +405,9 @@ quickly, but the budget *concentrates on the residue*; it does not shrink. This
 is never a scan for headings or candidate keywords.
 
 Extraction happens **here**, with the staged information, the answers, and the
-neighbouring cards all in hand.
+neighbouring cards all in hand. PASS 2 must explicitly resolve every PASS 1
+secondary-subject flag; it may add new findings, but it may not silently drop a
+flag. Its SitRep ends with `PASS 2: complete — Uxx`.
 
 Separate two questions and keep them separate:
 
@@ -402,18 +431,28 @@ replacement remains uncertain**; this is an efficiency heuristic, never a limit.
 Replacement in particular may require inspecting the whole relevant dependency
 neighbourhood.
 
-Then decide exactly one disposition per candidate:
+Then decide exactly one disposition per candidate or affected existing card:
 
 ```
-new       no existing card teaches this        -> write it
-refine    the existing owner is correct but    -> improve the owner in place
-          incomplete or underspecified
-variant   same decision, different valid       -> absorb into the foundation
-          method / sequence / constraint
-replace   the existing owner is too narrow     -> §2.5 migration
-          or wrong, and this fully contains it
-reject    adds nothing durable                 -> write nothing
+new        no existing card teaches this        -> write it
+refine     the existing owner is correct but    -> improve the owner in place
+           incomplete or underspecified
+reinforce  the existing owner already teaches   -> leave the owner unchanged
+           the durable decision adequately
+variant    same decision, different valid       -> absorb into the foundation
+           method / sequence / constraint
+replace    the existing owner is too narrow     -> §2.5 migration
+           or wrong, and this fully contains it
+reject     adds nothing durable                 -> write nothing
 ```
+
+**Exactly one disposition per existing card.** A card may not be both reinforced
+and refined, or reinforced and replaced. If the card changes, it is not
+`reinforce`. Every `reinforce`, `refine`, and `replace` reported in the visible
+PASS delta includes a reason: what the source confirms or adds, why the current
+owner does or does not change, and (for replacement) why the old owner can no
+longer remain authoritative. This explanation is part of the audit trail, not
+optional commentary.
 
 **Refinement** covers the common case where a source sharpens an owner without
 supplying an alternate method and without superseding it: a better boundary, a
@@ -518,6 +557,8 @@ document states as a requirement, this pass asks as a question.
 | chapter order wearing AP headings | entry state, ordered dependent decisions, advance gates, branch and recovery, completion check: which are actually present? |
 | an AP performing a decision no Pattern owns | for each decision the Steps make, name the owner. |
 | a card that only reads correctly with the source open | what does this sentence mean to someone who has never seen the book? |
+| a bad or stale object identity | do filename, `object_id`, PAT/AP/DRILL prefix, target IDs, and relation targets all describe the object that actually exists? |
+| source residue in a durable card | after courtesy attribution, do any page numbers, page links, URLs, source locators, chapter references, filenames, or book-dependent instructions remain? |
 
 The list is what has bitten, not a closed set. A shape that recurs is a candidate
 for mechanization in `validate.py` — never for widening the schema, which is rule
@@ -529,13 +570,27 @@ teaches, the candidate was misfiled at §2.4 — return there and reclassify it.
 not write around the contract.
 
 An empty third read is a real result and a cheap one. It records nothing: the
-output of this pass is the corrected delta, and there is no pass log.
+output of this pass is the corrected delta, and there is no pass log. The visible
+SitRep still ends with `PASS 3: pass — Uxx`; a failed semantic or identity scan
+reports the defect and blocks closure until repaired and rescanned. Mechanical
+validation is the floor, not a substitute for this semantic card-quality read.
 
 ### 2.7 Present the delta, then land it
 
 Extraction and dispositions produce a **proposed delta**, not a mutation. Present
-it — new cards, refinements, variants with their foundations, replacements with
-their migrations, rejections with reasons — and land only what is approved.
+it — new cards; refinements, reinforcements, and replacements **each with their
+reasons**; variants with their foundations; replacement migrations; rejections
+with reasons; APs and Drills; and any proposed taxonomy changes. Land only what
+is approved.
+
+**Use explicit buckets even when they are empty.** At minimum, the visible delta
+reports NEW Patterns, REFINE, REINFORCE, VARIANTS, REPLACE, NEW APs, NEW Drills,
+REJECT, and taxonomy changes. `none` is an answer; omission is ambiguous.
+
+**Taxonomy changes are first-class dispositions.** Report `NEW SUBCATEGORY`,
+`MOVE`, `RENAME`, and `MERGE` explicitly, with a reason for every non-empty item.
+A model may propose taxonomy; it may not silently create, move, rename, or merge
+a library region while landing cards.
 
 The approval's weight follows §2.2: where the answer needs practitioner judgment,
 this is a real gate and the run waits; where evidence settles it, the delta is

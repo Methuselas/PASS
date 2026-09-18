@@ -29,15 +29,18 @@ variants: []
 # Snapshot Unreal Edit Targets Before Mutation
 
 ## Pattern Rule
-**IF** an Unreal editor operation changes an object's persistent state
+**IF** an Unreal editor operation changes authoring state that must support undo
 **THEN** validate the intended edit, open a named `FScopedTransaction`, call `Modify()` on the objects whose state must be restored before changing it, and verify both undo and redo on the actual target.
 
 ## Do
 - Use a transaction description the user can recognize in Undo History; one user action should produce one undo step.
 - Record the object that owns the changed data. For a material override, call the mesh component's `Modify()` before `SetMaterial()`; record the actor as well when its state participates.
+- For actor creation, use an editor creation path that records level membership and transactional actor state; verify removal and restoration, not just the actor's properties.
+- Record actual selection storage separately when changing selection. The selected actors do not own the editor's selected set.
+- Snapshot a batch's eligible targets and prior values before mutation, skip unchanged values, and group the actual changes into one user action.
 - Let the transaction's scope end only after all related changes have completed.
 - Check that target objects participate in transactions; a transaction wrapper cannot capture an object excluded from the transaction system.
-- Treat a failure to record the actual state as a rejected edit, including when a construction-script component delegates recording to its actor; component flags alone do not prove its recording owner is eligible.
+- Reject unavailable recording before mutation, including when a construction-script component delegates recording to its actor; component flags alone do not prove its recording owner is eligible. If execution already changed state before a failure, report the partial result and recovery path explicitly.
 - Reject invalid targets or material slots before opening the transaction. A rejected edit must leave state and undo history unchanged.
 - Exercise a component that is not the actor's root, as well as a root component, when the operation promises component editing.
 
@@ -48,7 +51,7 @@ variants: []
 
 ## Checklist
 - Did recording precede the mutation?
-- Does one undo restore the exact prior override and one redo restore the intended new override?
+- Does one undo restore the exact prior state and one redo restore the intended result, including existence or selection when those change?
 - Does the same result hold for the actual component arrangement the tool supports?
 - Does rejected input leave values and transaction history unchanged?
 

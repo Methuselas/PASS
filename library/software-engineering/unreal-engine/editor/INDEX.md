@@ -4,18 +4,28 @@
 
 ## Objects
 
+- [Add a Toolkit Interface to an Unreal FEdMode](AP_add_a_toolkit_interface_to_an_unreal_fedmode.md) - ap; 1 skeleton. Tags: editor_tools, unreal_engine.
 - [Apply a Reversible Unreal Material Edit](AP_apply_a_reversible_unreal_material_edit.md) - ap; 2 block. Tags: materials, transactions, unreal_engine.
+- [Batch Unreal Actor Selection Notifications](PAT_batch_unreal_actor_selection_notifications.md) - pattern; 2 block. Tags: editor_tools, unreal_engine.
+- [Bind Unreal Mode Toolkits to Guarded Tool State](PAT_bind_unreal_mode_toolkits_to_guarded_tool_state.md) - pattern; 2 block. Tags: editor_tools, unreal_engine.
 - [Bootstrap a Styled Unreal Editor Mode](AP_bootstrap_a_styled_unreal_editor_mode.md) - ap; 1 skeleton. Tags: editor_modes, plugins, slate, unreal_engine.
 - [Cache Unreal Tool Selections as Weak Objects](PAT_cache_unreal_tool_selections_as_weak_objects.md) - pattern; 2 block. Tags: editor_tools, unreal_engine, uobject, weak_references.
 - [Check Unreal Material Edit Undo and Rejection](DRILL_check_unreal_material_edit_undo_and_rejection.md) - drill; 2 block. Tags: boundary_cases, materials, undo, unreal_engine.
+- [Choose an Explicit Unreal Tool World](PAT_choose_an_explicit_unreal_tool_world.md) - pattern; 0 design. Tags: editor_tools, unreal_engine.
+- [Choose Unreal Mode Base from Tool Requirements](PAT_choose_unreal_mode_base_from_tool_requirements.md) - pattern; 1 skeleton. Tags: editor_tools, unreal_engine.
 - [Enforce an Explicit Unreal Selection Policy](PAT_enforce_an_explicit_unreal_selection_policy.md) - pattern; 2 block. Tags: editor_tools, reimport, unreal_engine.
 - [Keep Unreal Editor Dependencies in Editor Modules](PAT_keep_unreal_editor_dependencies_in_editor_modules.md) - pattern; 1 skeleton. Tags: module_dependencies, plugins, unreal_engine.
 - [Own Shared Unreal Slate Styles in the Editor Module](PAT_own_shared_unreal_slate_styles_in_the_editor_module.md) - pattern; 1 skeleton. Tags: lifetime, slate, styles, unreal_engine.
+- [Place and Update Unreal Editor Actors](AP_place_and_update_unreal_editor_actors.md) - ap; 2 block. Tags: editor_tools, unreal_engine.
 - [Register Unreal Editor Modes with Unique Metadata](PAT_register_unreal_editor_modes_with_unique_metadata.md) - pattern; 1 skeleton. Tags: editor_modes, registration, unreal_engine.
 - [Reimport an Unreal Asset from an Explicit Target](AP_reimport_an_unreal_asset_from_an_explicit_target.md) - ap; 2 block. Tags: editor_tools, reimport, unreal_engine.
 - [Reimport Unreal Assets Through Validated Sources](PAT_reimport_unreal_assets_through_validated_sources.md) - pattern; 2 block. Tags: editor_tools, reimport, unreal_engine.
 - [Report Unreal Tool Outcomes Through a Small Facade](PAT_report_unreal_tool_outcomes_through_a_small_facade.md) - pattern; 2 block. Tags: blueprints, feedback, modules, slate, unreal_engine.
 - [Route Unreal Tool Input Through Active Commands](PAT_route_unreal_tool_input_through_active_commands.md) - pattern; 2 block. Tags: commands, editor_modes, input, unreal_engine.
+- [Scope Unreal Context Menu Extenders to Their Tool](PAT_scope_unreal_context_menu_extenders_to_their_tool.md) - pattern; 2 block. Tags: editor_tools, unreal_engine.
+- [Separate Shared Unreal Defaults from Local Tool Preferences](PAT_separate_shared_unreal_defaults_from_local_tool_preferences.md) - pattern; 1 skeleton. Tags: editor_tools, unreal_engine.
 - [Snapshot Unreal Edit Targets Before Mutation](PAT_snapshot_unreal_edit_targets_before_mutation.md) - pattern; 2 block. Tags: components, transactions, undo, unreal_engine.
 - [Verify a Styled Unreal Editor Mode](DRILL_verify_a_styled_unreal_editor_mode.md) - drill; 1 skeleton. Tags: editor_modes, slate, unreal_engine, verification.
+- [Verify Unreal Editor Actor Operations](DRILL_verify_unreal_editor_actor_operations.md) - drill; 2 block. Tags: editor_tools, unreal_engine.
+- [Verify Unreal Mode Toolkit Lifetimes](DRILL_verify_unreal_mode_toolkit_lifetimes.md) - drill; 1 skeleton. Tags: editor_tools, unreal_engine.
 - [Verify Unreal Reimport Targets and Outcomes](DRILL_verify_unreal_reimport_targets_and_outcomes.md) - drill; 2 block. Tags: editor_tools, reimport, unreal_engine.

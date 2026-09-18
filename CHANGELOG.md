@@ -6,6 +6,23 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.54 - 2026-09-18
+
+### Added
+
+- Ten Unreal editor cards for explicit world scope, actor placement/update,
+  batched selection notifications, toolkit state, context-menu lifetimes,
+  shared/local configuration and requirements-based mode selection. Completed
+  the fourth editor-book unit through both full reads, standalone card review
+  and verified landing with the existing book preflight.
+
+### Changed
+
+- Refine the Unreal transaction Pattern with creation-container and selection
+  storage ownership, batched changes and explicit partial-failure reporting.
+  Native actor-operation checks remain separate from future toolkit UI
+  qualification and learner training.
+
 ## 1.0.0-beta.53 - 2026-09-18
 
 ### Added

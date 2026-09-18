@@ -293,4 +293,4 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 - [Foundations](core/INDEX.md) - 454 object(s).
 - [Languages](languages/INDEX.md) - 202 object(s).
-- [Unreal Engine](unreal-engine/INDEX.md) - 15 object(s).
+- [Unreal Engine](unreal-engine/INDEX.md) - 25 object(s).

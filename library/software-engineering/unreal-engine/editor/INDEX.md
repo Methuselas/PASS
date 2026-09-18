@@ -14,10 +14,13 @@
 - [Choose an Explicit Unreal Tool World](PAT_choose_an_explicit_unreal_tool_world.md) - pattern; 0 design. Tags: editor_tools, unreal_engine.
 - [Choose Unreal Mode Base from Tool Requirements](PAT_choose_unreal_mode_base_from_tool_requirements.md) - pattern; 1 skeleton. Tags: editor_tools, unreal_engine.
 - [Enforce an Explicit Unreal Selection Policy](PAT_enforce_an_explicit_unreal_selection_policy.md) - pattern; 2 block. Tags: editor_tools, reimport, unreal_engine.
+- [Exchange Unreal Editor Camera Bookmarks](AP_exchange_unreal_editor_camera_bookmarks.md) - ap; 2 block. Tags: editor_tools, navigation, unreal_engine.
 - [Keep Unreal Editor Dependencies in Editor Modules](PAT_keep_unreal_editor_dependencies_in_editor_modules.md) - pattern; 1 skeleton. Tags: module_dependencies, plugins, unreal_engine.
 - [Own Shared Unreal Slate Styles in the Editor Module](PAT_own_shared_unreal_slate_styles_in_the_editor_module.md) - pattern; 1 skeleton. Tags: lifetime, slate, styles, unreal_engine.
 - [Place and Update Unreal Editor Actors](AP_place_and_update_unreal_editor_actors.md) - ap; 2 block. Tags: editor_tools, unreal_engine.
+- [Publish a Persistent Unreal Toolbar Action](AP_publish_a_persistent_unreal_toolbar_action.md) - ap; 1 skeleton. Tags: editor_tools, toolmenus, unreal_engine.
 - [Register Unreal Editor Modes with Unique Metadata](PAT_register_unreal_editor_modes_with_unique_metadata.md) - pattern; 1 skeleton. Tags: editor_modes, registration, unreal_engine.
+- [Register Unreal ToolMenus After Editor Startup](PAT_register_unreal_toolmenus_after_editor_startup.md) - pattern; 1 skeleton. Tags: editor_tools, toolmenus, unreal_engine.
 - [Reimport an Unreal Asset from an Explicit Target](AP_reimport_an_unreal_asset_from_an_explicit_target.md) - ap; 2 block. Tags: editor_tools, reimport, unreal_engine.
 - [Reimport Unreal Assets Through Validated Sources](PAT_reimport_unreal_assets_through_validated_sources.md) - pattern; 2 block. Tags: editor_tools, reimport, unreal_engine.
 - [Report Unreal Tool Outcomes Through a Small Facade](PAT_report_unreal_tool_outcomes_through_a_small_facade.md) - pattern; 2 block. Tags: blueprints, feedback, modules, slate, unreal_engine.
@@ -25,7 +28,10 @@
 - [Scope Unreal Context Menu Extenders to Their Tool](PAT_scope_unreal_context_menu_extenders_to_their_tool.md) - pattern; 2 block. Tags: editor_tools, unreal_engine.
 - [Separate Shared Unreal Defaults from Local Tool Preferences](PAT_separate_shared_unreal_defaults_from_local_tool_preferences.md) - pattern; 1 skeleton. Tags: editor_tools, unreal_engine.
 - [Snapshot Unreal Edit Targets Before Mutation](PAT_snapshot_unreal_edit_targets_before_mutation.md) - pattern; 2 block. Tags: components, transactions, undo, unreal_engine.
+- [Validate Unreal Camera Bookmarks Before Navigation](PAT_validate_unreal_camera_bookmarks_before_navigation.md) - pattern; 2 block. Tags: editor_tools, navigation, unreal_engine.
 - [Verify a Styled Unreal Editor Mode](DRILL_verify_a_styled_unreal_editor_mode.md) - drill; 1 skeleton. Tags: editor_modes, slate, unreal_engine, verification.
+- [Verify Unreal Camera Bookmark Boundaries](DRILL_verify_unreal_camera_bookmark_boundaries.md) - drill; 2 block. Tags: editor_tools, navigation, unreal_engine.
 - [Verify Unreal Editor Actor Operations](DRILL_verify_unreal_editor_actor_operations.md) - drill; 2 block. Tags: editor_tools, unreal_engine.
 - [Verify Unreal Mode Toolkit Lifetimes](DRILL_verify_unreal_mode_toolkit_lifetimes.md) - drill; 1 skeleton. Tags: editor_tools, unreal_engine.
 - [Verify Unreal Reimport Targets and Outcomes](DRILL_verify_unreal_reimport_targets_and_outcomes.md) - drill; 2 block. Tags: editor_tools, reimport, unreal_engine.
+- [Verify Unreal ToolMenu Ownership](DRILL_verify_unreal_toolmenu_ownership.md) - drill; 1 skeleton. Tags: editor_tools, toolmenus, unreal_engine.

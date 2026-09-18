@@ -6,6 +6,21 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.55 - 2026-09-18
+
+### Added
+
+- Six Unreal editor cards for ToolMenus ownership and startup, validated camera
+  bookmark exchange, persistent toolbar publication and observable qualification
+  Drills. Completed the fifth editor-book unit through both full reads,
+  standalone card review and verified landing with the existing book preflight.
+
+### Changed
+
+- Refine command routing with cheap availability predicates, execution-time
+  validation and measured cache/invalidation decisions. Clipboard and visible
+  toolbar qualification remain distinct from native camera/menu checks.
+
 ## 1.0.0-beta.54 - 2026-09-18
 
 ### Added

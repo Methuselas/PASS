@@ -7,4 +7,5 @@ description: >-
 modules:
   - software-engineering/core
   - software-engineering/languages/cpp
+  - software-engineering/unreal-engine
 runtime_profile: software-engineering

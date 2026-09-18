@@ -6,6 +6,23 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.52 - 2026-09-18
+
+### Added
+
+- Dedicated `software-engineering/unreal-engine` module with editor Patterns,
+  Action Protocols and Drills for module boundaries, mode/style lifetimes,
+  command routing, borrowed UObject selections, explicit feedback and reversible
+  material edits. Eleven cards completed through the executable authoring run.
+- Include the Unreal Engine module and its core prerequisites in the canonical
+  Software Engineering skill recipe. General C++ instruction remains in its
+  existing language module.
+
+### Changed
+
+- Drill-discovery checks include the Unreal module and compare the discovered
+  identities against the library rather than a fixed historical drill count.
+
 ## 1.0.0-beta.51 - 2026-09-18
 
 ### Added

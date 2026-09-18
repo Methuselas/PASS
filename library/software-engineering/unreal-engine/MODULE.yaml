@@ -1,0 +1,3 @@
+name: software-engineering/unreal-engine
+requires:
+- software-engineering/core

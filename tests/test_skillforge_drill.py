@@ -132,8 +132,13 @@ class SkillForgeDrillTests(unittest.TestCase):
         return run
 
     def test_discovers_current_game_design_and_software_drills(self) -> None:
-        self.assertEqual(len(drill.discover(LIBRARY, "game-design")), 14)
-        self.assertEqual(len(drill.discover(LIBRARY, "software-engineering")), 71)
+        for domain in ("game-design", "software-engineering"):
+            with self.subTest(domain=domain):
+                expected = {path.stem for path in (LIBRARY / domain).rglob("DRILL_*.md")}
+                discovered = [card.object_id for card in drill.discover(LIBRARY, domain)]
+                self.assertTrue(expected)
+                self.assertEqual(set(discovered), expected)
+                self.assertEqual(len(discovered), len(expected))
 
     def test_before_instructions_cut_hides_all_answer_bearing_sections(self) -> None:
         run = self.prepare()

@@ -47,7 +47,11 @@ class DrillInventoryTests(unittest.TestCase):
         self.assertEqual({item["object_id"] for item in payload}, {path.stem for path in cards})
         self.assertEqual(
             {item["module"] for item in payload},
-            {"software-engineering/core", "software-engineering/languages/cpp"},
+            {
+                "software-engineering/core",
+                "software-engineering/languages/cpp",
+                "software-engineering/unreal-engine",
+            },
         )
 
     def test_every_drill_has_one_known_administration_class(self) -> None:

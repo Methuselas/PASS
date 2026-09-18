@@ -72,6 +72,31 @@ profiles, memory, and original assets are `CC-BY-SA-4.0` unless a shipped file
 states otherwise. A release missing any licensing or attribution file fails
 `build` and `check`.
 
+## Maintainer destinations
+
+Project archives belong directly in the PASS repository's `workspace/releases/`
+directory, named `PASS-project-<domain>.zip`. Resolve this path from the current
+PASS root. Do not introduce version subfolders for project ZIPs unless the user
+explicitly requests them. The archive's `VERSION` file identifies the snapshot
+version.
+
+Build project archives with `workspace/tools/build_project_snapshot.py`. Use
+`--force` to refresh the matching current ZIP after checking the exact target.
+Verify the new archive before removing any superseded archive; preserve original
+inputs and explicitly retained evidence under the workspace lifecycle rules.
+
+Finished skill ZIPs belong in the SkillForge repository's `releases/` directory,
+using the canonical `SkillForge-*.zip` names documented in the root README.
+Resolve the actual SkillForge checkout before building. Keep validated skill
+build directories outside the PASS repository, as required by the builder's
+output protection. Do not retain duplicate skill ZIPs in the PASS workspace
+unless the user requests copies. Reports and build evidence use a task-owned
+directory under the existing workspace purpose buckets.
+
+These destinations apply to maintainer rebuilds; an explicit user destination
+overrides them. They are output instructions, not runtime dependencies of a
+released skill or a machine-specific path baked into portable tooling.
+
 ## Skillset Memory in a release
 
 A release ships the memory store of every domain owned by its primary modules,

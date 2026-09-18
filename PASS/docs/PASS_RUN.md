@@ -88,6 +88,10 @@ Do not drop loose generated files or new ad-hoc buckets in the workspace root.
 Keep extraction, probes, logs and build outputs inside the task's area; do not
 create a workspace registry or authoring sidecar to track them.
 
+Project ZIPs go directly in `workspace/releases/PASS-project-<domain>.zip`, without
+version subfolders. Finished skill ZIPs go in the SkillForge repository. Follow
+`MODULE_RELEASES.md` §Maintainer destinations unless the user specifies otherwise.
+
 At integration or completion, verify the accepted content at its durable
 destination and remove the task-owned scratch and redundant staging copies.
 Completed scratch is not permanent storage. Preserve an explicitly retained

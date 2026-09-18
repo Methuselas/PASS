@@ -52,6 +52,10 @@ The prose after each lead is this file's own.
   After verified integration or completion, remove owned scratch and redundant
   staging copies; preserve explicit evidence holds, original inputs and other
   tasks. Check exact deletion targets. See `PASS/docs/PASS_RUN.md` §Workspace lifecycle.
+- **Project archives go directly in `workspace/releases/`; skill releases go in the SkillForge repository.**
+  Resolve paths from the PASS root. Use `PASS-project-<domain>.zip` without version
+  subfolders unless the user requests another destination. See
+  `PASS/docs/MODULE_RELEASES.md` §Maintainer destinations.
 - **Every release ships `metaskills` and its complete prerequisite closure.** A
   build that omits a referenced card is broken even when the source library
   validates.

@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.49`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.50`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -196,6 +196,13 @@ python workspace/tools/build_project_snapshot.py workspace/projects/PASS-project
 ```
 
 Create the equivalent uploadable ZIP:
+
+Project archives go directly in `workspace/releases/PASS-project-<domain>.zip`
+under the current PASS repository root, without version subfolders unless
+explicitly requested. Refresh the matching ZIP with `--force`; verify the new
+archive before removing superseded copies. Finished skill ZIPs go in the
+SkillForge repository's `releases/` directory. The maintainer destination rules
+are in [`MODULE_RELEASES.md`](PASS/docs/MODULE_RELEASES.md#maintainer-destinations).
 
 ```bash
 python workspace/tools/build_project_snapshot.py workspace/releases/PASS-project-art.zip --domain art
@@ -560,7 +567,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.49`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.50`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

@@ -6,6 +6,15 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.50 - 2026-09-17
+
+### Changed
+
+- Require project archives directly in `workspace/releases/PASS-project-<domain>.zip`
+  under the PASS root, without version subfolders unless requested. Keep finished
+  skill ZIPs in the SkillForge repository. Route both agent entrypoints and the
+  portable authoring skill to the canonical maintainer destination rules.
+
 ## 1.0.0-beta.49 - 2026-09-17
 
 ### Added

@@ -28,7 +28,8 @@ decision:
 - object creation or review: the frontmatter contract and applicable Pattern,
   Drill, or AP section of `docs/PASS_SCHEMA.md`;
 - placement and module ownership: `docs/PASS_LIBRARY.md`;
-- packaging and dependencies: `docs/MODULE_RELEASES.md`;
+- project archives, skill-release destinations, packaging, and dependencies:
+  `docs/MODULE_RELEASES.md` (see §Maintainer destinations);
 - runtime profile routing, vendoring, or completion contracts:
   `docs/EXECUTION_CONTRACT.md`;
 - skill consumption or drill administration: `docs/PASS_CONSUMPTION.md`;

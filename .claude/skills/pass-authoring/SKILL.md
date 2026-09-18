@@ -24,7 +24,8 @@ phase needs:
 - card creation or review: frontmatter rules plus the applicable Pattern, Drill,
   or AP section of `PASS/docs/PASS_SCHEMA.md`;
 - placement or module ownership: `PASS/docs/PASS_LIBRARY.md`;
-- packaging or dependency changes: `PASS/docs/MODULE_RELEASES.md`, adding
+- project archives, skill-release destinations, packaging or dependency changes:
+  `PASS/docs/MODULE_RELEASES.md` (see §Maintainer destinations), adding
   `PASS/docs/EXECUTION_CONTRACT.md` only for runtime routing or completion work;
 - drill administration or domain consumption: `PASS/docs/PASS_CONSUMPTION.md`;
 - memory work: `PASS/docs/MEMORY_SCHEMA.md`.

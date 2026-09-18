@@ -124,6 +124,11 @@ class PreflightGateTests(unittest.TestCase):
             with self.assertRaisesRegex(mod.PreflightError, "invalid YAML"):
                 mod.load_domain_cards(root, "writing")
 
+    def test_art_asset_readmes_are_not_parsed_as_cards(self):
+        cards = mod.load_domain_cards(ROOT, "art")
+        self.assertTrue(cards)
+        self.assertTrue(all(card.path.name != "README.md" for card in cards.values()))
+
 
 if __name__ == "__main__":
     unittest.main()

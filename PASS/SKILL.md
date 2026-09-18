@@ -42,6 +42,14 @@ contract. Load later-phase references when that phase begins, not in anticipatio
 
 ## Working rules
 
+For ordinary source authoring, start with `python PASS/pass.py start --source
+<source> --domain <authorized-domain>` from the project root. Follow its current
+phase through LOAD, preflight, one unit's PASS 1 / 2 / 3 and verified landing.
+Read `docs/PASS_RUN.md` for the human rules and `docs/AUTHORING_RUNTIME.md` for
+commands, records and recovery. The standalone preflight helper and reading
+the Markdown alone do not start an authorized executable run. Maintenance and
+release packaging do not need a source run.
+
 Use the source material named by the user as the evidentiary basis. Preserve its
 terminology and scope. Do not silently fill unsupported gaps with general
 knowledge. Mark inference, uncertainty, and deferred review explicitly.

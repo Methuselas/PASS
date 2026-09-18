@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.50`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.51`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -168,8 +168,11 @@ PASS work.
    or `.md` extract under `SOURCE_INPUT/` as shown below.
 3. Tell the LLM to unpack the archive, work inside its single
    `PASS-project-*` root, begin with `AGENTS.md` and `PASS/SKILL.md`, and perform
-   one domain-scoped PASS run.
-4. The LLM edits the project files, regenerates indexes, runs the bundled PASS
+   one domain-scoped PASS run through `python PASS/pass.py start --source <source>`.
+   A single-domain snapshot supplies the unambiguous domain default. Follow the
+   returned phase; stage cards under each book's `workspace/authoring/` task and
+   complete all three passes and landing for one unit before reading the next.
+4. The LLM lands reviewed units into the project library, runs the bundled PASS
    validators, and returns an updated ZIP preserving the same single root.
 5. Back in the canonical repository, preview the returned archive with the
    importer. Apply it only after the proposed changes pass review.
@@ -178,12 +181,16 @@ A suitable instruction to the chat is:
 
 > Unpack this PASS project snapshot and work only inside its `PASS-project-*`
 > root. Read `AGENTS.md` and `PASS/SKILL.md`, then perform one PASS authoring run
-> for the selected domain using the supplied source. Regenerate indexes, run the
+> through `PASS/pass.py` for the selected domain using the supplied source.
+> Follow the controller phases, stage drafts by canonical category, and land
+> each unit after all three passes. Regenerate indexes, run the
 > bundled validation tools, and return the updated project as a ZIP with the
 > original single root preserved.
 
-Python accelerates and verifies the run; it does not replace the PASS authoring
-method. The host also needs permission to read and write uploaded files. A chat
+Python gates ordinary source-authoring progression and validates its actual
+staged edits; the human-readable method remains in `PASS/docs/PASS_RUN.md`.
+See [the executable authoring contract](PASS/docs/AUTHORING_RUNTIME.md) for commands
+and recovery. The host also needs permission to read and write uploaded files. A chat
 that cannot execute Python or return files can discuss PASS, but it cannot use a
 project snapshot for the intended validated round trip.
 

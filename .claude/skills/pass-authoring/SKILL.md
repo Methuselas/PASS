@@ -36,6 +36,13 @@ to load it now.
 
 ## Rules that decide most questions here
 
+Ordinary source study starts with `python PASS/pass.py start --source <source>
+--domain <authorized-domain>`. Follow the executable phases; keep provisional
+cards in `workspace/authoring/<domain>/<book-run>/drafts/<category>/`. Read
+`PASS/docs/AUTHORING_RUNTIME.md` for commands and recovery alongside the human
+rules in `PASS/docs/PASS_RUN.md`. The old preflight helper alone cannot authorize
+ingestion. Repository maintenance and packaging do not need a source run.
+
 `library/` holds finished knowledge. There is no authoring state to maintain
 beside it — no ledger, no source registry, no reading receipts, no provenance
 records. Do not create any.

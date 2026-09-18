@@ -2,7 +2,7 @@
 
 status: active
 owner: docs/domains/corpus
-last_reviewed: 2026-09-17
+last_reviewed: 2026-09-18
 supersedes: the read/extract/place/validate loop previously documented here
 
 Read `PASS_DOCTRINE.md` and `PASS_SCHEMA.md` first.
@@ -35,6 +35,32 @@ finished skillset.**
 ---
 
 ## 0. Precedence and scope
+
+### Executable entrypoint
+
+**Ordinary source authoring starts with `PASS/pass.py`.** The Markdown remains
+the human-readable method; Python owns accepted transitions and staged unit
+integration. Start the run before source access, complete LOAD, and follow only
+the current action returned by `status`. Do not replace controller commands with
+prose promises, hand-edit controller state, write provisional cards into
+`library/`, or create a domain to bypass a rejected selection. A source's topic
+does not authorize its destination: use the user's selected existing domain or
+the sole domain of a bounded project. Otherwise obtain the destination first.
+
+After LOAD, preflight permits controlled structural orientation: metadata,
+contents/page map, extraction-quality sampling, and enough instructional
+structure to establish the subject and units. It does not permit chapter
+ingestion or lesson extraction. Only accepted preflight releases the first unit
+for substantive reading. Each unit completes PASS 1, any consequential-question
+checkpoint, the full cold PASS 2, the card-only PASS 3, and verified landing before
+the next becomes active. A low forecast never permits skipping its reads.
+
+The supported executable progression is currently **unit ingestion**. Curriculum
+audit records fail closed at this entrypoint until a separate scope contract is
+implemented; validating an audit forecast with the old helper is not a workaround.
+Command and record contracts are in `AUTHORING_RUNTIME.md`. File access and honest
+read/semantic declarations remain host responsibilities; Python validates files
+and gates its own supported operations, not the model's private cognition.
 
 **LOAD GATE — canonical project instructions are read before PASS authoring begins.**
 A handoff, summary, recovered run, or prior model memory may help orientation, but
@@ -86,7 +112,27 @@ or `handoffs/`. Put reusable tools, release recipes, inputs and deliverables in
 their existing `tools/`, `release-recipes/`, `sources/` and `releases/` buckets.
 Do not drop loose generated files or new ad-hoc buckets in the workspace root.
 Keep extraction, probes, logs and build outputs inside the task's area; do not
-create a workspace registry or authoring sidecar to track them.
+create a workspace registry or permanent authoring sidecar to track them.
+
+The executable entrypoint owns `workspace/authoring/<domain>/<book-run>/`:
+`controller/` contains disposable progression state; `drafts/<canonical-category>/`
+contains provisional card files; `recipes/` may stage the domain's existing
+canonical recipe alongside a module change. The book name never becomes a
+library category by itself. Separate books and repeated runs use different task
+directories. Drafts retain their intended library paths inside the domain; an
+overlay replaces existing owners for validation instead of creating duplicates.
+This per-source, lane-local scratch is an explicit exception for executing the
+current run, not a retired ledger, source receipt, card field, memory entry or
+runtime dependency. It never ships in a project archive or SkillForge release.
+
+Landing validates the complete proposed library overlay, checks repository-wide
+ID uniqueness at integration, regenerates the active domain's indexes, verifies
+written bytes and removes integrated staged files. It creates no Git commit.
+Reviewed hashes bind PASS 3 to the actual delta. If another book changes the live
+domain, assets, prerequisites or recipe, reconcile from PASS 2 and repeat PASS 3.
+One domain's temporary landing lease serializes its book integrations; the host
+must also serialize canonical repository merges across domains. Neither lease
+nor run state contains shared research or permanent progress history.
 
 Project ZIPs go directly in `workspace/releases/PASS-project-<domain>.zip`, without
 version subfolders. Finished skill ZIPs go in the SkillForge repository. Follow
@@ -280,12 +326,12 @@ one canonical table:
 End with explicit no-extract spans, or `none`. Overlap is predicted against the
 active domain's live cards; card potential is a forecast (§1), not a skip gate.
 
-`runtime/pass_authoring_run.py` implements this stateless preflight boundary:
+`runtime/pass_authoring_run.py` remains the stateless helper for this boundary:
 `preflight template` prints its JSON record; `preflight gate --input <record.json>`
 validates exact fields and live overlap IDs, then renders the table.
-`--validate-only` checks the same gate without rendering. The source-reading and
-card-reading phases below remain model procedure; this controller does not yet
-enforce PASS 1, PASS 2, or PASS 3.
+`--validate-only` checks the same gate without rendering. `PASS/pass.py` reuses
+this gate and owns the supported PASS 1 / 2 / 3 and landing transitions. Running
+the helper alone does not authorize a source read or create a valid source run.
 
 ---
 

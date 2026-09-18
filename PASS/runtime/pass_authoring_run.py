@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Scripted PASS authoring run gates.
+"""Stateless preflight parsing and live-domain overlap validation.
 
-The first implemented phase is preflight. Preflight remains stateless: this
-controller validates a supplied record against the live domain library and
-renders the canonical human-facing smart TOC, but writes no authoring ledger,
-source receipt, or run state.
+PASS/pass.py owns ordinary source-authoring progression and reuses this helper.
+The standalone preflight command validates a forecast only; it never authorizes
+source ingestion, advances a run, or writes research state.
 """
 
 from __future__ import annotations
@@ -270,7 +269,7 @@ def load_domain_cards(repo_root: Path, domain: str) -> dict[str, CardRef]:
 
     cards: dict[str, CardRef] = {}
     for path in sorted(domain_root.rglob("*.md")):
-        if path.name == "INDEX.md":
+        if path.name in {"INDEX.md", "README.md"}:
             continue
         if not path.resolve().is_relative_to(domain_root):
             raise PreflightError(f"card must stay inside library/{domain}: {path}")

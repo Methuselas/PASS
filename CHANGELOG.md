@@ -6,6 +6,34 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.51 - 2026-09-18
+
+### Added
+
+- Supported `PASS/pass.py` entrypoint for ordinary source authoring: canonical
+  LOAD, authorized existing-domain selection, structural preflight, one active
+  instructional unit, consequential-question checkpoints, full PASS 1 and cold
+  PASS 2 declarations, exclusive reasoned dispositions, and hash-bound card-only
+  PASS 3 before verified unit landing. Unsupported curriculum-audit progression
+  fails closed.
+- Disposable book/run workspaces under `workspace/authoring/<domain>/<book-run>/`
+  with canonical category paths for drafts. Validation overlays replace live
+  owners, check schema/assets/changed-card relations and staged recipe closure,
+  and check library-wide IDs at integration. Landing regenerates indexes,
+  verifies bytes, restores files on ordinary write failure, rejects stale live
+  reviews, removes integrated drafts, and advances exactly one unit without a
+  Git commit. Instructional replanning preserves closed units.
+
+### Changed
+
+- Route source-authoring discovery through the executable entrypoint while
+  preserving `PASS_RUN.md` as human-readable rules. The old stateless preflight
+  helper validates forecasts only. Explicitly distinguish temporary controller
+  scratch from retired permanent authoring infrastructure.
+- Exclude asset README files from preflight card discovery, matching the library
+  validator. Preserve all domain cards, Art Stage semantics, image links, and the
+  separate SkillForge Code Apprenticeship runtime.
+
 ## 1.0.0-beta.50 - 2026-09-17
 
 ### Changed

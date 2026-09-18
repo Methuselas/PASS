@@ -26,6 +26,9 @@ Each rule's **bold lead sentence is shared verbatim with `CLAUDE.md`** and a tes
 enforces that the two files state the same set. Edit a lead here, edit it there.
 The prose after each lead is this file's own.
 
+- **Source authoring runs through `PASS/pass.py`.** Start before source access,
+  select the authorized domain, and finish one unit through all three passes and
+  verified landing. Markdown owns the human rules; see `PASS/docs/AUTHORING_RUNTIME.md`.
 - **A card must be valid and executable after its source is gone.** No card
   carries a source id, locator, page number, hash, receipt, or attestation.
 - **Author in one domain per run.** Every package under `library/` other than

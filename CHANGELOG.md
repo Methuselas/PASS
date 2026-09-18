@@ -6,6 +6,21 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.53 - 2026-09-18
+
+### Added
+
+- Four Unreal editor cards for explicit selection policies, validated asset
+  reimport, ordered reimport execution and observed-outcome practice. Completed
+  the third editor-book unit through both full reads, standalone card review
+  and verified landing with the existing book preflight.
+
+### Changed
+
+- Refine the Unreal command-routing Pattern with scoped callbacks, weak-list
+  checks, receiver teardown, input phases/repeats and intentional rejection
+  behavior. Engine implementation checks remain separate from learner training.
+
 ## 1.0.0-beta.52 - 2026-09-18
 
 ### Added

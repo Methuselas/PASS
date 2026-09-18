@@ -4,4 +4,4 @@
 
 ## Topics
 
-- [Editor](editor/INDEX.md) - 11 object(s).
+- [Editor](editor/INDEX.md) - 15 object(s).

@@ -28,7 +28,9 @@ The prose after each lead is this file's own.
 
 - **Source authoring runs through `PASS/pass.py`.** Start before source access,
   select the authorized domain, and finish one unit through all three passes and
-  verified landing. Markdown owns the human rules; see `PASS/docs/AUTHORING_RUNTIME.md`.
+  verified landing. Preflight runs once per source and waits for explicit,
+  hash-bound user acceptance; unattended runs follow only `PASS/source.py drive`.
+  See `PASS/docs/AUTHORING_RUNTIME.md`.
 - **A card must be valid and executable after its source is gone.** No card
   carries a source id, locator, page number, hash, receipt, or attestation.
 - **Author in one domain per run.** Every package under `library/` other than

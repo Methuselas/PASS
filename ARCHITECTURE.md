@@ -209,12 +209,16 @@ Retired 2026-08-15.
 **Executable authoring, accepted 2026-09-18, uses disposable per-book scratch.**
 `PASS/pass.py` gates ordinary unit ingestion using
 `workspace/authoring/<domain>/<book-run>/controller/` and drafts in canonical
-category paths. This narrowly scoped progression state is temporary authoring
-scratch under contract item 16, never a ledger, source manifest, card field,
-Skillset Memory entry or finished-skill dependency. One temporary domain landing
-lease prevents simultaneous integration of its books; it stores no research.
-There is no shared run registry or permanent history. Human rules remain in
-`PASS/docs/PASS_RUN.md`; executable contracts live in `PASS/docs/AUTHORING_RUNTIME.md`.
+category paths. `PASS/source.py` is a separate source-level orchestration layer:
+it may persist one bounded unattended authorization, exact packet audit copies,
+source-byte identity and final source verification, but it does not perform PASS
+reads or own library knowledge. This narrowly scoped progression state is
+temporary authoring scratch under contract item 16, never a ledger, source
+manifest, card field, Skillset Memory entry or finished-skill dependency. One
+temporary domain landing lease prevents simultaneous integration of its books;
+it stores no research. There is no shared run registry or permanent history.
+Human rules remain in `PASS/docs/PASS_RUN.md`; executable contracts live in
+`PASS/docs/AUTHORING_RUNTIME.md`.
 Deleting a run never invalidates accepted cards or releases. Neither host discovery
 nor ordinary authoring progression changes the separate SkillForge Code
 Apprenticeship runner or domain action logic.

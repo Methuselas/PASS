@@ -6,6 +6,52 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.56 - 2026-09-18
+
+Merged from the writing lane's unattended-dispatch baseline. That archive forked
+at beta.51 and numbered its changes beta.52 to beta.55, which collide with the
+Unreal entries below; they land here as one release.
+
+### Added
+
+- Single-source unattended runner at `PASS/source.py`. An explicit user
+  authorization is persisted for one source through completion. The host still
+  performs every substantive PASS read; the runner renders and audits
+  preflight/landing packets, consumes routine gates and stops on genuine
+  practitioner-required decisions.
+- State-driven dispatch: `source.py drive` issues exactly one persisted action
+  lease for the current substantive phase, and an unattended `PASS/pass.py`
+  submission is rejected unless the lease matches the run state, unit and state
+  hash. Consumed leases move to `controller/action-history/`.
+- `source.py report` as the only authoritative surface for unattended progress
+  and completion claims.
+- Source-byte identity recorded right after LOAD, with size- and SHA-256-verified
+  `rebind-source` so a run survives a project-chat path change without letting a
+  different source inherit it. Final source completion runs full-library schema
+  and reference checks.
+- Canonical `pass.py present` renderer for preflight and landing packets, with
+  every disposition and taxonomy bucket, including empty ones.
+
+### Changed
+
+- A valid preflight now stops at `preflight_accept`: `present` must render the
+  packet and `accept-preflight` requires explicit user confirmation bound to its
+  SHA-256. The initial request to run PASS is not confirmation. `revise-preflight`
+  handles corrections before acceptance.
+- Preflight is source-wide and never repeats per unit; `replan` amends the
+  accepted remaining plan and is not a new preflight.
+- Landing decisions are hash-bound to the rendered packet and no longer
+  pre-filled with `user approval`. `approval_required` deltas and
+  practitioner-dependent checkpoints remain nondelegable hard stops.
+- `close-run` also removes source identity, authorization, audit and completion
+  scratch.
+- The `pass-authoring` discovery wrappers point unattended hosts at `drive` and
+  `report` rather than the lower-level `advance` primitive.
+- Workflow test fixtures now pass through the preflight acceptance and landing
+  presentation gates, with a test pinning the bound-confirmation rule. The
+  archive had not updated them. `CLAUDE.md` and `AGENTS.md` state the new
+  authoring rule in shorter prose to stay inside their cold-start budget.
+
 ## 1.0.0-beta.55 - 2026-09-18
 
 ### Added

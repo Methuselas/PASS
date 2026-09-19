@@ -1,6 +1,7 @@
 """Executable authoring gates, actual overlay validation and unit integration."""
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -82,6 +83,13 @@ class AuthoringWorkflowTests(unittest.TestCase):
                                 overlap_object_ids=[self.live.stem], card_potential="medium") for i in range(1, count + 1)]
         record["no_extract"] = []
         self.run.submit("preflight", record)
+        self.accept()
+
+    def accept(self):
+        packet = self.run.present()
+        self.run.accept_preflight(dict(schema_version=1, presentation_sha256=hashlib.sha256(packet.encode("utf-8")).hexdigest(),
+                                       subject=self.run.state["plan"]["subject"], basis="user confirmation",
+                                       reason="The practitioner confirmed the presented subject and unit plan."))
 
     def first(self, *, questions=False, flags=False):
         record = self.run.template()
@@ -120,7 +128,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.third()
 
     def decision(self, basis="evidence"):
+        packet = self.run.present()
         return dict(schema_version=1, unit_id=self.run.unit()["unit_id"], basis=basis,
+                    presentation_sha256=hashlib.sha256(packet.encode("utf-8")).hexdigest(),
                     reason="The complete reviewed delta is settled by the source and schema.")
 
     def test_start_never_infers_or_creates_a_domain(self):
@@ -151,9 +161,33 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaises(workflow.RunError):
             self.run.submit("load", bad)
         self.run.submit("load", self.run.template())
-        self.assertIn("Structural orientation only", self.run.brief()["authorized_action"])
+        self.assertIn("source-wide structural preflight", self.run.brief()["authorized_action"])
         with self.assertRaises(workflow.RunError):
             self.run.land(dict(schema_version=1))
+
+    def test_validated_preflight_waits_for_bound_explicit_confirmation(self):
+        self.run.submit("load", self.run.template())
+        record = self.run.template()
+        record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
+                      subject="Revise prose for an observable reader effect.", mode="unit ingestion")
+        record["units"] = [dict(unit_id="u01", material="Instructional unit 1", locator="chapter 1",
+                                overlap_object_ids=[self.live.stem], card_potential="medium")]
+        record["no_extract"] = []
+        self.run.submit("preflight", record)
+        self.assertEqual(self.run.state["phase"], "preflight_accept")
+        with self.assertRaisesRegex(workflow.RunError, "preflight_accept"):
+            self.run.submit("pass1", dict(full_read=True))
+        packet = self.run.present()
+        sha = hashlib.sha256(packet.encode("utf-8")).hexdigest()
+        subject = self.run.state["plan"]["subject"]
+        for bad in (dict(presentation_sha256="0" * 64, subject=subject, basis="user confirmation"),
+                    dict(presentation_sha256=sha, subject="Another subject.", basis="user confirmation"),
+                    dict(presentation_sha256=sha, subject=subject, basis="the request to run PASS")):
+            with self.assertRaises(workflow.RunError):
+                self.run.accept_preflight(dict(schema_version=1, reason="Inferred.", **bad))
+        self.assertEqual(self.run.state["phase"], "preflight_accept")
+        self.accept()
+        self.assertEqual(self.run.state["phase"], "pass1")
 
     def test_preflight_domain_cannot_be_changed(self):
         self.run.submit("load", self.run.template())

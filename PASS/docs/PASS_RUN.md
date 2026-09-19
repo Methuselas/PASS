@@ -50,10 +50,13 @@ the sole domain of a bounded project. Otherwise obtain the destination first.
 After LOAD, preflight permits controlled structural orientation: metadata,
 contents/page map, extraction-quality sampling, and enough instructional
 structure to establish the subject and units. It does not permit chapter
-ingestion or lesson extraction. Only accepted preflight releases the first unit
-for substantive reading. Each unit completes PASS 1, any consequential-question
+ingestion or lesson extraction. **Preflight is source-scoped and occurs exactly
+once for the run.** Only accepted preflight releases the first unit for
+substantive reading. Each unit completes PASS 1, any consequential-question
 checkpoint, the full cold PASS 2, the card-only PASS 3, and verified landing before
-the next becomes active. A low forecast never permits skipping its reads.
+the next becomes active. Landing advances the next unit directly to PASS 1; it
+never creates another preflight phase. A low forecast never permits skipping its
+reads.
 
 The supported executable progression is currently **unit ingestion**. Curriculum
 audit records fail closed at this entrypoint until a separate scope contract is
@@ -191,10 +194,18 @@ nothing, and no particular structure or name is required.
 
 ## 1. Preflight
 
-Run once per source, before reading. Output is short: what the source is, how
-many units, and what to expect from each. It is a stateless inspection — it
-writes no persistent state, claims no source, and records nothing about what has
-been read.
+Run once per source, before reading. **Never rerun preflight at a unit
+boundary.** Output is short: what the source is, how many units, and what to
+expect from each. The structural inspection itself creates no durable authoring
+canon and records nothing about what has been substantively read. The supported
+controller does save the validated plan and presentation marker as disposable,
+per-run gate state until the source run closes.
+
+If later reading reveals that a remaining instructional boundary is wrong, use
+the controller's `replan` operation before accepting the active unit's PASS 1.
+`replan` amends the accepted source-wide unit plan; it is not a second preflight,
+does not reopen subject selection, and does not authorize another structural
+orientation pass.
 
 **Preflight predicts; unit reading decides.** `Low`, `Medium`, `High`, and `Mixed`
 are triage forecasts, never permission to skip a substantive instructional unit.
@@ -213,7 +224,9 @@ orientation — what the author thinks the book is, who they imagine the reader 
 be, how it is organized — and is then **barred from setting the subject.**
 
 State the subject explicitly in the preflight output and confirm it before the
-run starts, while a wrong inference still costs nothing.
+run starts, while a wrong inference still costs nothing. The controller enforces
+this as a separate acceptance gate: validation alone may not release PASS 1, and
+the initial request to run PASS does not count as confirmation.
 
 ### 1.2 Adjudicate units
 
@@ -330,8 +343,40 @@ active domain's live cards; card potential is a forecast (§1), not a skip gate.
 `preflight template` prints its JSON record; `preflight gate --input <record.json>`
 validates exact fields and live overlap IDs, then renders the table.
 `--validate-only` checks the same gate without rendering. `PASS/pass.py` reuses
-this gate and owns the supported PASS 1 / 2 / 3 and landing transitions. Running
-the helper alone does not authorize a source read or create a valid source run.
+this gate but adds the stateful acceptance boundary: submitting a valid preflight
+moves to `preflight_accept`; `present` renders the complete saved packet and
+records its SHA-256; `accept-preflight` requires a hash-bound decision with the
+exact subject and basis `user confirmation`. If the user requests a correction
+before acceptance, `revise-preflight` replaces the pending record and invalidates
+any prior presentation. Only accepted preflight releases PASS 1. Running the
+stateless helper alone does not authorize a source read or create a valid source
+run.
+
+### 1.5 Unattended single-source authorization
+
+A user may explicitly authorize one already-started source run to continue
+unattended through source completion. This is a bounded execution authorization,
+not retroactive approval of unknown practitioner decisions and not permission to
+start another source. Record it with `PASS/source.py authorize`; do not infer it
+merely because the user is absent.
+
+Under that authorization the complete preflight and landing packets still exist.
+`PASS/source.py drive` renders deterministic gate packets through its `advance` primitive, binds decisions to their SHA-256 values,
+and saves exact audit copies instead of requiring the host to spend chat tokens
+reproducing them. All three PASS reads and all ordinary validations remain
+mandatory. Quiet presentation is not quiet reasoning.
+
+The authorization may consume the preflight acceptance gate and a landing gate
+only when PASS 2 says `approval_required: false`. It may never answer a checkpoint
+whose uncertainty requires practitioner judgment, consume an `approval_required`
+delta, cross domains, or continue into another source. Those conditions park the
+run cleanly for the practitioner. Evidence-settled checkpoints remain host work
+and may proceed without ceremony.
+
+The source runner also binds the run to the source's SHA-256 and size recorded immediately after LOAD passes. A
+new environment may rebind a different filesystem path only when the bytes are
+identical. After the last unit lands, unattended completion is not declared until
+full-library validation and reference verification pass.
 
 ---
 
@@ -627,11 +672,24 @@ validation is the floor, not a substitute for this semantic card-quality read.
 
 ### 2.7 Present the delta, then land it
 
-Extraction and dispositions produce a **proposed delta**, not a mutation. Present
-it — new cards; refinements, reinforcements, and replacements **each with their
-reasons**; variants with their foundations; replacement migrations; rejections
-with reasons; APs and Drills; and any proposed taxonomy changes. Land only what
-is approved.
+Extraction and dispositions produce a **proposed delta**, not a mutation. At the
+`land` phase, run `python PASS/pass.py present --run <run-directory>`. The
+controller renders the canonical landing packet and records its SHA-256 in
+disposable controller scratch. **In interactive mode, reproduce that packet in
+full; do not summarize, regroup, paraphrase away reasons, or omit empty buckets.**
+In explicitly authorized unattended mode, `PASS/source.py drive` instead saves
+the exact packet and hash under the run audit; it does not print the packet into
+chat. The subsequent landing
+decision is bound to the current packet hash, so a decision cannot be accepted
+until `present` has run for this unit. This mechanical gate proves that the
+canonical packet was rendered; the host remains responsible for actually showing
+it to the practitioner and truthfully recording the resulting approval/evidence
+basis.
+
+The packet contains new cards; refinements, reinforcements, and replacements
+**each with their reasons**; variants with their foundations; replacement
+migrations; rejections with reasons; APs and Drills; taxonomy changes; exact
+staged changes and removals; and approval status. Land only what is approved.
 
 **Use explicit buckets even when they are empty.** At minimum, the visible delta
 reports NEW Patterns, REFINE, REINFORCE, VARIANTS, REPLACE, NEW APs, NEW Drills,
@@ -644,7 +702,10 @@ a library region while landing cards.
 
 The approval's weight follows §2.2: where the answer needs practitioner judgment,
 this is a real gate and the run waits; where evidence settles it, the delta is
-stated and the landing is the gate.
+stated and the landing is the gate. The generated landing-decision template
+leaves `basis` blank and includes the current `presentation_sha256` only after
+`present` has run. Never pre-fill approval before the practitioner actually gives
+it.
 
 Then validate, verify references, regenerate indexes, and land the change.
 

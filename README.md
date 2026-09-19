@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.55`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.56`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -170,10 +170,19 @@ PASS work.
    `PASS-project-*` root, begin with `AGENTS.md` and `PASS/SKILL.md`, and perform
    one domain-scoped PASS run through `python PASS/pass.py start --source <source>`.
    A single-domain snapshot supplies the unambiguous domain default. Follow the
-   returned phase; stage cards under each book's `workspace/authoring/` task and
-   complete all three passes and landing for one unit before reading the next.
-4. The LLM lands reviewed units into the project library, runs the bundled PASS
-   validators, and returns an updated ZIP preserving the same single root.
+   returned phase. Preflight is source-wide and runs once; after validation, run
+   `present`, show the complete preflight packet, and wait for explicit user
+   confirmation before `accept-preflight` releases PASS 1. After it is accepted,
+   every unit begins at PASS 1. Stage cards under each book's
+   `workspace/authoring/` task and complete all three passes before landing. If
+   the user explicitly authorizes this one source to continue unattended, finish
+   LOAD and then record it with `PASS/source.py authorize`; repeatedly use `source.py drive` as the authoritative dispatcher. It can archive routine
+   preflight/landing packets instead of spending chat tokens reproducing them.
+4. At each interactive `land` phase, the LLM runs `python PASS/pass.py present --run <run>`
+   and shows the complete generated packet without summarizing it. After the
+   applicable approval/evidence gate, the hash-bound landing decision integrates
+   the reviewed unit. The LLM then runs the bundled PASS validators and returns
+   an updated ZIP preserving the same single root.
 5. Back in the canonical repository, preview the returned archive with the
    importer. Apply it only after the proposed changes pass review.
 
@@ -182,10 +191,17 @@ A suitable instruction to the chat is:
 > Unpack this PASS project snapshot and work only inside its `PASS-project-*`
 > root. Read `AGENTS.md` and `PASS/SKILL.md`, then perform one PASS authoring run
 > through `PASS/pass.py` for the selected domain using the supplied source.
-> Follow the controller phases, stage drafts by canonical category, and land
-> each unit after all three passes. Regenerate indexes, run the
-> bundled validation tools, and return the updated project as a ZIP with the
-> original single root preserved.
+> Run preflight once for the source, never per unit. After validation, run
+> `present`, reproduce the complete preflight packet, and wait for explicit user
+> confirmation before `accept-preflight` releases PASS 1. Follow the controller
+> phases, stage drafts by canonical category, and after PASS 3 run `present` and
+> reproduce its complete landing packet before recording approval/evidence and
+> landing the unit. If I explicitly tell you to continue this source unattended,
+> use `PASS/source.py authorize`, then repeatedly follow only the action returned by `PASS/source.py drive`; use `PASS/source.py report` for every progress/completion claim, and keep going until source
+> completion; stop only for practitioner-dependent checkpoints,
+> `approval_required` deltas, source-identity failures, or unrecoverable errors.
+> Regenerate indexes, run the bundled validation tools, and return the updated
+> project as a ZIP with the original single root preserved.
 
 Python gates ordinary source-authoring progression and validates its actual
 staged edits; the human-readable method remains in `PASS/docs/PASS_RUN.md`.
@@ -574,7 +590,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.50`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.56`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

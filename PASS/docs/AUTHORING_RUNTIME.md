@@ -17,9 +17,22 @@ environment with `PASS/requirements.txt` installed:
 python PASS/pass.py start --source <source-file> --domain <authorized-domain>
 python PASS/pass.py status --run <run-directory>
 python PASS/pass.py template --run <run-directory>
+python PASS/pass.py present --run <run-directory>
 python PASS/pass.py submit --run <run-directory> --phase <current-phase> --input <record.json>
+python PASS/pass.py accept-preflight --run <run-directory> --decision <decision.json>
+python PASS/pass.py revise-preflight --run <run-directory> --input <preflight.json>
 python PASS/pass.py land --run <run-directory> --decision <decision.json>
 python PASS/pass.py close-run --run <run-directory>
+
+# Optional bounded unattended orchestration for this one source:
+python PASS/source.py authorize --run <run-directory> --reason <explicit-user-instruction>
+python PASS/source.py status --run <run-directory>
+python PASS/source.py drive --run <run-directory>
+python PASS/source.py report --run <run-directory>
+# `advance` remains a low-level deterministic-gate command for diagnosis/tests:
+python PASS/source.py advance --run <run-directory>
+python PASS/source.py rebind-source --run <run-directory> --source <same-source-new-path>
+python PASS/source.py revoke --run <run-directory>
 ```
 
 `--repo-root <project-root>` may precede the command when running from elsewhere.
@@ -58,17 +71,68 @@ workspace organization; placement reflects knowledge, not the source. Cards use
 the unchanged canonical schema and carry no source locators or controller hashes.
 Drafts may be incomplete during PASS 1; only validated finished objects can land.
 
+## Unattended single-source mode
+
+`PASS/source.py` is the state-driven source-level dispatcher above the ordinary unit controller.
+It exists for a user instruction such as: *run this PASS while I am away; continue
+through each unit until I return*. Authorization is explicit, source-scoped and
+bounded through that source's completion. The marker is created only after LOAD
+passes, because source-byte identity is deliberately not read before LOAD. It is not standing permission for a
+second book, another domain, or a later run.
+
+The runner deliberately does **not** call a model or fabricate substantive PASS
+records. The host still performs every required read and submits ordinary records
+through `PASS/pass.py`. In unattended mode, `source.py drive` first issues a persisted action lease for each substantive phase; `PASS/pass.py` refuses that submission without the matching lease. `source.py advance` is the lower-level primitive that acts only at deterministic source
+gates:
+
+- at `preflight_accept`, render the complete preflight packet, save the exact bytes
+  plus SHA-256 under `controller/audit/`, and consume the recorded unattended
+  authorization to release PASS 1;
+- at routine `land` where PASS 2 declared `approval_required: false`, render and
+  audit the complete landing packet, then land it under `unattended authorization`;
+- at `land` where `approval_required: true`, archive the packet and stop for the
+  practitioner;
+- at `finished`, run full-library `validate.py` and `verify_references.py` and
+  record a source-completion marker.
+
+Chat reproduction of audited packets is not required in unattended mode. This is
+a token-saving presentation rule, **not** permission to omit the packet, hash,
+PASS stage, or validation. Audit files are disposable authoring scratch and are
+removed by `close-run`; inspect or export them before closing if needed.
+
+Checkpoint routing remains semantic. Evidence-settled questions may be resolved by
+the host and submitted normally. If any answer depends on practitioner judgment,
+the run parks at that checkpoint. Unattended authorization never supplies a
+missing practitioner answer and never consumes `approval_required`.
+
+After the LOAD declaration passes, the controller records the source's SHA-256 and size. Every unattended gate verifies the
+currently bound file against that identity. If a project-chat/container boundary
+changes the path, `rebind-source` may update the path **only** when the new file's
+bytes match the original identity. A different PDF cannot inherit the run.
+
 ## Accepted progression and records
 
 1. **LOAD.** Read every current canonical document listed by `status` and submit
    their exact paths in `documents_read`, once each. A handoff is orientation,
    never a substitute. No source access is authorized before LOAD.
-2. **Preflight.** Structural orientation only: metadata, contents, page map,
-   extraction-quality sampling and instructional boundaries. Complete the
-   generated preflight record, including subject, contiguous units, live
-   active-domain overlap IDs, explicit forecasts and no-extract spans. Only
+2. **Preflight.** Run exactly once for the entire source. Structural orientation
+   only: metadata, contents, page map, extraction-quality sampling and
+   instructional boundaries. Complete the generated preflight record, including
+   subject, contiguous units, live active-domain overlap IDs, explicit forecasts
+   and no-extract spans. Validation moves the run to `preflight_accept`, **not**
+   PASS 1. Run `present` and reproduce the complete generated preflight packet,
+   then wait for explicit user confirmation of the stated subject and provisional
+   source-wide plan. The original request to run PASS is not that confirmation.
+   After confirmation, generate the current template and submit it through
+   `accept-preflight`; the decision must be hash-bound to the current packet,
+   repeat the exact subject, use basis `user confirmation`, and include a reason.
+   If the user requests a correction, submit a complete replacement record with
+   `revise-preflight`, then `present` it again before acceptance. Once accepted,
+   every later unit begins at PASS 1; there is no unit-level preflight. Only
    `unit ingestion` progression is supported. `curriculum audit` fails closed;
-   the standalone old preflight helper cannot authorize it.
+   the standalone old preflight helper cannot authorize it. `replan` is an
+   evidence-backed amendment to remaining unit boundaries after acceptance, not a
+   second preflight.
 3. **PASS 1.** Read the entire current unit. Declare `full_read: true`, relative
    `working_drafts`, live `overlap_object_ids`, `secondary_subject_flags` and
    consequential `questions`. Flag entries are `{flag_id, subject}`; question
@@ -108,14 +172,21 @@ Drafts may be incomplete during PASS 1; only validated finished objects can land
    remains separate; edited cards and newly introduced defects must be clean.
    Module identities and any staged recipe's full prerequisite closure must
    resolve. Any failure leaves this unit active.
-7. **Landing.** Present the full delta and reasons. Submit `{schema_version,
-   unit_id, basis, reason}`, with basis exactly `user approval` or `evidence`.
-   Record actual authorization or the evidence-settled basis permitted by the
-   method. A delta marked `approval_required` accepts only `user approval`.
-   The controller checks the reviewed bytes and unchanged live owners, validates
-   the complete repository overlay including global ID uniqueness, regenerates
-   the active domain's indexes, verifies written bytes, then advances one unit.
-   Ordinary write failures restore affected files and keep the unit open.
+7. **Landing.** Run `present` first and reproduce its generated packet in full.
+   `present` renders every disposition/taxonomy bucket (including empty ones),
+   every reason, exact changes/removals, and approval status, then records a
+   disposable packet SHA-256. Do not summarize the packet. After the applicable
+   practitioner/evidence gate is actually satisfied, generate the landing
+   template and submit `{schema_version, unit_id, presentation_sha256, basis,
+   reason}`. The template leaves `basis` blank; fill it with exactly `user
+   approval` or `evidence` only after the gate is satisfied. A delta marked
+   `approval_required` accepts only `user approval`. The controller rejects a
+   landing decision unless `present` ran for the current unit and the decision is
+   bound to the current packet hash. It then checks the reviewed bytes and
+   unchanged live owners, validates the complete repository overlay including
+   global ID uniqueness, regenerates the active domain's indexes, verifies written
+   bytes, and advances one unit directly to PASS 1 (or `finished` after the last
+   unit). Ordinary write failures restore affected files and keep the unit open.
    Successfully integrated staged files are removed. Landing creates no Git
    commit; commit sizing and publication remain separate maintainer actions.
 
@@ -142,11 +213,15 @@ and targets valid. Editing staged files after an accepted PASS 3 blocks landing
 until another scan is accepted. Status and templates resume the same unit across
 sessions; a context boundary never splits it.
 
-Instruction can revise the provisional unit scheme before accepting the active
-unit's PASS 1. `replan` takes integer `schema_version: 1`, a nonempty `reason`
-giving instructional evidence, and a complete replacement `preflight`. It may
-change remaining units/no-extract spans, but never the source identity, subject,
-domain or any closed unit. Context pressure is not instructional evidence.
+After preflight acceptance, instruction can revise the provisional unit scheme
+before accepting the active unit's PASS 1. `replan` takes integer
+`schema_version: 1`, a nonempty `reason`
+giving instructional evidence, and a complete replacement plan in the existing
+`preflight`-shaped field for backward compatibility. **This is a plan amendment,
+not a rerun of preflight.** It may change remaining units/no-extract spans, but
+never the source identity, subject, domain or any closed unit. Context pressure
+is not instructional evidence, and `replan` does not authorize another
+source-orientation read.
 
 Several books may stage independently. They validate against the live library,
 not copies accepted at the beginning of a source. A changed live card, asset,

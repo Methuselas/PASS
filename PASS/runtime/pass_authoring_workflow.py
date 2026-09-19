@@ -27,9 +27,25 @@ from . import pass_authoring_run as preflight
 
 
 RUN_SCHEMA = 1
-PHASES = {"load", "preflight", "pass1", "checkpoint", "pass2", "pass3", "land", "finished"}
+PHASES = {"load", "preflight", "preflight_accept", "pass1", "checkpoint", "pass2", "pass3", "land", "finished"}
 BUCKETS = ("NEW_PATTERNS", "REFINE", "REINFORCE", "VARIANTS", "REPLACE", "NEW_APS", "NEW_DRILLS", "REJECT")
 TAXONOMY = ("NEW_SUBCATEGORY", "MOVE", "RENAME", "MERGE")
+BUCKET_LABELS = {
+    "NEW_PATTERNS": "NEW PATTERNS",
+    "REFINE": "REFINE",
+    "REINFORCE": "REINFORCE",
+    "VARIANTS": "VARIANTS",
+    "REPLACE": "REPLACE",
+    "NEW_APS": "NEW APS",
+    "NEW_DRILLS": "NEW DRILLS",
+    "REJECT": "REJECT",
+}
+TAXONOMY_LABELS = {
+    "NEW_SUBCATEGORY": "NEW SUBCATEGORY",
+    "MOVE": "MOVE",
+    "RENAME": "RENAME",
+    "MERGE": "MERGE",
+}
 SEMANTIC_CHECKS = (
     "identity_and_placement", "relations_and_variant_parentage",
     "contradictions_and_field_meaning", "source_independence",
@@ -220,6 +236,152 @@ class Run:
     def save(self) -> None:
         atomic_write(self.state_path, (json.dumps(self.state, indent=2) + "\n").encode())
 
+    def source_identity_path(self) -> Path:
+        return inside(self.root, "controller/source-identity.json")
+
+    def capture_source_identity(self) -> dict:
+        path = Path(self.state["source"]).resolve()
+        if not path.is_file():
+            raise RunError(f"source does not exist: {path}")
+        marker = {
+            "schema_version": 1,
+            "name": path.name,
+            "size": path.stat().st_size,
+            "sha256": digest(path),
+        }
+        atomic_write(self.source_identity_path(), (json.dumps(marker, indent=2) + "\n").encode())
+        return marker
+
+    def source_identity(self) -> dict:
+        path = self.source_identity_path()
+        if not path.is_file():
+            raise RunError("source identity marker is missing; complete the LOAD gate before unattended/source-resume operations")
+        marker = preflight._read_json(str(path))
+        exact(marker, {"schema_version", "name", "size", "sha256"}, "source identity")
+        if type(marker["schema_version"]) is not int or marker["schema_version"] != 1:
+            raise RunError("unsupported source identity marker")
+        string(marker["name"], "source identity name")
+        if type(marker["size"]) is not int or marker["size"] < 0:
+            raise RunError("invalid source identity size")
+        sha = string(marker["sha256"], "source identity sha256")
+        if not re.fullmatch(r"[0-9a-f]{64}", sha):
+            raise RunError("invalid source identity sha256")
+        return marker
+
+    def source_file(self, required: bool = True) -> Path | None:
+        path = Path(self.state["source"]).resolve()
+        if not path.is_file():
+            if required:
+                raise RunError(
+                    "bound source file is unavailable; rebind the same source by SHA-256 with "
+                    "`python PASS/source.py rebind-source --run <run> --source <path>`"
+                )
+            return None
+        identity = self.source_identity()
+        if path.stat().st_size != identity["size"] or digest(path) != identity["sha256"]:
+            raise RunError("bound source bytes no longer match the run's source identity")
+        return path
+
+    def rebind_source(self, source: Path) -> str:
+        source = source.resolve()
+        if not source.is_file():
+            raise RunError(f"replacement source does not exist: {source}")
+        identity = self.source_identity()
+        if source.stat().st_size != identity["size"] or digest(source) != identity["sha256"]:
+            raise RunError("replacement source does not match the original source SHA-256 and size")
+        self.state["source"] = str(source)
+        self.save()
+        return f"SOURCE REBOUND: {source.name} — identity verified"
+
+    def unattended_authorization_path(self) -> Path:
+        return inside(self.root, "controller/unattended-authorization.json")
+
+    def unattended_action_path(self) -> Path:
+        return inside(self.root, "controller/next-action.json")
+
+    def require_unattended_action(self, phase: str) -> None:
+        """Require a source-runner-issued action lease for substantive unattended work.
+
+        This makes the source runner the authoritative dispatcher whenever an
+        unattended authorization is active. A host may not jump directly into
+        PASS phases from prose memory; it must first obtain the exact current
+        action from ``PASS/source.py drive``.
+        """
+        if not self.unattended_authorization_path().is_file():
+            return
+        # LOAD precedes unattended authorization. Deterministic gates such as
+        # preflight acceptance and landing are consumed by source.py itself.
+        if phase not in {"preflight", "pass1", "checkpoint", "pass2", "pass3"}:
+            return
+        path = self.unattended_action_path()
+        if not path.is_file():
+            raise RunError(
+                "unattended source run has no issued action lease; run "
+                "`python PASS/source.py drive --run <run>` and execute only the returned action"
+            )
+        marker = preflight._read_json(str(path))
+        exact(
+            marker,
+            {"schema_version", "action_id", "phase", "unit_index", "unit_id", "state_sha256", "instruction"},
+            "unattended action lease",
+        )
+        if type(marker["schema_version"]) is not int or marker["schema_version"] != 1:
+            raise RunError("unsupported unattended action lease")
+        if marker["phase"] != phase or marker["phase"] != self.state["phase"]:
+            raise RunError("unattended action lease does not match the current PASS phase; rerun source.py drive")
+        if type(marker["unit_index"]) is not int or marker["unit_index"] != self.state["unit_index"]:
+            raise RunError("unattended action lease belongs to another unit; rerun source.py drive")
+        unit_id = self.unit()["unit_id"] if self.state["plan"] is not None and self.state["unit_index"] < len(self.state["plan"]["units"]) else None
+        if marker["unit_id"] != unit_id:
+            raise RunError("unattended action lease unit identity mismatch")
+        if marker["state_sha256"] != digest(self.state_path):
+            raise RunError("unattended run state changed after the action was issued; rerun source.py drive")
+        action_id = string(marker["action_id"], "unattended action id")
+        if not re.fullmatch(r"[0-9a-f]{64}", action_id):
+            raise RunError("invalid unattended action id")
+        string(marker["instruction"], "unattended action instruction")
+
+    def consume_unattended_action(self, phase: str, previous_unit_index: int) -> None:
+        """Archive the lease that authorized a successful substantive transition."""
+        path = self.unattended_action_path()
+        if not path.is_file():
+            return
+        marker = preflight._read_json(str(path))
+        if marker.get("phase") != phase or marker.get("unit_index") != previous_unit_index:
+            return
+        history = inside(self.root, "controller/action-history")
+        history.mkdir(parents=True, exist_ok=True)
+        record = dict(marker)
+        record.update({"result_phase": self.state["phase"], "result_unit_index": self.state["unit_index"], "completed": True})
+        atomic_write(inside(history, f"{marker['action_id']}.json"), (json.dumps(record, indent=2) + "\n").encode("utf-8"))
+        path.unlink(missing_ok=True)
+
+    def unattended_authorization(self, required: bool = False) -> dict | None:
+        path = self.unattended_authorization_path()
+        if not path.is_file():
+            if required:
+                raise RunError("no active unattended source authorization is recorded for this run")
+            return None
+        marker = preflight._read_json(str(path))
+        exact(
+            marker,
+            {"schema_version", "mode", "scope", "authorized_by", "domain", "source_sha256", "reason"},
+            "unattended authorization",
+        )
+        if type(marker["schema_version"]) is not int or marker["schema_version"] != 1:
+            raise RunError("unsupported unattended authorization marker")
+        if marker["mode"] != "unattended" or marker["scope"] != "source_completion" or marker["authorized_by"] != "user":
+            raise RunError("unattended authorization must be user-authorized and scoped to this source through completion")
+        if marker["domain"] != self.domain:
+            raise RunError("unattended authorization belongs to another domain")
+        identity = self.source_identity()
+        if marker["source_sha256"] != identity["sha256"]:
+            raise RunError("unattended authorization belongs to another source")
+        string(marker["reason"], "unattended authorization reason")
+        # Fail closed if the current source path is stale, missing, or replaced.
+        self.source_file(required=True)
+        return marker
+
     @property
     def domain(self) -> str:
         return self.state["domain"]
@@ -230,15 +392,138 @@ class Run:
             raise RunError("no active unit")
         return plan["units"][self.state["unit_index"]]
 
+    def stage_contract(self) -> dict:
+        phase = self.state["phase"]
+        preflight_validated = self.state["plan"] is not None
+        preflight_accepted = preflight_validated and phase not in {"load", "preflight", "preflight_accept"}
+        contract = {
+            "source_preflight": {
+                "scope": "source",
+                "frequency": "once",
+                "validated": preflight_validated,
+                "accepted": preflight_accepted,
+                "complete": preflight_accepted,
+                "repeat_for_each_unit": False,
+                "unit_preflight_allowed": False,
+                "replan_is_preflight": False,
+            }
+        }
+        unattended = self.unattended_authorization(required=False)
+        if phase == "preflight_accept":
+            if unattended:
+                contract["source_preflight"]["instruction"] = (
+                    "The source-wide preflight is validated and this source has active unattended authorization. "
+                    "Use the source runner to archive the complete packet and consume the bounded authorization before PASS 1."
+                )
+                contract["preflight_presentation"] = {
+                    "required": True,
+                    "renderer": "PASS/source.py advance",
+                    "verbatim_audit_copy": True,
+                    "chat_display_required": False,
+                    "acceptance_command": "source.py advance",
+                    "basis": "unattended authorization",
+                    "instruction": (
+                        "The packet must still be rendered, hash-bound and saved to the run audit. Do not skip preflight. "
+                        "No chat reproduction is required while unattended authorization is active."
+                    ),
+                }
+            else:
+                contract["source_preflight"]["instruction"] = (
+                    "The source-wide preflight is validated but not accepted. Run present, reproduce the complete preflight packet, "
+                    "and obtain explicit user confirmation of the stated subject and provisional source-wide plan before PASS 1."
+                )
+                contract["preflight_presentation"] = {
+                    "required": True,
+                    "renderer": "present",
+                    "verbatim": True,
+                    "summary_allowed": False,
+                    "acceptance_command": "accept-preflight",
+                    "basis": "user confirmation",
+                    "instruction": (
+                        "Do not infer confirmation from the original request to run PASS. Present the complete packet, wait for an "
+                        "explicit user confirmation or correction, then submit a hash-bound preflight acceptance decision."
+                    ),
+                }
+        elif preflight_accepted and phase not in {"finished"}:
+            contract["source_preflight"]["instruction"] = (
+                "The source-wide preflight is already accepted. Do not run or simulate another preflight for the active unit; "
+                "use replan only for evidence-backed amendments to remaining instructional boundaries before PASS 1 is accepted."
+            )
+        elif phase == "preflight":
+            contract["source_preflight"]["instruction"] = (
+                "Perform the one source-wide structural preflight. This preflight establishes the provisional plan for every unit."
+            )
+        if phase == "land":
+            if unattended and not self.state["pass2"]["approval_required"]:
+                contract["landing_presentation"] = {
+                    "required": True,
+                    "renderer": "PASS/source.py advance",
+                    "verbatim_audit_copy": True,
+                    "chat_display_required": False,
+                    "basis": "unattended authorization",
+                    "instruction": (
+                        "The source runner must render, hash-bind and archive the complete packet before auto-landing. "
+                        "Routine landing may consume the bounded unattended authorization because approval_required is false."
+                    ),
+                }
+            elif unattended and self.state["pass2"]["approval_required"]:
+                contract["landing_presentation"] = {
+                    "required": True,
+                    "renderer": "PASS/source.py advance",
+                    "verbatim_audit_copy": True,
+                    "chat_display_required": False,
+                    "human_required": True,
+                    "instruction": (
+                        "Archive the packet and stop. This delta is marked approval_required; unattended authorization may not consume it."
+                    ),
+                }
+            else:
+                contract["landing_presentation"] = {
+                    "required": True,
+                    "renderer": "present",
+                    "verbatim": True,
+                    "summary_allowed": False,
+                    "instruction": (
+                        "Run the present command and reproduce its complete packet before recording a landing decision. "
+                        "Do not omit empty buckets, reasons, taxonomy actions, changes, removals, or approval status."
+                    ),
+                }
+        return contract
+
     def brief(self) -> dict:
         phase = self.state["phase"]
-        result = {"run": str(self.root), "domain": self.domain, "phase": phase}
+        result = {
+            "run": str(self.root),
+            "domain": self.domain,
+            "phase": phase,
+            "stage_contract": self.stage_contract(),
+        }
         if phase == "load":
             result["required_documents"] = required_documents(self.repo)
             result["authorized_action"] = "Read canonical instructions only; submit the load record before source access."
         elif phase == "preflight":
             result["source"] = self.state["source"]
-            result["authorized_action"] = "Structural orientation only: establish subject, TOC/page map, text quality and instructional units. No substantive ingestion or library writes."
+            result["authorized_action"] = (
+                "Run the one source-wide structural preflight: establish subject, TOC/page map, text quality and the provisional "
+                "unit plan for the complete source. No substantive ingestion or library writes."
+            )
+        elif phase == "preflight_accept":
+            result["source"] = self.state["source"]
+            result["subject"] = self.state["plan"]["subject"]
+            if self.unattended_authorization(required=False):
+                result["advance_command"] = f"python PASS/source.py advance --run {self.root}"
+                result["authorized_action"] = (
+                    "Use the unattended source runner. It will render and archive the complete preflight packet, bind the decision "
+                    "to its hash and consume only this source's recorded unattended authorization. Do not reproduce the packet in chat."
+                )
+            else:
+                result["presentation_command"] = f"python PASS/pass.py present --run {self.root}"
+                result["acceptance_command"] = f"python PASS/pass.py accept-preflight --run {self.root} --decision <decision.json>"
+                result["authorized_action"] = (
+                    "Run present and reproduce the complete preflight packet verbatim. Obtain explicit user confirmation of the "
+                    "stated subject and provisional source-wide plan; do not begin PASS 1. If the user requests a correction, use "
+                    "revise-preflight and present the replacement packet again."
+                )
         elif phase == "finished":
             result["authorized_action"] = "All units landed; use close-run to discard generated state and inspect remaining owned scratch."
         else:
@@ -247,21 +532,175 @@ class Run:
             if phase in {"pass1", "pass2"}:
                 result.update({"source": self.state["source"], "authorized_source_scope": unit["locator"]})
             if phase == "pass1":
-                result["authorized_action"] = "Read only this entire unit; draft provisional cards by category; record overlaps, secondary-subject flags and consequential questions."
+                result["authorized_action"] = (
+                    "SOURCE PREFLIGHT IS COMPLETE; do not preflight this unit. Read only this entire unit; draft provisional cards "
+                    "by category; record overlaps, secondary-subject flags and consequential questions."
+                )
             elif phase == "checkpoint":
                 result["questions"] = self.state["pass1"]["questions"]
-                result["authorized_action"] = "Resolve the checkpoint questions; do not begin PASS 2 yet."
+                result["authorized_action"] = "Resolve the checkpoint questions; do not begin PASS 2 and do not rerun preflight."
             elif phase == "pass2":
                 result["secondary_subject_flags"] = self.state["pass1"]["secondary_subject_flags"]
-                result["authorized_action"] = "Reread this entire unit from scratch; resolve every flag; declare exclusive dispositions, taxonomy and the exact staged change set."
+                result["authorized_action"] = (
+                    "SOURCE PREFLIGHT IS COMPLETE; do not preflight this unit. Reread this entire unit from scratch; resolve every "
+                    "flag; declare exclusive dispositions, taxonomy and the exact staged change set."
+                )
             elif phase == "pass3":
                 result["staged_files"] = self.state["pass2"]["changes"]
-                result["authorized_action"] = "Close the source/reading notes; scan staged cards as standalone objects. Repair and rescan; submit actual reviewed hashes and every semantic check."
+                result["authorized_action"] = (
+                    "Close the source/reading notes; scan staged cards as standalone objects. Repair and rescan; submit actual "
+                    "reviewed hashes and every semantic check. Do not rerun preflight."
+                )
             elif phase == "land":
                 result["delta"] = {key: self.state["pass2"][key] for key in ("buckets", "taxonomy", "changes", "removals", "approval_required")}
                 result["reviewed_sha256"] = self.state["reviewed_sha256"]
-                result["authorized_action"] = "Present the full delta and reasons. Land this unit only under the applicable user-approval or evidence decision; no next-unit reading yet."
+                if self.unattended_authorization(required=False):
+                    result["advance_command"] = f"python PASS/source.py advance --run {self.root}"
+                    if self.state["pass2"]["approval_required"]:
+                        result["authorized_action"] = (
+                            "Use the source runner to archive the landing packet, then stop for the practitioner. "
+                            "approval_required cannot be consumed by unattended authorization."
+                        )
+                    else:
+                        result["authorized_action"] = (
+                            "Use the source runner to archive the complete landing packet and auto-land this routine delta under the "
+                            "bounded unattended authorization; no chat reproduction is required."
+                        )
+                else:
+                    result["presentation_command"] = f"python PASS/pass.py present --run {self.root}"
+                    result["authorized_action"] = (
+                        "Run present and reproduce its complete landing packet verbatim. Then land this unit only under the applicable "
+                        "user-approval or evidence decision; no next-unit reading and no new preflight."
+                    )
         return result
+
+    def preflight_presentation_path(self) -> Path:
+        return inside(self.root, "controller/preflight-presentation.json")
+
+    def clear_preflight_presentation(self) -> None:
+        self.preflight_presentation_path().unlink(missing_ok=True)
+
+    def preflight_presentation_marker(self, required: bool = False) -> dict | None:
+        path = self.preflight_presentation_path()
+        if not path.is_file():
+            if required:
+                raise RunError("run present and show the complete preflight packet before accepting preflight")
+            return None
+        marker = preflight._read_json(str(path))
+        exact(marker, {"schema_version", "subject", "sha256"}, "preflight presentation marker")
+        if type(marker["schema_version"]) is not int or marker["schema_version"] != 1:
+            raise RunError("unsupported preflight presentation marker")
+        if marker["subject"] != self.state["plan"]["subject"]:
+            raise RunError("preflight presentation marker belongs to another plan; run present again")
+        sha = string(marker["sha256"], "preflight presentation sha256")
+        if not re.fullmatch(r"[0-9a-f]{64}", sha):
+            raise RunError("invalid preflight presentation sha256")
+        return marker
+
+    def render_preflight_packet(self) -> str:
+        if self.state["phase"] != "preflight_accept":
+            raise RunError("preflight presentation is available only after the preflight record validates")
+        record = preflight.parse_preflight(self.state["plan"])
+        cards = preflight.validate_against_library(record, self.repo)
+        packet = preflight.render_preflight(record, cards)
+        return packet + (
+            "\n\n**PREFLIGHT ACCEPTANCE REQUIRED:** Confirm the stated instructional subject and provisional "
+            "source-wide unit plan before PASS 1. Corrections must be applied with `revise-preflight` and presented again."
+        )
+
+    def presentation_path(self) -> Path:
+        return inside(self.root, "controller/landing-presentation.json")
+
+    def clear_presentation(self) -> None:
+        self.presentation_path().unlink(missing_ok=True)
+
+    def presentation_marker(self, required: bool = False) -> dict | None:
+        path = self.presentation_path()
+        if not path.is_file():
+            if required:
+                raise RunError("run present and show its complete packet before submitting a landing decision")
+            return None
+        marker = preflight._read_json(str(path))
+        exact(marker, {"schema_version", "unit_id", "sha256"}, "landing presentation marker")
+        if type(marker["schema_version"]) is not int or marker["schema_version"] != 1:
+            raise RunError("unsupported landing presentation marker")
+        if marker["unit_id"] != self.unit()["unit_id"]:
+            raise RunError("landing presentation marker belongs to another unit; run present again")
+        sha = string(marker["sha256"], "landing presentation sha256")
+        if not re.fullmatch(r"[0-9a-f]{64}", sha):
+            raise RunError("invalid landing presentation sha256")
+        return marker
+
+    def present(self) -> str:
+        if self.state["phase"] == "preflight_accept":
+            packet = self.render_preflight_packet()
+            marker = {
+                "schema_version": 1,
+                "subject": self.state["plan"]["subject"],
+                "sha256": hashlib.sha256(packet.encode("utf-8")).hexdigest(),
+            }
+            atomic_write(self.preflight_presentation_path(), (json.dumps(marker, indent=2) + "\n").encode())
+            return packet
+        packet = self.render_land_packet()
+        marker = {
+            "schema_version": 1,
+            "unit_id": self.unit()["unit_id"],
+            "sha256": hashlib.sha256(packet.encode("utf-8")).hexdigest(),
+        }
+        atomic_write(self.presentation_path(), (json.dumps(marker, indent=2) + "\n").encode())
+        return packet
+
+    def render_land_packet(self) -> str:
+        if self.state["phase"] != "land":
+            raise RunError("landing presentation is available only after PASS 3 passes")
+        unit = self.unit()
+        delta = self.state["pass2"]
+        lines = [
+            f"# PASS LANDING PACKET — {unit['unit_id'].upper()}",
+            "",
+            f"PASS 3: pass — {unit['unit_id'].upper()}",
+            f"Material: {unit['material']}",
+            "",
+        ]
+        for bucket in BUCKETS:
+            lines.append(f"## {BUCKET_LABELS[bucket]}")
+            entries = delta["buckets"][bucket]
+            if entries:
+                for item in entries:
+                    lines.append(f"- `{item['object_id']}` — {item['reason']}")
+            else:
+                lines.append("- none")
+            lines.append("")
+        lines.append("## TAXONOMY")
+        lines.append("")
+        for action in TAXONOMY:
+            lines.append(f"### {TAXONOMY_LABELS[action]}")
+            entries = delta["taxonomy"][action]
+            if entries:
+                for item in entries:
+                    lines.append(f"- `{item['path']}` — {item['reason']}")
+            else:
+                lines.append("- none")
+            lines.append("")
+        lines.append("## CHANGES")
+        if delta["changes"]:
+            lines.extend(f"- `{name}`" for name in delta["changes"])
+        else:
+            lines.append("- none")
+        lines.append("")
+        lines.append("## REMOVALS")
+        if delta["removals"]:
+            lines.extend(f"- `{name}`" for name in delta["removals"])
+        else:
+            lines.append("- none")
+        lines.append("")
+        lines.append(f"**APPROVAL REQUIRED:** {'yes' if delta['approval_required'] else 'no'}")
+        lines.append("")
+        lines.append(
+            "Do not summarize or omit this packet when presenting the proposed delta. "
+            "Record a landing decision only after the applicable approval or evidence gate is actually satisfied."
+        )
+        return "\n".join(lines)
 
     def template(self) -> dict:
         phase = self.state["phase"]
@@ -269,6 +708,15 @@ class Run:
             result = preflight.template_record()
             result.update(domain=self.domain, title=Path(self.state["source"]).stem)
             return result
+        if phase == "preflight_accept":
+            marker = self.preflight_presentation_marker(required=False)
+            return {
+                "schema_version": 1,
+                "presentation_sha256": marker["sha256"] if marker else "",
+                "subject": self.state["plan"]["subject"],
+                "basis": "",
+                "reason": "",
+            }
         result = {"schema_version": 1}
         if phase == "load":
             result["documents_read"] = required_documents(self.repo)
@@ -284,7 +732,8 @@ class Run:
             elif phase == "pass3":
                 result.update(card_only_review=False, checks={name: False for name in SEMANTIC_CHECKS}, reviewed_sha256=self.staged_hashes())
             elif phase == "land":
-                result.update(basis="user approval", reason="")
+                marker = self.presentation_marker(required=False)
+                result.update(presentation_sha256=marker["sha256"] if marker else "", basis="", reason="")
             else:
                 raise RunError("this phase has no submission template")
         return result
@@ -351,11 +800,16 @@ class Run:
     def submit(self, phase: str, data: dict) -> str:
         if phase != self.state["phase"]:
             raise RunError(f"cannot submit {phase}; current phase is {self.state['phase']}")
+        previous_unit_index = self.state["unit_index"]
+        self.require_unattended_action(phase)
         if phase == "load":
             exact(data, {"schema_version", "documents_read"}, "load")
             documents = array(data["documents_read"], "documents_read")
             if type(data["schema_version"]) is not int or data["schema_version"] != 1 or any(not isinstance(d, str) for d in documents) or sorted(documents) != sorted(required_documents(self.repo)):
                 raise RunError("load record must declare every required current canonical document exactly once")
+            # Source-byte access becomes legal only after the LOAD declaration is
+            # validated. Capture identity now, before structural preflight begins.
+            self.capture_source_identity()
             self.state["phase"] = "preflight"
             message = "LOAD GATE: pass"
         elif phase == "preflight":
@@ -364,9 +818,10 @@ class Run:
                 raise RunError("preflight cannot change the run's authorized domain")
             if record.mode != "unit ingestion":
                 raise RunError("controller orchestration currently supports unit ingestion only; curriculum audit requires its own scope contract")
-            cards = preflight.validate_against_library(record, self.repo)
-            self.state.update(plan=json.loads(json.dumps(asdict(record))), phase="pass1")
-            message = preflight.render_preflight(record, cards)
+            preflight.validate_against_library(record, self.repo)
+            self.clear_preflight_presentation()
+            self.state.update(plan=json.loads(json.dumps(asdict(record))), phase="preflight_accept")
+            message = "PREFLIGHT: validated — presentation and explicit user confirmation required before PASS 1"
         elif phase == "pass1":
             self.header(data, {"full_read", "working_drafts", "overlap_object_ids", "secondary_subject_flags", "questions"})
             if data["full_read"] is not True:
@@ -425,11 +880,13 @@ class Run:
             self.check_live()
             if self.staged_hashes() != hashes:
                 raise RunError("drafts changed during validation; repeat PASS 3")
+            self.clear_presentation()
             self.state.update(reviewed_sha256=hashes, phase="land")
             message = f"PASS 3: pass — {self.unit()['unit_id'].upper()}"
         else:
             raise RunError("use land or close-run for this phase")
         self.save()
+        self.consume_unattended_action(phase, previous_unit_index)
         return message
 
     def accept_pass2(self, data: dict) -> None:
@@ -611,6 +1068,46 @@ for name in recipes:
         if result.returncode:
             raise RunError(f"identity/relation/release closure audit failed:\n{result.stdout}\n{result.stderr}")
 
+    def revise_preflight(self, data: dict) -> str:
+        if self.state["phase"] != "preflight_accept":
+            raise RunError("preflight can be revised only while it is awaiting acceptance")
+        record = preflight.parse_preflight(data)
+        if record.domain != self.domain:
+            raise RunError("preflight revision cannot change the run's authorized domain")
+        if record.mode != "unit ingestion":
+            raise RunError("controller orchestration currently supports unit ingestion only; curriculum audit requires its own scope contract")
+        preflight.validate_against_library(record, self.repo)
+        self.clear_preflight_presentation()
+        self.state["plan"] = json.loads(json.dumps(asdict(record)))
+        self.save()
+        return "PREFLIGHT REVISION: validated — present the replacement packet for user confirmation"
+
+    def accept_preflight(self, decision: dict) -> str:
+        if self.state["phase"] != "preflight_accept":
+            raise RunError("preflight acceptance is available only after a validated preflight is awaiting confirmation")
+        exact(decision, {"schema_version", "presentation_sha256", "subject", "basis", "reason"}, "preflight acceptance")
+        if type(decision["schema_version"]) is not int or decision["schema_version"] != 1:
+            raise RunError("preflight acceptance schema_version must be integer 1")
+        marker = self.preflight_presentation_marker(required=True)
+        current_packet_sha = hashlib.sha256(self.render_preflight_packet().encode("utf-8")).hexdigest()
+        if decision["presentation_sha256"] != marker["sha256"] or marker["sha256"] != current_packet_sha:
+            raise RunError("preflight acceptance is not bound to the current complete presentation packet; run present again")
+        subject = string(decision["subject"], "preflight acceptance subject")
+        if subject != self.state["plan"]["subject"]:
+            raise RunError("preflight acceptance must repeat the exact presented instructional subject")
+        if decision["basis"] == "unattended authorization":
+            self.unattended_authorization(required=True)
+        elif decision["basis"] != "user confirmation":
+            raise RunError(
+                "preflight acceptance requires explicit user confirmation or a recorded source-scoped unattended authorization; "
+                "do not infer either from the request to run PASS"
+            )
+        string(decision["reason"], "preflight acceptance reason")
+        self.state["phase"] = "pass1"
+        self.clear_preflight_presentation()
+        self.save()
+        return f"PREFLIGHT ACCEPTED: subject and source-wide plan confirmed — PASS 1 released — {self.unit()['unit_id'].upper()}"
+
     def land(self, decision: dict) -> str:
         # Independent books may stage in parallel, but only one unit in a domain
         # may integrate at a time. This lease contains no research/run state.
@@ -628,10 +1125,18 @@ for name in recipes:
     def _land(self, decision: dict) -> str:
         if self.state["phase"] != "land":
             raise RunError("unit cannot land or advance before PASS 3 and mechanical validation pass")
-        self.header(decision, {"basis", "reason"})
-        if not isinstance(decision["basis"], str) or decision["basis"] not in {"user approval", "evidence"}:
-            raise RunError("landing decision requires user approval or an evidence-settled basis")
+        self.header(decision, {"presentation_sha256", "basis", "reason"})
+        marker = self.presentation_marker(required=True)
+        current_packet_sha = hashlib.sha256(self.render_land_packet().encode("utf-8")).hexdigest()
+        if decision["presentation_sha256"] != marker["sha256"] or marker["sha256"] != current_packet_sha:
+            raise RunError("landing decision is not bound to the current complete presentation packet; run present again")
+        if not isinstance(decision["basis"], str) or decision["basis"] not in {"user approval", "evidence", "unattended authorization"}:
+            raise RunError("landing decision requires user approval, an evidence-settled basis, or recorded unattended authorization")
         string(decision["reason"], "landing reason")
+        if decision["basis"] == "unattended authorization":
+            self.unattended_authorization(required=True)
+            if self.state["pass2"]["approval_required"]:
+                raise RunError("this delta requires practitioner approval; unattended authorization may not consume it")
         if self.state["pass2"]["approval_required"] and decision["basis"] != "user approval":
             raise RunError("this delta requires practitioner approval; evidence cannot substitute for it")
         self.check_live()
@@ -678,6 +1183,7 @@ for name in recipes:
             self.state.update(unit_index=self.state["unit_index"] + 1, pass1=None, pass2=None, reviewed_sha256=None, live_hashes=None)
             self.state["phase"] = "finished" if self.state["unit_index"] == len(self.state["plan"]["units"]) else "pass1"
             self.save()
+            self.clear_presentation()
         except BaseException:
             self.state = old_state
             for name, content in before.items():
@@ -698,8 +1204,9 @@ for name in recipes:
     def rewind(self, phase: str) -> None:
         if phase not in {"pass1", "pass2", "pass3"}:
             raise RunError("rewind supports only pass1, pass2 or pass3")
-        if self.state["phase"] in {"load", "preflight", "finished"}:
-            raise RunError("no active unit can be rewound")
+        if self.state["phase"] in {"load", "preflight", "preflight_accept", "finished"}:
+            raise RunError("no accepted active unit can be rewound")
+        self.clear_presentation()
         if phase == "pass1":
             self.state.update(pass1=None, pass2=None, live_hashes=None, reviewed_sha256=None)
         elif phase == "pass2":
@@ -717,18 +1224,18 @@ for name in recipes:
     def replan(self, data: dict) -> None:
         if self.state["phase"] != "pass1":
             raise RunError("unit structure may be amended only before accepting the active unit's PASS 1")
-        exact(data, {"schema_version", "reason", "preflight"}, "unit-plan amendment")
+        exact(data, {"schema_version", "reason", "preflight"}, "unit-plan amendment (not a new preflight)")
         if type(data["schema_version"]) is not int or data["schema_version"] != 1:
             raise RunError("amendment schema_version must be integer 1")
         string(data["reason"], "instructional boundary evidence")
         if not isinstance(data["preflight"], dict):
-            raise RunError("amendment must contain a complete preflight record")
+            raise RunError("amendment must contain the complete accepted-plan-shaped record; replan does not authorize another preflight read")
         record = preflight.parse_preflight(data["preflight"])
         plan = json.loads(json.dumps(asdict(record)))
         original = self.state["plan"]
         for key in preflight.TOP_LEVEL_KEYS - {"units", "no_extract"}:
             if plan[key] != original[key]:
-                raise RunError("unit-plan amendment cannot change the source, subject or authorized domain")
+                raise RunError("unit-plan amendment cannot change the source, subject or authorized domain; replan is not a new preflight")
         closed = self.state["unit_index"]
         if len(plan["units"]) <= closed or plan["units"][:closed] != original["units"][:closed]:
             raise RunError("closed units cannot be rewritten or removed")
@@ -739,7 +1246,34 @@ for name in recipes:
     def close(self) -> None:
         if self.state["phase"] != "finished":
             raise RunError("cannot close the source run while any unit remains unfinished")
-        self.state_path.unlink()
+        # Remove only controller-owned generated state. Unknown files are retained
+        # so an explicit diagnosis/evidence hold cannot be swept accidentally.
+        for name in (
+            "controller/run.json",
+            "controller/source-identity.json",
+            "controller/unattended-authorization.json",
+            "controller/preflight-presentation.json",
+            "controller/landing-presentation.json",
+            "controller/source-completion.json",
+            "controller/next-action.json",
+            "controller/operation.lock",
+        ):
+            inside(self.root, name).unlink(missing_ok=True)
+        history = inside(self.root, "controller/action-history")
+        if history.is_dir():
+            for path in history.glob("*.json"):
+                inside(history, path.name).unlink(missing_ok=True)
+            if not any(history.iterdir()):
+                history.rmdir()
+        audit = inside(self.root, "controller/audit")
+        if audit.is_dir():
+            owned = ["events.jsonl", "preflight.md", "preflight.json", "final-validate.txt", "final-verify-references.txt"]
+            owned.extend(p.name for p in audit.glob("u*-landing.md"))
+            owned.extend(p.name for p in audit.glob("u*-landing.json"))
+            for name in sorted(set(owned)):
+                inside(audit, name).unlink(missing_ok=True)
+            if not any(audit.iterdir()):
+                audit.rmdir()
         inside(self.root, "RUN_NOTE.md").unlink(missing_ok=True)
 
 
@@ -751,7 +1285,7 @@ def build_parser() -> argparse.ArgumentParser:
     start_parser.add_argument("--source", type=Path, required=True)
     start_parser.add_argument("--domain", help="must be authorized by the user/project; never infer from source topic")
     start_parser.add_argument("--task", help="optional unique lowercase book/run slug")
-    for command in ("status", "template", "submit", "rewind", "replan", "land", "close-run"):
+    for command in ("status", "template", "present", "submit", "accept-preflight", "revise-preflight", "rewind", "replan", "land", "close-run"):
         command_parser = sub.add_parser(command)
         command_parser.add_argument("--run", type=Path, required=True)
         if command == "submit":
@@ -759,6 +1293,10 @@ def build_parser() -> argparse.ArgumentParser:
             command_parser.add_argument("--input", required=True, help="JSON path or '-' for stdin")
         elif command == "land":
             command_parser.add_argument("--decision", required=True, help="JSON landing decision path or '-' for stdin")
+        elif command == "accept-preflight":
+            command_parser.add_argument("--decision", required=True, help="JSON preflight acceptance decision path or '-' for stdin")
+        elif command == "revise-preflight":
+            command_parser.add_argument("--input", required=True, help="replacement preflight JSON path or '-' for stdin")
         elif command == "rewind":
             command_parser.add_argument("--phase", choices=("pass1", "pass2", "pass3"), required=True)
         elif command == "replan":
@@ -778,9 +1316,18 @@ def main(argv: Iterable[str] | None = None) -> int:
         if args.command in {"status", "template"}:
             print(json.dumps(run.brief() if args.command == "status" else run.template(), indent=2))
             return 0
+        if args.command == "present":
+            with run.locked():
+                packet = run.present()
+            print(packet)
+            return 0
         with run.locked():
             if args.command == "submit":
                 print(run.submit(args.phase, preflight._read_json(args.input)))
+            elif args.command == "accept-preflight":
+                print(run.accept_preflight(preflight._read_json(args.decision)))
+            elif args.command == "revise-preflight":
+                print(run.revise_preflight(preflight._read_json(args.input)))
             elif args.command == "land":
                 print(run.land(preflight._read_json(args.decision)))
             elif args.command == "rewind":

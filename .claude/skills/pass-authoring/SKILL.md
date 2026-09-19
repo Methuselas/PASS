@@ -38,7 +38,14 @@ to load it now.
 
 Ordinary source study starts with `python PASS/pass.py start --source <source>
 --domain <authorized-domain>`. Follow the executable phases; keep provisional
-cards in `workspace/authoring/<domain>/<book-run>/drafts/<category>/`. Read
+cards in `workspace/authoring/<domain>/<book-run>/drafts/<category>/`. A valid
+source-wide preflight stops at its presentation/acceptance gate: run `present`,
+show the complete packet, and wait for explicit user confirmation before
+`accept-preflight` releases PASS 1. If the user explicitly authorizes this one
+source to continue unattended, record it with `python PASS/source.py authorize ...`,
+then loop on `source.py drive` and execute only the action it returns; claim
+progress only from `source.py report`. It never answers a practitioner checkpoint
+or consumes an `approval_required` delta. Read
 `PASS/docs/AUTHORING_RUNTIME.md` for commands and recovery alongside the human
 rules in `PASS/docs/PASS_RUN.md`. The old preflight helper alone cannot authorize
 ingestion. Repository maintenance and packaging do not need a source run.

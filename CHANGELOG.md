@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.67 - 2026-09-19
+
+### Added
+
+- Three Unreal Engine Blueprint Patterns in
+  `software-engineering/unreal-engine/blueprints/`: calling functions on another
+  Blueprint through a direct object reference, testing a type or reaching
+  subclass members with Cast, and notifying listeners through an event
+  dispatcher without naming them. The domain indexes are regenerated.
+
 ## 1.0.0-beta.66 - 2026-09-19
 
 ### Added

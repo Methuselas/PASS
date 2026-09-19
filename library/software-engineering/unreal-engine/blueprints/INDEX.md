@@ -18,3 +18,6 @@
 - [Put Player Input Events in the PlayerController](PAT_put_player_input_in_the_player_controller.md) - pattern; 1 skeleton. Tags: blueprints, input, player_controller, unreal_engine.
 - [Separate Blueprint State from Event-Driven Behavior](PAT_separate_blueprint_state_from_event_driven_behavior.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
 - [Store the Reference to an Actor You Spawn](PAT_store_the_spawned_actor_reference.md) - pattern; 2 block. Tags: blueprints, spawning, unreal_engine.
+- [Use a Direct Object Reference to Call Functions on Another Blueprint](PAT_use_a_direct_object_reference_to_call_functions_on_another_blueprint.md) - pattern; 0 design. Tags: blueprints, communication, object_reference, unreal_engine.
+- [Use an Event Dispatcher to Notify Listeners Without Naming Them](PAT_use_an_event_dispatcher_to_notify_listeners_without_naming_them.md) - pattern; 0 design. Tags: blueprints, communication, decoupling, events, unreal_engine.
+- [Use Cast To to Test a Type or Reach Subclass Members](PAT_use_cast_to_test_a_type_or_reach_subclass_members.md) - pattern; 2 block. Tags: blueprints, casting, type_safety, unreal_engine.

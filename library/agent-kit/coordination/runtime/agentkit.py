@@ -27,10 +27,10 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 # Bump when the database layout changes. Every agent in a project may run its
 # own installed copy; an older copy must refuse a store a newer one has changed.
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DEFAULT_LEASE_MINUTES = 30
 
 # States in which a task's scope is held against other tasks. Work that exists
@@ -68,7 +68,9 @@ CREATE TABLE IF NOT EXISTS tasks (
     note TEXT NOT NULL DEFAULT '',
     created_by TEXT NOT NULL,
     created_at REAL NOT NULL,
-    updated_at REAL NOT NULL
+    updated_at REAL NOT NULL,
+    claim_head TEXT,
+    reviewer TEXT
 );
 CREATE TABLE IF NOT EXISTS deps (
     task TEXT NOT NULL,
@@ -82,6 +84,12 @@ CREATE TABLE IF NOT EXISTS evidence (
     actor TEXT NOT NULL,
     at REAL NOT NULL,
     data TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS holds (
+    resource TEXT PRIMARY KEY,
+    holder TEXT NOT NULL,
+    until REAL NOT NULL,
+    reason TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -189,25 +197,37 @@ def path_matches(path: str, pattern: str) -> bool:
     return bool(glob_regex(pattern).match(norm(path)))
 
 
-def literal_prefix(pattern: str) -> list[str]:
-    parts = []
-    for segment in norm(pattern).split("/"):
-        if has_magic(segment):
-            break
-        parts.append(segment.casefold())
-    return parts
+def segments_disjoint(a: str, b: str) -> bool:
+    """True only when no name can match both one-segment patterns: their literal
+    starts or literal ends disagree. Anything undecidable counts as overlapping."""
+    a, b = a.casefold(), b.casefold()
+    if "[" in a or "[" in b:
+        return False
+    if not has_magic(a) and not has_magic(b):
+        return a != b
+    start_a, start_b = re.split(r"[*?]", a)[0], re.split(r"[*?]", b)[0]
+    end_a, end_b = re.split(r"[*?]", a)[-1], re.split(r"[*?]", b)[-1]
+    return (not (start_a.startswith(start_b) or start_b.startswith(start_a))
+            or not (end_a.endswith(end_b) or end_b.endswith(end_a)))
 
 
 def globs_overlap(a: str, b: str) -> bool:
     """Conservative: may report an overlap that no real file exhibits, never the
-    reverse. Over-reporting costs a queue wait; under-reporting costs a collision."""
+    reverse. Over-reporting costs a queue wait; under-reporting costs a collision.
+
+    Segments are compared pairwise up to the shorter pattern (a pattern also
+    covers everything below what it matches) or up to the first `**`, after
+    which anything may follow."""
     if not has_magic(a):
         return path_matches(a, b) or path_matches(b, a) if not has_magic(b) else path_matches(a, b)
     if not has_magic(b):
         return path_matches(b, a)
-    pa, pb = literal_prefix(a), literal_prefix(b)
-    shorter = min(len(pa), len(pb))
-    return pa[:shorter] == pb[:shorter]
+    for seg_a, seg_b in zip(norm(a).split("/"), norm(b).split("/")):
+        if "**" in seg_a or "**" in seg_b:
+            return True
+        if segments_disjoint(seg_a, seg_b):
+            return False
+    return True
 
 
 def scope_conflicts(spec_a: dict, spec_b: dict) -> list[str]:
@@ -238,6 +258,24 @@ class Store:
             self.db.close()
             raise Refused(f"{path} uses store schema {stored}, but this agentkit {VERSION} understands "
                           f"{SCHEMA_VERSION}; update this agent's installed skill before coordinating")
+        if stored < SCHEMA_VERSION:
+            self.migrate()
+
+    def migrate(self) -> None:
+        """Bring an older store forward in place. Columns are only ever added,
+        so every existing task, claim and event keeps its meaning."""
+        self.begin()
+        try:
+            columns = {row[1] for row in self.db.execute("PRAGMA table_info(tasks)")}
+            for column in ("claim_head", "reviewer"):
+                if column not in columns:
+                    self.db.execute(f"ALTER TABLE tasks ADD COLUMN {column} TEXT")
+            self.db.execute("UPDATE meta SET value = ? WHERE key = 'schema'", (str(SCHEMA_VERSION),))
+            self.event("agentkit", None, "migrate", to_schema=SCHEMA_VERSION, runtime=VERSION)
+            self.commit()
+        except BaseException:
+            self.rollback()
+            raise
 
     def begin(self) -> None:
         # IMMEDIATE takes the write lock before reading, so two claims of the same
@@ -327,7 +365,16 @@ def blockers(store: Store, row: sqlite3.Row, worker: sqlite3.Row) -> list[str]:
         if overlap:
             reasons.append(f"collides with {other['id']} ({other['state']}, {other['owner'] or other['last_owner'] or '-'}): "
                            + "; ".join(overlap))
+    for resource in spec.get("resources", []):
+        hold = active_hold(store, resource)
+        if hold and hold["holder"] != worker["name"]:
+            reasons.append(f"resource {resource} is held by {hold['holder']} until {ts(hold['until'])} ({hold['reason']})")
     return reasons
+
+
+def active_hold(store: Store, resource: str) -> sqlite3.Row | None:
+    return store.db.execute("SELECT * FROM holds WHERE resource = ? AND until > ?",
+                            (resource.casefold(), time.time())).fetchone()
 
 
 def base_check(spec: dict, cwd: Path) -> str | None:
@@ -343,7 +390,8 @@ def base_check(spec: dict, cwd: Path) -> str | None:
     return None
 
 
-def changed_files(spec: dict, cwd: Path) -> list[str] | None:
+def working_tree_files(cwd: Path) -> list[str] | None:
+    """Uncommitted changes in this checkout, whoever made them; None outside git."""
     if git(["rev-parse", "--git-dir"], cwd) is None:
         return None
     files = set()
@@ -353,11 +401,103 @@ def changed_files(spec: dict, cwd: Path) -> list[str] | None:
         if " -> " in name:
             name = name.split(" -> ", 1)[1]
         files.add(norm(name.strip('"')))
-    base = spec.get("base")
-    if base:
-        committed = git(["diff", "--name-only", f"{base}...HEAD"], cwd)
-        files.update(norm(f) for f in (committed or "").splitlines() if f)
     return sorted(f for f in files if f and not f.startswith(".agent-kit/state/"))
+
+
+def task_commits(store: "Store", row: sqlite3.Row, named: list[str], cwd: Path) -> list[str]:
+    """The task's own commits: those named as evidence, plus every commit since
+    the claim whose message mentions the task ID. A shared checkout interleaves
+    several agents' commits, so position alone cannot attribute them."""
+    commits = []
+    for ref in named:
+        sha = git(["rev-parse", "--verify", "--quiet", ref + "^{commit}"], cwd)
+        if sha:
+            commits.append(sha)
+    # The subject line names the task a commit does; a body that merely
+    # mentions a task (a report about it, a reference) does not make it the
+    # task's work.
+    subject = re.compile(f"(^|[^A-Za-z0-9]){re.escape(row['id'])}([^A-Za-z0-9]|$)", re.IGNORECASE)
+    search = ["log", "--format=%H%x1f%s"]
+    start = row["claim_head"]
+    if start and git(["rev-parse", "--verify", "--quiet", start + "^{commit}"], cwd):
+        found = git([*search, f"{start}..HEAD"], cwd)
+    else:
+        # Claimed before claims recorded their commit (or in another clone):
+        # fall back to commits made since the first claim.
+        claimed = store.db.execute("SELECT MIN(at) FROM events WHERE task = ? AND kind = 'claim'",
+                                   (row["id"],)).fetchone()[0]
+        found = git([*search, f"--since=@{int(claimed)}", "HEAD"], cwd) if claimed else None
+    for line in (found or "").splitlines():
+        sha, _, title = line.partition("\x1f")
+        if subject.search(title):
+            commits.append(sha)
+    return list(dict.fromkeys(commits))
+
+
+def commit_files(commits: list[str], cwd: Path) -> list[str]:
+    files = set()
+    for sha in commits:
+        listed = git(["diff-tree", "--no-commit-id", "--name-only", "-r", "--root", sha], cwd) or ""
+        files.update(norm(f) for f in listed.splitlines() if f)
+    return sorted(files)
+
+
+def evidence_commits(evidence: dict) -> list[str]:
+    value = evidence.get("commit") or evidence.get("commits") or []
+    values = value if isinstance(value, list) else [value]
+    return [ref for item in values for ref in re.split(r"[\s,]+", str(item)) if ref]
+
+
+def audit(store: Store, row: sqlite3.Row, cwd: Path, named: list[str] | None = None) -> dict | None:
+    """What this checkout shows about a task's changes.
+
+    - `changed_files`: files in the task's own commits, plus uncommitted files in
+      its scope.
+    - `out_of_scope`: files the task's own commits changed outside its scope.
+    - `other_tasks`: uncommitted files inside another open task's scope. In a
+      shared checkout that is the other agent's work, not a finding.
+    - `unclaimed`: uncommitted files inside no open task's scope. Nobody claimed
+      them, so somebody edited without a claim.
+    """
+    tree = working_tree_files(cwd)
+    if tree is None:
+        return None
+    spec = spec_of(row)
+    paths = spec.get("paths", [])
+    mine = lambda f: any(path_matches(f, p) for p in paths)  # noqa: E731
+    commits = task_commits(store, row, named or [], cwd)
+    committed = commit_files(commits, cwd)
+    others = [r for r in store.db.execute(
+        "SELECT * FROM tasks WHERE id != ? AND state IN (%s)" % ",".join("?" * len(HOLDING)), (row["id"], *HOLDING))]
+    other_tasks, unclaimed = {}, []
+    for f in tree:
+        if mine(f):
+            continue
+        holder = next((r for r in others if any(path_matches(f, p) for p in spec_of(r).get("paths", []))), None)
+        if holder is not None:
+            other_tasks[f] = f"{holder['id']} ({holder['owner'] or holder['last_owner'] or '-'})"
+        else:
+            unclaimed.append(f)
+    return {
+        "commits": commits,
+        "changed_files": sorted(set(committed) | {f for f in tree if mine(f)}),
+        "out_of_scope": [f for f in committed if not mine(f)],
+        "other_tasks": other_tasks,
+        "unclaimed": unclaimed,
+    }
+
+
+def audit_report(result: dict) -> list[str]:
+    lines = []
+    if result["out_of_scope"]:
+        lines.append("this task's commits changed files outside its scope:\n  " + "\n  ".join(result["out_of_scope"][:20]))
+    if result["unclaimed"]:
+        lines.append("uncommitted changes no open task claims (someone edited without a claim):\n  "
+                     + "\n  ".join(result["unclaimed"][:20]))
+    if result["other_tasks"]:
+        lines.append("uncommitted changes belonging to other open tasks (not yours; left alone):\n  "
+                     + "\n  ".join(f"{f}  <- {t}" for f, t in list(result["other_tasks"].items())[:20]))
+    return lines
 
 
 # ---------------------------------------------------------------------- rendering
@@ -390,6 +530,8 @@ def describe(store: Store, row: sqlite3.Row) -> str:
                      f"attempt: {row['attempt']}   lease until: {ts(row['lease_expires'])}")
     if row["owner"] and row["claimed_rev"] and row["claimed_rev"] != row["rev"]:
         lines.append(f"  STALE: claimed at r{row['claimed_rev']}, spec is now r{row['rev']}")
+    if row["reviewer"]:
+        lines.append(f"  reviewer: {row['reviewer']}")
     labels = [("base", "base"), ("paths", "paths"), ("resources", "resources"), ("needs", "needs"),
               ("deliverables", "deliverables"), ("non_scope", "NOT in scope"), ("verify", "verify"),
               ("evidence", "evidence required"), ("danger", "danger zones")]
@@ -414,15 +556,23 @@ def board(store: Store) -> str:
         group = [r for r in rows if r["state"] == state]
         if not group or state == "closed":
             continue
-        out += [f"## {state} ({len(group)})", "", "| Task | Title | Owner | Scope | After |", "|---|---|---|---|---|"]
+        if state in CLAIMABLE or state == "proposed":
+            group.sort(key=lambda r: (-r["priority"], r["seq"]))  # the order next offers them
+        out += [f"## {state} ({len(group)})", "", "| Task | P | Title | Owner | Scope | After |", "|---|---|---|---|---|---|"]
         for r in group:
             spec = spec_of(r)
             scope = ", ".join(spec.get("paths", []) + [f"@{x}" for x in spec.get("resources", [])]) or "-"
             owner = r["owner"] or (f"({r['last_owner']})" if r["last_owner"] else "-")
-            out.append(f"| {r['id']} r{r['rev']} | {spec['title']} | {owner} | {scope} | {', '.join(store.deps(r['id'])) or '-'} |")
+            out.append(f"| {r['id']} r{r['rev']} | {r['priority']} | {spec['title']} | {owner} | {scope} | {', '.join(store.deps(r['id'])) or '-'} |")
         out.append("")
     closed = sum(1 for r in rows if r["state"] == "closed")
-    out += [f"Closed: {closed}", "", "## Workers", "", "| Name | Role | Capabilities | Last seen |", "|---|---|---|---|"]
+    out += [f"Closed: {closed}", ""]
+    holds = store.db.execute("SELECT * FROM holds WHERE until > ? ORDER BY resource", (now,)).fetchall()
+    if holds:
+        out += ["## Short holds", "", "| Resource | Holder | Until | Reason |", "|---|---|---|---|"]
+        out += [f"| {h['resource']} | {h['holder']} | {ts(h['until'])} | {h['reason']} |" for h in holds]
+        out.append("")
+    out += [ "## Workers", "", "| Name | Role | Capabilities | Last seen |", "|---|---|---|---|"]
     for w in store.db.execute("SELECT * FROM workers ORDER BY role, name"):
         label = f"{w['role']} ({w['label']})" if w["label"] else w["role"]
         out.append(f"| {w['name']} | {label} | {', '.join(json.loads(w['capabilities'])) or '-'} | {ts(w['last_seen'])} |")
@@ -509,8 +659,17 @@ def cmd_add(store: Store, args) -> str:
         (task_id, seq, state, args.priority or 0, json.dumps(spec, sort_keys=True), args.actor, now, now),
     )
     store.db.executemany("INSERT INTO deps VALUES (?, ?)", [(task_id, d) for d in deps])
-    store.event(args.actor, task_id, "add", state=state, spec=spec, after=deps)
+    reviewer = set_reviewer(store, task_id, args.reviewer) if args.reviewer else None
+    store.event(args.actor, task_id, "add", state=state, spec=spec, after=deps, reviewer=reviewer)
     return f"{task_id} added as {state}" + ("" if state == "ready" else " (a lead must approve it)")
+
+
+def set_reviewer(store: Store, task_id: str, name: str) -> str | None:
+    """Name who must review the task; `none` clears it. The reviewer is an
+    assignment, not part of the spec, so changing it never makes work stale."""
+    reviewer = None if name.casefold() == "none" else store.worker(name)["name"]
+    store.db.execute("UPDATE tasks SET reviewer = ? WHERE id = ?", (reviewer, task_id))
+    return reviewer
 
 
 def cmd_revise(store: Store, args) -> str:
@@ -528,7 +687,10 @@ def cmd_revise(store: Store, args) -> str:
         deps = check_deps(store, row["id"], args.after)
         store.db.execute("DELETE FROM deps WHERE task = ?", (row["id"],))
         store.db.executemany("INSERT INTO deps VALUES (?, ?)", [(row["id"], d) for d in deps])
-    store.event(args.actor, row["id"], "revise", rev=rev, spec=spec, priority=priority, after=args.after)
+    if args.reviewer is not None:
+        set_reviewer(store, row["id"], args.reviewer)
+    store.event(args.actor, row["id"], "revise", rev=rev, spec=spec, priority=priority, after=args.after,
+                reviewer=args.reviewer)
     stale = f"; {row['owner']} is now working a stale revision until they ack" if material and row["owner"] else ""
     return f"{row['id']} is r{rev}{stale}"
 
@@ -587,21 +749,23 @@ def claim(store: Store, actor: str, task_id: str, lease: float, skip_base: bool)
         if problem:
             raise Refused(f"cannot claim {row['id']}: {problem}")
     now = time.time()
+    # Where this attempt starts: its commits are the ones after this point that
+    # name the task, however other agents' commits interleave with them.
+    head = git(["rev-parse", "HEAD"], Path.cwd())
     store.db.execute(
         "UPDATE tasks SET state = 'claimed', owner = ?, claimed_rev = rev, lease_expires = ?, "
-        "attempt = attempt + 1, updated_at = ? WHERE id = ?",
-        (actor, now + lease * 60, now, row["id"]),
+        "attempt = attempt + 1, claim_head = ?, updated_at = ? WHERE id = ?",
+        (actor, now + lease * 60, head, now, row["id"]),
     )
-    store.event(actor, row["id"], "claim", rev=row["rev"], attempt=row["attempt"] + 1)
+    store.event(actor, row["id"], "claim", rev=row["rev"], attempt=row["attempt"] + 1, head=head)
     row = store.task(row["id"])
     warn = ""
-    changed = changed_files(spec, Path.cwd())
-    if changed:
-        stray = [f for f in changed if not any(path_matches(f, p) for p in spec.get("paths", []))]
-        if stray:
-            warn = ("\nwarning: this checkout already has changes outside the task scope; commit or set them "
-                    "aside so the task's diff stays reviewable:\n  " + "\n  ".join(stray[:20]))
-    return f"claimed {row['id']} (attempt {row['attempt']}, lease until {ts(row['lease_expires'])})\n" + describe(store, row) + warn
+    result = audit(store, row, Path.cwd())
+    if result and result["unclaimed"]:
+        warn = ("\nwarning: this checkout has uncommitted changes no open task claims; find their owner "
+                "before they end up in this task's commits:\n  " + "\n  ".join(result["unclaimed"][:20]))
+    return (f"claimed {row['id']} (attempt {row['attempt']}, lease until {ts(row['lease_expires'])})\n"
+            + describe(store, row) + f"\nname {row['id']} in each commit message so its commits can be attributed" + warn)
 
 
 def cmd_claim(store: Store, args) -> str:
@@ -706,15 +870,20 @@ def cmd_done(store: Store, args) -> str:
     missing = [k for k in spec.get("evidence", []) if not evidence.get(k)]
     if missing:
         raise Refused(f"{row['id']} requires evidence: {', '.join(missing)} (add --evidence {missing[0]}=...)")
-    changed = changed_files(spec, Path.cwd())
+    result = audit(store, row, Path.cwd(), evidence_commits(evidence))
     warning = ""
-    if changed is not None:
-        evidence.setdefault("changed_files", changed)
-        if spec.get("paths"):
-            stray = [f for f in changed if not any(path_matches(f, p) for p in spec["paths"])]
-            if stray:
-                evidence["out_of_scope"] = stray
-                warning = "\nwarning: changes outside the task scope were recorded for review:\n  " + "\n  ".join(stray[:20])
+    if result is not None:
+        evidence.setdefault("changed_files", result["changed_files"])
+        evidence["attributed_commits"] = result["commits"]
+        for key in ("out_of_scope", "unclaimed"):
+            if result[key]:
+                evidence[key] = result[key]
+        lines = [line for line in audit_report(result) if not line.startswith("uncommitted changes belonging")]
+        if not result["changed_files"]:
+            lines.append(f"no change is attributed to {row['id']}: name it in its commit messages or pass "
+                         "--evidence commit=<sha>, so review has a file list")
+        if lines:
+            warning = "\nwarning: " + "\nwarning: ".join(lines)
     if args.gap:
         evidence["known_gaps"] = args.gap
     now = time.time()
@@ -726,15 +895,33 @@ def cmd_done(store: Store, args) -> str:
     return f"{row['id']} is in review (the scope stays held until it is closed){warning}\nnext: run next"
 
 
+def latest_verdict(store: Store, row: sqlite3.Row) -> sqlite3.Row | None:
+    for event in store.db.execute("SELECT * FROM events WHERE task = ? AND kind = 'review' ORDER BY id DESC", (row["id"],)):
+        if json.loads(event["data"]).get("attempt") == row["attempt"]:
+            return event
+    return None
+
+
 def cmd_accept(store: Store, args) -> str:
     store.lead(args.actor)
     row = store.task(args.task)
     if row["state"] != "review":
         raise Refused(f"{row['id']} is {row['state']}, not in review")
+    if args.actor == row["owner"]:
+        raise Refused(f"{args.actor} did {row['id']} and cannot also accept it")
+    if row["reviewer"] and not args.override_review:
+        verdict = latest_verdict(store, row)
+        if verdict is None or verdict["actor"] != row["reviewer"]:
+            raise Refused(f"{row['id']} awaits review by {row['reviewer']}; accept after their verdict, "
+                          "or record why not with --override-review")
+        if json.loads(verdict["data"])["verdict"] != "accept":
+            raise Refused(f"{row['reviewer']} rejected {row['id']}: {json.loads(verdict['data']).get('message', '')}; "
+                          "reject it for rework, or record why you accept anyway with --override-review")
     state = "closed" if args.merged else "accepted"
     store.db.execute("UPDATE tasks SET state = ?, owner = NULL, last_owner = ?, note = ?, updated_at = ? WHERE id = ?",
                      (state, row["owner"], args.message or "", time.time(), row["id"]))
-    store.event(args.actor, row["id"], "accept", merged=args.merged, message=args.message)
+    store.event(args.actor, row["id"], "accept", merged=args.merged, message=args.message,
+                override_review=args.override_review)
     return f"{row['id']} is {state}" + ("" if args.merged else "; close it once merged: close " + row["id"] + " --merged")
 
 
@@ -810,15 +997,71 @@ def cmd_status(store: Store, args) -> str:
 
 
 def cmd_check(store: Store, args) -> str:
+    """Exit 1 when the task's own commits leave its scope or when changes exist
+    that no open task claims; other tasks' uncommitted work is listed, not failed."""
     row = store.task(args.task)
-    spec = spec_of(row)
-    changed = changed_files(spec, Path.cwd())
-    if changed is None:
+    result = audit(store, row, Path.cwd())
+    if result is None:
         return "not a git checkout; nothing to check"
-    stray = [f for f in changed if not any(path_matches(f, p) for p in spec.get("paths", []))]
-    if not stray:
-        return f"{row['id']}: all {len(changed)} changed file(s) are inside its scope"
-    raise Refused(f"{row['id']}: {len(stray)} changed file(s) outside its scope:\n  " + "\n  ".join(stray))
+    lines = audit_report(result)
+    summary = (f"{row['id']}: {len(result['changed_files'])} file(s) attributed to it "
+               f"({len(result['commits'])} commit(s) naming it, plus uncommitted files in its scope)")
+    if result["out_of_scope"] or result["unclaimed"]:
+        raise Refused("\n".join([summary, *lines]))
+    return "\n".join([summary + "; all inside its scope", *lines])
+
+
+def cmd_note(store: Store, args) -> str:
+    store.worker(args.actor)
+    row = store.task(args.task)
+    if row["state"] == "closed":
+        raise Refused(f"{row['id']} is closed")
+    store.event(args.actor, row["id"], "note", message=args.message)
+    return f"{row['id']}: note recorded"
+
+
+def cmd_review(store: Store, args) -> str:
+    store.worker(args.actor)
+    row = store.task(args.task)
+    if row["state"] != "review":
+        raise Refused(f"{row['id']} is {row['state']}, not in review")
+    if args.actor in (row["owner"], row["last_owner"]):
+        raise Refused(f"{args.actor} did {row['id']} and cannot review it")
+    if row["reviewer"] and args.actor != row["reviewer"]:
+        raise Refused(f"{row['id']}'s reviewer is {row['reviewer']}; add your view with note instead")
+    store.event(args.actor, row["id"], "review", verdict=args.verdict, message=args.message, attempt=row["attempt"])
+    return f"{row['id']}: review recorded ({args.verdict}); the lead decides with accept or reject"
+
+
+def cmd_hold(store: Store, args) -> str:
+    store.worker(args.actor)
+    key, now = args.resource.casefold(), time.time()
+    current = active_hold(store, key)
+    if current and current["holder"] != args.actor:
+        raise Refused(f"{args.resource} is held by {current['holder']} until {ts(current['until'])} ({current['reason']})")
+    for task in store.db.execute("SELECT * FROM tasks WHERE state IN (%s)" % ",".join("?" * len(HOLDING)), HOLDING):
+        holder = task["owner"] or task["last_owner"]
+        if holder != args.actor and key in {r.casefold() for r in spec_of(task).get("resources", [])}:
+            raise Refused(f"{args.resource} is in the scope of {task['id']} ({task['state']}, {holder or '-'})")
+    until = now + args.minutes * 60
+    store.db.execute("INSERT INTO holds VALUES (?, ?, ?, ?) ON CONFLICT(resource) DO UPDATE SET "
+                     "holder = excluded.holder, until = excluded.until, reason = excluded.reason",
+                     (key, args.actor, until, args.reason))
+    store.event(args.actor, None, "hold", resource=key, until=until, reason=args.reason)
+    return f"holding {args.resource} until {ts(until)}; release it with unhold as soon as you are done"
+
+
+def cmd_unhold(store: Store, args) -> str:
+    actor = store.worker(args.actor)
+    key = args.resource.casefold()
+    current = active_hold(store, key)
+    if current is None:
+        return f"{args.resource} is not held"
+    if current["holder"] != args.actor and actor["role"] != "lead":
+        raise Refused(f"{args.resource} is held by {current['holder']}; only they or a lead may release it")
+    store.db.execute("DELETE FROM holds WHERE resource = ?", (key,))
+    store.event(args.actor, None, "unhold", resource=key, holder=current["holder"])
+    return f"released {args.resource}"
 
 
 def cmd_log(store: Store, args) -> str:
@@ -869,7 +1112,8 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--verify", action="append", help="check that proves it, e.g. a test command")
         p.add_argument("--evidence", action="append", help="evidence key required at done, e.g. tests,commit")
         p.add_argument("--danger", action="append", help="silent-failure zone to read back after writing")
-        p.add_argument("--priority", type=int)
+        p.add_argument("--priority", type=int, help="higher runs first (default 0)")
+        p.add_argument("--reviewer", help="registered agent who must review it before a lead accepts (none clears)")
 
     p = sub.add_parser("register", parents=[common], help="identify yourself (also used to resume)")
     p.add_argument("name")
@@ -935,8 +1179,30 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--gap", action="append", help="known remaining gap (repeat)")
     p.set_defaults(func=cmd_done, mutates=True)
 
+    p = sub.add_parser("note", parents=[common], help="attach a note to any open task (anyone registered)")
+    p.add_argument("task")
+    p.add_argument("-m", "--message", required=True)
+    p.set_defaults(func=cmd_note, mutates=True)
+
+    p = sub.add_parser("review", parents=[common], help="record a review verdict on work in review")
+    p.add_argument("task")
+    p.add_argument("--verdict", choices=("accept", "reject"), required=True)
+    p.add_argument("-m", "--message", required=True, help="what you checked and found")
+    p.set_defaults(func=cmd_review, mutates=True)
+
+    p = sub.add_parser("hold", parents=[common], help="hold a shared resource briefly (an editor, a build)")
+    p.add_argument("resource")
+    p.add_argument("--for", dest="minutes", type=float, default=15, help="minutes (default 15)")
+    p.add_argument("--reason", required=True)
+    p.set_defaults(func=cmd_hold, mutates=True)
+
+    p = sub.add_parser("unhold", parents=[common], help="release a short hold")
+    p.add_argument("resource")
+    p.set_defaults(func=cmd_unhold, mutates=True)
+
     p = sub.add_parser("accept", parents=[common], help="lead: accept reviewed work")
     p.add_argument("task")
+    p.add_argument("--override-review", help="accept without the named reviewer's approval, and say why")
     p.add_argument("--merged", action="store_true", help="it is already merged; close it")
     p.add_argument("-m", "--message")
     p.set_defaults(func=cmd_accept, mutates=True)
@@ -960,26 +1226,26 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("reclaim", parents=[common], help="return claims whose lease expired")
     p.set_defaults(func=cmd_reclaim, mutates=True)
 
-    p = sub.add_parser("show", help="a task's spec, state, evidence and history")
+    p = sub.add_parser("show", parents=[common], help="a task's spec, state, evidence and history")
     p.add_argument("task")
     p.add_argument("--json", action="store_true")
     p.add_argument("--limit", type=int, default=20)
     p.set_defaults(func=cmd_show, mutates=False)
 
-    p = sub.add_parser("check", help="are this checkout's changes inside a task's scope? (exit 1 if not)")
+    p = sub.add_parser("check", parents=[common], help="are this checkout's changes inside a task's scope? (exit 1 if not)")
     p.add_argument("task")
     p.set_defaults(func=cmd_check, mutates=False)
 
-    p = sub.add_parser("status", help="generated Markdown board")
+    p = sub.add_parser("status", parents=[common], help="generated Markdown board")
     p.add_argument("--write", help="also write the board to this file")
     p.set_defaults(func=cmd_status, mutates=True)
 
-    p = sub.add_parser("log", help="append-only event history")
+    p = sub.add_parser("log", parents=[common], help="append-only event history")
     p.add_argument("task", nargs="?")
     p.add_argument("--limit", type=int, default=50)
     p.set_defaults(func=cmd_log, mutates=False)
 
-    p = sub.add_parser("workers", help="registered workers and what they hold")
+    p = sub.add_parser("workers", parents=[common], help="registered workers and what they hold")
     p.set_defaults(func=cmd_workers, mutates=False)
     return parser
 

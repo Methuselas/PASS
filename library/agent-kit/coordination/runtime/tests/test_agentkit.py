@@ -207,6 +207,78 @@ class ProtocolTests(Base):
             db.execute("UPDATE meta SET value = '99' WHERE key = 'schema'")
         self.assertIn("update this agent's installed skill", self.refused("workers"))
 
+    def test_every_command_accepts_as(self):
+        task = self.add()
+        for argv in (("show", task), ("status",), ("log",), ("workers",), ("check", task)):
+            self.ok(*argv, "--as", "ann")
+
+    def test_named_reviewer_gates_acceptance(self):
+        task = self.add("--reviewer", "bob")
+        self.ok("claim", task, "--as", "ann")
+        self.ok("done", task, "--as", "ann")
+        self.assertIn("awaits review by bob", self.refused("accept", task, "--as", "lead"))
+        self.assertIn("cannot review", self.refused("review", task, "--as", "ann", "--verdict", "accept", "-m", "mine"))
+        self.ok("register", "cat", "--cap", "code_edit")
+        self.assertIn("reviewer is bob", self.refused("review", task, "--as", "cat", "--verdict", "accept", "-m", "x"))
+        self.ok("review", task, "--as", "bob", "--verdict", "reject", "-m", "edge case untested")
+        self.assertIn("bob rejected", self.refused("accept", task, "--as", "lead"))
+        self.ok("reject", task, "--as", "lead", "--reason", "per bob")
+        self.ok("claim", task, "--as", "ann")
+        self.ok("done", task, "--as", "ann")
+        self.refused("accept", task, "--as", "lead")  # the old verdict belongs to attempt 1
+        self.ok("review", task, "--as", "bob", "--verdict", "accept", "-m", "edge case covered")
+        self.ok("accept", task, "--as", "lead")
+        other = self.add("--reviewer", "bob")
+        self.ok("claim", other, "--as", "ann")
+        self.ok("done", other, "--as", "ann")
+        self.ok("accept", other, "--as", "lead", "--override-review", "bob unavailable; user approved")
+
+    def test_a_lead_that_did_the_work_cannot_accept_it(self):
+        self.ok("register", "boss", "--role", "lead", "--cap", "code_edit")
+        task = self.add()
+        self.ok("claim", task, "--as", "boss")
+        self.ok("done", task, "--as", "boss")
+        self.assertIn("cannot also accept", self.refused("accept", task, "--as", "boss"))
+        self.ok("accept", task, "--as", "lead")
+
+    def test_anyone_can_note_any_open_task(self):
+        task = self.add()
+        self.ok("note", task, "--as", "bob", "-m", "found while reading")
+        self.ok("claim", task, "--as", "ann")
+        self.ok("done", task, "--as", "ann")
+        self.ok("note", task, "--as", "ann", "-m", "review requested from bob")
+        self.assertIn("review requested", self.ok("show", task))
+
+    def test_short_holds_on_shared_resources(self):
+        build = self.add("--resource", "ue-build")
+        self.ok("hold", "UE-Editor", "--as", "ann", "--for", "10", "--reason", "restarting for a build")
+        self.assertIn("held by ann", self.refused("hold", "ue-editor", "--as", "bob", "--reason", "verify"))
+        self.assertIn("ue-editor", self.ok("status"))
+        self.refused("unhold", "ue-editor", "--as", "bob")
+        self.ok("unhold", "ue-editor", "--as", "ann")
+        self.ok("hold", "ue-editor", "--as", "bob", "--reason", "verify")
+        self.ok("hold", "ue-build", "--as", "bob", "--reason", "compile")
+        self.assertIn("held by bob", self.refused("claim", build, "--as", "ann"))
+        with contextlib.closing(sqlite3.connect(self.db)) as db, db:
+            db.execute("UPDATE holds SET until = ?", (time.time() - 1,))
+        self.ok("claim", build, "--as", "ann")
+        self.assertIn(f"scope of {build}", self.refused("hold", "ue-build", "--as", "bob", "--reason", "again"))
+
+    def test_version_one_store_is_migrated_in_place(self):
+        os.environ["AGENTKIT_DB"] = str(self.dir / "old.db")
+        old_schema = (agentkit.SCHEMA.replace(",\n    claim_head TEXT,\n    reviewer TEXT\n", "\n")
+                      .split("CREATE TABLE IF NOT EXISTS holds")[0])
+        with contextlib.closing(sqlite3.connect(self.dir / "old.db")) as db, db:
+            db.executescript(old_schema)
+            db.execute("INSERT INTO meta VALUES ('schema', '1')")
+            db.execute("INSERT INTO workers VALUES ('ann', 'worker', '', '[]', 0, 0)")
+            db.execute("INSERT INTO tasks (id, seq, state, spec, created_by, created_at, updated_at) VALUES "
+                       "('T001', 1, 'ready', '{\"title\": \"t\", \"goal\": \"g\", \"source\": \"user_directive\"}', 'lead', 0, 0)")
+        self.ok("claim", "T001", "--as", "ann")
+        with contextlib.closing(sqlite3.connect(self.dir / "old.db")) as db:
+            self.assertEqual(db.execute("SELECT value FROM meta WHERE key = 'schema'").fetchone()[0], "2")
+        self.assertIn("migrate", self.ok("log"))
+
     def test_status_board_is_generated_from_state(self):
         task = self.add("--path", "src/**")
         self.ok("claim", task, "--as", "ann")
@@ -227,6 +299,15 @@ class GlobTests(unittest.TestCase):
         self.assertFalse(o("src/a/**", "src/b/**"))
         self.assertFalse(o("src/*.py", "src/a.h"))
         self.assertFalse(o("src/a.py", "src/ab.py"))
+        self.assertFalse(o("a/authoring*.py", "a/basic*.py"))
+        self.assertFalse(o("Tests/test_authoring*.py", "Tests/test_inspection*.py"))
+        self.assertFalse(o("a/*.py", "a/*.h"))
+        self.assertTrue(o("a/x*.py", "a/*.py"))
+        self.assertTrue(o("a/x*", "a/xy*"))
+        self.assertTrue(o("a/*/c.py", "a/b*/c.py"))
+        self.assertFalse(o("a/*/c.py", "a/*/d.py"))
+        self.assertTrue(o("a/x*", "a/xy/b.c"))  # a pattern covers what lies below it
+        self.assertTrue(o("a/[ab]*.py", "a/c*.py"))  # undecidable counts as overlapping
 
 
 def git(cwd, *args):
@@ -258,16 +339,68 @@ class GitTests(Base):
         git(self.dir, "checkout", "-q", "feature")
         self.ok("claim", task, "--as", "ann")
 
-    def test_scope_check_reports_stray_changes(self):
+    def commit(self, message, **files):
+        for name, text in files.items():
+            # src__a_py -> src/a.py
+            path = self.dir / ".".join(name.replace("__", "/").rsplit("_", 1))
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(text)
+        git(self.dir, "add", ".")
+        git(self.dir, "commit", "-q", "-m", message)
+
+    def test_unclaimed_changes_are_flagged(self):
         (self.dir / "notes.txt").write_text("stray\n")
         task = self.add("--path", "src/**", "--base", "main")
-        self.assertIn("outside the task scope", self.ok("claim", task, "--as", "ann"))
+        self.assertIn("no open task claims", self.ok("claim", task, "--as", "ann"))
         (self.dir / "src" / "a.py").write_text("changed\n")
-        self.assertIn("notes.txt", self.refused("check", task))
+        self.assertIn("notes.txt", self.refused("check", task, "--as", "ann"))
         self.assertIn("notes.txt", self.ok("done", task, "--as", "ann"))
-        self.assertEqual(self.state(task)["evidence"][0]["data"]["out_of_scope"], ["notes.txt"])
+        evidence = self.state(task)["evidence"][0]["data"]
+        self.assertEqual(evidence["unclaimed"], ["notes.txt"])
+        self.assertEqual(evidence["changed_files"], ["src/a.py"])
         (self.dir / "notes.txt").unlink()
         self.ok("check", task)
+
+    def test_work_committed_on_the_base_branch_is_attributed(self):
+        task = self.add("--path", "src/**", "--base", "main")
+        self.ok("claim", task, "--as", "ann")
+        self.commit(f"Batch uploads ({task})", src__a_py="new\n", src__b_py="b\n")
+        self.commit("Unrelated work by someone else", docs__x_md="x\n")
+        self.commit(f"Report about the task\n\nMentions {task} only in the body", notes__r_md="r\n")
+        self.ok("done", task, "--as", "ann")
+        evidence = self.state(task)["evidence"][0]["data"]
+        self.assertEqual(evidence["changed_files"], ["src/a.py", "src/b.py"])
+        self.assertNotIn("out_of_scope", evidence)
+        self.assertEqual(len(evidence["attributed_commits"]), 1)
+
+    def test_commit_named_as_evidence_is_attributed_and_audited(self):
+        task = self.add("--path", "src/**", "--base", "main")
+        self.ok("claim", task, "--as", "ann")
+        self.commit("forgot the task id", src__a_py="x\n", README_md="r\n")
+        sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=self.dir, capture_output=True, text=True).stdout.strip()
+        self.assertIn("0 file(s) attributed", self.ok("check", task))
+        text = self.ok("done", task, "--as", "ann", "--evidence", f"commit={sha[:7]}")
+        self.assertIn("README.md", text)
+        self.assertEqual(self.state(task)["evidence"][0]["data"]["out_of_scope"], ["README.md"])
+
+    def test_nothing_attributed_is_warned_at_done(self):
+        task = self.add("--path", "src/**", "--base", "main")
+        self.ok("claim", task, "--as", "ann")
+        self.assertIn("no change is attributed", self.ok("done", task, "--as", "ann"))
+
+    def test_shared_checkout_separates_other_tasks_work(self):
+        mine = self.add("--path", "src/**", "--base", "main")
+        theirs = self.add("--path", "docs/**", "--base", "main")
+        self.ok("claim", mine, "--as", "ann")
+        self.ok("claim", theirs, "--as", "bob")
+        (self.dir / "docs").mkdir()
+        (self.dir / "docs" / "guide.md").write_text("bob's draft\n")
+        (self.dir / "src" / "a.py").write_text("ann's work\n")
+        text = self.ok("check", mine, "--as", "ann")
+        self.assertIn(f"docs/guide.md  <- {theirs} (bob)", text)
+        self.ok("check", theirs, "--as", "bob")
+        self.ok("done", mine, "--as", "ann")
+        self.assertNotIn("unclaimed", self.state(mine)["evidence"][0]["data"])
 
     def test_default_store_is_shared_by_every_worktree(self):
         # The runtime runs from wherever the skill is installed; the project it

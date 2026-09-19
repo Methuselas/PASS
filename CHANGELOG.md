@@ -6,6 +6,42 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.58 - 2026-09-19
+
+Agent Kit runtime 1.1.0, from the first trial's feedback reports.
+
+### Fixed
+
+- `done` recorded no changed files when work was committed on the base branch,
+  so its scope audit saw nothing. A claim now records its starting commit; a
+  task's changes are its commits since then whose subject line names it, any
+  commit given as evidence, and uncommitted files in its scope. Claims made
+  before this fall back to commits since their first claim.
+- In a shared checkout, `check` and `done` blamed one agent for another's
+  uncommitted work. Uncommitted files inside another open task's scope are now
+  labelled with that task; only changes no open task claims are flagged.
+- Every command accepts `--as`; `check` rejected it.
+- Two globs in one directory always collided. Segments are now compared, so
+  `authoring*.py` and `basic*.py` can be held in parallel; undecidable pairs
+  still count as overlapping.
+
+### Added
+
+- `--reviewer` on tasks and a `review` verdict command. `accept` requires the
+  named reviewer's verdict on the current attempt or a recorded
+  `--override-review`, and refuses work the accepting lead did.
+- `note`: any registered agent can attach a note to any open task.
+- `hold` / `unhold`: short, expiring holds on shared resources such as a running
+  editor or a build, shown on the board and respected by claims.
+- The board shows priority and lists ready work in the order `next` offers it;
+  help and README say higher priority runs first.
+
+### Changed
+
+- Store schema 2, migrated in place on first use; an older runtime refuses the
+  upgraded store. README: commit-subject convention, shared-checkout guidance,
+  testing a scope against the design before editing.
+
 ## 1.0.0-beta.57 - 2026-09-18
 
 ### Added

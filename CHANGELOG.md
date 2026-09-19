@@ -6,6 +6,22 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.69 - 2026-09-19
+
+### Added
+
+- Fifteen Unreal Engine Blueprint Patterns in
+  `software-engineering/unreal-engine/blueprints/`, landed by units u05, u06 and
+  u07 of the Blueprints visual-scripting run: materials (authoring one by wiring
+  parameter nodes, metallic and roughness, a swappable material asset, swapping
+  at runtime), actors and motion (subclassing a level actor in place, keeping
+  actors static unless manipulated, per-frame movement scaled by delta time,
+  looping timers), and player abilities (action versus axis mappings, restoring
+  the base value on release, timelines instead of snapping, projectile speed
+  profiles, effects at the hit location, two-stage interaction as a boolean and
+  branch, investigating an external asset first). The domain indexes are
+  regenerated.
+
 ## 1.0.0-beta.68 - 2026-09-19
 
 ### Added

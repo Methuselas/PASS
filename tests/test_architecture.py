@@ -879,7 +879,9 @@ class RepositoryShapeTests(unittest.TestCase):
         budget = 8 * 1024
         for filename in ("AGENTS.md", "CLAUDE.md"):
             path = ROOT / filename
-            content = path.read_bytes()
+            # Measure the committed text, not this checkout's line endings: a
+            # Windows clone with core.autocrlf adds one byte per line.
+            content = path.read_bytes().replace(b"\r\n", b"\n")
             text = content.decode("utf-8")
             with self.subTest(file=filename):
                 self.assertLessEqual(
@@ -894,7 +896,7 @@ class RepositoryShapeTests(unittest.TestCase):
         for path in sorted((ROOT / ".claude/skills").glob("*/SKILL.md")):
             with self.subTest(skill=path.parent.name):
                 self.assertLessEqual(
-                    path.stat().st_size, budget,
+                    len(path.read_bytes().replace(b"\r\n", b"\n")), budget,
                     f"{path.relative_to(ROOT)} exceeds the {budget}-byte entrypoint budget; "
                     "move conditional detail into a routed reference",
                 )

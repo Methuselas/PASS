@@ -6,6 +6,15 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.61 - 2026-09-19
+
+### Fixed
+
+- The `AGENTS.md` / `CLAUDE.md` cold-start budget and the repo skill-wrapper
+  budget measured the checkout's bytes, so a Windows clone with
+  `core.autocrlf` failed them (one extra byte per line) while the committed text
+  was within budget. Both checks now measure with line endings normalized.
+
 ## 1.0.0-beta.60 - 2026-09-19
 
 ### Changed

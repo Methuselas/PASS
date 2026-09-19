@@ -187,10 +187,13 @@ re-deriving:
 - the exact next action
 ```
 
-Under the executable runtime, `python PASS/pass.py resume` rebuilds the source,
-plan, closed units, current phase and next action from controller state, so a
-handoff carries only what the controller does not know: corrections, traps and
-discussion. This is not a ledger, registry, or source record. It spans no domains, aggregates
+Under the executable runtime the controller writes `HANDOFF.md` itself after every
+accepted step, from its own state: the last safe endpoint, the unit, the drafts at
+that checkpoint and the next action. Do not write or edit it. What the controller
+cannot know (corrections, traps, discussion) goes in the run's `NOTES.md`. A
+session that stops inside a phase leaves nothing half-accepted: the next session
+runs `resume`, rolls back to the last checkpoint when told to, and redoes that
+phase from its beginning. This is not a ledger, registry, or source record. It spans no domains, aggregates
 nothing, and no particular structure or name is required.
 
 ---

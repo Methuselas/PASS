@@ -6,6 +6,29 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.68 - 2026-09-19
+
+### Added
+
+- Hard checkpoints: every controller operation that changes `run.json` ends by
+  copying the run's `drafts/` and `recipes/` into `controller/checkpoint/`, bound
+  to that state. Operations that accept nothing never move it.
+- `pass.py rollback` restores the drafts to the last checkpoint so an
+  interrupted phase restarts from its beginning; stopping inside PASS 3 returns
+  to the end of PASS 2. `resume` lists drafts changed since the checkpoint and
+  names the rollback as the next action.
+- The controller writes the run's `HANDOFF.md` after every checkpoint: last safe
+  endpoint, current unit and scope, drafts at the checkpoint, pick-up commands.
+  A hand-written handoff is moved into `NOTES.md`, which models own.
+
+### Changed
+
+- PASS 2 stores one fingerprint of the live files it depends on instead of the
+  full hash map, which had made `run.json` about 160 KB; older runs still verify.
+- `close-run` removes the checkpoint and generated handoff and keeps `NOTES.md`.
+- `AUTHORING_RUNTIME.md`, `PASS_RUN.md` and `PASS/SKILL.md` describe checkpoints,
+  rollback, the generated handoff, and not reading `run.json` to orient.
+
 ## 1.0.0-beta.67 - 2026-09-19
 
 ### Added

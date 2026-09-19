@@ -47,7 +47,9 @@ For ordinary source authoring, first run `python PASS/pass.py resume --domain
 of that source exists, it verifies the saved state and names the one next action:
 continue that run, never start a second. Only when it reports no incomplete run,
 start with `python PASS/pass.py start --source <source> --domain
-<authorized-domain>`. After any context loss, re-enter the same way. Follow its current
+<authorized-domain>`. After any context loss, re-enter the same way; if `resume`
+says to roll back, run `pass.py rollback` and redo that phase from its beginning.
+Read the run's generated `HANDOFF.md`, never `controller/run.json`. Follow its current
 phase through LOAD, the **one source-wide preflight**, its mandatory presentation
 and explicit user-acceptance gate, then one unit's PASS 1 / 2 / 3 and verified
 landing. **Preflight never repeats per unit.** A validated preflight does not

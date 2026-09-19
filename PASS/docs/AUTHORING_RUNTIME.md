@@ -82,11 +82,33 @@ draft state, then names the **one** next legal action and repeats the current
 - staged files changed after PASS 3, or live cards changed after PASS 2 (it names
   the required `rewind`).
 
-Every accepted transition is already written atomically to `controller/run.json`,
-so each accepted step is a safe point to discard the conversation; no separate
-checkpoint or summary file exists. Work inside an unaccepted phase is not
-persisted: perform that phase again in full, and never claim a read the current
-session did not do. In unattended mode `resume` directs the host to `source.py
+### Hard checkpoints and rollback
+
+Every operation that changes `controller/run.json` ends at a **hard checkpoint**:
+the controller copies the run's `drafts/` and `recipes/` into
+`controller/checkpoint/`, bound to that exact state, and rewrites `HANDOFF.md`.
+An operation that accepts nothing (`present`, `drive`) never moves the
+checkpoint, so half-finished work is never captured as the safe endpoint.
+
+A phase is atomic: it is either accepted or restarted. If a session stops inside
+a phase, `resume` lists the drafts changed since the checkpoint and directs the
+next session to `python PASS/pass.py rollback --run <run>`, which restores the
+drafts exactly (changed files restored, new files removed) and leaves the phase
+to be redone from its beginning. Stopping inside PASS 3 therefore returns to the
+end of PASS 2; inside PASS 2, to the end of PASS 1 or its checkpoint; inside
+PASS 1, to the unit's start. Never finish a phase another session left half
+done, and never claim a read the current session did not do. Only the session
+that made the edits, still inside the phase, keeps them.
+
+`HANDOFF.md` is generated from controller state after every checkpoint: the last
+safe endpoint, the current unit and scope, the drafts at the checkpoint and the
+pick-up commands. Do not edit it. Notes worth carrying between sessions
+(corrections, traps, discussion) go in `NOTES.md`, which the controller never
+rewrites; a hand-written `HANDOFF.md` found in a run is moved there. Do not read
+`controller/run.json` to orient: it is the controller's state, not a briefing,
+and `resume`, `status` and `template` give what a session needs. PASS 2 stores
+one fingerprint of the live library files it depends on rather than their full
+hash map, which kept `run.json` hundreds of kilobytes large. In unattended mode `resume` directs the host to `source.py
 drive`, which returns the unchanged lease when nothing was accepted and archives
 a stale one before issuing its replacement. PASS cannot see the host's context
 usage, so when to compact remains the host's or user's decision; `resume` makes
@@ -248,6 +270,7 @@ nor an accepted forecast makes a missing read valid.
 python PASS/pass.py rewind --run <run-directory> --phase pass1
 python PASS/pass.py rewind --run <run-directory> --phase pass2
 python PASS/pass.py rewind --run <run-directory> --phase pass3
+python PASS/pass.py rollback --run <run-directory>
 python PASS/pass.py replan --run <run-directory> --input <amendment.json>
 ```
 

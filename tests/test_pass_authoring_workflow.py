@@ -287,6 +287,81 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertEqual(self.resumed(domain="writing")["outcome"], "choose_run")
         self.assertEqual(self.resumed(domain="writing", source=second)["run"], str(other))
 
+    def locked(self, operation, *arguments, **keywords):
+        with self.run.locked():
+            return operation(*arguments, **keywords)
+
+    def test_every_accepted_step_checkpoints_and_rewrites_the_handoff(self):
+        self.locked(self.run.submit, "load", self.run.template())
+        manifest = self.run.checkpoint_manifest()
+        self.assertEqual((manifest["phase"], manifest["last_accepted"]), ("preflight", "LOAD"))
+        handoff = (self.root / "HANDOFF.md").read_text(encoding="utf-8")
+        self.assertIn(workflow.HANDOFF_MARK, handoff)
+        self.assertIn("Last safe endpoint: **LOAD**", handoff)
+        self.assertIn("pass.py resume --run", handoff)
+
+    def test_interrupted_pass3_rolls_back_to_the_end_of_pass2(self):
+        self.begin()
+        self.first()
+        self.locked(self.second, refine=True)
+        staged = self.root / self.run.state["pass2"]["changes"][0]
+        accepted = staged.read_bytes()
+        staged.write_bytes(accepted + b"\nHalf-finished PASS 3 repair.\n")
+        extra = self.root / "drafts/craft/PAT_half_written.md"
+        extra.write_text("Interrupted.\n", encoding="utf-8")
+        self.locked(lambda: None)  # an operation that accepts nothing must not move the checkpoint
+        result = self.resumed(domain="writing")
+        self.assertEqual(result["phase"], "pass3")
+        self.assertIn("rollback", result["next_action"])
+        self.assertEqual(result["changed_since_checkpoint"], ["drafts/craft/PAT_half_written.md", self.run.state["pass2"]["changes"][0]])
+        message = self.locked(self.run.rollback)
+        self.assertIn("end of U01 PASS 2", message)
+        self.assertEqual(staged.read_bytes(), accepted)
+        self.assertFalse(extra.exists())
+        self.assertEqual(self.run.state["phase"], "pass3")
+        self.assertNotIn("rollback", self.resumed(domain="writing")["next_action"])
+        self.third()
+        self.assertEqual(self.run.state["phase"], "land")
+
+    def test_rollback_needs_a_substantive_phase_and_a_checkpoint(self):
+        self.begin()
+        with self.assertRaisesRegex(workflow.RunError, "no checkpoint"):
+            self.run.rollback()
+        self.first()
+        self.second()
+        self.third()
+        self.locked(lambda: None)
+        with self.assertRaisesRegex(workflow.RunError, "has none to restart"):
+            self.run.rollback()
+
+    def test_a_hand_written_handoff_is_kept_as_notes(self):
+        (self.root / "HANDOFF.md").write_text("Model notes: the figures carry the mechanism.\n", encoding="utf-8")
+        self.locked(self.run.submit, "load", self.run.template())
+        self.assertIn("the figures carry the mechanism", (self.root / "NOTES.md").read_text(encoding="utf-8"))
+        self.assertIn(workflow.HANDOFF_MARK, (self.root / "HANDOFF.md").read_text(encoding="utf-8"))
+
+    def test_run_state_keeps_one_live_fingerprint_and_reads_the_old_map(self):
+        self.begin()
+        self.first()
+        self.second()
+        self.assertTrue(self.run.state["live_hashes"].startswith("sha256:"))
+        self.assertTrue(self.run.live_unchanged())
+        self.run.state["live_hashes"] = self.run.live_hashes()
+        self.assertTrue(self.run.live_unchanged())
+
+    def test_close_removes_the_checkpoint_and_generated_handoff_but_keeps_notes(self):
+        (self.root / "NOTES.md").write_text("Keep me.\n", encoding="utf-8")
+        self.begin()
+        self.first()
+        self.second()
+        self.third()
+        self.locked(self.run.land, self.decision())
+        self.assertTrue((self.root / workflow.CHECKPOINT).is_dir())
+        self.locked(self.run.close)
+        self.assertFalse((self.root / workflow.CHECKPOINT).exists())
+        self.assertFalse((self.root / "HANDOFF.md").exists())
+        self.assertTrue((self.root / "NOTES.md").is_file())
+
     def test_operation_lock_names_its_process(self):
         with self.run.locked():
             held = json.loads((self.root / "controller/operation.lock").read_text(encoding="utf-8"))

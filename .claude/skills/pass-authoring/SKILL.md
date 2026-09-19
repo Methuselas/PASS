@@ -36,8 +36,10 @@ to load it now.
 
 ## Rules that decide most questions here
 
-Ordinary source study starts with `python PASS/pass.py start --source <source>
---domain <authorized-domain>`. Follow the executable phases; keep provisional
+Ordinary source study first runs `python PASS/pass.py resume --domain
+<authorized-domain> --source <source>`: an unfinished run of that source is
+continued, never duplicated. Only when it reports none, run `python PASS/pass.py
+start --source <source> --domain <authorized-domain>`. Follow the executable phases; keep provisional
 cards in `workspace/authoring/<domain>/<book-run>/drafts/<category>/`. A valid
 source-wide preflight stops at its presentation/acceptance gate: run `present`,
 show the complete packet, and wait for explicit user confirmation before

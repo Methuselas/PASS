@@ -2,7 +2,7 @@
 
 status: active
 owner: PASS/runtime
-last_reviewed: 2026-09-18
+last_reviewed: 2026-09-19
 
 `PASS_RUN.md` owns the human method. `PASS/pass.py` owns supported ordinary
 source-authoring transitions and staged unit integration. Repository maintenance,
@@ -14,7 +14,9 @@ Run commands from the unpacked project or repository root, using its Python
 environment with `PASS/requirements.txt` installed:
 
 ```text
+python PASS/pass.py resume --domain <authorized-domain> [--source <source-file>] [--run <run-directory>]
 python PASS/pass.py start --source <source-file> --domain <authorized-domain>
+python PASS/pass.py abandon --run <run-directory> --reason <explicit-user-instruction>
 python PASS/pass.py status --run <run-directory>
 python PASS/pass.py template --run <run-directory>
 python PASS/pass.py present --run <run-directory>
@@ -43,7 +45,11 @@ edit it only after doing the authorized work. Unknown or missing record fields
 fail the gate. Every phase record uses integer `schema_version: 1`; unit records
 must name the only active `unit_id`.
 
-`start` checks the source exists but does not read it. A domain must already own
+`start` checks the source exists but does not read its content. It refuses to
+open a second unfinished run of the same source in the same domain: it compares
+the path and, when a run's recorded size matches, the SHA-256 of the bytes, so a
+moved or renamed copy is still recognized. Abandoned and finished runs do not
+block; another domain's run of the same book is independent. A domain must already own
 a `MODULE.yaml`; an arbitrary folder is insufficient. In a multi-domain repo,
 choose the domain explicitly from user authorization. The single authorable
 domain of a bounded snapshot is the only automatic default. Never infer a new
@@ -53,6 +59,45 @@ authoritative; domain creation requires a separate authorized maintenance task.
 `start --task <book-run-slug>` optionally sets a unique lowercase task name. The
 default derives a readable book name plus a unique suffix. Existing task paths
 are never overwritten; resume with `--run`.
+
+### Re-entry after context loss
+
+`resume` is the front door for every fresh, compacted, restarted or switched
+model context. It is read-only and derives everything from controller files;
+the conversation's memory of the run is never consulted. Without `--run` it
+searches the domain's unfinished runs, filtered by `--source` when given. None
+found: it says to `start`. Several: it lists them and the user chooses; it never
+picks one or starts another. One: it verifies and reports the run, source title,
+units completed, current unit and phase, last accepted step, source identity and
+draft state, then names the **one** next legal action and repeats the current
+`status` brief.
+
+`resume` fails closed, changing nothing, when:
+
+- `controller/operation.lock` remains, meaning an operation was interrupted. The
+  lock records its process ID and time. Confirm no PASS process is running and
+  inspect the library and staged files before removing it.
+- the bound source moved (it prints the exact `rebind-source` command when
+  `--source` names identical bytes) or its bytes changed;
+- staged files changed after PASS 3, or live cards changed after PASS 2 (it names
+  the required `rewind`).
+
+Every accepted transition is already written atomically to `controller/run.json`,
+so each accepted step is a safe point to discard the conversation; no separate
+checkpoint or summary file exists. Work inside an unaccepted phase is not
+persisted: perform that phase again in full, and never claim a read the current
+session did not do. In unattended mode `resume` directs the host to `source.py
+drive`, which returns the unchanged lease when nothing was accepted and archives
+a stale one before issuing its replacement. PASS cannot see the host's context
+usage, so when to compact remains the host's or user's decision; `resume` makes
+any compaction at an accepted step safe.
+
+`abandon` retires an unfinished run only on the user's explicit instruction,
+quoted in `--reason`. It moves the final state to `controller/abandoned-run.json`,
+withdraws any action lease and keeps the drafts for inspection. An abandoned run
+can no longer be resumed, and its source may be started again. Delete the
+retained directory once it is no longer needed. A finished run is closed with
+`close-run`, not abandoned.
 
 ```text
 workspace/authoring/<domain>/<book-run>/
@@ -76,8 +121,8 @@ Drafts may be incomplete during PASS 1; only validated finished objects can land
 `PASS/source.py` is the state-driven source-level dispatcher above the ordinary unit controller.
 It exists for a user instruction such as: *run this PASS while I am away; continue
 through each unit until I return*. Authorization is explicit, source-scoped and
-bounded through that source's completion. The marker is created only after LOAD
-passes, because source-byte identity is deliberately not read before LOAD. It is not standing permission for a
+bounded through that source's completion. The identity marker is created only after LOAD
+passes; the duplicate check at `start` hashes bytes but records nothing. It is not standing permission for a
 second book, another domain, or a later run.
 
 The runner deliberately does **not** call a model or fabricate substantive PASS

@@ -142,16 +142,156 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertFalse((self.repo / "library/missing").exists())
         self.assertFalse((self.repo / "workspace/authoring/apa-style").exists())
 
+    def other_source(self, name="Second Book.txt", text="A different book with different bytes entirely.\n"):
+        path = self.repo / name
+        path.write_text(text, encoding="utf-8")
+        return path
+
+    def files(self):
+        return {p.relative_to(self.repo).as_posix(): p.read_bytes() for p in self.repo.rglob("*") if p.is_file() and "__pycache__" not in p.parts}
+
+    def resumed(self, **arguments):
+        before = self.files()
+        result = workflow.resume(self.repo, **arguments)
+        self.assertEqual(self.files(), before, "resume must never write")
+        return result
+
     def test_single_domain_project_defaults_without_reading_source(self):
+        second = self.other_source()
         with patch.object(Path, "read_bytes", side_effect=AssertionError("source content must not be read")):
-            root = workflow.start(self.repo, self.source, None, "single-domain-run")
+            root = workflow.start(self.repo, second, None, "single-domain-run")
         self.assertEqual(workflow.Run(self.repo, root).domain, "writing")
 
     def test_staging_is_separate_for_each_book_run(self):
-        other = workflow.start(self.repo, self.source, "writing", "original-book-run-two")
+        other = workflow.start(self.repo, self.other_source(), "writing", "original-book-run-two")
         self.assertNotEqual(other, self.root)
         with self.assertRaises(workflow.RunError):
-            workflow.start(self.repo, self.source, "writing", self.root.name)
+            workflow.start(self.repo, self.other_source("Third Book.txt", "Third.\n"), "writing", self.root.name)
+
+    def test_start_refuses_a_second_run_of_the_same_source(self):
+        self.begin()
+        copy = self.repo / "moved/Renamed Copy.txt"
+        copy.parent.mkdir()
+        copy.write_bytes(self.source.read_bytes())
+        for source in (self.source, copy):
+            with self.subTest(source=source.name), self.assertRaisesRegex(workflow.RunError, "existing incomplete PASS run"):
+                workflow.start(self.repo, source, "writing", None)
+        self.assertEqual(sorted(p.name for p in (self.repo / "workspace/authoring/writing").iterdir()), [self.root.name])
+
+    def test_same_source_may_start_in_another_domain_or_after_finishing(self):
+        self.module("art/foundations")
+        self.assertTrue(workflow.start(self.repo, self.source, "art", "art-reading").is_dir())
+        self.ready()
+        self.run.land(self.decision())
+        self.assertEqual(self.run.state["phase"], "finished")
+        self.assertTrue(workflow.start(self.repo, self.source, "writing", "second-reading").is_dir())
+
+    def test_abandon_retires_the_run_keeps_its_drafts_and_unblocks_start(self):
+        self.begin()
+        draft = self.root / "drafts/craft/PAT_kept_draft.md"
+        draft.parent.mkdir(parents=True)
+        draft.write_text("Partial draft.\n", encoding="utf-8")
+        with self.assertRaises(workflow.RunError):
+            workflow.abandon(self.repo, self.root, "  ")
+        message = workflow.abandon(self.repo, self.root, "The user asked to restart this book from scratch.")
+        self.assertIn("RUN ABANDONED", message)
+        self.assertTrue(draft.is_file())
+        record = json.loads((self.root / workflow.ABANDONED).read_text(encoding="utf-8"))
+        self.assertEqual(record["state"]["phase"], "pass1")
+        self.assertIn("restart", record["reason"])
+        with self.assertRaisesRegex(workflow.RunError, "abandoned"):
+            workflow.Run(self.repo, self.root)
+        self.assertEqual(self.resumed(domain="writing")["outcome"], "no_incomplete_run")
+        self.assertTrue(workflow.start(self.repo, self.source, "writing", "restarted").is_dir())
+
+    def test_finished_run_is_closed_not_abandoned(self):
+        self.ready()
+        self.run.land(self.decision())
+        with self.assertRaisesRegex(workflow.RunError, "close-run"):
+            workflow.abandon(self.repo, self.root, "The user asked to abandon it.")
+
+    def test_resume_names_the_controller_next_action_at_every_phase(self):
+        def check(last):
+            result = self.resumed(domain="writing")
+            self.assertEqual(result["outcome"], "resume")
+            self.assertEqual(result["run"], str(self.root))
+            self.assertEqual(result["phase"], self.run.state["phase"])
+            self.assertEqual(result["last_accepted"], last)
+            self.assertEqual(result["next_action"], self.run.brief()["authorized_action"])
+            self.assertTrue(result["context"]["safe_to_discard"])
+            return result
+
+        self.assertIsNone(check(None)["current_unit"])
+        self.run.submit("load", self.run.template())
+        check("LOAD")
+        record = self.run.template()
+        record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
+                      subject="Revise prose for an observable reader effect.", mode="unit ingestion", no_extract=[],
+                      units=[dict(unit_id=f"u0{i}", material=f"Unit {i}", locator=f"chapter {i}",
+                                  overlap_object_ids=[self.live.stem], card_potential="medium") for i in (1, 2)])
+        self.run.submit("preflight", record)
+        check("preflight validated; acceptance pending")
+        self.accept()
+        self.assertEqual(check("preflight accepted")["current_unit"], "U01")
+        self.first(questions=True)
+        check("U01 PASS 1")
+        answers = self.run.template()
+        answers["answers"][0]["resolution"] = "Practitioner chose the narrower interpretation."
+        self.run.submit("checkpoint", answers)
+        check("U01 checkpoint")
+        self.second(refine=True)
+        check("U01 PASS 2")
+        self.third()
+        self.assertEqual(check("U01 PASS 3")["drafts"], "verified against PASS 3 hashes")
+        self.run.land(self.decision())
+        result = check("U01 landed")
+        self.assertEqual((result["units_completed"], result["current_unit"], result["unit_count"]), (["U01"], "U02", 2))
+        self.assertIn("NEXT ACTION", result["statement"])
+
+    def test_resume_by_source_finds_moved_identical_bytes_and_asks_for_rebind(self):
+        self.begin()
+        moved = self.repo / "moved/Original Book.txt"
+        moved.parent.mkdir()
+        self.source.replace(moved)
+        result = self.resumed(domain="writing", source=moved)
+        self.assertEqual((result["outcome"], result["source_identity"]), ("blocked", "moved"))
+        self.assertIn("rebind-source", result["next_action"])
+        self.assertIn(str(moved.resolve()), result["next_action"])
+
+    def test_resume_blocks_on_changed_source_edited_draft_or_interrupted_operation(self):
+        self.ready(refine=True)
+        staged = self.root / self.run.state["pass2"]["changes"][0]
+        original = staged.read_bytes()
+        staged.write_bytes(original + b"\nEdited after review.\n")
+        result = self.resumed(domain="writing")
+        self.assertEqual(result["outcome"], "blocked")
+        self.assertIn("--phase pass3", result["next_action"])
+        staged.write_bytes(original)
+        self.assertEqual(self.resumed(domain="writing")["outcome"], "resume")
+
+        lock = self.root / "controller/operation.lock"
+        lock.write_text('{"pid": 1, "acquired_at": "earlier"}\n', encoding="utf-8")
+        result = self.resumed(root=self.root)
+        self.assertEqual(result["outcome"], "blocked")
+        self.assertFalse(result["context"]["safe_to_discard"])
+        self.assertIn("did not finish", result["next_action"])
+        lock.unlink()
+
+        self.source.write_text("Different bytes under the same name.\n", encoding="utf-8")
+        result = self.resumed(root=self.root)
+        self.assertEqual((result["outcome"], result["source_identity"]), ("blocked", "changed"))
+
+    def test_resume_asks_when_several_runs_are_open(self):
+        second = self.other_source()
+        other = workflow.start(self.repo, second, "writing", "second-book")
+        self.assertEqual(self.resumed(domain="writing")["outcome"], "choose_run")
+        self.assertEqual(self.resumed(domain="writing", source=second)["run"], str(other))
+
+    def test_operation_lock_names_its_process(self):
+        with self.run.locked():
+            held = json.loads((self.root / "controller/operation.lock").read_text(encoding="utf-8"))
+        self.assertEqual(held["pid"], __import__("os").getpid())
+        self.assertFalse((self.root / "controller/operation.lock").exists())
 
     def test_load_and_preflight_gate_every_later_phase(self):
         with self.assertRaises(workflow.RunError):
@@ -321,7 +461,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
     def test_another_books_landing_invalidates_the_older_review(self):
         self.ready(refine=True)
-        other_root = workflow.start(self.repo, self.source, "writing", "book-two")
+        other_root = workflow.start(self.repo, self.other_source(), "writing", "book-two")
         older = self.run
         self.run = workflow.Run(self.repo, other_root)
         self.ready(refine=True)

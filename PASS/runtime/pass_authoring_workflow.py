@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 from contextlib import contextmanager
 from dataclasses import asdict
+from datetime import datetime, timezone
 import hashlib
 import json
 import os
@@ -146,8 +147,7 @@ def required_documents(repo: Path) -> list[str]:
     return documents
 
 
-def start(repo: Path, source: Path, domain: str | None, task: str | None) -> Path:
-    repo = repo.resolve()
+def select_domain(repo: Path, domain: str | None) -> str:
     domains = authorable_domains(repo)
     if domain is None:
         if len(domains) != 1:
@@ -155,10 +155,78 @@ def start(repo: Path, source: Path, domain: str | None, task: str | None) -> Pat
         domain = domains[0]
     if domain not in domains:
         raise RunError(f"domain is not an existing authorable package: {domain}; domain creation is a separate authorized operation")
+    return domain
+
+
+def open_runs(repo: Path, domain: str) -> list[Path]:
+    """Every unfinished run of one domain. An unreadable run counts as unfinished."""
+    base = inside(repo, f"workspace/authoring/{domain}")
+    found = []
+    if not base.is_dir():
+        return found
+    for root in sorted(base.iterdir()):
+        state_path = root / "controller/run.json"
+        if not state_path.is_file():
+            continue
+        try:
+            phase = json.loads(state_path.read_text(encoding="utf-8")).get("phase")
+        except (OSError, ValueError, AttributeError):
+            phase = None
+        if phase != "finished":
+            found.append(root)
+    return found
+
+
+def matching_runs(repo: Path, domain: str, source: Path) -> list[Path]:
+    """Unfinished runs of this domain bound to the same source path or the same bytes.
+
+    Only size and SHA-256 are compared; the source's content is not read as
+    instruction. Bytes are hashed only when a candidate's size already matches.
+    An unreadable candidate matches, so a damaged run fails closed.
+    """
+    source = source.resolve()
+    size = source.stat().st_size
+    source_sha = None
+    found = []
+    for root in open_runs(repo, domain):
+        try:
+            bound = Path(json.loads((root / "controller/run.json").read_text(encoding="utf-8"))["source"]).resolve()
+            if os.path.normcase(str(bound)) == os.path.normcase(str(source)):
+                found.append(root)
+                continue
+            marker = root / "controller/source-identity.json"
+            if marker.is_file():
+                identity = json.loads(marker.read_text(encoding="utf-8"))
+                other_size, other_sha = identity["size"], identity["sha256"]
+            elif bound.is_file():
+                other_size, other_sha = bound.stat().st_size, None
+            else:
+                continue
+        except (OSError, ValueError, KeyError, TypeError):
+            found.append(root)
+            continue
+        if other_size != size:
+            continue
+        source_sha = source_sha or digest(source)
+        if (other_sha or digest(bound)) == source_sha:
+            found.append(root)
+    return found
+
+
+def start(repo: Path, source: Path, domain: str | None, task: str | None) -> Path:
+    repo = repo.resolve()
+    domain = select_domain(repo, domain)
     required_documents(repo)
     source = source.resolve()
     if not source.is_file():
         raise RunError(f"source does not exist: {source}")
+    existing = matching_runs(repo, domain, source)
+    if existing:
+        raise RunError(
+            f"existing incomplete PASS run found for this source: {existing[0]}. Resume it with "
+            f"`python PASS/pass.py resume --run {existing[0]}`, or abandon it explicitly with "
+            f"`python PASS/pass.py abandon --run {existing[0]} --reason <user instruction>` before starting again"
+        )
     if task is None:
         stem = re.sub(r"[^a-z0-9]+", "-", source.stem.lower()).strip("-") or "book"
         task = f"{stem}-{uuid.uuid4().hex[:8]}"
@@ -166,7 +234,7 @@ def start(repo: Path, source: Path, domain: str | None, task: str | None) -> Pat
         raise RunError("task must be a lowercase book/run slug")
     root = inside(repo, f"workspace/authoring/{domain}/{task}")
     if root.exists():
-        raise RunError(f"run already exists; resume it with --run: {root}")
+        raise RunError(f"run already exists; resume it with `python PASS/pass.py resume --run {root}`")
     (root / "controller").mkdir(parents=True)
     (root / "drafts").mkdir()
     state = {
@@ -185,17 +253,85 @@ def start(repo: Path, source: Path, domain: str | None, task: str | None) -> Pat
     return root
 
 
+def run_root(repo: Path, root: Path) -> Path:
+    root = root.absolute()
+    try:
+        path = root.relative_to(repo / "workspace/authoring")
+    except ValueError as exc:
+        raise RunError("run must belong to this project's workspace/authoring/<domain>/<book-run>") from exc
+    if len(path.parts) != 2:
+        raise RunError("run must have exactly a domain and book/run directory")
+    inside(repo, root.relative_to(repo).as_posix())
+    return root
+
+
+@contextmanager
+def operation_lock(root: Path):
+    """Exclusive per-run operation lease; it names its process so a leftover can be diagnosed."""
+    path = inside(root, "controller/operation.lock")
+    try:
+        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError as exc:
+        raise RunError(
+            "another operation owns this run; if no PASS process is still running, a previous operation was "
+            "interrupted: inspect the library and staged files before removing the stale operation.lock"
+        ) from exc
+    try:
+        os.write(descriptor, (json.dumps({"pid": os.getpid(), "acquired_at": now()}) + "\n").encode("utf-8"))
+    finally:
+        os.close(descriptor)
+    try:
+        yield
+    finally:
+        path.unlink(missing_ok=True)
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+ABANDONED = "controller/abandoned-run.json"
+
+
+def abandon(repo: Path, root: Path, reason: str) -> str:
+    """Retire an unfinished run on explicit instruction, preserving its drafts and state for inspection.
+
+    Deliberately tolerant of damaged state, so a run that no longer loads can
+    still be retired instead of blocking its source forever.
+    """
+    repo = repo.resolve()
+    root = run_root(repo, root)
+    if not isinstance(reason, str) or not reason.strip():
+        raise RunError("abandon requires --reason quoting the user's explicit instruction")
+    state_path = inside(root, "controller/run.json")
+    with operation_lock(root):
+        if not state_path.is_file():
+            raise RunError("no active run state to abandon")
+        raw = state_path.read_text(encoding="utf-8")
+        try:
+            state = json.loads(raw)
+        except ValueError:
+            state = raw
+        if isinstance(state, dict) and state.get("phase") == "finished":
+            raise RunError("a finished run is closed with close-run, not abandoned")
+        record = {"schema_version": 1, "abandoned_at": now(), "reason": reason, "state": state}
+        atomic_write(inside(root, ABANDONED), (json.dumps(record, indent=2) + "\n").encode("utf-8"))
+        inside(root, "controller/next-action.json").unlink(missing_ok=True)
+        state_path.unlink()
+        note = inside(root, "RUN_NOTE.md")
+        if note.is_file():
+            with note.open("a", encoding="utf-8") as handle:
+                handle.write(f"\nAbandoned {record['abandoned_at']}: {reason}\nRetained for inspection; delete this directory when it is no longer needed.\n")
+    return f"RUN ABANDONED: {root.name} — drafts and final state retained in {ABANDONED}; the source may be started again"
+
+
 class Run:
     def __init__(self, repo: Path, root: Path):
         self.repo = repo.resolve()
-        self.root = root.absolute()
-        try:
-            path = self.root.relative_to(self.repo / "workspace/authoring")
-        except ValueError as exc:
-            raise RunError("run must belong to this project's workspace/authoring/<domain>/<book-run>") from exc
-        if len(path.parts) != 2:
-            raise RunError("run must have exactly a domain and book/run directory")
-        inside(self.repo, self.root.relative_to(self.repo).as_posix())
+        self.root = run_root(self.repo, root)
+        abandoned = inside(self.root, ABANDONED)
+        if abandoned.is_file():
+            raise RunError(f"run was abandoned and cannot resume: {self.root}; see {ABANDONED}")
         self.state_path = inside(self.root, "controller/run.json")
         self.reload()
 
@@ -219,19 +355,11 @@ class Run:
 
     @contextmanager
     def locked(self):
-        path = inside(self.root, "controller/operation.lock")
-        try:
-            descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-        except FileExistsError as exc:
-            raise RunError("another operation owns this run; inspect a stale operation.lock before removing it") from exc
-        os.close(descriptor)
-        try:
+        with operation_lock(self.root):
             # A competing caller may have loaded state before the preceding
             # operation finished. The lease owns the latest persisted state.
             self.reload()
             yield
-        finally:
-            path.unlink(missing_ok=True)
 
     def save(self) -> None:
         atomic_write(self.state_path, (json.dumps(self.state, indent=2) + "\n").encode())
@@ -381,6 +509,144 @@ class Run:
         # Fail closed if the current source path is stale, missing, or replaced.
         self.source_file(required=True)
         return marker
+
+    def last_accepted(self) -> str | None:
+        phase = self.state["phase"]
+        units = [u["unit_id"].upper() for u in self.state["plan"]["units"]] if self.state["plan"] else []
+        index = self.state["unit_index"]
+        if phase == "load":
+            return None
+        if phase == "preflight":
+            return "LOAD"
+        if phase == "preflight_accept":
+            return "preflight validated; acceptance pending"
+        if phase == "finished":
+            return f"{units[-1]} landed"
+        if phase == "pass1":
+            return f"{units[index - 1]} landed" if index else "preflight accepted"
+        if phase == "pass2" and self.state["pass1"]["questions"]:
+            return f"{units[index]} checkpoint"
+        return f"{units[index]} " + {"checkpoint": "PASS 1", "pass2": "PASS 1", "pass3": "PASS 2", "land": "PASS 3"}[phase]
+
+    def pickup(self, source: Path | None = None) -> dict:
+        """Verify persisted state and return the one legal next action. Never writes.
+
+        Everything here derives from controller files; a model's memory of the
+        run is not consulted, and a failed check leaves every file untouched.
+        """
+        phase = self.state["phase"]
+        blockers: list[str] = []
+        lock = inside(self.root, "controller/operation.lock")
+        if lock.exists():
+            held = lock.read_text(encoding="utf-8").strip() or "no owner recorded"
+            blockers.append(
+                f"a previous PASS operation did not finish ({held}). Confirm no PASS process is still running, inspect the "
+                "library and staged files for a partial write, then remove controller/operation.lock and resume again"
+            )
+
+        identity = self.source_identity() if self.source_identity_path().is_file() else None
+        if identity is None:
+            source_state = "pending LOAD" if Path(self.state["source"]).is_file() else "missing"
+            if source_state == "missing":
+                blockers.append(f"the bound source is missing: {self.state['source']}; LOAD has not run, so abandon this run and start again from the new path")
+        else:
+            try:
+                self.source_file(required=True)
+                source_state = "unchanged"
+            except RunError:
+                bound = Path(self.state["source"])
+                source_state = "moved" if not bound.is_file() else "changed"
+                candidate = source.resolve() if source else None
+                if candidate and candidate.is_file() and candidate.stat().st_size == identity["size"] and digest(candidate) == identity["sha256"]:
+                    blockers.append(f"the source moved; the given file has identical bytes. Run `python PASS/source.py rebind-source --run {self.root} --source \"{candidate}\"`, then resume again")
+                elif source_state == "moved":
+                    blockers.append(f"the bound source is missing: {bound}. Find the identical file and run `python PASS/source.py rebind-source --run {self.root} --source <path>`")
+                else:
+                    blockers.append("the bound source file's bytes changed since LOAD; this run cannot continue on different bytes. Restore the original file or abandon the run")
+
+        drafts = "none"
+        if phase == "pass1":
+            drafts = "unaccepted scratch from an interrupted PASS 1" if any(p.is_file() for p in (self.root / "drafts").rglob("*")) else "none"
+        elif phase in {"checkpoint", "pass2"}:
+            drafts = "PASS 1 working drafts (not hash-bound until PASS 3)"
+        elif phase in {"pass3", "land"}:
+            try:
+                if self.live_hashes() != self.state["live_hashes"]:
+                    blockers.append(f"live library cards changed after PASS 2; run `python PASS/pass.py rewind --run {self.root} --phase pass2`, reconcile, then repeat PASS 3")
+                if phase == "land":
+                    if self.staged_hashes() != self.state["reviewed_sha256"]:
+                        drafts = "changed after PASS 3"
+                        blockers.append(f"staged files changed after PASS 3; run `python PASS/pass.py rewind --run {self.root} --phase pass3` and rescan")
+                    else:
+                        drafts = "verified against PASS 3 hashes"
+                else:
+                    drafts = "staged by PASS 2; PASS 3 review pending"
+            except OSError as exc:
+                drafts = "missing"
+                blockers.append(f"a staged file is missing ({exc}); rewind to pass2 and restage")
+
+        try:
+            authorization = self.unattended_authorization(required=False) if identity and source_state == "unchanged" else None
+        except RunError as exc:
+            authorization = None
+            blockers.append(f"unattended authorization is invalid: {exc}")
+        lease = None
+        if authorization and phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3"}:
+            path = self.unattended_action_path()
+            if not path.is_file():
+                lease = "none issued; source.py drive will issue one"
+            else:
+                held = preflight._read_json(str(path))
+                current = held.get("phase") == phase and held.get("unit_index") == self.state["unit_index"] and held.get("state_sha256") == digest(self.state_path)
+                lease = "current; source.py drive returns it unchanged" if current else "stale; source.py drive will archive it and issue a new one"
+
+        units = self.state["plan"]["units"] if self.state["plan"] else []
+        index = self.state["unit_index"]
+        active = units[index]["unit_id"].upper() if phase not in {"load", "preflight", "preflight_accept", "finished"} else None
+        try:
+            brief = self.brief()
+        except RunError as exc:
+            brief = None
+            if not blockers:
+                blockers.append(str(exc))
+        if blockers:
+            next_action = blockers[0]
+        elif authorization and phase != "load":
+            next_action = f"Run `python PASS/source.py drive --run {self.root}` and execute only the action it returns."
+        else:
+            next_action = brief["authorized_action"]
+        result = {
+            "outcome": "blocked" if blockers else "resume",
+            "run": str(self.root),
+            "domain": self.domain,
+            "source": self.state["source"],
+            "title": self.state["plan"]["title"] if self.state["plan"] else None,
+            "source_identity": source_state,
+            "mode": "unattended" if authorization else "interactive",
+            "unit_count": len(units) if units else None,
+            "units_completed": [u["unit_id"].upper() for u in units[:index]],
+            "current_unit": active,
+            "phase": phase,
+            "last_accepted": self.last_accepted(),
+            "drafts": drafts,
+            "blockers": blockers,
+            "next_action": next_action,
+            "context": {
+                "safe_to_discard": not lock.exists(),
+                "note": "Every accepted step is persisted. Work inside an unaccepted phase is not: after a context loss, "
+                        "perform the current phase again in full; never claim a read that this session did not do.",
+            },
+            "brief": brief,
+        }
+        if lease:
+            result["action_lease"] = lease
+        done = ", ".join(result["units_completed"]) or "none"
+        result["statement"] = (
+            f"Existing incomplete PASS run: {self.root.name}. Units: {result['unit_count'] or 'not planned yet'}; "
+            f"completed: {done}; current: {active or '-'} / {phase}; last accepted: {result['last_accepted'] or 'nothing'}; "
+            f"source identity: {source_state}; drafts: {drafts}. NEXT ACTION: {next_action}"
+        )
+        return result
 
     @property
     def domain(self) -> str:
@@ -1277,6 +1543,40 @@ for name in recipes:
         inside(self.root, "RUN_NOTE.md").unlink(missing_ok=True)
 
 
+def resume(repo: Path, root: Path | None = None, domain: str | None = None, source: Path | None = None) -> dict:
+    """The re-entry point for a fresh context: find the run, verify it and name the next action."""
+    repo = repo.resolve()
+    if root is None:
+        domain = select_domain(repo, domain)
+        if source is not None and not source.is_file():
+            raise RunError(f"source does not exist: {source}")
+        candidates = matching_runs(repo, domain, source) if source is not None else open_runs(repo, domain)
+        if not candidates:
+            return {
+                "outcome": "no_incomplete_run",
+                "domain": domain,
+                "next_action": f"No unfinished run exists for this {'source' if source else 'domain'}; begin with "
+                               f"`python PASS/pass.py start --source <source> --domain {domain}`.",
+            }
+        if len(candidates) > 1:
+            runs = []
+            for candidate in candidates:
+                try:
+                    state = Run(repo, candidate).state
+                    runs.append({"run": str(candidate), "source": state["source"], "phase": state["phase"], "unit_index": state["unit_index"]})
+                except (OSError, preflight.PreflightError) as exc:
+                    runs.append({"run": str(candidate), "unreadable": str(exc)})
+            return {
+                "outcome": "choose_run",
+                "domain": domain,
+                "runs": runs,
+                "next_action": "Several unfinished runs exist. Ask the user which one to continue and resume it with --run; "
+                               "do not start another.",
+            }
+        root = candidates[0]
+    return Run(repo, root).pickup(source)
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, help="auto-detected from the current project by default")
@@ -1285,6 +1585,13 @@ def build_parser() -> argparse.ArgumentParser:
     start_parser.add_argument("--source", type=Path, required=True)
     start_parser.add_argument("--domain", help="must be authorized by the user/project; never infer from source topic")
     start_parser.add_argument("--task", help="optional unique lowercase book/run slug")
+    resume_parser = sub.add_parser("resume", help="find and verify an unfinished run, then name its one next action; read-only")
+    resume_parser.add_argument("--run", type=Path, help="the run to verify; omit to search the domain")
+    resume_parser.add_argument("--domain", help="the user-authorized domain to search")
+    resume_parser.add_argument("--source", type=Path, help="only runs bound to this source path or identical bytes")
+    abandon_parser = sub.add_parser("abandon", help="retire an unfinished run on explicit user instruction; drafts are kept")
+    abandon_parser.add_argument("--run", type=Path, required=True)
+    abandon_parser.add_argument("--reason", required=True, help="the user's explicit instruction to abandon this run")
     for command in ("status", "template", "present", "submit", "accept-preflight", "revise-preflight", "rewind", "replan", "land", "close-run"):
         command_parser = sub.add_parser(command)
         command_parser.add_argument("--run", type=Path, required=True)
@@ -1311,6 +1618,13 @@ def main(argv: Iterable[str] | None = None) -> int:
         if args.command == "start":
             run = Run(repo, start(repo, args.source, args.domain, args.task))
             print(json.dumps(run.brief(), indent=2))
+            return 0
+        if args.command == "resume":
+            result = resume(repo, args.run, args.domain, args.source)
+            print(json.dumps(result, indent=2))
+            return 1 if result["outcome"] == "blocked" else 0
+        if args.command == "abandon":
+            print(abandon(repo, args.run, args.reason))
             return 0
         run = Run(repo, args.run)
         if args.command in {"status", "template"}:

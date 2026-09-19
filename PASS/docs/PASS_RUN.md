@@ -187,7 +187,10 @@ re-deriving:
 - the exact next action
 ```
 
-This is not a ledger, registry, or source record. It spans no domains, aggregates
+Under the executable runtime, `python PASS/pass.py resume` rebuilds the source,
+plan, closed units, current phase and next action from controller state, so a
+handoff carries only what the controller does not know: corrections, traps and
+discussion. This is not a ledger, registry, or source record. It spans no domains, aggregates
 nothing, and no particular structure or name is required.
 
 ---

@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.62`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.63`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -168,8 +168,9 @@ PASS work.
    or `.md` extract under `SOURCE_INPUT/` as shown below.
 3. Tell the LLM to unpack the archive, work inside its single
    `PASS-project-*` root, begin with `AGENTS.md` and `PASS/SKILL.md`, and perform
-   one domain-scoped PASS run through `python PASS/pass.py start --source <source>`.
-   A single-domain snapshot supplies the unambiguous domain default. Follow the
+   one domain-scoped PASS run through `python PASS/pass.py start --source <source>`,
+   after `python PASS/pass.py resume --source <source>` finds no unfinished run of
+   it. A fresh or compacted chat re-enters through `resume` too. A single-domain snapshot supplies the unambiguous domain default. Follow the
    returned phase. Preflight is source-wide and runs once; after validation, run
    `present`, show the complete preflight packet, and wait for explicit user
    confirmation before `accept-preflight` releases PASS 1. After it is accepted,
@@ -623,7 +624,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.62`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.63`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

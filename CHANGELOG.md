@@ -6,6 +6,28 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.63 - 2026-09-19
+
+### Added
+
+- `pass.py resume` is the re-entry point after any context loss. It is read-only:
+  it finds the domain's unfinished run (filtered by `--source`), verifies source
+  identity, the operation lock, staged-draft and live-card hashes, reports units
+  completed, current unit and phase and the last accepted step, and names one
+  next legal action. In unattended mode it defers to `source.py drive`, whose
+  lease survives a restart unchanged.
+- `pass.py abandon --run --reason` retires an unfinished run on explicit user
+  instruction, keeping its drafts and final state for inspection.
+
+### Changed
+
+- `start` refuses a second unfinished run of the same source in the same domain,
+  matched by path or, for a moved or renamed copy, by size and SHA-256. It no
+  longer forks a book because a fresh context did not know the run existed.
+- The operation lock records its process ID and time.
+- `PASS/SKILL.md`, the repo skill wrappers and the README tell a model to run
+  `resume` before `start`.
+
 ## 1.0.0-beta.62 - 2026-09-19
 
 ### Added

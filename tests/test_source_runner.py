@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from PASS.runtime import pass_authoring_run as preflight
-from PASS.runtime.pass_authoring_workflow import Run, SEMANTIC_CHECKS, BUCKETS, TAXONOMY, required_documents, start
+from PASS.runtime.pass_authoring_workflow import Run, SEMANTIC_CHECKS, BUCKETS, TAXONOMY, required_documents, resume, start
 from PASS.runtime.pass_source_runner import advance, authorize, drive, progress_report
 
 
@@ -33,7 +33,9 @@ class SourceRunnerTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="pass-source-runner-test-")
         self.source = Path(self.temp.name) / "source.txt"
-        self.source.write_text("bounded source bytes\n", encoding="utf-8")
+        # Runs share one fixture repo, so each test needs its own source bytes;
+        # identical bytes would be refused as a duplicate of an earlier run.
+        self.source.write_text(f"bounded source bytes for {self.id()}\n", encoding="utf-8")
 
     def tearDown(self):
         self.temp.cleanup()
@@ -179,6 +181,26 @@ class SourceRunnerTests(unittest.TestCase):
         issued = drive(run)
         self.assertEqual(issued["action"]["phase"], "pass1")
         self.assertTrue((run.root / "controller" / "next-action.json").is_file())
+
+    def test_resume_after_context_loss_reissues_the_same_lease(self):
+        run = self.make_run(task="lease-resume")
+        issued = drive(run)["action"]
+        fresh = Run(self.repo, run.root)
+        picked = resume(self.repo, run.root)
+        self.assertEqual((picked["outcome"], picked["mode"]), ("resume", "unattended"))
+        self.assertIn("source.py drive", picked["next_action"])
+        self.assertIn("current", picked["action_lease"])
+        self.assertEqual(drive(fresh)["action"]["action_id"], issued["action_id"])
+        fresh.submit("pass1", {
+            "schema_version": 1, "unit_id": "u01", "full_read": True,
+            "working_drafts": [], "overlap_object_ids": [],
+            "secondary_subject_flags": [], "questions": [],
+        })
+        self.assertEqual(resume(self.repo, run.root)["action_lease"], "none issued; source.py drive will issue one")
+        (run.root / "controller" / "next-action.json").write_text(json.dumps(issued), encoding="utf-8")
+        self.assertIn("stale", resume(self.repo, run.root)["action_lease"])
+        self.assertEqual(drive(fresh)["action"]["phase"], "pass2")
+        self.assertTrue((run.root / "controller" / "action-history" / f"stale-{issued['action_id']}.json").is_file())
 
     def test_progress_report_is_controller_derived(self):
         run = self.make_run(task="authoritative-report")

@@ -1,5 +1,14 @@
 schema_version: 1
 profile_id: generic
+consumer_instructions:
+- >-
+  Execute every AP through the metaskills AP runner,
+  `library/metaskills/runtime/ap_runner.py`; read its README before first use.
+  Work only the step it shows, account for that step with done, gate, or skip
+  before the next unlocks, and never read ahead in the AP card or merge steps. A
+  skip needs a true reason and a gate needs an evidenced verdict. Where Python
+  is unavailable, follow the AP's steps in order and account for each one
+  explicitly in the reply.
 default_lane: skill
 lanes:
   skill:

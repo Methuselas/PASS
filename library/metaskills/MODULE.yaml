@@ -3,3 +3,7 @@ requires:
 - metaskills/iterative-construction
 - metaskills/verification
 - metaskills/creative-search
+runtime:
+  entrypoints:
+    - runtime/ap_runner.py
+  tests: runtime/tests

@@ -6,6 +6,27 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.65 - 2026-09-19
+
+### Added
+
+- `library/metaskills/runtime/ap_runner.py`, a metaskills module runtime that
+  steps an AP card one step at a time. It shows only the current step plus the
+  full text of the Patterns that step names, and unlocks the next step only
+  after `done` (what was done), `gate` (an evidenced pass or fail; a fail keeps
+  the step current) or `skip` (a reason; never for a gate). `back` reopens an
+  earlier step, a changed card stops the run, runs persist in the project's git
+  directory, and `record` exports the completion record. It ships once in every
+  release with `metaskills`, and its tests check that every installed AP parses.
+
+### Changed
+
+- The software-engineering, generic (writing, agent-kit) and art profiles, and
+  the matching repo skill wrappers, require APs to be executed through the
+  runner. Art adds that a runner gate never replaces a Staged Production user
+  approval gate; the Art Stages themselves are unchanged.
+- `EXECUTION_CONTRACT.md` documents what the runner enforces and what it cannot.
+
 ## 1.0.0-beta.64 - 2026-09-19
 
 ### Added

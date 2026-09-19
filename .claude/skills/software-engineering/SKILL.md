@@ -31,6 +31,12 @@ python PASS/tools/find_relevant.py --package metaskills --cues "<task cues>" --l
 python PASS/tools/find_relevant.py --package software-engineering --cues "<task cues>" --limit 8
 ```
 
+Execute a chosen AP through the runner, not from the card:
+`python library/metaskills/runtime/ap_runner.py start --ap <AP_id> --task "<task>"`
+(rules in `library/metaskills/runtime/README.md`). It shows one step plus the
+Patterns that step names; account for each step with `done`, `gate`, or `skip`
+before the next unlocks.
+
 Retrieve only the APs, Patterns, and Drills relevant to the current engineering
 decision. Inspect the existing code before changing it, make contracts and failure
 modes explicit, and run the repository's actual checks before claiming success.

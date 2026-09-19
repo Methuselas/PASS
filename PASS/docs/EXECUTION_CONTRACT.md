@@ -36,6 +36,21 @@ files declare activation conditions, while the AP/Pattern/Drill cards remain the
 source of meaning and method. The contract must not become a hidden domain
 workflow engine, and the resolver must not be mistaken for one.
 
+## AP step runner
+
+`library/metaskills/runtime/ap_runner.py` is a metaskills module runtime, so it
+ships once in every release with the mandatory `metaskills` package. It reads an
+AP card and owns only its order: it shows the current step plus the full text of
+the Patterns that step names, and unlocks the next step only after the current
+one is accounted for with `done` (what was done), `gate` (an evidenced verdict;
+a fail keeps the step current), or `skip` (a reason; never for a gate). Its
+persisted run survives a lost conversation, and a changed card stops the run.
+
+Profiles require it through `consumer_instructions`. Like the resolver it runs
+only when called and cannot see the work: it removes silent omission, not a false
+report. It never replaces a profile's user approval gate, and it does not touch
+the cards or the Art Stages.
+
 ## Semantic action routing
 
 For a productive user request, the model resolves knowledge **AP-first** inside

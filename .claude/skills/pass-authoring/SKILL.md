@@ -104,7 +104,11 @@ weakness; attribute it to the tool, controller, or package that actually failed.
 python PASS/tools/memory.py validate
 python PASS/tools/memory.py review --domain <domain>
 python PASS/tools/memory.py compact --domain <domain>
+python PASS/tools/memory.py entry add|update|supersede|show --domain <domain> ...
 ```
+
+Change memory entries only through `memory.py entry`; it validates the whole
+store before an atomic write, so never hand-edit `skill_memory.yaml`.
 
 The card tools read `library/` and the memory tool reads `memory/`. Keep them
 apart; neither store is an input to the other.

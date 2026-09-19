@@ -13,3 +13,6 @@ workspace/*
 
 # Agent scratch space
 tmp/
+
+# memory.py write locks; transient, never shipped
+memory/.locks/

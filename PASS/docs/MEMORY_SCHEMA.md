@@ -135,8 +135,16 @@ verified written    =  the target reopens and contains the expected state
 
 **Post-write readback is a contract, not a courtesy.** After any writeback,
 reopen the target and confirm the expected state is present before claiming
-persistence. `memory.py append` and `memory.py compact` read their target back
+persistence. `memory.py append`, `memory.py compact` and `memory.py entry` read their target back
 and fail loudly if it does not contain what they just wrote.
+
+**Entries change through `memory.py entry`.** `add`, `update` (a null value
+removes an optional key) and `supersede` (which can add the replacement in the
+same write) validate the whole resulting store before writing, so a refused
+write changes nothing. Writes are atomic, serialized per domain by a lock under
+`memory/.locks/`, and splice only the changed entries, so untouched entries keep
+their exact text. There is deliberately no delete (§7). Editing the YAML by hand
+is a recovery action, followed by `memory.py validate`.
 
 Session observations are not memory until writeback occurs. Until then the
 honest phrasing is *observed in the current session*.

@@ -39,7 +39,19 @@ python PASS/tools/memory.py query --domain art --cues hand    # bounded retrieva
 python PASS/tools/memory.py append --domain art --task "..."  # one event, verified by readback
 python PASS/tools/memory.py compact --domain art              # events awaiting consolidation
 python PASS/tools/memory.py review --domain art               # what needs revalidating
+python PASS/tools/memory.py entry add --domain art --json entry.json            # new entry
+python PASS/tools/memory.py entry update --domain art --id ART_MEM_004 --json '{"confidence": "repeated"}'
+python PASS/tools/memory.py entry supersede --domain art --id ART_MEM_004 --json replacement.json
+python PASS/tools/memory.py entry show --domain art --id ART_MEM_004
 ```
+
+Change `skill_memory.yaml` through `entry`, not by editing it. Every write
+validates the whole resulting store first, refuses with nothing changed when the
+result would be invalid (including an entry citing an invalid run), replaces the
+file atomically under a per-domain lock in `memory/.locks/`, keeps untouched
+entries byte for byte, and confirms the result on readback. There is no delete:
+retire an entry with `status` (`resolved`, `obsolete`) or `entry supersede`.
+Hand-editing is recovery only; run `validate` afterwards.
 
 The tool is mechanical. It checks shape, retrieves a bounded set, appends an
 event, links evidence, and reports what looks stale. It never judges whether an

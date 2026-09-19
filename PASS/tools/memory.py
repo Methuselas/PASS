@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Skillset Memory tooling: validate, query, append, compact, review.
+"""Skillset Memory tooling: validate, query, append, compact, review, entry.
 
 Memory is the portable compact current state of a skill: learned principles are
 kept distinct from empirical training results. Training history is the event
@@ -23,9 +23,13 @@ produced an entry.
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+import copy
 import json
+import os
 import re
 import sys
+import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -541,12 +545,22 @@ def validate_event(
 
 
 def validate_store(domain_dir: Path) -> list[str]:
-    errors: list[str] = []
     try:
         memory = load_memory(domain_dir)
     except MemoryError_ as exc:
         return [str(exc)]
+    events, event_errors = load_events(domain_dir)
+    return validate_contents(domain_dir.name, memory, events, event_errors)
 
+
+def validate_contents(
+    domain: str,
+    memory: dict[str, Any],
+    events: list[dict[str, Any]],
+    event_errors: list[str],
+) -> list[str]:
+    """Validate a store's contents, so a proposed write is checked before it lands."""
+    errors: list[str] = []
     missing = sorted(FILE_REQUIRED - set(memory))
     if missing:
         errors.append(f"skill_memory.yaml: missing file-level keys: {', '.join(missing)}")
@@ -555,8 +569,8 @@ def validate_store(domain_dir: Path) -> list[str]:
         errors.append(
             f"skill_memory.yaml: memory_schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}"
         )
-    if memory.get("skillset") != domain_dir.name:
-        errors.append(f"skill_memory.yaml: skillset '{memory.get('skillset')}' does not match directory '{domain_dir.name}'")
+    if memory.get("skillset") != domain:
+        errors.append(f"skill_memory.yaml: skillset '{memory.get('skillset')}' does not match directory '{domain}'")
 
     entries = memory.get("entries")
     if entries is None:
@@ -580,7 +594,6 @@ def validate_store(domain_dir: Path) -> list[str]:
     for duplicate in sorted({i for i in ids if ids.count(i) > 1}):
         errors.append(f"skill_memory.yaml: duplicate entry id '{duplicate}'")
 
-    events, event_errors = load_events(domain_dir)
     errors.extend(event_errors)
     quarantined = {
         str(target)
@@ -737,6 +750,11 @@ def next_event_id(events: list[dict[str, Any]], domain: str) -> str:
 
 
 def append_event(domain_dir: Path, event: dict[str, Any]) -> tuple[bool, list[str]]:
+    with store_lock(domain_dir):
+        return _append_event(domain_dir, event)
+
+
+def _append_event(domain_dir: Path, event: dict[str, Any]) -> tuple[bool, list[str]]:
     """Append one event, then reopen the file and confirm it is there.
 
     The readback is the point. A write that was attempted is not a write that
@@ -769,15 +787,239 @@ def append_event(domain_dir: Path, event: dict[str, Any]) -> tuple[bool, list[st
 # ---------------------------------------------------------------- compact
 
 
+def dump(data: Any) -> str:
+    return yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=88)
+
+
+def spliced_store(current: str, memory: dict[str, Any]) -> str | None:
+    """The new store text with every unchanged entry kept byte for byte.
+
+    Re-serializing a whole store re-wraps every hand-wrapped observation, so a
+    one-field change would rewrite hundreds of lines. Instead the file is cut at
+    its top-level `- id:` entries, unchanged entries keep their text, and only
+    changed or new entries (plus `memory_version`) are dumped. None means the file
+    is not in that shape; the caller then writes a full dump.
+    """
+    text = current.replace("\r\n", "\n")
+    starts = [m.start() for m in re.finditer(r"(?m)^- id:", text)]
+    if not starts:
+        return None
+    header, bodies = text[:starts[0]], [text[a:b] for a, b in zip(starts, starts[1:] + [len(text)])]
+    try:
+        old_header = yaml.safe_load(header + " []\n") if header.rstrip().endswith("entries:") else None
+        old_entries = [yaml.safe_load(body)[0] for body in bodies]
+    except (yaml.YAMLError, TypeError, KeyError, IndexError):
+        return None
+    new_header = {k: v for k, v in memory.items() if k != "entries"}
+    if not isinstance(old_header, dict) or {k: v for k, v in old_header.items() if k not in {"entries", "memory_version"}} != {
+        k: v for k, v in new_header.items() if k != "memory_version"
+    }:
+        return None
+    header = re.sub(r"(?m)^memory_version:.*$", f"memory_version: {memory['memory_version']}", header, count=1)
+    kept = {entry.get("id"): body for entry, body in zip(old_entries, bodies) if isinstance(entry, dict)}
+    unchanged = {entry.get("id"): entry for entry in old_entries if isinstance(entry, dict)}
+    parts = []
+    for entry in memory.get("entries") or []:
+        key = entry.get("id") if isinstance(entry, dict) else None
+        body = kept.get(key) if unchanged.get(key) == entry else None
+        parts.append(body if body is not None else dump([entry]))
+    return header + "".join(part if part.endswith("\n") else part + "\n" for part in parts)
+
+
 def write_memory(domain_dir: Path, memory: dict[str, Any]) -> None:
+    """Replace the store atomically: a crash leaves the old file or the new one, never half."""
     path = domain_dir / "skill_memory.yaml"
-    path.write_text(
-        yaml.safe_dump(memory, sort_keys=False, allow_unicode=True, width=88),
-        encoding="utf-8",
-    )
+    current = path.read_bytes().decode("utf-8") if path.is_file() else ""
+    text = spliced_store(current, memory) if current else None
+    if text is None or yaml.safe_load(text) != memory:
+        text = dump(memory)
+    # Keep the checkout's line endings; a text-mode write would convert them on Windows.
+    newline = "\r\n" if "\r\n" in current else "\n"
+    temporary = domain_dir / f".skill_memory.{os.getpid()}.{uuid.uuid4().hex}.tmp"
+    try:
+        temporary.write_bytes(text.replace("\n", newline).encode("utf-8"))
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
-def compact_link(
+@contextmanager
+def store_lock(domain_dir: Path):
+    """One writer per domain store. The lock sits outside the store folder, which
+    releases and project snapshots copy whole."""
+    folder = domain_dir.parent / ".locks"
+    folder.mkdir(exist_ok=True)
+    path = folder / f"{domain_dir.name}.lock"
+    try:
+        descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError as exc:
+        raise MemoryError_(
+            f"another memory.py write holds {path.as_posix()}; if no memory.py process is running, "
+            "a write was interrupted: run `memory.py validate`, then delete the lock"
+        ) from exc
+    try:
+        os.write(descriptor, json.dumps({"pid": os.getpid(), "acquired_at": datetime.now().isoformat(timespec="seconds")}).encode("utf-8"))
+    finally:
+        os.close(descriptor)
+    try:
+        yield
+    finally:
+        path.unlink(missing_ok=True)
+
+
+# ---------------------------------------------------------------- entries
+
+# The order the schema documents; new and edited entries are written in it so
+# diffs stay small and every entry reads the same way.
+ENTRY_KEY_ORDER = (
+    "id", "scope_type", "scope_id", "type", "evidence_class", "observation", "confidence",
+    "status", "diagnosis", "boundary", "evidence_count", "evidence_events", "evidence_origin",
+    "likely_owners", "interventions", "retrieval_cues", "runtime_scope", "superseded_by",
+    "last_verified",
+)
+
+
+def ordered_entry(entry: dict[str, Any]) -> dict[str, Any]:
+    known = {key: entry[key] for key in ENTRY_KEY_ORDER if key in entry}
+    verified = known.get("last_verified")
+    if isinstance(verified, str) and DATE_RE.fullmatch(verified):
+        known["last_verified"] = date.fromisoformat(verified)
+    return {**known, **{key: value for key, value in entry.items() if key not in known}}
+
+
+def next_entry_id(entries: list[dict[str, Any]]) -> str:
+    numbered = [re.fullmatch(r"(.*_)(\d+)", str(e.get("id", ""))) for e in entries]
+    numbered = [m for m in numbered if m]
+    if not numbered:
+        raise MemoryError_("this store has no numbered entry ids to continue; give the new entry an explicit id")
+    prefix = max(numbered, key=lambda m: int(m.group(2))).group(1)
+    width = max(len(m.group(2)) for m in numbered)
+    number = max(int(m.group(2)) for m in numbered if m.group(1) == prefix) + 1
+    return f"{prefix}{number:0{width}d}"
+
+
+def change_entries(domain_dir: Path, change) -> tuple[bool, list[str], dict[str, Any]]:
+    """Apply `change(entries)` to a copy of the store, validate the whole result,
+    then write it atomically and confirm it on readback. Nothing is written when
+    the change or the resulting store is invalid."""
+    with store_lock(domain_dir):
+        memory = load_memory(domain_dir)
+        events, event_errors = load_events(domain_dir)
+        before = validate_contents(domain_dir.name, memory, events, event_errors)
+        if before:
+            return False, ["the store is already invalid; repair it before writing:", *before], {}
+        candidate = copy.deepcopy(memory)
+        entries = candidate.get("entries") or []
+        candidate["entries"] = entries
+        problems = change(entries)
+        if problems:
+            return False, problems, {}
+        # Normalize only what this write touched, so untouched entries keep their bytes.
+        original = {e.get("id"): e for e in memory.get("entries") or [] if isinstance(e, dict)}
+        candidate["entries"] = [
+            ordered_entry(e) if isinstance(e, dict) and original.get(e.get("id")) != e else e
+            for e in entries
+        ]
+        after = validate_contents(domain_dir.name, candidate, events, event_errors)
+        if after:
+            return False, after, {}
+        candidate["memory_version"] = int(candidate.get("memory_version", 0)) + 1
+        write_memory(domain_dir, candidate)
+        reread = load_memory(domain_dir)
+        if reread != candidate:
+            return False, ["readback failed: the store does not contain what was written"], {}
+    return True, [], candidate
+
+
+def find_entry(entries: list[dict[str, Any]], entry_id: str) -> dict[str, Any] | None:
+    return next((e for e in entries if isinstance(e, dict) and e.get("id") == entry_id), None)
+
+
+def add_entry(domain_dir: Path, entry: dict[str, Any]) -> tuple[bool, list[str], str]:
+    if not isinstance(entry, dict):
+        return False, ["the entry must be a JSON object"], ""
+    entry = dict(entry)
+    added: list[str] = []
+
+    def change(entries: list[dict[str, Any]]) -> list[str]:
+        entry.setdefault("id", next_entry_id(entries))
+        if find_entry(entries, entry["id"]):
+            return [f"entry '{entry['id']}' already exists; use `entry update`"]
+        entries.append(entry)
+        added.append(entry["id"])
+        return []
+
+    ok, problems, _ = change_entries(domain_dir, change)
+    return ok, problems, added[0] if added else ""
+
+
+def update_entry(domain_dir: Path, entry_id: str, patch: dict[str, Any]) -> tuple[bool, list[str]]:
+    """Merge `patch` into one entry; a null value removes an optional key."""
+    if not isinstance(patch, dict) or not patch:
+        return False, ["the update must be a non-empty JSON object"]
+    if "id" in patch:
+        return False, ["an entry id never changes; add a new entry and supersede this one instead"]
+    removed_required = sorted(k for k, v in patch.items() if v is None and k in ENTRY_REQUIRED)
+    if removed_required:
+        return False, [f"required key(s) cannot be removed: {', '.join(removed_required)}"]
+
+    def change(entries: list[dict[str, Any]]) -> list[str]:
+        entry = find_entry(entries, entry_id)
+        if entry is None:
+            return [f"no entry '{entry_id}'"]
+        if patch.get("status") == "superseded":
+            return ["mark an entry superseded with `entry supersede`, which names its replacement"]
+        for key, value in patch.items():
+            if value is None:
+                entry.pop(key, None)
+            else:
+                entry[key] = value
+        return []
+
+    ok, problems, _ = change_entries(domain_dir, change)
+    return ok, problems
+
+
+def supersede_entry(
+    domain_dir: Path, entry_id: str, replacement_id: str | None, replacement: dict[str, Any] | None,
+) -> tuple[bool, list[str], str]:
+    """Retire one entry in favour of another, optionally adding the replacement in
+    the same write so the store is never left pointing at nothing."""
+    chosen: list[str] = []
+
+    def change(entries: list[dict[str, Any]]) -> list[str]:
+        old = find_entry(entries, entry_id)
+        if old is None:
+            return [f"no entry '{entry_id}'"]
+        if old.get("status") == "superseded":
+            return [f"'{entry_id}' is already superseded by '{old.get('superseded_by')}'"]
+        target = replacement_id
+        if replacement is not None:
+            new = dict(replacement)
+            new.setdefault("id", next_entry_id(entries))
+            if find_entry(entries, new["id"]):
+                return [f"entry '{new['id']}' already exists; pass it with --by instead"]
+            entries.append(new)
+            target = new["id"]
+        if not target or find_entry(entries, target) is None:
+            return [f"replacement entry '{target}' does not exist"]
+        if target == entry_id:
+            return ["an entry cannot supersede itself"]
+        old["status"] = "superseded"
+        old["superseded_by"] = target
+        chosen.append(target)
+        return []
+
+    ok, problems, _ = change_entries(domain_dir, change)
+    return ok, problems, chosen[0] if chosen else ""
+
+
+def compact_link(domain_dir: Path, entry_id: str, event_ids: list[str], allow_drop: bool = False) -> tuple[bool, list[str]]:
+    with store_lock(domain_dir):
+        return _compact_link(domain_dir, entry_id, event_ids, allow_drop)
+
+
+def _compact_link(
     domain_dir: Path,
     entry_id: str,
     event_ids: list[str],
@@ -849,7 +1091,7 @@ def compact_link(
 
     entry["evidence_events"] = list(event_ids)
     entry["evidence_count"] = len(event_ids)
-    entry["last_verified"] = date.today().isoformat()
+    entry["last_verified"] = date.today()
     memory["memory_version"] = int(memory.get("memory_version", 0)) + 1
     write_memory(domain_dir, memory)
 
@@ -1042,6 +1284,51 @@ def cmd_compact(args: argparse.Namespace) -> int:
     return 0
 
 
+def read_json_argument(value: str | None) -> Any:
+    if value is None:
+        return None
+    path = Path(value)
+    try:
+        return json.loads(path.read_text(encoding="utf-8") if path.is_file() else value)
+    except json.JSONDecodeError as exc:
+        raise MemoryError_(f"--json is not valid JSON: {exc}") from exc
+
+
+def cmd_entry(args: argparse.Namespace) -> int:
+    dirs = domain_dirs(args.memory, args.domain)
+    if not args.domain or len(dirs) != 1:
+        print("FAIL: entry commands require exactly one --domain", file=sys.stderr)
+        return 1
+    domain_dir = dirs[0]
+    if args.action == "show":
+        entry = find_entry(load_memory(domain_dir).get("entries") or [], args.id)
+        if entry is None:
+            print(f"FAIL: no entry '{args.id}'", file=sys.stderr)
+            return 1
+        print(yaml.safe_dump(entry, sort_keys=False, allow_unicode=True, width=88), end="")
+        return 0
+    data = read_json_argument(args.json)
+    if args.action == "add":
+        ok, problems, entry_id = add_entry(domain_dir, data)
+        done = f"added {entry_id}"
+    elif args.action == "update":
+        ok, problems = update_entry(domain_dir, args.id, data)
+        done = f"updated {args.id}"
+    else:
+        if (args.by is None) == (data is None):
+            print("FAIL: supersede needs exactly one of --by <existing id> or --json <new entry>", file=sys.stderr)
+            return 1
+        ok, problems, entry_id = supersede_entry(domain_dir, args.id, args.by, data)
+        done = f"{args.id} superseded by {entry_id}"
+    if not ok:
+        for problem in problems:
+            print(f"{domain_dir.name}: {problem}", file=sys.stderr)
+        print("FAIL: memory unchanged", file=sys.stderr)
+        return 1
+    print(f"PASS: {done}; the whole store validated and was confirmed on readback")
+    return 0
+
+
 def cmd_review(args: argparse.Namespace) -> int:
     dirs = domain_dirs(args.memory, args.domain)
     library = args.library if args.library and args.library.is_dir() else None
@@ -1095,10 +1382,33 @@ def main() -> int:
     review = sub.add_parser("review", parents=[common], help="List entries that need revalidation.")
     review.add_argument("--library", type=Path, default=default_library_root())
 
+    entry = sub.add_parser(
+        "entry",
+        help="Add, update, supersede or show one skill_memory.yaml entry; the supported way to change entries.",
+        description=(
+            "Every write validates the whole resulting store first, replaces the file atomically "
+            "under a per-domain lock, and confirms it on readback; a refused write changes nothing. "
+            "There is no delete: evidence is never deleted, so retire an entry by status "
+            "(resolved, obsolete) or supersede it."
+        ),
+    )
+    actions = entry.add_subparsers(dest="action", required=True)
+    add = actions.add_parser("add", parents=[common], help="Add an entry; the id is assigned when omitted.")
+    add.add_argument("--json", required=True, help="Path to, or literal, JSON entry.")
+    update = actions.add_parser("update", parents=[common], help="Merge fields into an entry; null removes an optional key.")
+    update.add_argument("--id", required=True)
+    update.add_argument("--json", required=True, help="Path to, or literal, JSON object of changed fields.")
+    supersede = actions.add_parser("supersede", parents=[common], help="Retire an entry in favour of a replacement.")
+    supersede.add_argument("--id", required=True)
+    supersede.add_argument("--by", default=None, help="An existing replacement entry id.")
+    supersede.add_argument("--json", default=None, help="A new replacement entry, added in the same write.")
+    show = actions.add_parser("show", parents=[common], help="Print one entry, whatever its status.")
+    show.add_argument("--id", required=True)
+
     args = parser.parse_args()
     handlers = {
         "validate": cmd_validate, "query": cmd_query, "append": cmd_append,
-        "compact": cmd_compact, "review": cmd_review,
+        "compact": cmd_compact, "review": cmd_review, "entry": cmd_entry,
     }
     try:
         return handlers[args.command](args)

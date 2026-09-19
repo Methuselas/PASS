@@ -6,6 +6,26 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.66 - 2026-09-19
+
+### Added
+
+- `memory.py entry add|update|supersede|show`, the supported way to change a
+  `skill_memory.yaml` entry. Each write validates the whole resulting store
+  first and refuses with nothing changed; `add` assigns the next id, `update`
+  merges fields (null removes an optional key) and never changes an id, and
+  `supersede` can add the replacement in the same write. There is no delete.
+
+### Changed
+
+- Store writes are atomic, serialized per domain by a lock in `memory/.locks/`
+  (ignored by git and never copied into a release), and splice only the
+  changed entries, so untouched entries keep their exact text and the file
+  keeps its line endings. `append` and `compact` take the same lock, and
+  `compact` now records `last_verified` as a date.
+- `MEMORY_SCHEMA.md`, `memory/README.md` and the pass-authoring wrappers make
+  `entry` the write path; hand-editing is recovery only.
+
 ## 1.0.0-beta.65 - 2026-09-19
 
 ### Added

@@ -660,5 +660,136 @@ class ToolingBoundary(unittest.TestCase):
             self.assertIn(required, text, f"MEMORY_SCHEMA.md is missing: {required}")
 
 
+class EntryCommands(MemoryStoreFixture):
+    """`entry` is the supported way to change an entry: whole-store validation
+    first, an atomic locked write, readback, and nothing changed on refusal."""
+
+    def entry_tool(self, action: str, *args: object) -> subprocess.CompletedProcess[str]:
+        return run_tool("entry", action, "--domain", "art", *args, memory=self.tmp)
+
+    def store(self) -> bytes:
+        return (self.domain / "skill_memory.yaml").read_bytes()
+
+    def entries(self) -> dict[str, dict]:
+        data = yaml.safe_load(self.store())
+        return {entry["id"]: entry for entry in data["entries"]}
+
+    def new_entry(self, **changes: object) -> str:
+        entry = {key: value for key, value in VALID_ENTRY.items() if key != "id"}
+        entry.update(observation="A second, separate lesson that stands alone.", **changes)
+        return json.dumps(entry)
+
+    def assert_refused(self, result: subprocess.CompletedProcess[str], before: bytes, text: str) -> None:
+        self.assertEqual(result.returncode, 1, result.stdout)
+        self.assertIn(text, result.stderr)
+        self.assertIn("memory unchanged", result.stderr)
+        self.assertEqual(self.store(), before)
+
+    def test_add_assigns_the_next_id_and_bumps_the_version(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        result = self.entry_tool("add", "--json", self.new_entry())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("added TST_MEM_002", result.stdout)
+        self.assertEqual(yaml.safe_load(self.store())["memory_version"], 2)
+        self.assertEqual(self.validate().returncode, 0)
+
+    def test_an_invalid_entry_changes_nothing(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        before = self.store()
+        self.assert_refused(self.entry_tool("add", "--json", self.new_entry(confidence="certain")), before, "closed vocabulary")
+
+    def test_an_entry_citing_an_invalid_run_is_refused(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT, INVALID_EVENT])
+        before = self.store()
+        result = self.entry_tool("add", "--json", self.new_entry(evidence_events=["TST_EV_0002"]))
+        self.assert_refused(result, before, "never evidence about a capability")
+
+    def test_update_merges_and_null_removes_an_optional_key(self) -> None:
+        self.write([dict(VALID_ENTRY, boundary="Seen in one run only.")], [VALID_EVENT])
+        result = self.entry_tool("update", "--id", "TST_MEM_001", "--json", '{"confidence": "repeated", "boundary": null}')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        entry = self.entries()["TST_MEM_001"]
+        self.assertEqual(entry["confidence"], "repeated")
+        self.assertNotIn("boundary", entry)
+
+    def test_update_refuses_what_would_break_identity_or_lifecycle(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        before = self.store()
+        for patch, text in (
+            ('{"observation": null}', "required key(s) cannot be removed"),
+            ('{"id": "TST_MEM_009"}', "never changes"),
+            ('{"status": "superseded"}', "entry supersede"),
+            ('{"colour": "blue"}', "unknown key"),
+        ):
+            with self.subTest(patch=patch):
+                self.assert_refused(self.entry_tool("update", "--id", "TST_MEM_001", "--json", patch), before, text)
+
+    def test_supersede_adds_the_replacement_in_the_same_write(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        result = self.entry_tool("supersede", "--id", "TST_MEM_001", "--json", self.new_entry())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        entries = self.entries()
+        self.assertEqual((entries["TST_MEM_001"]["status"], entries["TST_MEM_001"]["superseded_by"]), ("superseded", "TST_MEM_002"))
+        self.assertEqual(entries["TST_MEM_002"]["status"], "active")
+        shown = self.entry_tool("show", "--id", "TST_MEM_001")
+        self.assertIn("superseded_by: TST_MEM_002", shown.stdout)
+
+    def test_supersede_needs_a_real_other_replacement(self) -> None:
+        second = dict(VALID_ENTRY, id="TST_MEM_002", observation="Another lesson.")
+        self.write([VALID_ENTRY, second], [VALID_EVENT])
+        before = self.store()
+        self.assert_refused(self.entry_tool("supersede", "--id", "TST_MEM_001", "--by", "TST_MEM_404"), before, "does not exist")
+        self.assert_refused(self.entry_tool("supersede", "--id", "TST_MEM_001", "--by", "TST_MEM_001"), before, "cannot supersede itself")
+        self.assertEqual(self.entry_tool("supersede", "--id", "TST_MEM_001", "--by", "TST_MEM_002").returncode, 0)
+        self.assert_refused(self.entry_tool("supersede", "--id", "TST_MEM_001", "--by", "TST_MEM_002"), self.store(), "already superseded")
+
+    def test_there_is_no_delete(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        before = self.store()
+        result = self.entry_tool("delete", "--id", "TST_MEM_001")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(self.store(), before)
+
+    def test_untouched_entries_keep_their_bytes_and_line_endings(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        hand = (
+            "memory_schema_version: 1\nskillset: art\nmemory_version: 4\nentries:\n"
+            "- id: TST_MEM_001\n  scope_type: topic\n  scope_id: example_topic\n  type: recurring_failure\n"
+            "  evidence_class: stochastic_performance\n  observation: 'A hand-wrapped lesson that a full\n"
+            "    re-dump would wrap differently and quote differently.'\n  confidence: provisional\n"
+            "  status: active\n  last_verified: '2026-08-28'\n"
+            "- id: TST_MEM_002\n  scope_type: topic\n  scope_id: other_topic\n  type: recurring_failure\n"
+            "  evidence_class: stochastic_performance\n  observation: Another lesson.\n"
+            "  confidence: provisional\n  status: active\n"
+        ).replace("\n", "\r\n")
+        (self.domain / "skill_memory.yaml").write_bytes(hand.encode("utf-8"))
+        result = self.entry_tool("update", "--id", "TST_MEM_002", "--json", '{"confidence": "repeated"}')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        after = self.store().decode("utf-8")
+        untouched = hand.split("- id: TST_MEM_002")[0].replace("memory_version: 4", "memory_version: 5")
+        self.assertTrue(after.startswith(untouched), "an untouched entry was rewritten")
+        self.assertNotIn("\n", after.replace("\r\n", ""), "line endings were converted")
+
+    def test_a_held_lock_refuses_the_write_and_nothing_is_left_behind(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        before = self.store()
+        lock = self.tmp / ".locks" / "art.lock"
+        lock.parent.mkdir()
+        lock.write_text("{}", encoding="utf-8")
+        result = self.entry_tool("add", "--json", self.new_entry())
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("another memory.py write", result.stderr)
+        self.assertEqual(self.store(), before)
+        lock.unlink()
+        self.assertEqual(self.entry_tool("add", "--json", self.new_entry()).returncode, 0)
+        self.assertFalse(lock.exists())
+        self.assertEqual(sorted(p.name for p in self.domain.iterdir()), ["skill_memory.yaml", "training_history.jsonl"])
+
+    def test_an_already_invalid_store_must_be_repaired_first(self) -> None:
+        self.write([VALID_ENTRY, dict(VALID_ENTRY)], [VALID_EVENT])
+        before = self.store()
+        self.assert_refused(self.entry_tool("add", "--json", self.new_entry()), before, "already invalid")
+
+
 if __name__ == "__main__":
     unittest.main()

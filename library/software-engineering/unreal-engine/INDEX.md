@@ -4,4 +4,5 @@
 
 ## Topics
 
+- [Blueprints](blueprints/INDEX.md) - 7 object(s).
 - [Editor](editor/INDEX.md) - 31 object(s).

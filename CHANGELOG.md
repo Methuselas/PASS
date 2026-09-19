@@ -6,6 +6,17 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.62 - 2026-09-19
+
+### Added
+
+- Seven Unreal Engine Blueprint Patterns in
+  `software-engineering/unreal-engine/blueprints/`: when a Blueprint should be a
+  level Blueprint or a class, composing behavior from components, choosing a
+  variable type, who may read and write state, separating state from event-driven
+  behavior, pure functions, and choosing between a macro, a function or a custom
+  event. The domain indexes are regenerated.
+
 ## 1.0.0-beta.61 - 2026-09-19
 
 ### Fixed

@@ -6,6 +6,15 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.60 - 2026-09-19
+
+### Changed
+
+- SkillForge releases now live one folder per skill,
+  `releases/skills/<domain>/SkillForge-<Name>.zip`, each with a README. The
+  README recipe table, its build example and `MODULE_RELEASES.md` point there,
+  and the table gains `SkillForge_Agent_Kit.yaml`.
+
 ## 1.0.0-beta.59 - 2026-09-19
 
 ### Fixed

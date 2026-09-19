@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.59`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.60`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -561,7 +561,7 @@ directory to `<workspace>/release-builds/` and its distributable ZIP directly to
 the sibling SkillForge checkout. For example:
 
 ```bash
-python PASS/tools/build_release.py build workspace/release-recipes/SkillForge_Art.yaml ../release-builds/SkillForge_Art --zip ../SkillForge/releases/SkillForge-Art.zip
+python PASS/tools/build_release.py build workspace/release-recipes/SkillForge_Art.yaml ../release-builds/SkillForge_Art --zip ../SkillForge/releases/skills/art/SkillForge-Art.zip
 python PASS/tools/build_release.py check ../release-builds/SkillForge_Art
 ```
 
@@ -571,14 +571,19 @@ be `C:\work`, `/home/alex/code`, or any other location. No absolute path is
 written into the release, and consumers do not need either repository after
 downloading the ZIP.
 
-The four canonical PASS recipes map to SkillForge distribution files as follows:
+Each canonical PASS recipe maps to its own SkillForge release folder, which
+holds the ZIP beside a README describing it:
 
 | PASS recipe | SkillForge release |
 | --- | --- |
-| `SkillForge_Art.yaml` | `SkillForge/releases/SkillForge-Art.zip` |
-| `SkillForge_Game_Design.yaml` | `SkillForge/releases/SkillForge-Game-Design.zip` |
-| `SkillForge_Software_Engineering.yaml` | `SkillForge/releases/SkillForge-Software-Engineering.zip` |
-| `SkillForge_Writing.yaml` | `SkillForge/releases/SkillForge-Writing.zip` |
+| `SkillForge_Agent_Kit.yaml` | `SkillForge/releases/skills/agent-kit/SkillForge-Agent-Kit.zip` |
+| `SkillForge_Art.yaml` | `SkillForge/releases/skills/art/SkillForge-Art.zip` |
+| `SkillForge_Game_Design.yaml` | `SkillForge/releases/skills/game-design/SkillForge-Game-Design.zip` |
+| `SkillForge_Software_Engineering.yaml` | `SkillForge/releases/skills/software-engineering/SkillForge-Software-Engineering.zip` |
+| `SkillForge_Writing.yaml` | `SkillForge/releases/skills/writing/SkillForge-Writing.zip` |
+
+When a ZIP is replaced, update its folder README and the table in
+`SkillForge/releases/README.md` (PASS build, size, SHA-256) in the same commit.
 
 Every result is self-contained: it needs no source material, PASS checkout,
 SkillForge checkout, Git history, authoring memory, or external card path at
@@ -618,7 +623,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.59`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.60`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

@@ -120,8 +120,9 @@ Build project archives with `workspace/tools/build_project_snapshot.py`. Use
 Verify the new archive before removing any superseded archive; preserve original
 inputs and explicitly retained evidence under the workspace lifecycle rules.
 
-Finished skill ZIPs belong in the SkillForge repository's `releases/` directory,
-using the canonical `SkillForge-*.zip` names documented in the root README.
+Finished skill ZIPs belong in the SkillForge repository at
+`releases/skills/<domain>/SkillForge-<Name>.zip`, one folder per skill holding the
+ZIP and its README, using the canonical names documented in the root README.
 Resolve the actual SkillForge checkout before building. Keep validated skill
 build directories outside the PASS repository, as required by the builder's
 output protection. Do not retain duplicate skill ZIPs in the PASS workspace

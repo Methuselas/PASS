@@ -6,6 +6,17 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.64 - 2026-09-19
+
+### Added
+
+- Seven more Unreal Engine Blueprint Patterns in
+  `software-engineering/unreal-engine/blueprints/`: choosing a gameplay-framework
+  base class by role, game rules and defaults in the Game Mode, player input in
+  the Player Controller, cross-level state in the Game Instance, storing a
+  spawned actor's reference, guarding references with Is Valid, and per-instance
+  configuration in the Construction Script. The domain indexes are regenerated.
+
 ## 1.0.0-beta.63 - 2026-09-19
 
 ### Added

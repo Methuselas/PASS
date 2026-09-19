@@ -7,7 +7,14 @@
 - [Choose Between Blueprint Macro, Function, and Custom Event](PAT_choose_between_blueprint_macro_function_and_custom_event.md) - pattern; 1 skeleton. Tags: blueprints, unreal_engine.
 - [Choose Blueprint Variable Type by Value Kind](PAT_choose_blueprint_variable_type_by_value_kind.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
 - [Choose Level Blueprint or Blueprint Class by Reuse Scope](PAT_choose_level_blueprint_or_blueprint_class_by_reuse_scope.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
+- [Choose the Gameplay Framework Base Class by Role](PAT_choose_gameplay_framework_base_class_by_role.md) - pattern; 0 design. Tags: blueprints, gameplay_framework, unreal_engine.
 - [Compose Blueprint Behavior from Ready Components](PAT_compose_blueprint_behavior_from_ready_components.md) - pattern; 1 skeleton. Tags: blueprints, unreal_engine.
 - [Declare Who May Read and Write Blueprint State](PAT_declare_who_may_read_and_write_blueprint_state.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
+- [Define Game Rules and Default Classes in the GameMode](PAT_put_game_rules_and_defaults_in_the_game_mode.md) - pattern; 0 design. Tags: blueprints, game_mode, unreal_engine.
+- [Drive Per-Instance Configuration From the Construction Script](PAT_use_construction_script_for_per_instance_configuration.md) - pattern; 2 block. Tags: blueprints, construction_script, unreal_engine.
+- [Guard Object References With Is Valid Before Use](PAT_guard_object_references_with_is_valid.md) - pattern; 2 block. Tags: blueprints, null_safety, object_reference, unreal_engine.
+- [Hold Cross-Level State in the GameInstance](PAT_put_cross_level_state_in_the_game_instance.md) - pattern; 0 design. Tags: blueprints, game_instance, persistence, unreal_engine.
 - [Make a Blueprint Function Pure When It Only Computes](PAT_make_blueprint_function_pure_when_it_only_computes.md) - pattern; 1 skeleton. Tags: blueprints, unreal_engine.
+- [Put Player Input Events in the PlayerController](PAT_put_player_input_in_the_player_controller.md) - pattern; 1 skeleton. Tags: blueprints, input, player_controller, unreal_engine.
 - [Separate Blueprint State from Event-Driven Behavior](PAT_separate_blueprint_state_from_event_driven_behavior.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
+- [Store the Reference to an Actor You Spawn](PAT_store_the_spawned_actor_reference.md) - pattern; 2 block. Tags: blueprints, spawning, unreal_engine.

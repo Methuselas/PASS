@@ -399,8 +399,11 @@ class GitTests(Base):
         text = self.ok("check", mine, "--as", "ann")
         self.assertIn(f"docs/guide.md  <- {theirs} (bob)", text)
         self.ok("check", theirs, "--as", "bob")
-        self.ok("done", mine, "--as", "ann")
-        self.assertNotIn("unclaimed", self.state(mine)["evidence"][0]["data"])
+        text = self.ok("done", mine, "--as", "ann")
+        self.assertIn("may include their work", text)
+        evidence = self.state(mine)["evidence"][0]["data"]
+        self.assertNotIn("unclaimed", evidence)
+        self.assertEqual(evidence["uncommitted_other_tasks"], {"docs/guide.md": f"{theirs} (bob)"})
 
     def test_default_store_is_shared_by_every_worktree(self):
         # The runtime runs from wherever the skill is installed; the project it

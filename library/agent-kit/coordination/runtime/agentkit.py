@@ -27,7 +27,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 # Bump when the database layout changes. Every agent in a project may run its
 # own installed copy; an older copy must refuse a store a newer one has changed.
 SCHEMA_VERSION = 2
@@ -879,6 +879,14 @@ def cmd_done(store: Store, args) -> str:
             if result[key]:
                 evidence[key] = result[key]
         lines = [line for line in audit_report(result) if not line.startswith("uncommitted changes belonging")]
+        if result["other_tasks"]:
+            # A test run in this checkout measured their work too; say so beside
+            # the evidence rather than let it describe a state no commit holds.
+            evidence["uncommitted_other_tasks"] = result["other_tasks"]
+            lines.append("other tasks' uncommitted files were present, so evidence gathered in this checkout "
+                         "may include their work; rerun it on a clean worktree at your commit "
+                         "(git worktree add --detach <dir> <sha>) and resubmit if it matters:\n  "
+                         + "\n  ".join(f"{f}  <- {t}" for f, t in list(result["other_tasks"].items())[:20]))
         if not result["changed_files"]:
             lines.append(f"no change is attributed to {row['id']}: name it in its commit messages or pass "
                          "--evidence commit=<sha>, so review has a file list")

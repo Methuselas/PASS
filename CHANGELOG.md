@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.59 - 2026-09-19
+
+### Fixed
+
+- Agent Kit runtime 1.1.1: in a shared checkout, `done` now warns when other
+  open tasks' uncommitted files were present, since a test run there measures
+  their work too, and records those files beside the evidence as
+  `uncommitted_other_tasks`. The README shows how to gather evidence on a clean
+  worktree at the submitted commit.
+
 ## 1.0.0-beta.58 - 2026-09-19
 
 Agent Kit runtime 1.1.0, from the first trial's feedback reports.

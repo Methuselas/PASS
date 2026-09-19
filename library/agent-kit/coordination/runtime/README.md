@@ -67,6 +67,22 @@ Separate worktrees per agent are the cleanest arrangement. When the project
 forces one shared checkout (for example, a tool that loads it from one path),
 commit your task's work promptly with the task ID in the subject.
 
+In a shared checkout, anything you run measures every task's working state at
+once: another task's uncommitted tests are counted in your suite, and its fix
+or breakage can change your result. Gather evidence on a clean worktree at your
+commit, then remove it:
+
+```text
+git worktree add --detach <scratch-dir> <sha>
+(cd <scratch-dir> && <test command>)
+git worktree remove <scratch-dir>
+```
+
+Put `<scratch-dir>` outside the checkout, for example in the system temp folder.
+
+`done` warns when other tasks' uncommitted files were present and records them
+beside the evidence as `uncommitted_other_tasks`.
+
 ## Reviews and notes
 
 - `review T001 --as bob --verdict accept|reject -m "what I checked"` records a

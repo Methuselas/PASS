@@ -13,6 +13,7 @@ version 3 or any later version (`AGPL-3.0-or-later`):
 
 - Python source files under `PASS/tools/`, `PASS/runtime/`,
   `workspace/tools/`, and `tests/`
+- module runtime code under `library/**/runtime/`
 - other executable source code unless its file states different terms
 
 The complete license is in [`LICENSES/AGPL-3.0.txt`](LICENSES/AGPL-3.0.txt).
@@ -23,7 +24,7 @@ Unless a file states different terms, the following material is licensed under
 the Creative Commons Attribution-ShareAlike 4.0 International license
 (`CC-BY-SA-4.0`):
 
-- `library/` and `memory/`
+- `library/` (except module runtime code) and `memory/`
 - `docs/`, `PASS/docs/`, and `PASS/templates/`
 - `.agents/skills/` and `.claude/skills/`
 - `workspace/release-recipes/`
@@ -38,9 +39,9 @@ The complete license is in
 
 Every generated release carries this policy, the attribution and project-name
 notices, the contribution terms, and both complete license texts. Its vendored
-Python resolver is AGPL-3.0-or-later. Its Skill instructions, knowledge library,
-declarative profile, memory, and original assets are CC-BY-SA-4.0 unless a file
-included in the release says otherwise.
+Python resolver and any module runtime code are AGPL-3.0-or-later. Its Skill
+instructions, knowledge library, declarative profile, memory, and original assets
+are CC-BY-SA-4.0 unless a file included in the release says otherwise.
 
 ## Attribution and third-party material
 

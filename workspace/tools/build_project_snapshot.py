@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import sys
 import tempfile
@@ -34,6 +35,8 @@ SKIP_DIRECTORY_NAMES = {
     "tmp",
 }
 SKIP_SUFFIXES = {".pdf", ".zip", ".pyc"}
+# Same shape pass.py accepts for an authorable domain.
+DOMAIN_NAME = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*")
 
 
 def available_domains(repo: Path) -> list[str]:
@@ -43,6 +46,74 @@ def available_domains(repo: Path) -> list[str]:
         for path in library.iterdir()
         if path.is_dir() and path.name != "metaskills"
     )
+
+
+def recipe_name(domain: str) -> str:
+    return "SkillForge_" + "_".join(word.capitalize() for word in domain.split("-")) + ".yaml"
+
+
+def new_domain_files(domain: str) -> dict[str, str]:
+    """The smallest valid skeleton of a domain that does not exist yet.
+
+    The project chat grows it; `import_project_snapshot.py --create-domain`
+    brings it back. Nothing here is written into this repository.
+    """
+    title = " ".join(word.capitalize() for word in domain.split("-"))
+    handoff_name = domain.replace("-", "_").upper() + "_NEW_DOMAIN.md"
+    wrapper = f"""---
+name: {domain}
+description: >-
+  Use for {title} work with PASS's {domain} library. Replace this sentence with
+  the domain's real trigger before import. Do not use it for PASS source
+  extraction or repository code.
+---
+
+# {title}
+
+Use the accepted {title} cards as guidance. Do not preload the whole library:
+restate the task, use `metaskills` as the default baseline, then retrieve a
+bounded set with a few task cues.
+
+```bash
+python PASS/tools/find_relevant.py --package metaskills --cues "<task cues>" --limit 5
+python PASS/tools/find_relevant.py --package {domain} --cues "<task cues>" --limit 8
+```
+
+Use the PASS-authoring skill instead when studying a source or changing cards,
+modules, schema, or releases.
+"""
+    return {
+        f"library/{domain}/foundations/MODULE.yaml": f"name: {domain}/foundations\nrequires: []\n",
+        f".claude/skills/{domain}/SKILL.md": wrapper,
+        f".agents/skills/{domain}/SKILL.md": wrapper,
+        f"workspace/release-recipes/{recipe_name(domain)}": (
+            f"name: SkillForge {title}\n"
+            f"skill_name: skillforge-{domain}\n"
+            "description: >-\n"
+            f"  Replace with the {title} skill's trigger description before import.\n"
+            "modules:\n"
+            f"  - {domain}/foundations\n"
+            "runtime_profile: generic\n"
+        ),
+        f"workspace/handoffs/{handoff_name}": f"""# {title}: new PASS domain
+
+This project was bootstrapped for a domain that does not exist in the canonical
+PASS repository yet. Everything under `library/{domain}/`, its two
+`skills/{domain}/SKILL.md` discovery wrappers and `{recipe_name(domain)}` is the
+domain; grow and validate it here like any other domain.
+
+- Replace the placeholder wrapper and recipe descriptions.
+- Rename or add modules under `library/{domain}/`; keep the recipe's module list
+  in step with them.
+- A module that ships executable helpers declares them under `runtime:` in its
+  `MODULE.yaml`; see `PASS/docs/MODULE_RELEASES.md` §Module runtime.
+- Run `python PASS/tools/validate.py` and `python PASS/tools/build_index.py`.
+
+Return the archive with its single root. The maintainer imports it with
+`import_project_snapshot.py --create-domain {domain}`; the archive itself
+cannot authorize a new domain.
+""",
+    }
 
 
 def iter_files(root: Path) -> list[Path]:
@@ -178,6 +249,7 @@ def write_snapshot_archive(
     root_name: str,
     files: list[Path],
     source_inputs: list[Path],
+    generated: dict[str, str] | None = None,
 ) -> int:
     total_bytes = 0
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
@@ -185,6 +257,10 @@ def write_snapshot_archive(
             relative = path.relative_to(repo)
             archive.write(path, (Path(root_name) / relative).as_posix())
             total_bytes += path.stat().st_size
+        for relative, text in sorted((generated or {}).items()):
+            data = text.encode("utf-8")
+            archive.writestr((Path(root_name) / relative).as_posix(), data)
+            total_bytes += len(data)
         for path in source_inputs:
             archive.write(path, source_input_name(root_name, path))
             total_bytes += path.stat().st_size
@@ -196,6 +272,7 @@ def write_snapshot_directory(
     repo: Path,
     files: list[Path],
     source_inputs: list[Path],
+    generated: dict[str, str] | None = None,
 ) -> int:
     """Create a new project directory without exposing a partially copied tree."""
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -209,6 +286,11 @@ def write_snapshot_directory(
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target)
             total_bytes += path.stat().st_size
+        for relative, text in (generated or {}).items():
+            target = temporary / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(text, encoding="utf-8", newline="\n")
+            total_bytes += len(text.encode("utf-8"))
         for path in source_inputs:
             target = temporary / "SOURCE_INPUT" / path.name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -241,8 +323,16 @@ def main() -> int:
         help="Destination .zip path or new project-directory path.",
     )
     parser.add_argument(
-        "--domain", action="append", required=True,
+        "--domain", action="append", default=[],
         help="Domain package to include. Repeat to include more than one.",
+    )
+    parser.add_argument(
+        "--new-domain",
+        help=(
+            "Bootstrap a project for a domain that does not exist yet: a minimal "
+            "module, discovery wrappers, recipe and handoff. Cannot be combined "
+            "with --domain."
+        ),
     )
     parser.add_argument(
         "--include-tests", action="store_true",
@@ -283,6 +373,18 @@ def main() -> int:
     repo = Path(__file__).resolve().parents[2]
     known = available_domains(repo)
     domains = sorted(set(args.domain))
+    generated: dict[str, str] = {}
+    if args.new_domain:
+        new = args.new_domain
+        if domains:
+            parser.error("--new-domain builds a project for one new domain; drop --domain")
+        if not DOMAIN_NAME.fullmatch(new):
+            parser.error(f"--new-domain must be lowercase kebab-case, not: {new}")
+        if new.casefold() in {name.casefold() for name in known} | {"metaskills"}:
+            parser.error(f"domain already exists: {new}; build its project with --domain {new}")
+        generated = new_domain_files(new)
+    elif not domains:
+        parser.error("choose --domain (repeatable) or --new-domain")
     unknown = sorted(set(domains) - set(known))
     if unknown:
         parser.error(
@@ -337,21 +439,23 @@ def main() -> int:
     if not files:
         parser.error("the snapshot selection is empty")
 
-    root_name = "PASS-project-" + "-".join(domains)
+    root_name = "PASS-project-" + (args.new_domain or "-".join(domains))
     if archive_output:
         output.parent.mkdir(parents=True, exist_ok=True)
         total_bytes = write_snapshot_archive(
-            output, repo, root_name, files, source_inputs
+            output, repo, root_name, files, source_inputs, generated
         )
         destination_size = output.stat().st_size
         destination_kind = "ZIP archive"
     else:
         total_bytes = write_snapshot_directory(
-            output, repo, files, source_inputs
+            output, repo, files, source_inputs, generated
         )
         destination_size = total_bytes
         destination_kind = "project directory"
 
+    if generated:
+        print(f"bootstrapped new domain {args.new_domain}: {len(generated)} generated file(s)")
     print(
         f"wrote {len(files)} repo file(s) and {len(source_inputs)} source input(s), "
         f"{total_bytes} source bytes, to {destination_kind} {output} "

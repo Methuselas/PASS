@@ -6,6 +6,41 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.57 - 2026-09-18
+
+### Added
+
+- New-domain lifecycle. `build_project_snapshot.py --new-domain <domain>` builds a
+  project for a domain the repository does not have: PASS, `metaskills`, a
+  minimal module, placeholder discovery wrappers and recipe, and a handoff.
+  `import_project_snapshot.py --create-domain <domain>` imports it with its
+  wrappers and recipe. The archive cannot authorize itself; any other unknown
+  domain is still refused, and placeholder descriptions block the import.
+- Module runtimes. A module may declare executable helpers under its own
+  `runtime/` directory in `MODULE.yaml`. `validate.py` enforces the contract:
+  declared entrypoints and tests, standard library only, no card-like Markdown,
+  and no executable file anywhere else in `library/`. `build` runs each shipped
+  runtime's tests on the staged copy, records `module_runtimes` in the manifest
+  and names each entrypoint and README in the generated `SKILL.md`.
+- The `agent-kit` domain, created through the new lifecycle. Its
+  `agent-kit/coordination` module ships a standard-library runtime that keeps
+  several agents in one project from colliding: atomic claims, path and resource
+  scopes held until close, dependencies, capabilities, leases with heartbeat,
+  stale-revision detection, required evidence, review and rework, a store shared
+  by every git worktree, and a generated board. `SkillForge_Agent_Kit.yaml`
+  builds its release.
+
+### Changed
+
+- Every project import rejects card IDs that duplicate another domain's; a
+  project only carries its own domain, so its validator could not see them.
+- The recipe-coverage test derives recipe names from the domains present
+  instead of a hand-kept list.
+- `validate.py --package` accepts an existing package that has modules but no
+  cards yet; a package name that does not exist still fails.
+- Module runtime code is `AGPL-3.0-or-later`, like the rest of PASS's code;
+  `LICENSE.md` and the generated release notice say so.
+
 ## 1.0.0-beta.56 - 2026-09-18
 
 Merged from the writing lane's unattended-dispatch baseline. That archive forked

@@ -18,6 +18,7 @@ from typing import Any
 
 import yaml
 
+from module_runtime import IGNORED_DIRS, declared_runtimes, run_runtime_tests
 from paths import default_library_root, default_memory_root, repo_root_from_tool
 
 FM_RE = re.compile(r"\A---\r?\n(?P<front>.*?)\r?\n---\r?\n(?P<body>.*)\Z", re.S)
@@ -911,6 +912,7 @@ def write_skill(
     memory_domains: list[str] | None = None,
     owned_domains: list[str] | None = None,
     auxiliary_groups: list[dict[str, Any]] | None = None,
+    module_runtimes: list[dict[str, Any]] | None = None,
 ) -> None:
     front = yaml.safe_dump(
         {"name": skill_name, "description": description},
@@ -1023,6 +1025,26 @@ def write_skill(
             "equivalent. Only held-out validation exports a candidate history event; "
             "the helper never edits cards or Skillset Memory.\n"
         )
+    if module_runtimes:
+        body += (
+            "\n## Module runtime\n\n"
+            "This skill ships executable helpers that belong to its own modules. Run "
+            "them with Python from the root of the project you are working in, using "
+            "their path inside this installed skill; `--help` lists every command. "
+            "They keep their state in that project, never in this package, and use "
+            "only the Python standard library. Each ships with the tests that passed "
+            "before this release was built.\n\n"
+            + "".join(
+                f"- `{entry}` (module `{runtime['module']}`)\n"
+                for runtime in module_runtimes
+                for entry in runtime["entrypoints"]
+            )
+            + "".join(
+                f"\nRead `{runtime['readme']}` before the first use of that runtime.\n"
+                for runtime in module_runtimes
+                if runtime.get("readme")
+            )
+        )
     if consumer_instructions:
         barriers_path = path / "references" / "execution-barriers.md"
         barriers_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1062,7 +1084,8 @@ def write_skill(
         "\n## License and attribution\n\n"
         "Keep `LICENSE.md`, `NOTICE.md`, `TRADEMARKS.md`, and `LICENSES/` with "
         "this release. The "
-        "vendored Python helpers are AGPL-3.0-or-later; the Skill instructions, "
+        "vendored Python helpers and any module runtime code under "
+        "`library/**/runtime/` are AGPL-3.0-or-later; the Skill instructions, "
         "knowledge, declarative profile, memory, and original assets are "
         "CC-BY-SA-4.0 unless a shipped file states otherwise.\n"
     )
@@ -1155,6 +1178,28 @@ def deployment_size_result(tree: Path, profile_path: Path, root_name: str) -> di
         "max_package_bytes": max_bytes,
         "size_policy": policy,
     }
+
+
+def stage_module_runtimes(release_library: Path, selected: set[str]) -> list[dict[str, Any]]:
+    """Prove every shipped module runtime works as staged, before it can ship."""
+    runtimes, problems = declared_runtimes(release_library)
+    if problems:
+        raise ValueError("invalid module runtime: " + "; ".join(f"{name}: {text}" for name, text in problems))
+    shipped = []
+    for name in sorted(set(runtimes) & selected):
+        spec = runtimes[name]
+        passed, summary = run_runtime_tests(spec["root"], spec["tests"])
+        if not passed:
+            raise ValueError(f"module runtime tests failed for {name}: {summary}")
+        readme = spec["root"] / "runtime" / "README.md"
+        shipped.append({
+            "module": name,
+            "entrypoints": [f"library/{name}/{entry}" for entry in spec["entrypoints"]],
+            "readme": f"library/{name}/runtime/README.md" if readme.is_file() else None,
+            "tests": f"library/{name}/{spec['tests']}",
+            "test_result": summary,
+        })
+    return shipped
 
 
 def runtime_release_problems(path: Path) -> list[str]:
@@ -1348,7 +1393,7 @@ def build(
             ignored = []
             for item in names:
                 child = (cur / item).resolve()
-                if child != cur and child in selected_roots:
+                if (child != cur and child in selected_roots) or item in IGNORED_DIRS:
                     ignored.append(item)
             return ignored
 
@@ -1361,6 +1406,7 @@ def build(
 
         stage_auxiliary_groups(staging, lib, auxiliary_groups, by_id)
         build_release_indexes(staging / "library")
+        module_runtimes = stage_module_runtimes(staging / "library", selected)
         shipped_auxiliary_groups = materialized_auxiliary_groups(
             staging, auxiliary_groups
         )
@@ -1399,12 +1445,14 @@ def build(
             "drill_runner": has_drills,
             "code_study_runner": has_code_study,
             "deployment_profile": deployment_profile,
+            "module_runtimes": module_runtimes,
             "quality_gates": quality,
         }
         write_skill(
             staging, skill_name, display_name, description, runtime_profile, has_drills,
             has_code_study,
             memory_domains, sorted(owned_domains), shipped_auxiliary_groups,
+            module_runtimes,
         )
         # Freeze before hashing, so the manifest describes files in the state the
         # release actually ships them in.

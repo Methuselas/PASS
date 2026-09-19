@@ -1,0 +1,11 @@
+name: SkillForge Agent Kit
+skill_name: skillforge-agent-kit
+description: >-
+  Use when several AI agents or sessions work in the same project and must not
+  step on each other: acting as lead or worker, creating and claiming bounded
+  tasks, holding file and resource scopes, heartbeating, reporting blocks and
+  evidence, reviewing or reworking results, and asking for the next task. Ships
+  a local, provider-neutral coordination runtime.
+modules:
+  - agent-kit/coordination
+runtime_profile: generic

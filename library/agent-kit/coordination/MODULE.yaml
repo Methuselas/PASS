@@ -1,0 +1,6 @@
+name: agent-kit/coordination
+requires: []
+runtime:
+  entrypoints:
+    - runtime/agentkit.py
+  tests: runtime/tests

@@ -65,11 +65,46 @@ also vendors `scripts/skillforge_drill.py`. This is derived from card frontmatte
 not a domain registry: future domains inherit the same administration substrate
 by shipping valid Drill cards. Releases without Drills do not carry it.
 
+## Module runtime
+
+A module may own executable helpers that its skill needs at use time. Most
+modules have none. A module that does declares them in its `MODULE.yaml`:
+
+```yaml
+name: agent-kit/coordination
+requires: []
+runtime:
+  entrypoints:
+    - runtime/agentkit.py
+  tests: runtime/tests
+```
+
+- Everything executable lives under that module's `runtime/` directory, which
+  ships inside the module like any other module file. Entrypoints are `.py`
+  files; `tests` is required and holds `test_*.py`.
+- Runtime code imports only the Python standard library and its own sibling
+  files. `runtime/` may hold a `README.md` for its users but no other Markdown,
+  which would be read as a card.
+- Code anywhere else in `library/`, or files in an undeclared module `runtime/`,
+  fail `validate.py`.
+- `build` runs each shipped runtime's declared tests against the staged copy
+  before it can ship, lists the runtimes under `module_runtimes` in
+  `RELEASE_MANIFEST.json`, and adds a Module runtime section to the generated
+  `SKILL.md` naming each entrypoint and README. The tests ship with the runtime.
+- A runtime runs from the installed skill with the project it serves as its
+  working directory, and keeps all state in that project. It never writes into
+  the skill: releases are frozen. When its stored data layout changes, it must
+  refuse a store written by a newer layout, because agents in one project may
+  run different installed versions.
+
+PASS owns packaging and lifecycle; the module owns its runtime's behavior; the
+project it serves owns its state. `PASS/tools/module_runtime.py` holds the rules.
+
 Every release also carries `LICENSE.md`, `NOTICE.md`, `TRADEMARKS.md`,
 `CONTRIBUTING.md`, and the complete license texts under `LICENSES/`. The vendored
-Python helpers are `AGPL-3.0-or-later`; Skill instructions, cards, declarative
-profiles, memory, and original assets are `CC-BY-SA-4.0` unless a shipped file
-states otherwise. A release missing any licensing or attribution file fails
+Python helpers and module runtime code are `AGPL-3.0-or-later`; Skill
+instructions, cards, declarative profiles, memory, and original assets are
+`CC-BY-SA-4.0` unless a shipped file states otherwise. A release missing any licensing or attribution file fails
 `build` and `check`.
 
 ## Maintainer destinations

@@ -20,6 +20,7 @@ from typing import Any
 
 import yaml
 
+from module_runtime import runtime_problems
 from paths import default_library_root
 
 
@@ -505,6 +506,7 @@ def validate_modules(library_root: Path) -> list[tuple[str, str]]:
             continue
         if core not in transitive_requirements(name, modules):
             problems.append((name, f"a language module must require {core}"))
+    problems.extend(runtime_problems(library_root))
     return sorted(set(problems))
 
 
@@ -550,7 +552,9 @@ def main() -> int:
     scope = ""
     if args.package:
         reported = records_in_package(records, args.package)
-        if not reported:
+        # A mistyped package name fails; a real package may hold only modules
+        # (for example a module runtime) before its first cards land.
+        if not reported and not (args.library / args.package).is_dir():
             print(f"No objects found in package '{args.package}' under {args.library.as_posix()}.")
             return 1
         module_problems = [

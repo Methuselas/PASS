@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.56`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.57`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -68,9 +68,9 @@ receipts, hashes, chat transcripts, or the repository that produced them.
   applicable APs, Patterns, variants, teaching lanes, execution modes, and risk
   checks while leaving native judgment responsible for the actual work.
 
-The current full repository contains Art, Game Design, Software Engineering,
-and Writing. These are discovered from `library/`; the architecture is not
-hardcoded to those four domains.
+The current full repository contains Agent Kit, Art, Game Design, Software
+Engineering, and Writing. These are discovered from `library/`; the architecture
+is not hardcoded to those domains.
 
 ## The five things people often confuse
 
@@ -263,6 +263,17 @@ Useful options:
 - Add `--force` to replace an existing ZIP. Existing project directories are
   never replaced; choose a new folder name so no working copy is destroyed.
 
+To start a domain that does not exist here yet, bootstrap its project instead of
+creating folders in this repository:
+
+```bash
+python workspace/tools/build_project_snapshot.py workspace/releases/PASS-project-agent-kit.zip --new-domain agent-kit
+```
+
+The project carries PASS, `metaskills`, a minimal module, placeholder discovery
+wrappers and recipe, and a handoff explaining what to fill in. It is imported
+back with `--create-domain` (below).
+
 A source passed with `--source-text` is copied into the project only; it is never
 added to this repository automatically. Source material remains evidence for the
 run and is never a dependency of a finished card.
@@ -301,8 +312,21 @@ The importer never imports `SOURCE_INPUT`, unrelated domains or their handoffs,
 or legacy recipes, and never deletes a repository file because it is absent from
 the archive. It rejects traversal paths, links, duplicate/case-colliding names,
 unknown domains, oversized payloads, invalid cards, broken references, stale
-indexes, and invalid memory before writing. Each changed file is replaced
-atomically, with rollback copies prepared for the complete plan.
+indexes, invalid memory, and card IDs that duplicate another domain's before
+writing. Each changed file is replaced atomically, with rollback copies prepared
+for the complete plan.
+
+A project that grew a new domain is refused until you authorize that one domain
+by name. The archive cannot authorize itself:
+
+```bash
+python workspace/tools/import_project_snapshot.py path/to/PASS-project-agent-kit.zip --create-domain agent-kit
+python workspace/tools/import_project_snapshot.py path/to/PASS-project-agent-kit.zip --create-domain agent-kit --apply
+```
+
+The new domain must bring at least one module, both discovery wrappers and its
+canonical recipe, with the bootstrap's placeholder descriptions replaced; those
+wrappers are imported with it. Any other unknown domain is still refused.
 
 If a project adds or changes cards, regenerate its indexes before exporting the
 return archive:
@@ -565,9 +589,13 @@ runtime. The published packages are available from the
 
 ## Add a domain
 
-Create `library/<domain>/` plus matching discovery skills under
-`.agents/skills/` and `.claude/skills/`. Optional empirical history belongs in
-`memory/<domain>/`. Keep authoring in one domain per run, use only that domain
+Bootstrap a project with `build_project_snapshot.py --new-domain <domain>`, grow
+the domain there, and import it with `import_project_snapshot.py --create-domain
+<domain>` (see the project snapshot sections above). A domain is `library/<domain>/`
+plus matching discovery skills under `.agents/skills/` and `.claude/skills/` and
+its canonical recipe. Optional empirical history belongs in `memory/<domain>/`.
+A module that needs executable helpers at use time ships them as a declared
+module runtime; see `PASS/docs/MODULE_RELEASES.md` §Module runtime. Keep authoring in one domain per run, use only that domain
 plus `metaskills`, and let discovery tools find the new package automatically.
 
 Do not add a global registry, repo-wide hand-authored index, new root-level tool,
@@ -590,7 +618,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.56`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.57`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

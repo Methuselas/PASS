@@ -223,6 +223,17 @@ Deleting a run never invalidates accepted cards or releases. Neither host discov
 nor ordinary authoring progression changes the separate SkillForge Code
 Apprenticeship runner or domain action logic.
 
+**Domain lifecycle and module runtimes, accepted 2026-09-18.** A new domain
+originates as a bootstrapped project (`build_project_snapshot.py --new-domain`)
+and enters the repository only through `import_project_snapshot.py
+--create-domain <domain>`, a maintainer's explicit authorization that an archive
+cannot supply for itself. A module may ship a declared runtime under its own
+`runtime/` directory (`PASS/docs/MODULE_RELEASES.md` §Module runtime): PASS owns
+its packaging, validation and release gate; the module owns its behavior; the
+project it serves owns its state. This is not a second installation system and
+not a runtime registry. A runtime's declaration lives in its own `MODULE.yaml`,
+and a release carries it exactly like any other module file.
+
 **Skillset Memory is not one of these, and must not become one.** It records
 compact learned and calibrated state about using the craft, while the
 append-oriented training history records the empirical events. The retired

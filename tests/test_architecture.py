@@ -335,13 +335,12 @@ class ReleaseIntegrityTests(unittest.TestCase):
     """11: releases package knowledge; the remaining gates are real."""
 
     def test_named_skillforge_recipes_cover_every_domain_module(self) -> None:
+        # Derived, like DOMAINS: a domain created through a project import
+        # brings its recipe, and no hand-kept list has to learn its name.
         recipe_names = {
-            "art": "SkillForge_Art.yaml",
-            "game-design": "SkillForge_Game_Design.yaml",
-            "software-engineering": "SkillForge_Software_Engineering.yaml",
-            "writing": "SkillForge_Writing.yaml",
+            domain: "SkillForge_" + "_".join(w.capitalize() for w in domain.split("-")) + ".yaml"
+            for domain in DOMAINS
         }
-        self.assertEqual(set(DOMAINS), set(recipe_names))
         for domain, filename in recipe_names.items():
             with self.subTest(domain=domain):
                 recipe_path = RECIPES / filename

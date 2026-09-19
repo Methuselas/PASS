@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import stat
 import subprocess
@@ -29,6 +30,9 @@ ROOT_FILES = {
     "VERSION",
 }
 HOST_SKILL_ROOTS = (".agents", ".claude")
+# Same shape pass.py accepts for an authorable domain.
+DOMAIN_NAME = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*")
+OBJECT_ID = re.compile(r"(?m)^object_id:\s*(\S+)\s*$")
 
 
 class SnapshotImportError(RuntimeError):
@@ -216,6 +220,74 @@ def allowed_skill_names(repo: Path, host: str, domains: list[str]) -> set[str]:
     return names
 
 
+def recipe_name(domain: str) -> str:
+    return "SkillForge_" + "_".join(word.capitalize() for word in domain.split("-")) + ".yaml"
+
+
+def is_new_domain_wrapper(relative: PurePosixPath, new_domains: set[str]) -> bool:
+    parts = relative.parts
+    return (
+        len(parts) >= 4
+        and parts[0] in HOST_SKILL_ROOTS
+        and parts[1] == "skills"
+        and parts[2] in new_domains
+    )
+
+
+def new_domain_problems(snapshot_root: Path, domain: str) -> list[str]:
+    """What a domain must bring with it to exist in the canonical repository."""
+    problems = []
+    library = snapshot_root / "library" / domain
+    if not any(library.rglob("MODULE.yaml")):
+        problems.append(f"library/{domain}/ declares no module (MODULE.yaml)")
+    for host in HOST_SKILL_ROOTS:
+        if not (snapshot_root / host / "skills" / domain / "SKILL.md").is_file():
+            problems.append(f"missing discovery wrapper {host}/skills/{domain}/SKILL.md")
+    recipe = snapshot_root / "workspace" / "release-recipes" / recipe_name(domain)
+    if not recipe.is_file():
+        problems.append(f"missing release recipe workspace/release-recipes/{recipe_name(domain)}")
+    # The bootstrap's placeholder descriptions say "before import"; shipping
+    # them would publish a skill whose trigger describes nothing.
+    for path in [recipe] + [snapshot_root / host / "skills" / domain / "SKILL.md" for host in HOST_SKILL_ROOTS]:
+        if path.is_file() and "before import" in path.read_text(encoding="utf-8", errors="replace"):
+            problems.append(f"{path.relative_to(snapshot_root).as_posix()} still has its bootstrap placeholder description")
+    return problems
+
+
+def card_ids(library: Path) -> dict[str, str]:
+    ids: dict[str, str] = {}
+    if not library.is_dir():
+        return ids
+    for path in sorted(library.rglob("*.md")):
+        if path.name in {"README.md", "INDEX.md"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if not text.startswith("---"):
+            continue
+        match = OBJECT_ID.search(text.split("\n---", 1)[0])
+        if match:
+            ids[match.group(1)] = path.relative_to(library.parent.parent).as_posix()
+    return ids
+
+
+def id_collisions(snapshot_root: Path, repo: Path, domains: list[str]) -> list[str]:
+    """Card IDs are unique library-wide, but a project only carries its own
+    domain, so its validator cannot see the other domains. Check them here."""
+    incoming: dict[str, str] = {}
+    for domain in domains:
+        incoming.update(card_ids(snapshot_root / "library" / domain))
+    existing: dict[str, str] = {}
+    library = repo / "library"
+    if library.is_dir():
+        for package in sorted(library.iterdir()):
+            if package.is_dir() and package.name not in domains:
+                existing.update(card_ids(package))
+    return [
+        f"{object_id}: {incoming[object_id]} duplicates {existing[object_id]}"
+        for object_id in sorted(set(incoming) & set(existing))
+    ]
+
+
 def is_domain_file(relative: PurePosixPath, domains: set[str]) -> bool:
     parts = relative.parts
     return (
@@ -285,6 +357,7 @@ def select_entries(
     domains: list[str],
     *,
     all_project_files: bool,
+    new_domains: frozenset[str] = frozenset(),
 ) -> tuple[ArchiveEntry, ...]:
     selected = []
     domain_set = set(domains)
@@ -295,6 +368,7 @@ def select_entries(
             is_domain_file(entry.relative, domain_set)
             or is_domain_handoff(entry.relative, domain_set)
             or is_domain_recipe(entry.relative, domain_set)
+            or is_new_domain_wrapper(entry.relative, set(new_domains))
             or (
             all_project_files
             and is_all_project_file(entry.relative, repo, domains)
@@ -487,6 +561,15 @@ def main() -> int:
         help="Also import the shared files the project builder is allowed to export.",
     )
     parser.add_argument(
+        "--create-domain",
+        metavar="DOMAIN",
+        help=(
+            "Authorize this archive to add one domain the repository does not have "
+            "yet, with its discovery wrappers and recipe. The archive cannot "
+            "authorize itself; any other unknown domain is still refused."
+        ),
+    )
+    parser.add_argument(
         "--apply",
         action="store_true",
         help="Apply the displayed additions and updates after validation passes.",
@@ -518,25 +601,52 @@ def main() -> int:
             max_total_bytes=int(args.max_total_mb * 1024 * 1024),
         )
         domains = snapshot_domains(snapshot)
-        unknown = sorted(set(domains) - set(available_domains(repo)))
+        existing = available_domains(repo)
+        unknown = set(domains) - set(existing)
+        new_domains: frozenset[str] = frozenset()
+        if args.create_domain:
+            new = args.create_domain
+            if not DOMAIN_NAME.fullmatch(new):
+                raise SnapshotImportError(f"--create-domain must be lowercase kebab-case, not: {new}")
+            if new.casefold() in {name.casefold() for name in existing} | {"metaskills"}:
+                raise SnapshotImportError(
+                    f"domain already exists: {new}; import updates to it without --create-domain"
+                )
+            if new not in domains:
+                raise SnapshotImportError(f"archive has no library/{new}/ to create")
+            unknown.discard(new)
+            new_domains = frozenset({new})
         if unknown:
             raise SnapshotImportError(
                 "archive contains domain(s) not present in this repository: "
-                + ", ".join(unknown)
+                + ", ".join(sorted(unknown))
+                + "; review it, then authorize one new domain with --create-domain <domain>"
             )
         selected = select_entries(
             snapshot,
             repo,
             domains,
             all_project_files=args.all_project_files,
+            new_domains=new_domains,
         )
         with tempfile.TemporaryDirectory(prefix="pass-project-import-") as temp_dir:
             snapshot_root = extract_archive(args.archive.resolve(), snapshot, Path(temp_dir))
+            problems = [
+                problem
+                for domain in sorted(new_domains)
+                for problem in new_domain_problems(snapshot_root, domain)
+            ] + id_collisions(snapshot_root, repo, domains)
+            if problems:
+                raise SnapshotImportError(
+                    "archive cannot be imported:\n  " + "\n  ".join(problems)
+                )
             validation = validate_snapshot(snapshot_root, repo)
             plan = plan_changes(snapshot_root, repo, selected)
 
             print(f"project root: {snapshot.root_name}")
             print(f"domain(s): {', '.join(domains)}")
+            if new_domains:
+                print(f"creating new domain: {', '.join(sorted(new_domains))}")
             print(
                 "scope: "
                 + (

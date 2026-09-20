@@ -6,6 +6,35 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.70 - 2026-09-19
+
+### Added
+
+- `workspace/tools/extract_video_stills.py` gains content presets, a
+  tile-based comparison mode, batch folder conversion and optional speech
+  recognition. Presets (general, vfx, blueprints, code, slides, software) fill
+  the existing controls and are then out of the way, so a manual change after
+  choosing one is what runs. The new `sensitive` comparison compares a 16x9 grid
+  of screen tiles instead of the whole frame, keeping a still when one corner of
+  a node graph or property panel changes; the original whole-frame hash remains
+  the default. Batch mode converts a folder, mirroring its structure, skipping
+  videos without subtitles and bundles already built, surviving unreadable files
+  and recording every item in `batch_report.json`. Transcription uses ffmpeg's
+  own whisper filter when a video has no subtitles, and marks the result as
+  machine-generated in both the transcript and the manifest.
+- `workspace/tools/test_extract_video_stills.py`, 79 tests covering the above.
+  Tests needing ffmpeg build a synthetic screencast with known changes and skip
+  themselves when ffmpeg is absent, so the PASS suite gains no new dependency.
+
+### Fixed
+
+- The stills tool no longer leaves ffmpeg running after its window closes.
+  Child processes outlive the Python interpreter that started them, so closing
+  during a transcription orphaned a process holding a multi-gigabyte speech
+  model. Cancel now stops a transcription too, rather than waiting for it.
+- Single-file mode can transcribe without a subtitle file, which it previously
+  refused, and worker threads no longer read Tk variables off the main thread.
+
 ## 1.0.0-beta.69 - 2026-09-19
 
 ### Added

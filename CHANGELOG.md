@@ -6,6 +6,22 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.71 - 2026-09-20
+
+### Added
+
+- `--doctor` in `workspace/tools/extract_video_stills.py` reports whether
+  ffmpeg, ffprobe, a whisper speech model and a voice-detection model can be
+  found, and lists every directory searched. Added after a packaged build
+  reported no speech model while the file sat in the directory its own error
+  message named; the script was correct and only the executable was stale.
+
+### Changed
+
+- The module header records that the PyInstaller work directory must be
+  deleted between builds. Reusing it produced an executable that did not match
+  the source.
+
 ## 1.0.0-beta.70 - 2026-09-19
 
 ### Added

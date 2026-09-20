@@ -12,6 +12,17 @@ Run with no arguments for the GUI, or with arguments for the command line:
 
     python extract_video_stills.py                      # GUI
     python extract_video_stills.py VIDEO SRT -o OUT.zip # command line
+    python extract_video_stills.py --doctor             # what can it find?
+
+Packaged with PyInstaller. Delete the work directory first: reusing it across
+rebuilds has produced an executable that did not match this file, which then
+reported a missing speech model that was sitting exactly where its own error
+message said to put one.
+
+    rm -rf build/ && python -m PyInstaller --noconfirm --onefile --windowed \
+        --name pass-video-stills --distpath ../builds extract_video_stills.py
+
+Run --doctor first whenever the packaged program disagrees with the script.
 """
 
 from __future__ import annotations
@@ -1665,6 +1676,11 @@ def run_cli(argv: Sequence[str]) -> int:
     parser.add_argument(
         "--list-presets", action="store_true", help="describe the presets and exit"
     )
+    parser.add_argument(
+        "--doctor",
+        action="store_true",
+        help="report what the tool can and cannot find, then exit",
+    )
 
     batch = parser.add_argument_group(
         "batch", "used when VIDEO is a folder rather than a file"
@@ -1713,6 +1729,34 @@ def run_cli(argv: Sequence[str]) -> int:
         help="enable voice-activity detection; far slower, rarely worth it",
     )
     args = parser.parse_args(list(argv))
+
+    if args.doctor:
+        print(f"{APP_NAME}")
+        print(f"  frozen            {bool(getattr(sys, 'frozen', False))}")
+        print(f"  program directory {_bundle_dir()}")
+        print(f"  LOCALAPPDATA      {os.environ.get('LOCALAPPDATA', '(unset)')}")
+        ffmpeg = find_ffmpeg(args.ffmpeg)
+        print(f"  ffmpeg            {ffmpeg or '(not found)'}")
+        if ffmpeg is not None:
+            print(f"  ffprobe           {sibling_ffprobe(ffmpeg) or '(not found)'}")
+        print(f"  model directory   {model_dir()}")
+        print("  searched for speech models in:")
+        for directory in _model_search_dirs():
+            try:
+                exists = directory.is_dir()
+            except OSError as exc:
+                print(f"    {directory}  [error: {exc}]")
+                continue
+            print(f"    {directory}  {'exists' if exists else 'missing'}")
+            if exists:
+                try:
+                    for entry in sorted(directory.glob("ggml-*.bin")):
+                        print(f"      found {entry.name}  {entry.stat().st_size} bytes")
+                except OSError as exc:
+                    print(f"      [cannot list: {exc}]")
+        print(f"  speech model      {find_whisper_model(args.whisper_model) or '(not found)'}")
+        print(f"  voice detection   {find_vad_model() or '(not found)'}")
+        return 0
 
     if args.list_presets:
         for preset in PRESETS.values():

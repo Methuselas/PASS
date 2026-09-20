@@ -833,6 +833,25 @@ class TestModelDiscovery(unittest.TestCase):
     def test_missing_model_returns_none(self) -> None:
         self.assertIsNone(vs.find_whisper_model())
 
+    def test_doctor_reports_where_it_looked(self) -> None:
+        """Exists because a stale build once claimed no model while the file
+        was sitting in the directory the message itself named."""
+        self.put("ggml-base.en.bin")
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            code = vs.run_cli(["--doctor"])
+        report = buffer.getvalue()
+        self.assertEqual(code, 0)
+        self.assertIn(str(self.root), report)
+        self.assertIn("ggml-base.en.bin", report)
+        self.assertIn("frozen", report)
+
+    def test_doctor_is_honest_when_nothing_is_found(self) -> None:
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            vs.run_cli(["--doctor"])
+        self.assertIn("(not found)", buffer.getvalue())
+
 
 class TestTranscriptionWiring(unittest.TestCase):
     def test_transcript_warns_when_the_words_are_machine_made(self) -> None:

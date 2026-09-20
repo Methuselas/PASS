@@ -6,6 +6,26 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.72 - 2026-09-20
+
+### Changed
+
+- `workspace/tools/extract_video_stills.py` looks for speech models beside the
+  program first, then in per-user application data. The packaged tool is now a
+  self-contained folder holding the executable and a `models/` directory, so it
+  can be moved or copied whole and the model travels with it. Per-user
+  directories are still searched, including the one next to the settings file.
+- The "no speech model" messages name the folder beside the program rather than
+  a per-user path, and say that the ? beside ffmpeg lists every location tried.
+
+### Added
+
+- The ? beside ffmpeg in the window reports live diagnostics: whether the
+  program is frozen, where it runs from, the settings file, every directory
+  searched for models, what was found in each, and what it resolved. `--doctor`
+  prints the same report, which the two now share. The packaged program has no
+  console, so without this an operator has no way to see what it resolved.
+
 ## 1.0.0-beta.71 - 2026-09-20
 
 ### Added

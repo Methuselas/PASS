@@ -853,6 +853,74 @@ class TestModelDiscovery(unittest.TestCase):
         self.assertIn("(not found)", buffer.getvalue())
 
 
+class TestModelLocations(unittest.TestCase):
+    """Kept apart from TestModelDiscovery, which patches the search path.
+
+    These exercise the real search order, so the two must not share a setUp.
+    """
+
+    def test_a_model_beside_the_settings_file_is_found(self) -> None:
+        """Settings live under Roaming and models under Local. Someone who puts
+        the model next to the settings should not be told there isn't one."""
+        roaming = Path(tempfile.mkdtemp(prefix="vs_roaming_"))
+        self.addCleanup(shutil.rmtree, roaming, ignore_errors=True)
+        empty = Path(tempfile.mkdtemp(prefix="vs_local_"))
+        self.addCleanup(shutil.rmtree, empty, ignore_errors=True)
+
+        original_config, original_dir = vs.config_path, vs.model_dir
+        vs.config_path = lambda: roaming / "config.json"
+        vs.model_dir = lambda: empty
+        self.addCleanup(setattr, vs, "config_path", original_config)
+        self.addCleanup(setattr, vs, "model_dir", original_dir)
+
+        beside_settings = roaming / "models"
+        beside_settings.mkdir()
+        expected = beside_settings / "ggml-base.en.bin"
+        expected.write_bytes(bytes(32))
+
+        self.assertEqual(vs.find_whisper_model(), expected)
+
+    def test_a_model_beside_the_program_wins(self) -> None:
+        """Keeps the application self-contained: the copy shipped beside the
+        executable beats anything in a per-user directory."""
+        beside = Path(tempfile.mkdtemp(prefix="vs_bundle_"))
+        elsewhere = Path(tempfile.mkdtemp(prefix="vs_local_"))
+        self.addCleanup(shutil.rmtree, beside, ignore_errors=True)
+        self.addCleanup(shutil.rmtree, elsewhere, ignore_errors=True)
+
+        original_bundle, original_dir = vs._bundle_dir, vs.model_dir
+        vs._bundle_dir = lambda: beside
+        vs.model_dir = lambda: elsewhere
+        self.addCleanup(setattr, vs, "_bundle_dir", original_bundle)
+        self.addCleanup(setattr, vs, "model_dir", original_dir)
+
+        (beside / "models").mkdir()
+        shipped = beside / "models" / "ggml-base.en.bin"
+        shipped.write_bytes(bytes(32))
+        (elsewhere / "ggml-base.en.bin").write_bytes(bytes(32))
+
+        self.assertEqual(vs.find_whisper_model(), shipped)
+
+    def test_the_local_directory_still_wins(self) -> None:
+        roaming = Path(tempfile.mkdtemp(prefix="vs_roaming_"))
+        local = Path(tempfile.mkdtemp(prefix="vs_local_"))
+        self.addCleanup(shutil.rmtree, roaming, ignore_errors=True)
+        self.addCleanup(shutil.rmtree, local, ignore_errors=True)
+
+        original_config, original_dir = vs.config_path, vs.model_dir
+        vs.config_path = lambda: roaming / "config.json"
+        vs.model_dir = lambda: local
+        self.addCleanup(setattr, vs, "config_path", original_config)
+        self.addCleanup(setattr, vs, "model_dir", original_dir)
+
+        (roaming / "models").mkdir()
+        (roaming / "models" / "ggml-base.en.bin").write_bytes(bytes(32))
+        preferred = local / "ggml-base.en.bin"
+        preferred.write_bytes(bytes(32))
+
+        self.assertEqual(vs.find_whisper_model(), preferred)
+
+
 class TestTranscriptionWiring(unittest.TestCase):
     def test_transcript_warns_when_the_words_are_machine_made(self) -> None:
         cues = [vs.Cue(1, 0.0, 1.0, "spoken words")]

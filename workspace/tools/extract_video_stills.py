@@ -14,15 +14,24 @@ Run with no arguments for the GUI, or with arguments for the command line:
     python extract_video_stills.py VIDEO SRT -o OUT.zip # command line
     python extract_video_stills.py --doctor             # what can it find?
 
-Packaged with PyInstaller. Delete the work directory first: reusing it across
-rebuilds has produced an executable that did not match this file, which then
-reported a missing speech model that was sitting exactly where its own error
-message said to put one.
+Packaged with PyInstaller into a self-contained folder:
+
+    PASS-VIDEO-STILLS/
+        pass-video-stills.exe
+        models/ggml-large-v3-turbo.bin      (optional, for transcription)
+
+That models folder is searched before anything else, so the application can be
+moved or copied whole and the speech model travels with it.
+
+Delete the PyInstaller work directory between builds. Reusing it has produced
+an executable that did not match this file.
 
     rm -rf build/ && python -m PyInstaller --noconfirm --onefile --windowed \
-        --name pass-video-stills --distpath ../builds extract_video_stills.py
+        --name pass-video-stills --distpath ../builds/PASS-VIDEO-STILLS \
+        extract_video_stills.py
 
-Run --doctor first whenever the packaged program disagrees with the script.
+Run --doctor, or the ? beside ffmpeg in the window, whenever the program and
+something else disagree about what exists.
 """
 
 from __future__ import annotations
@@ -530,9 +539,19 @@ def model_dir() -> Path:
 
 def _model_search_dirs() -> Iterable[Path]:
     bundle = _bundle_dir()
-    yield model_dir()
+    # The program's own folder comes first. A model sitting beside the
+    # executable is the one this copy was given, it keeps the whole thing
+    # portable - move the folder and the model moves with it - and it is
+    # somewhere an operator can actually see, which a per-user application
+    # data directory is not always.
     yield bundle / "models"
     yield bundle
+    yield model_dir()
+    # Settings live under Roaming while models default to Local, which is right
+    # for a file of this size but leaves two identically named folders in two
+    # places. Looking beside the settings as well costs nothing.
+    yield config_path().parent / "models"
+    yield config_path().parent
     if os.name == "nt":
         # Subtitle Edit ships whisper.cpp and its VAD model; reuse rather than
         # ask for a second copy of the same weights.
@@ -587,6 +606,45 @@ def find_vad_model(preferred: str | os.PathLike[str] | None = None) -> Path | No
     return None
 
 
+def diagnostics_report(ffmpeg_hint: str = "", model_hint: str = "") -> str:
+    """Describe what this program can and cannot find, from where it is running.
+
+    Shared by --doctor and the interface, because the packaged program has no
+    console: without this, a disagreement between the app and a file manager
+    leaves nobody able to say which one is right.
+    """
+    lines = [
+        f"{APP_NAME}",
+        f"  frozen            {bool(getattr(sys, 'frozen', False))}",
+        f"  program directory {_bundle_dir()}",
+        f"  LOCALAPPDATA      {os.environ.get('LOCALAPPDATA', '(unset)')}",
+        f"  settings file     {config_path()}",
+    ]
+    ffmpeg = find_ffmpeg(ffmpeg_hint)
+    lines.append(f"  ffmpeg            {ffmpeg or '(not found)'}")
+    if ffmpeg is not None:
+        lines.append(f"  ffprobe           {sibling_ffprobe(ffmpeg) or '(not found)'}")
+    lines.append(f"  model directory   {model_dir()}")
+    lines.append("  searched for speech models in:")
+    for directory in _model_search_dirs():
+        try:
+            exists = directory.is_dir()
+        except OSError as exc:
+            lines.append(f"    {directory}  [error: {exc}]")
+            continue
+        lines.append(f"    {directory}  {'exists' if exists else 'missing'}")
+        if not exists:
+            continue
+        try:
+            for entry in sorted(directory.glob("ggml-*.bin")):
+                lines.append(f"      found {entry.name}  {entry.stat().st_size} bytes")
+        except OSError as exc:
+            lines.append(f"      [cannot list: {exc}]")
+    lines.append(f"  speech model      {find_whisper_model(model_hint) or '(not found)'}")
+    lines.append(f"  voice detection   {find_vad_model() or '(not found)'}")
+    return "\n".join(lines)
+
+
 def escape_filter_path(path: str | os.PathLike[str]) -> str:
     """Quote a path for use inside an ffmpeg filter argument.
 
@@ -615,8 +673,10 @@ def transcribe_subtitles(
     model = find_whisper_model(settings.whisper_model)
     if model is None:
         raise ExtractionError(
-            "No speech model found. Put a whisper.cpp ggml-*.bin file in "
-            f"{model_dir()}, or set the model path."
+            "No speech model found. Put a whisper.cpp ggml-*.bin file in a "
+            f"models folder beside the program ({_bundle_dir() / 'models'}), "
+            "or set the model path. Run --doctor to see every directory "
+            "searched."
         )
 
     options = [
@@ -1731,31 +1791,7 @@ def run_cli(argv: Sequence[str]) -> int:
     args = parser.parse_args(list(argv))
 
     if args.doctor:
-        print(f"{APP_NAME}")
-        print(f"  frozen            {bool(getattr(sys, 'frozen', False))}")
-        print(f"  program directory {_bundle_dir()}")
-        print(f"  LOCALAPPDATA      {os.environ.get('LOCALAPPDATA', '(unset)')}")
-        ffmpeg = find_ffmpeg(args.ffmpeg)
-        print(f"  ffmpeg            {ffmpeg or '(not found)'}")
-        if ffmpeg is not None:
-            print(f"  ffprobe           {sibling_ffprobe(ffmpeg) or '(not found)'}")
-        print(f"  model directory   {model_dir()}")
-        print("  searched for speech models in:")
-        for directory in _model_search_dirs():
-            try:
-                exists = directory.is_dir()
-            except OSError as exc:
-                print(f"    {directory}  [error: {exc}]")
-                continue
-            print(f"    {directory}  {'exists' if exists else 'missing'}")
-            if exists:
-                try:
-                    for entry in sorted(directory.glob("ggml-*.bin")):
-                        print(f"      found {entry.name}  {entry.stat().st_size} bytes")
-                except OSError as exc:
-                    print(f"      [cannot list: {exc}]")
-        print(f"  speech model      {find_whisper_model(args.whisper_model) or '(not found)'}")
-        print(f"  voice detection   {find_vad_model() or '(not found)'}")
+        print(diagnostics_report(args.ffmpeg, args.whisper_model or ""))
         return 0
 
     if args.list_presets:
@@ -2063,6 +2099,11 @@ def run_gui() -> int:
             "SRT, which is why this lives here rather than being a separate "
             "program: it is an ffmpeg filter. You supply the model weights, a "
             "whisper.cpp ggml-*.bin file.\n\n"
+            "Keep it in a 'models' folder beside this program. That folder is "
+            "searched first, so the application stays self-contained: move the "
+            "folder somewhere else and the model goes with it. Per-user "
+            "application data directories are searched too, but they are harder "
+            "to find and easier to lose.\n\n"
             "The result is a guess. Names, APIs and technical vocabulary are "
             "where it goes wrong, so the generated transcript.md carries a "
             "notice saying so and the manifest records which model produced "
@@ -2078,6 +2119,15 @@ def run_gui() -> int:
         ),
     }
 
+    # The packaged program has no console, so the one place an operator can
+    # read what it actually resolved is this dialog.
+    _ffmpeg_help = HELP["ffmpeg"]
+    HELP["ffmpeg"] = lambda: (
+        _ffmpeg_help
+        + "\n\nWHAT IT FINDS RIGHT NOW\n\n"
+        + diagnostics_report(ffmpeg_var.get(), whisper_model_var.get())
+    )
+
     def titled_box(title: str, row: int) -> ttk.LabelFrame:
         """A labelled section with a ? button explaining it next to the title."""
         header = ttk.Frame(frame)
@@ -2086,7 +2136,10 @@ def run_gui() -> int:
             header,
             text="?",
             width=2,
-            command=lambda: messagebox.showinfo(f"{title} - {APP_NAME}", HELP[title]),
+            command=lambda: messagebox.showinfo(
+                f"{title} - {APP_NAME}",
+                HELP[title]() if callable(HELP[title]) else HELP[title],
+            ),
         ).pack(side="left", padx=(6, 0))
         box = ttk.LabelFrame(frame, labelwidget=header, padding=10)
         box.grid(row=row, column=0, sticky="ew", pady=(0 if row == 0 else 10, 0))
@@ -2433,8 +2486,10 @@ def run_gui() -> int:
         model = find_whisper_model(whisper_model_var.get())
         if model is None:
             whisper_status.set(
-                "No speech model found. Put a whisper.cpp ggml-*.bin in "
-                f"{model_dir()}, or use Model..."
+                "No speech model found. Put a whisper.cpp ggml-*.bin in a "
+                f"models folder beside this program ({_bundle_dir() / 'models'}), "
+                "or use Model... to point at it. The ? above lists everywhere "
+                "it looked."
             )
             return
         whisper_status.set(

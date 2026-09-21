@@ -1486,6 +1486,26 @@ class BatchReport:
         return ", ".join(parts)
 
 
+def batch_destination(source: Path, chosen: Path) -> Path:
+    """Where a batch of videos under ``source`` actually writes its bundles.
+
+    A chosen folder gains the source folder's own name, so "D:/Exports" for a
+    course called "C++ Multiplayer Shooter" writes to
+    "D:/Exports/C++ Multiplayer Shooter/..." and the export folder can take
+    course after course without the sections of one landing among another's.
+
+    A destination already inside the source keeps the name off, because there
+    it would only repeat the folder it sits in.
+    """
+    source = source.expanduser()
+    chosen = chosen.expanduser()
+    try:
+        chosen.resolve().relative_to(source.resolve())
+    except (ValueError, OSError):
+        return chosen / source.name
+    return chosen
+
+
 def find_batch_items(
     source: Path,
     destination: Path,
@@ -1889,7 +1909,8 @@ def _run_single_cli(video: Path, args, settings: Settings, parser) -> int:
 
 
 def _run_batch_cli(source: Path, args, settings: Settings) -> int:
-    destination = (args.output or source / "_stills").expanduser()
+    chosen = (args.output or source / "_stills").expanduser()
+    destination = batch_destination(source, chosen)
     items = find_batch_items(
         source,
         destination,
@@ -2021,10 +2042,16 @@ def run_gui() -> int:
             "and a default name for the output zip, if it can find them.\n\n"
             "Batch folder - point at a folder and convert everything under it "
             "in one run, using the settings below for every video. Scan reports "
-            "what it found before you commit to it. The output folder mirrors "
-            "the source's subfolder structure, because courses reuse names like "
-            "'1. Introduction' in every section and a flat folder would have "
-            "them overwrite each other.\n\n"
+            "what it found before you commit to it. The bundles go into a "
+            "folder named after the source, inside the one you pick, holding a "
+            "copy of its subfolder structure: pick D:/Exports for a course "
+            "called 'C++ Multiplayer Shooter' and everything lands under "
+            "D:/Exports/C++ Multiplayer Shooter. The structure is copied because "
+            "courses reuse names like '1. Introduction' in every section and a "
+            "flat folder would have them overwrite each other; the source is "
+            "named so one export folder can hold course after course. Leave the "
+            "output folder empty and it writes to a _stills folder inside the "
+            "source instead.\n\n"
             "A video with no subtitle file beside it is skipped and named in "
             "the log; it does not stop the run, and neither does a file that "
             "fails to decode. 'Skip already built' lets you stop a long run and "
@@ -2264,8 +2291,11 @@ def run_gui() -> int:
         if not source.is_dir():
             messagebox.showwarning(APP_NAME, "Choose a source folder first.")
             return
-        destination = Path(batch_output_var.get() or (source / "_stills"))
-        batch_output_var.set(str(destination))
+        # The variable keeps the folder the user chose; the name of the
+        # source is added below it, and must not be added again on a rescan.
+        chosen = Path(batch_output_var.get() or (source / "_stills"))
+        batch_output_var.set(str(chosen))
+        destination = batch_destination(source, chosen)
         batch_summary.set("Scanning...")
 
         def work() -> None:
@@ -2286,7 +2316,8 @@ def run_gui() -> int:
                 already = sum(1 for item in items if item.skip_reason == "already built")
                 batch_summary.set(
                     f"{len(items)} videos found: {ready} to convert, "
-                    f"{missing} without subtitles, {already} already built."
+                    f"{missing} without subtitles, {already} already built.\n"
+                    f"Writing to {destination}"
                 )
 
             root.after(0, apply)
@@ -2716,8 +2747,11 @@ def run_gui() -> int:
         if not source.is_dir():
             messagebox.showwarning(APP_NAME, "Choose a source folder first.")
             return
-        destination = Path(batch_output_var.get() or (source / "_stills"))
-        batch_output_var.set(str(destination))
+        # The variable keeps the folder the user chose; the name of the
+        # source is added below it, and must not be added again on a rescan.
+        chosen = Path(batch_output_var.get() or (source / "_stills"))
+        batch_output_var.set(str(chosen))
+        destination = batch_destination(source, chosen)
 
         settings = validated_settings()
         if settings is None:

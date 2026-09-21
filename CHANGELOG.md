@@ -6,6 +6,20 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.74 - 2026-09-20
+
+### Changed
+
+- A batch run in `workspace/tools/extract_video_stills.py` now writes into a
+  folder named after the source, inside the output folder you pick, holding a
+  copy of the source's subfolder structure. Choosing `D:/Exports` for a course
+  called `C++ Multiplayer Shooter` puts the bundles and `batch_report.json`
+  under `D:/Exports/C++ Multiplayer Shooter/`, so one export folder can take
+  course after course without their sections landing among each other. An
+  output folder inside the source is left as it is, because the name would only
+  repeat the folder above it, and leaving the output folder empty still writes
+  to `_stills` inside the source.
+
 ## 1.0.0-beta.73 - 2026-09-20
 
 ### Added

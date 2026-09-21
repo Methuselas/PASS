@@ -585,6 +585,46 @@ class TestSubtitlePairing(unittest.TestCase):
         self.assertAlmostEqual(cues[0].end, 5.0)
 
 
+class TestBatchDestination(unittest.TestCase):
+    """Where a batch writes, given the folder the user picked."""
+
+    def setUp(self) -> None:
+        self.root = Path(tempfile.mkdtemp(prefix="vs_dest_"))
+        self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
+        self.source = self.root / "C++ Multiplayer Shooter"
+        self.source.mkdir()
+
+    def test_a_chosen_folder_gains_the_source_name(self) -> None:
+        exports = self.root / "Exports"
+        self.assertEqual(
+            vs.batch_destination(self.source, exports),
+            exports / "C++ Multiplayer Shooter",
+        )
+
+    def test_two_courses_stay_apart_in_one_export_folder(self) -> None:
+        other = self.root / "Unreal Blueprints"
+        other.mkdir()
+        exports = self.root / "Exports"
+        self.assertNotEqual(
+            vs.batch_destination(self.source, exports),
+            vs.batch_destination(other, exports),
+        )
+
+    def test_a_destination_inside_the_source_is_left_alone(self) -> None:
+        stills = self.source / "_stills"
+        self.assertEqual(vs.batch_destination(self.source, stills), stills)
+
+    def test_the_source_itself_is_left_alone(self) -> None:
+        self.assertEqual(vs.batch_destination(self.source, self.source), self.source)
+
+    def test_a_missing_export_folder_still_resolves(self) -> None:
+        exports = self.root / "not" / "created" / "yet"
+        self.assertEqual(
+            vs.batch_destination(self.source, exports),
+            exports / "C++ Multiplayer Shooter",
+        )
+
+
 class TestBatchDiscovery(unittest.TestCase):
     def setUp(self) -> None:
         if "archive" not in FIXTURE:
@@ -745,7 +785,7 @@ class TestBatchCli(unittest.TestCase):
             vs.extract_batch = original
 
         self.assertEqual(code, 0)
-        self.assertEqual(seen["destination"], self.destination)
+        self.assertEqual(seen["destination"], self.destination / "archive")
         self.assertEqual(seen["settings"].preset, "slides")
         self.assertEqual(len(seen["items"]), 5)
 
@@ -758,6 +798,30 @@ class TestBatchCli(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("convert", buffer.getvalue())
         self.assertFalse(any(self.destination.rglob("*.zip")))
+
+    def test_the_export_folder_holds_a_copy_of_the_source_tree(self) -> None:
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            vs.run_cli([
+                str(FIXTURE["archive"]), "-o", str(self.destination), "--dry-run",
+            ])
+        # Dry run reports the plan; the plan is what the tree will look like.
+        self.assertIn(str(self.destination / "archive"), buffer.getvalue())
+
+    def test_bundles_and_report_land_under_the_source_name(self) -> None:
+        with contextlib.redirect_stdout(io.StringIO()):
+            vs.run_cli([
+                str(FIXTURE["archive"]), "-o", str(self.destination),
+                "--preset", "code",
+            ])
+        mirrored = self.destination / "archive"
+        self.assertTrue((mirrored / "top.stills.zip").is_file())
+        self.assertTrue(
+            (mirrored / "section a" / "part b" / "deep.stills.zip").is_file()
+        )
+        self.assertTrue((mirrored / "batch_report.json").is_file())
+        # Nothing may be written straight into the folder the user picked.
+        self.assertFalse((self.destination / "top.stills.zip").exists())
 
     def test_no_recursive_limits_the_queue(self) -> None:
         buffer = io.StringIO()

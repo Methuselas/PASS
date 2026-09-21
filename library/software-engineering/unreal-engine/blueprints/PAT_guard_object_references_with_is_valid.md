@@ -25,7 +25,14 @@ reference:
   author: Marcos Romero and Brenden Sewell
 confidence: medium
 references: []
-variants: []
+variants:
+- variant_id: VAR_use_a_validated_get_at_the_reference_read
+  variant_name: Use a Validated Get at the Reference Read
+  variant_basis: method_sequence
+  difference_from_foundation: When the possibly-null object reference already comes from a variable Get node, convert that Get to a Validated Get so the value and Is Valid / Is Not Valid execution paths are exposed together. This is the same validity decision as the standalone Is Valid guard, expressed at the read site rather than with a separate guard node.
+  when_to_use: Use when a variable Get is already the point where the reference enters the execution chain and combining the read with the validity split keeps the graph clearer.
+  when_not_to_use: Do not treat it as categorically superior to a standalone Is Valid check. Use the standalone form when the reference does not come from a variable Get, when the guard is clearer as a separate decision, or when the graph already has the reference value available.
+  absorbed_from_object_id: PAT_use_a_validated_get_to_branch_on_a_reference_validity
 ---
 
 # Guard Object References With Is Valid Before Use
@@ -37,7 +44,7 @@ variants: []
 ## Do
 - Treat None (null) as the normal starting state of an object reference variable; it references no instance until one is assigned.
 - Assign references in the Level Editor for placed instances (the variable must be Instance Editable) or at runtime from a spawn or lookup.
-- Run the Is Valid macro before acting on a reference that may not have been assigned yet, and route the not-valid branch to a safe no-op or a setup step.
+- Run the Is Valid macro before acting on a reference that may not have been assigned yet, and route the not-valid branch to a safe no-op or a setup step. When the reference is being read from a variable Get node, the Validated Get variant can combine that read with the same validity split.
 
 ## Don't
 - Don't call functions on a reference that might still be None — the Is Valid check exists precisely to avoid calling a function through a null reference.
@@ -49,4 +56,4 @@ variants: []
 - References assigned in the Level Editor are on Instance Editable variables.
 
 ## Notes
-Object references are how Blueprints talk to each other: a variable of another class's type holds a pointer to an instance, and its public variables and functions become reachable through it. The default None state is what makes the guard necessary — a freshly created reference variable points at nothing.
+Object references are how Blueprints talk to each other: a variable of another class's type holds a pointer to an instance, and its public variables and functions become reachable through it. The default None state is what makes the guard necessary — a freshly created reference variable points at nothing. Variant `VAR_use_a_validated_get_at_the_reference_read` is the alternate method for the same decision when the reference is read from a variable: convert that Get to a Validated Get so the value and validity execution paths are exposed together. Use it when that combination makes the read site clearer; keep a standalone Is Valid guard when the reference is already available or the separate decision reads better.

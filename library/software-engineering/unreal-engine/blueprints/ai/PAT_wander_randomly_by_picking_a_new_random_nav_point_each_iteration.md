@@ -31,26 +31,25 @@ variants: []
 # Wander Randomly by Picking a New Random Nav Point Each Iteration
 
 ## Pattern Rule
-**IF** you want an AI to wander the level randomly instead of following fixed waypoints
-**THEN** store the destination as a Vector Blackboard key and build a sequence whose first task picks a new random navigable point into that key; the sequence's re-execution is the loop — each pass picks a new point and moves to it.
+**IF** you want an AI to wander using computed destinations instead of fixed waypoint actors
+**THEN** store the destination as a Vector Blackboard key and run a sequence that first draws a random navigable point into that key, then moves to it and waits; re-running the sequence performs a fresh draw for the next iteration.
 
 ## Do
-- Create a Vector Blackboard key for the wander destination; a computed destination is a vector, not an actor reference, so it does not need a placed waypoint.
-- Write a custom task that sets the key to a random navigable point (GetRandomPointInNavigableRadius with a radius that covers the level) and finishes with success.
-- Put that task first in the sequence, followed by a Move To the key and a short Wait.
-- Let the sequence re-run from the top: each iteration re-picks the point, so the AI never follows the same route twice.
-- Sample the point from the navigation mesh so every destination is actually reachable.
+- Create a Vector Blackboard key for the computed wander destination.
+- Write a custom task that sets the key from GetRandomPointInNavigableRadius and finishes with success.
+- Put that task first in the sequence, followed by Move To the key and a short Wait.
+- Let the sequence re-run from the top so each iteration requests another random point from the navigation query.
 
 ## Don't
-- Don't store a computed destination as an actor reference — there is no actor to point at, and a Vector key is what the Move To needs.
-- Don't pick the random point with a raw random vector; a point off the navigation mesh is unreachable and the Move To will fail.
-- Don't keep the old fixed-waypoint behavior alongside the wander — remove the setup that fed the replaced behavior so the two don't fight.
+- Don't store a computed destination as an actor reference when there is no waypoint actor to reference.
+- Don't replace the navigation query with an unconstrained raw random vector when the design calls for navmesh-based wandering.
+- Don't assume a random draw must differ from the previous draw; random selection can repeat a location.
 
 ## Checklist
 - A Vector key holds the current wander destination.
-- The first task in the sequence writes a new random navigable point to the key on every run.
-- The sequence moves to the key and waits, then re-runs to pick the next point.
-- The AI moves to a different random location on each iteration.
+- The first task in the sequence performs a fresh random navigable-point query on every run.
+- The sequence moves to the key and waits before the next iteration.
+- Repeated execution produces wandering from successive random draws, with repeats allowed.
 
 ## Notes
-Wandering is patrol with the waypoints replaced by a random draw. The two pieces that make it work: the destination lives in a Vector key because it is computed rather than placed, and the point is drawn from the navigation mesh so it is always reachable. The loop is implicit in the Behavior Tree — a sequence that succeeds re-runs from its first child, so "pick a point, go there, wait" repeats, each pass with a fresh destination. Compared with a two-point patrol, wandering makes the AI's position unpredictable, which is the point: the player can no longer hide from a predictable route. To test the wandering, use Simulate mode (the menu next to the Play button) to move freely through the level with a free camera — hold the right mouse button and use the movement keys and the mouse — so you can watch the AI wander without being the player.
+This behavior replaces fixed patrol points with a computed Vector destination. A Behavior Tree sequence of "pick a point, move, wait" can repeat continuously; each pass performs another navigation-mesh-based random query. Random does not mean unique, so two iterations may select the same or similar location.

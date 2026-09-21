@@ -29,25 +29,23 @@ variants: []
 # Cap a Spawned Population by Counting Live Actors
 
 ## Pattern Rule
-**IF** you spawn actors periodically and want to cap how many are alive at once, and the actors can be destroyed by gameplay
-**THEN** enforce the cap by counting the live actors of the class in the world on each spawn cycle (Get All Actors Of Class, then compare its Length to the cap) and spawn only when the count is below the cap.
+**IF** you spawn actors periodically and want to cap how many are alive at once
+**THEN** query the live actors of that class on each spawn cycle, compare the array Length to the cap, and spawn only when the count is below the cap.
 
 ## Do
 - Keep the cap as a variable (such as MaxEnemies) so the population limit can be tuned.
-- Pass the Behavior Tree to Spawn AI From Class so the spawned enemy is immediately autonomous rather than inert.
-- On each spawn cycle, query the world for the live actors of the spawned class and take the array's Length.
-- Branch on the count being less than the cap: spawn only on the true path.
-- Let the count fall naturally as actors are destroyed — the cap is checked against the world, not against a bookkeeping variable.
+- On each spawn cycle, use Get All Actors Of Class for the spawned class and take the returned array's Length.
+- Branch on the count being less than the cap and spawn only on the true path.
+- When spawning AI with Spawn AI From Class, supply the Behavior Tree when the new enemy should begin acting immediately.
 
 ## Don't
-- Don't track the spawned references to count the population — references go stale when the actors are destroyed, and the count drifts from the truth.
-- Don't spawn unconditionally on the timer — without the cap check, the level fills with actors and performance degrades.
-- Don't store the count in a variable you update on spawn and destroy; the world is the source of truth and the query is one node.
+- Don't spawn unconditionally on the timer when the design requires a population cap.
+- Don't compare against a stale snapshot; perform the live-actor query on the spawn cycle that makes the decision.
 
 ## Checklist
 - The spawn cycle queries the live actors of the class and compares the count to the cap.
 - A spawn happens only when the count is below the cap.
-- Destroying actors frees population without any bookkeeping update.
+- Destroyed actors are absent from a later live-actor count.
 
 ## Notes
-When the spawned actors have a lifecycle the spawner does not control — the player can destroy them — the world is the only reliable census. Get All Actors Of Class plus Length is that census: it counts what is actually alive, so the cap holds no matter how the population changes. Storing the spawned references would work only if the spawner were the sole owner of the actors' lifetimes; here it is not, so the count is queried, not kept.
+The demonstrated Blueprint uses Get All Actors Of Class plus Length as a live-world count before each spawn attempt. This is one direct way to keep a periodic spawner under a maximum while allowing gameplay to remove actors between spawn cycles.

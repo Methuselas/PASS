@@ -8,9 +8,9 @@ library_path:
 - blueprints
 stage_binding: 0 design
 lane_fit: both
-foundation_role: foundation
-routing_class: general
-specialization_axis: none
+foundation_role: specialization
+routing_class: specialized
+specialization_axis: framework
 foundation_object_id: none
 tags:
 - unreal_engine

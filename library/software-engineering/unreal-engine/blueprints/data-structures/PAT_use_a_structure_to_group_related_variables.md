@@ -1,7 +1,7 @@
 ---
 object_id: PAT_use_a_structure_to_group_related_variables
 object_type: pattern
-name: Use a Structure to Group Related Variables
+name: Use a Blueprint Structure Asset to Group Related Variables
 library_path:
 - software-engineering
 - unreal-engine
@@ -12,7 +12,7 @@ lane_fit: both
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: framework
-foundation_object_id: none
+foundation_object_id: PAT_encapsulate_related_data_together
 tags:
 - unreal_engine
 - blueprints
@@ -29,29 +29,29 @@ references: []
 variants: []
 ---
 
-# Use a Structure to Group Related Variables
+# Use a Blueprint Structure Asset to Group Related Variables
 
 ## Pattern Rule
-**IF** several related variables of different types always travel together and should be treated as one value
-**THEN** define a structure (struct) that groups them into a single composite type, so you pass, store, and default the group as one unit.
-**ELSE** where the variables are unrelated or only occasionally used together, separate variables are clearer.
+**IF** several related values in an Unreal Blueprint should travel, be stored, or be defaulted as one composite value
+**THEN** create a Blueprint Structure asset for that group and use the resulting struct type in Blueprint variables and Make/Break nodes.
+**ELSE** where the values are unrelated or only occasionally used together, keep them separate.
 
 ## Do
-- Create the structure as a standalone asset (Content Browser → ADD → Blueprints → Structure), not inside a Blueprint class.
-- Add variables of different types with New Variable; a member can itself be a complex type (another structure, array, set, map, or object reference).
-- Use the structure as a variable's type in a Blueprint.
-- Use the Make node to build a structure from its separate elements and the Break node to separate a structure into its elements.
-- Set default values in the DEFAULT VALUE panel after compiling.
+- Create the structure as a standalone asset from the Content Browser under Blueprints -> Structure.
+- Add the related members with New Variable; members may use different types, including other structures, containers, or object references.
+- Use the structure as a Blueprint variable type.
+- Use the Make node to assemble the composite value and the Break node to expose its members where needed.
+- Set default values for the structure after compiling.
 
 ## Don't
-- Don't group unrelated variables into a structure just to reduce their count — a struct is for data that is meaningfully one thing.
-- Don't define the structure inside a Blueprint class when it should be a shared asset.
-- Don't pass the group field by field when a Make/Break node can carry it as one unit.
+- Don't group unrelated variables merely to reduce the visible variable count.
+- Don't pass the same conceptual record field by field when the Blueprint Structure is the value that should cross the boundary.
 
 ## Checklist
-- Do the variables always travel together and form one meaningful unit?
-- Is the structure a standalone asset?
-- Are Make and Break nodes used to build and deconstruct it?
+- The members form one meaningful record or concept.
+- The group is represented by a reusable Blueprint Structure asset.
+- Blueprint variables can use the structure as their type.
+- Make/Break nodes assemble and deconstruct the value where appropriate.
 
 ## Notes
-A structure is a composite data type that groups variables of different types into a single type. Its members can be complex (another structure, a container, an object reference), which is what makes it the building block for richer data — a weapon's name, category, damage, fire rate, range, and accuracy become one WeaponType value. The Make node assembles the group from its parts; the Break node takes a group apart. A structure is also the row type for a data table.
+This is the Unreal Blueprint specialization of `PAT_encapsulate_related_data_together`. The source demonstrates a Structure asset as a composite data type whose members can themselves be complex values; the same structure can also serve as the row type of a Data Table.

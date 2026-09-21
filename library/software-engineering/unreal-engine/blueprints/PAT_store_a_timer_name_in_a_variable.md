@@ -11,7 +11,7 @@ lane_fit: both
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: framework
-foundation_object_id: none
+foundation_object_id: PAT_give_knowledge_one_authoritative_home
 tags:
 - unreal_engine
 - blueprints
@@ -30,8 +30,8 @@ variants: []
 # Store a Timer Name in a Variable
 
 ## Pattern Rule
-**IF** you start, check, or clear a timer by function name — Set Timer by Function Name, Does Timer Exist by Function Name, Clear Timer by Function Name
-**THEN** store the timer's function name in a String variable and reference that variable at every call site, so the name is written once and a spelling error cannot silently break the timer.
+**IF** several timer-by-function-name nodes must refer to the same custom event name
+**THEN** store that function name in one String variable and feed the variable to every call site, reducing repeated spelling and the risk of inconsistent names.
 
 ## Do
 - Create a String variable (for example, StaminaManagerName) and set its default value to the custom event's name.
@@ -39,13 +39,13 @@ variants: []
 - Keep the variable's default value in sync with the custom event's name.
 
 ## Don't
-- Don't type the function name as a literal at each timer call site — a single misspelling makes the timer silently fail to start, to report existing, or to clear.
-- Don't keep the name in more than one place; the variable is the single source of the name.
+- Don't retype the same function name independently at each timer call site when they are all intended to address one event.
+- Don't keep competing authoritative copies of the timer name.
 
 ## Checklist
 - The timer's function name lives in one String variable.
 - Every Set / Does-Exist / Clear Timer by Function Name node reads the name from that variable.
-- Renaming the event means changing one variable, not several literals.
+- A rename is centralized to the stored name instead of repeated literals.
 
 ## Notes
-Timers addressed by function name take the name as a string. Typing that string at every call site invites a spelling error the compiler will not catch: the timer simply never starts, never reports existing, or never clears. Storing the name in a String variable and referencing it everywhere makes the name a single value, so a rename is one edit and a typo is impossible.
+Timer-by-function-name nodes identify the event through text. Centralizing that text in one variable follows `PAT_give_knowledge_one_authoritative_home`: it reduces duplicate spelling and therefore reduces the chance that one timer node silently refers to a different name.

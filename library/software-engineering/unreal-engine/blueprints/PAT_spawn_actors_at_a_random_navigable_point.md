@@ -29,22 +29,22 @@ variants: []
 # Spawn Actors at a Random Navigable Point
 
 ## Pattern Rule
-**IF** you need a random location that an AI can actually reach — a spawn point, a wander destination
-**THEN** sample it from the navigation mesh with GetRandomPointInNavigableRadius (a radius around an origin) instead of generating a raw random vector, so the point is guaranteed to be on traversable space.
+**IF** you need a random spawn point or movement destination constrained to navigable space
+**THEN** use GetRandomPointInNavigableRadius with an origin and radius instead of generating an unconstrained raw random vector.
 
 ## Do
-- Set the radius to cover the area you want the point to fall in (a large radius around the spawner for spawns, around the level origin for level-wide wandering).
-- Set the origin to the center of the area (the spawner's location for spawns, the level origin for level-wide draws).
-- Feed the returned location into the spawn node's Location or the Move To's destination.
+- Set the radius to cover the area you want the point to fall in.
+- Set the origin to the center of the intended search area, such as the spawner's location for local spawning.
+- Feed the returned location into the spawn node's Location or a movement destination.
 
 ## Don't
-- Don't generate a raw random vector and hope it lands on the floor — a point off the navigation mesh is unreachable, and the AI's move or spawn fails or drops.
-- Don't use a radius smaller than the area you want covered; the node returns points within the radius, not beyond it.
+- Don't use a raw random world-space vector when the point is intended to come from the navigation mesh.
+- Don't use a radius smaller than the area you intend to sample; the node searches within the requested radius.
 
 ## Checklist
-- The random point comes from GetRandomPointInNavigableRadius, not a raw random vector.
+- The random point comes from GetRandomPointInNavigableRadius.
 - The radius and origin cover the intended area.
-- The AI can actually reach the point (it is on the navigation mesh).
+- The returned point is used as the spawn or movement location.
 
 ## Notes
-The navigation mesh is the map of where the AI can be. Sampling from it — rather than from raw coordinates — is what makes "random" mean "random somewhere the AI can stand." The same node serves both spawning (a random point near the spawner) and wandering (a random point anywhere in the level); only the origin and radius change.
+The source uses GetRandomPointInNavigableRadius to choose locations based on the navigation mesh. The node constrains the random draw to navigable space within the requested area; this card does not claim that every such point is unconditionally reachable from every possible AI start state.

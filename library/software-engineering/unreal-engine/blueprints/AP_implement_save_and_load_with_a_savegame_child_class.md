@@ -19,6 +19,12 @@ tags:
 - persistence
 - save_load
 cross_links:
+- rel: supports
+  target_object_id: PAT_persist_only_the_coarsest_state_that_lets_the_player_resume
+- rel: supports
+  target_object_id: PAT_guard_object_references_with_is_valid
+- rel: supports
+  target_object_id: PAT_use_cast_to_test_a_type_or_reach_subclass_members
 - rel: related_to
   target_object_id: PAT_put_cross_level_state_in_the_game_instance
 reference:
@@ -32,14 +38,16 @@ variants: []
 # Implement Save and Load With a SaveGame Child Class
 
 ## Objective
-Persist a small set of game state to a file so the player can quit and later resume where they left off, using the engine's SaveGame system.
+Persist a small set of game state to a file and verify that a later load restores the saved state before dependent gameplay initialization continues.
 
 ## Steps / Flow
-1. Create a Blueprint child of the SaveGame class. Add only the variables that hold the state to persist (for example, an Integer for the current round). This child is the save-data container.
-2. On the actor that owns the state (often the player character), add an Object Reference variable typed to the save child (to hold the created or loaded instance) and a String variable for the save slot name (the file name).
-3. Build a Save macro (In/Out Exec): guard the object reference with Is Valid; if it is invalid, Create Save Game Object (the save child class) and store the result in the reference. Set the save child's variables from the live state. Then Save Game to Slot with the Save Game Object set to the reference, the Slot Name set to the slot string, and User Index 0.
-4. Build a Load macro (In/Out Exec): Does Save Game Exist (Slot Name, User Index 0) into a Branch. If the save does not exist, exit. If it does, Load Game from Slot, then Cast the result to the save child and handle Cast Failed by exiting. On success, store the cast result in the object reference and copy the saved variables into the live state.
-5. Call the Load macro in BeginPlay before initializing gameplay parameters that depend on the saved state, so the resumed state is in place before the round goal, HUD, and similar setup run.
+1. Apply `PAT_persist_only_the_coarsest_state_that_lets_the_player_resume`: create a Blueprint child of the SaveGame class and add only the variables that must survive quitting, such as the current round.
+2. On the actor that owns the live state, add an Object Reference variable typed to the save child and a String variable for the save slot name.
+3. Build a Save macro with In/Out Exec. Apply `PAT_guard_object_references_with_is_valid` to the save-object reference; if it is invalid, create the Save Game Object and store the result. Copy the live values into the save object, then call Save Game to Slot with the stored slot name and User Index 0.
+4. Build a Load macro. Call Does Save Game Exist with the same slot name and User Index 0 and branch. If no save exists, exit the load path without changing the live state.
+5. When a save exists, call Load Game from Slot and apply `PAT_use_cast_to_test_a_type_or_reach_subclass_members` to cast the loaded object to the save child. If the cast fails, exit safely. On success, store the cast result and copy the saved values back into the live state.
+6. Call Load from BeginPlay before initializing values that depend on the persisted state, so resumed state is established before round goals, HUD values, or similar setup are derived.
+7. Verify the completed flow end to end: save a distinguishable state, change or restart the session so the live value no longer matches, load the slot, and confirm that the live value returns to the saved value before dependent initialization uses it.
 
 ## Notes
-Use User Index 0 for a single-player slot. The save child holds only what must survive a quit; derive the rest at load time. The object reference is created lazily on first save (the Is Valid guard) rather than in BeginPlay, so a fresh game has no save object until the first save. The Game Instance is an alternative for state that must survive level loads within a session; the SaveGame file is the mechanism for state that must survive quitting the application.
+Use User Index 0 for the single-player slot shown by the source. The SaveGame child is the file-persistence mechanism; `PAT_put_cross_level_state_in_the_game_instance` covers the different case where state only needs to survive level transitions within the running application. The validity guard, type cast, and coarse-state decisions are delegated to the named Patterns above rather than redefined here.

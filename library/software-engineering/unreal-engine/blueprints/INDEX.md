@@ -48,6 +48,7 @@
 - [Generate Repeated Level Content in the Construction Script](PAT_generate_repeated_level_content_in_the_construction_script.md) - pattern; 2 block. Tags: blueprints, construction_script, procedural_generation, unreal_engine.
 - [Get the Aim Location with a Second Motion Controller Component](PAT_get_the_aim_location_with_a_second_motion_controller_component.md) - pattern; 1 skeleton. Tags: aim, blueprints, motion_controller, unreal_engine, vr.
 - [Guard Object References With Is Valid Before Use](PAT_guard_object_references_with_is_valid.md) - pattern; 2 block. Tags: blueprints, null_safety, object_reference, unreal_engine.
+  - Variants: `Use a Validated Get at the Reference Read` (method_sequence).
 - [Hold Cross-Level State in the GameInstance](PAT_put_cross_level_state_in_the_game_instance.md) - pattern; 0 design. Tags: blueprints, game_instance, persistence, unreal_engine.
 - [Implement Save and Load With a SaveGame Child Class](AP_implement_save_and_load_with_a_savegame_child_class.md) - ap; 2 block. Tags: blueprints, persistence, save_load, savegame, unreal_engine.
 - [Investigate an External Asset Before Relying on It](PAT_investigate_an_external_asset_before_relying_on_it.md) - pattern; 0 design. Tags: blueprints, external_assets, maintenance, unreal_engine.
@@ -93,7 +94,6 @@
 - [Track a Held Object in a Reference Variable and Clear It on Release](PAT_track_a_held_object_in_a_reference_variable_and_clear_it_on_release.md) - pattern; 1 skeleton. Tags: blueprints, grab, state, unreal_engine, vr.
 - [Use a Direct Object Reference to Call Functions on Another Blueprint](PAT_use_a_direct_object_reference_to_call_functions_on_another_blueprint.md) - pattern; 0 design. Tags: blueprints, communication, object_reference, unreal_engine.
 - [Use a Scene Component as a Reference Location for Other Components](PAT_use_a_scene_component_as_a_reference_location_for_other_components.md) - pattern; 1 skeleton. Tags: attach, blueprints, scene_component, transform, unreal_engine.
-- [Use a Validated Get to Branch on a Reference's Validity](PAT_use_a_validated_get_to_branch_on_a_reference_validity.md) - pattern; 1 skeleton. Tags: blueprints, null_safety, object_reference, unreal_engine, validated_get.
 - [Use Actor Vectors for Direction-Relative Movement](PAT_use_actor_vectors_for_direction_relative_movement.md) - pattern; 2 block. Tags: blueprints, movement, unreal_engine, vectors.
 - [Use an Event Dispatcher to Notify Listeners Without Naming Them](PAT_use_an_event_dispatcher_to_notify_listeners_without_naming_them.md) - pattern; 0 design. Tags: blueprints, communication, decoupling, events, unreal_engine.
 - [Use Cast To to Test a Type or Reach Subclass Members](PAT_use_cast_to_test_a_type_or_reach_subclass_members.md) - pattern; 2 block. Tags: blueprints, casting, type_safety, unreal_engine.

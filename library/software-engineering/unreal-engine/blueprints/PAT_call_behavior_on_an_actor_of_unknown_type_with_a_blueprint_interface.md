@@ -11,7 +11,7 @@ lane_fit: both
 foundation_role: specialization
 routing_class: specialized
 specialization_axis: framework
-foundation_object_id: none
+foundation_object_id: PAT_depend_on_interfaces_not_concrete_classes
 tags:
 - unreal_engine
 - blueprints

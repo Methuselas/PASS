@@ -6,6 +6,27 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.75 - 2026-09-20
+
+### Fixed
+
+- Replaced the Unreal Blueprint cards with the audited set. Fourteen cards
+  changed: overclaimed rationale is cut back to what the source actually
+  demonstrates, `foundation_role` / `routing_class` / `specialization_axis` are
+  corrected where a specialization had been recorded as a foundation and the
+  reverse, missing `foundation_object_id` and prerequisite edges are supplied,
+  and the save-and-load Action Protocol now delegates its validity guard, type
+  cast and coarse-state decisions to the Patterns that own them instead of
+  restating them, with an end-to-end verification step.
+
+### Removed
+
+- `PAT_use_a_validated_get_to_branch_on_a_reference_validity` is absorbed into
+  `PAT_guard_object_references_with_is_valid` as the variant
+  `VAR_use_a_validated_get_at_the_reference_read`. Both describe the same
+  validity decision; one expresses it at the variable read. Nothing else
+  referenced the removed card.
+
 ## 1.0.0-beta.74 - 2026-09-20
 
 ### Changed

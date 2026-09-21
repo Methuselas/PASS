@@ -45,12 +45,16 @@ def action_instruction(run: Run) -> str:
         return f"Cold-reread the complete bounded unit {run.unit()['unit_id']}, adjudicate the exact delta/taxonomy, stage all declared changes, then submit phase=pass2 through PASS/pass.py."
     if phase == "pass3":
         return f"Close the source/reading notes, perform card-only PASS 3 for {run.unit()['unit_id']}, repair/rescan until clean, then submit phase=pass3 with hashes through PASS/pass.py."
+    if phase == "closure_pass2":
+        return "Perform the mandatory source-closure audit over accepted canon: AP synthesis, DRILL synthesis, cross-library reconciliation, and metadata classification. Stage only justified closure changes, then submit phase=closure_pass2 through PASS/pass.py."
+    if phase == "closure_pass3":
+        return "Keep the source and reading notes closed. Perform card-only closure PASS 3, including reconciliation and metadata checks, repair/rescan until clean, then submit phase=closure_pass3 with hashes through PASS/pass.py."
     raise RunError(f"phase {phase} is deterministic or not dispatchable as a host action")
 
 
 def issue_action(run: Run) -> dict[str, Any]:
     phase = run.state["phase"]
-    if phase not in {"preflight", "pass1", "checkpoint", "pass2", "pass3"}:
+    if phase not in {"preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
         raise RunError(f"cannot issue substantive action for phase: {phase}")
     unit_id = None if phase == "preflight" else run.unit()["unit_id"]
     state_sha = digest(run.state_path)
@@ -92,8 +96,11 @@ def progress_report(run: Run) -> dict[str, Any]:
     if cpath.is_file():
         completion = preflight._read_json(str(cpath))
     active = None
-    if plan and run.state["phase"] != "finished" and closed < len(plan["units"]):
-        active = plan["units"][closed]["unit_id"]
+    if plan and run.state["phase"] != "finished":
+        if closed < len(plan["units"]):
+            active = plan["units"][closed]["unit_id"]
+        elif run.state["phase"] in {"closure_pass2", "closure_pass3", "closure_land"}:
+            active = "closure"
     if not plan:
         statement = f"No preflight plan accepted; current phase={run.state['phase']}."
     elif completion:
@@ -126,13 +133,13 @@ def drive(run: Run) -> dict[str, Any]:
     run.unattended_authorization(required=True)
     for _ in range(100):
         phase = run.state["phase"]
-        if phase in {"preflight_accept", "land", "finished"}:
+        if phase in {"preflight_accept", "land", "closure_land", "finished"}:
             result = advance(run)
             run.reload()
             if result.get("outcome") in {"blocked_human_required", "source_complete"}:
                 return {**result, "report": progress_report(run)}
             continue
-        if phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3"}:
+        if phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
             action = issue_action(run)
             return {"outcome": "host_action_required", "action": action, "report": progress_report(run)}
         if phase == "load":
@@ -254,10 +261,12 @@ def next_action(run: Run, authorized: bool, source_ok: bool) -> str:
             "otherwise submit all checkpoint answers through pass.py."
         )
     if phase == "pass2":
-        return "Host performs the full cold PASS 2 reread and submits the exact delta through pass.py."
-    if phase == "pass3":
-        return "Host performs card-only PASS 3, repairs until clean, and submits reviewed hashes through pass.py."
-    if phase == "land":
+        return "Host performs the full cold PASS 2 reread, records owner reconciliation and metadata classification for every changed card, and submits the exact delta through pass.py."
+    if phase == "closure_pass2":
+        return "Host performs the mandatory source-closure AP/DRILL synthesis, cross-library reconciliation, and metadata audits, stages any justified closure changes, and submits closure_pass2 through pass.py."
+    if phase in {"pass3", "closure_pass3"}:
+        return "Host performs card-only PASS 3, including reconciliation and metadata checks, repairs until clean, and submits reviewed hashes through pass.py."
+    if phase in {"land", "closure_land"}:
         if not authorized:
             return "Interactive landing presentation and decision are required."
         if run.state["pass2"]["approval_required"]:
@@ -302,7 +311,7 @@ def status(run: Run) -> dict[str, Any]:
     if phase == "checkpoint":
         result["questions"] = run.state["pass1"]["questions"]
         result["human_required_if"] = "any answer depends on practitioner judgment rather than source/library evidence"
-    if phase == "land":
+    if phase in {"land", "closure_land"}:
         result["approval_required"] = run.state["pass2"]["approval_required"]
     return result
 
@@ -363,7 +372,7 @@ def advance(run: Run) -> dict[str, Any]:
         message = run.accept_preflight(decision)
         append_event(run, {"event": "preflight_autoaccepted", "sha256": marker["sha256"], "basis": "unattended authorization"})
         return {"outcome": "advanced", "message": message, "audit_packet": str(path), "next": status(run)["next_action"]}
-    if phase == "land":
+    if phase in {"land", "closure_land"}:
         packet = run.present()
         marker = run.presentation_marker(required=True)
         unit = run.unit()["unit_id"]

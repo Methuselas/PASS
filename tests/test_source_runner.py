@@ -94,6 +94,8 @@ class SourceRunnerTests(unittest.TestCase):
             "changes": [],
             "removals": [],
             "approval_required": approval_required,
+            "owner_reconciliation": [],
+            "metadata_classification": [],
         })
         issued = drive(run)
         self.assertEqual(issued["action"]["phase"], "pass3")
@@ -106,6 +108,22 @@ class SourceRunnerTests(unittest.TestCase):
                 "reviewed_sha256": {},
             })
         self.assertEqual(run.state["phase"], "land")
+
+    def submit_empty_closure(self, run):
+        issued = drive(run)
+        self.assertEqual(issued["outcome"], "host_action_required")
+        self.assertEqual(issued["action"]["phase"], "closure_pass2")
+        record = run.template()
+        record["closure_audits"] = {name: True for name in record["closure_audits"]}
+        run.submit("closure_pass2", record)
+        issued = drive(run)
+        self.assertEqual(issued["action"]["phase"], "closure_pass3")
+        record = run.template()
+        record["card_only_review"] = True
+        record["checks"] = {name: True for name in SEMANTIC_CHECKS}
+        with patch.object(run, "validate", return_value=None):
+            run.submit("closure_pass3", record)
+        self.assertEqual(run.state["phase"], "closure_land")
 
     def test_source_identity_is_captured_only_after_load(self):
         root = start(self.repo, self.source, "writing", "identity-after-load")
@@ -123,8 +141,14 @@ class SourceRunnerTests(unittest.TestCase):
         with patch.object(run, "validate", return_value=None), patch.object(run, "tool", return_value=None):
             result = advance(run)
         self.assertEqual(result["outcome"], "advanced")
-        self.assertEqual(run.state["phase"], "finished")
+        self.assertEqual(run.state["phase"], "closure_pass2")
         self.assertTrue((run.root / "controller" / "audit" / "u01-landing.md").is_file())
+        self.submit_empty_closure(run)
+        with patch.object(run, "validate", return_value=None), patch.object(run, "tool", return_value=None):
+            result = advance(run)
+        self.assertEqual(result["outcome"], "advanced")
+        self.assertEqual(run.state["phase"], "finished")
+        self.assertTrue((run.root / "controller" / "audit" / "closure-landing.md").is_file())
         with patch("PASS.runtime.pass_source_runner.run_tool", return_value="ok"):
             completion = advance(run)
         self.assertEqual(completion["outcome"], "source_complete")
@@ -141,6 +165,9 @@ class SourceRunnerTests(unittest.TestCase):
     def test_close_removes_owned_runner_state_but_preserves_unknown_hold(self):
         run = self.make_run(task="close-test")
         self.submit_empty_unit(run, approval_required=False)
+        with patch.object(run, "validate", return_value=None), patch.object(run, "tool", return_value=None):
+            advance(run)
+        self.submit_empty_closure(run)
         with patch.object(run, "validate", return_value=None), patch.object(run, "tool", return_value=None):
             advance(run)
         hold = run.root / "controller" / "audit" / "HOLD.txt"

@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.72`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.73`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -175,7 +175,11 @@ PASS work.
    `present`, show the complete preflight packet, and wait for explicit user
    confirmation before `accept-preflight` releases PASS 1. After it is accepted,
    every unit begins at PASS 1. Stage cards under each book's
-   `workspace/authoring/` task and complete all three passes before landing. If
+   `workspace/authoring/` task and complete all three passes before landing.
+   After the final unit lands, complete the controller-required source-closure
+   audit (AP synthesis, DRILL synthesis, cross-library reconciliation, and
+   metadata classification), its closure PASS 3, and closure landing before the
+   run can become `finished`. If
    the user explicitly authorizes this one source to continue unattended, finish
    LOAD and then record it with `PASS/source.py authorize`; repeatedly use `source.py drive` as the authoritative dispatcher. It can archive routine
    preflight/landing packets instead of spending chat tokens reproducing them.
@@ -197,7 +201,9 @@ A suitable instruction to the chat is:
 > confirmation before `accept-preflight` releases PASS 1. Follow the controller
 > phases, stage drafts by canonical category, and after PASS 3 run `present` and
 > reproduce its complete landing packet before recording approval/evidence and
-> landing the unit. If I explicitly tell you to continue this source unattended,
+> landing the unit. After the final unit, follow the mandatory source-closure
+> AP/DRILL synthesis, reconciliation, metadata, closure PASS 3, and closure
+> landing phases; do not call the source complete before that gate finishes. If I explicitly tell you to continue this source unattended,
 > use `PASS/source.py authorize`, then repeatedly follow only the action returned by `PASS/source.py drive`; use `PASS/source.py report` for every progress/completion claim, and keep going until source
 > completion; stop only for practitioner-dependent checkpoints,
 > `approval_required` deltas, source-identity failures, or unrecoverable errors.
@@ -624,7 +630,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.72`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.73`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

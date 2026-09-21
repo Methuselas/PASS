@@ -5,34 +5,111 @@
 ## Objects
 
 - [Add Metallic and Roughness to Give a Flat Material Substance](PAT_add_metallic_and_roughness_to_give_a_material_substance.md) - pattern; 0 design. Tags: blueprints, materials, unreal_engine.
+- [Anchor UI to a Screen Edge for Resolution Independence](PAT_anchor_ui_to_a_screen_edge_for_resolution_independence.md) - pattern; 0 design. Tags: anchors, blueprints, layout, ui, umg, unreal_engine.
 - [Animate a Value Change with a Timeline Instead of Snapping It](PAT_animate_a_value_change_with_a_timeline_instead_of_snapping_it.md) - pattern; 2 block. Tags: animation, blueprints, camera, timeline, unreal_engine.
+- [Attach an Actor to a Component to Follow the Parent](PAT_attach_an_actor_to_a_component_to_follow_the_parent.md) - pattern; 1 skeleton. Tags: attach, blueprints, component, unreal_engine.
 - [Author a Material by Wiring Parameter Nodes to the Result Node's Input Pins](PAT_author_a_material_by_wiring_parameter_nodes_to_input_pins.md) - pattern; 0 design. Tags: blueprints, materials, unreal_engine.
+- [Bind a Widget Property to the Value It Displays](PAT_bind_a_widget_property_to_the_value_it_displays.md) - pattern; 0 design. Tags: binding, blueprints, single_source_of_truth, ui, umg, unreal_engine.
+- [Call Behavior on an Actor of Unknown Type with a Blueprint Interface](PAT_call_behavior_on_an_actor_of_unknown_type_with_a_blueprint_interface.md) - pattern; 1 skeleton. Tags: blueprints, communication, decoupling, interface, unreal_engine.
+- [Cap a Spawned Population by Counting Live Actors](PAT_cap_a_spawned_population_by_counting_live_actors.md) - pattern; 2 block. Tags: blueprints, population, spawning, unreal_engine.
+- [Check the Goal Condition When the Tracked Counter Changes](PAT_check_the_goal_condition_when_the_tracked_counter_changes.md) - pattern; 0 design. Tags: blueprints, counter, goal, unreal_engine, win_condition.
+- [Choose a Collision Preset That Overlaps the Actors You Detect](PAT_choose_a_collision_preset_that_overlaps_the_actors_you_detect.md) - pattern; 0 design. Tags: blueprints, collision, overlap, trigger, unreal_engine.
+- [Choose a Grab Attach Mode by How the Object Is Held](PAT_choose_a_grab_attach_mode_by_how_the_object_is_held.md) - pattern; 1 skeleton. Tags: blueprints, grab, motion_controller, unreal_engine, vr.
 - [Choose Action or Axis Mapping by the Input's Shape](PAT_choose_action_or_axis_mapping_by_input_shape.md) - pattern; 0 design. Tags: blueprints, input, mappings, unreal_engine.
 - [Choose Between Blueprint Macro, Function, and Custom Event](PAT_choose_between_blueprint_macro_function_and_custom_event.md) - pattern; 1 skeleton. Tags: blueprints, unreal_engine.
 - [Choose Blueprint Variable Type by Value Kind](PAT_choose_blueprint_variable_type_by_value_kind.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
+- [Choose Development or Shipping Build Configuration by Audience](PAT_choose_development_or_shipping_build_configuration_by_audience.md) - pattern; 4 final. Tags: blueprints, build_configuration, packaging, unreal_engine.
+- [Choose Engine Scalability Settings by Target Hardware](PAT_choose_engine_scalability_settings_by_target_hardware.md) - pattern; 4 final. Tags: blueprints, graphics, performance, unreal_engine.
 - [Choose Level Blueprint or Blueprint Class by Reuse Scope](PAT_choose_level_blueprint_or_blueprint_class_by_reuse_scope.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
+- [Choose the Abstraction Level by Reuse Scope](PAT_choose_the_abstraction_level_by_reuse_scope.md) - pattern; 1 skeleton. Tags: abstraction, blueprints, readability, unreal_engine.
 - [Choose the Gameplay Framework Base Class by Role](PAT_choose_gameplay_framework_base_class_by_role.md) - pattern; 0 design. Tags: blueprints, gameplay_framework, unreal_engine.
+- [Choose the Input Mode by Who Should Receive Input](PAT_choose_the_input_mode_by_who_should_receive_input.md) - pattern; 1 skeleton. Tags: blueprints, input, input_mode, ui, unreal_engine.
+- [Compare Floats with a Tolerance](PAT_compare_floats_with_a_tolerance.md) - pattern; 2 block. Tags: blueprints, floating_point, unreal_engine.
 - [Compose Blueprint Behavior from Ready Components](PAT_compose_blueprint_behavior_from_ready_components.md) - pattern; 1 skeleton. Tags: blueprints, unreal_engine.
+- [Compose Text From a Template With Format Text](PAT_compose_text_from_a_template_with_format_text.md) - pattern; 1 skeleton. Tags: blueprints, format, text, unreal_engine.
+- [Constrain an Always-Used Ability So It Becomes a Choice](PAT_constrain_an_always_used_ability_so_it_becomes_a_choice.md) - pattern; 0 design. Tags: blueprints, constraints, game_design, unreal_engine.
+- [Create Editor-Only Functions With an Editor Utility Blueprint](PAT_create_editor_only_functions_with_an_editor_utility_blueprint.md) - pattern; 2 block. Tags: blueprints, editor_scripting, editor_utility, unreal_engine.
+- [Create UI Buttons Dynamically From Data in Event Construct](PAT_create_ui_buttons_dynamically_from_data_in_event_construct.md) - pattern; 2 block. Tags: blueprints, dynamic_ui, event_construct, umg, unreal_engine.
 - [Declare Who May Read and Write Blueprint State](PAT_declare_who_may_read_and_write_blueprint_state.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
 - [Define Game Rules and Default Classes in the GameMode](PAT_put_game_rules_and_defaults_in_the_game_mode.md) - pattern; 0 design. Tags: blueprints, game_mode, unreal_engine.
+- [Define Product Configurations With Variant Sets and the Variant Manager](PAT_define_product_configurations_with_variant_sets_and_the_variant_manager.md) - pattern; 2 block. Tags: blueprints, product_configurator, unreal_engine, variant_manager, variant_sets.
+- [Deform a Static Mesh Along a Two-Point Spline With a Spline Mesh Component](PAT_deform_a_static_mesh_along_a_two_point_spline_with_a_spline_mesh_component.md) - pattern; 2 block. Tags: blueprints, procedural_generation, spline_mesh, unreal_engine.
+- [Derive a New Menu Screen From an Existing One by Duplication](PAT_derive_a_new_menu_screen_from_an_existing_one_by_duplication.md) - pattern; 0 design. Tags: blueprints, menu, ui, umg, unreal_engine, widget.
+- [Diagnose Frame Rate Problems by Where They Occur](PAT_diagnose_frame_rate_problems_by_where_they_occur.md) - pattern; 4 final. Tags: blueprints, debugging, performance, unreal_engine.
+- [Dismiss a Mouse Menu by Removing the Widget, Hiding the Cursor, and Unpausing](PAT_dismiss_a_mouse_menu_by_removing_the_widget_hiding_the_cursor_and_unpausing.md) - pattern; 0 design. Tags: blueprints, menu, pause, ui, umg, unreal_engine.
+- [Display a Widget with Create Widget and Add to Viewport](PAT_display_a_widget_with_create_widget_and_add_to_viewport.md) - pattern; 0 design. Tags: blueprints, ui, umg, unreal_engine, viewport, widget.
+- [Document and Organize Variables With Tooltip and Category](PAT_document_and_organize_variables_with_tooltip_and_category.md) - pattern; 1 skeleton. Tags: blueprints, documentation, unreal_engine, variables.
 - [Drive Per-Instance Configuration From the Construction Script](PAT_use_construction_script_for_per_instance_configuration.md) - pattern; 2 block. Tags: blueprints, construction_script, unreal_engine.
 - [Drive Periodic Behavior with a Looping Timer](PAT_drive_periodic_behavior_with_a_looping_timer.md) - pattern; 2 block. Tags: blueprints, periodic_behavior, timers, unreal_engine.
+- [Encapsulate Reusable Behavior and State in an Actor Component](PAT_encapsulate_reusable_behavior_and_state_in_an_actor_component.md) - pattern; 1 skeleton. Tags: actor_component, blueprints, encapsulation, reuse, unreal_engine.
+- [Gate an Action on Its Resource](PAT_gate_an_action_on_its_resource.md) - pattern; 1 skeleton. Tags: blueprints, constraints, resources, unreal_engine.
+- [Gate an Actor's Input Responsiveness With Enable and Disable Input](PAT_gate_an_actors_input_responsiveness_with_enable_disable_input.md) - pattern; 1 skeleton. Tags: blueprints, enable_disable, input, unreal_engine.
+- [Gate an Analog Axis Input on a Deadzone](PAT_gate_an_analog_axis_input_on_a_deadzone.md) - pattern; 1 skeleton. Tags: axis, blueprints, deadzone, input, unreal_engine.
+- [Generate Repeated Level Content in the Construction Script](PAT_generate_repeated_level_content_in_the_construction_script.md) - pattern; 2 block. Tags: blueprints, construction_script, procedural_generation, unreal_engine.
+- [Get the Aim Location with a Second Motion Controller Component](PAT_get_the_aim_location_with_a_second_motion_controller_component.md) - pattern; 1 skeleton. Tags: aim, blueprints, motion_controller, unreal_engine, vr.
 - [Guard Object References With Is Valid Before Use](PAT_guard_object_references_with_is_valid.md) - pattern; 2 block. Tags: blueprints, null_safety, object_reference, unreal_engine.
 - [Hold Cross-Level State in the GameInstance](PAT_put_cross_level_state_in_the_game_instance.md) - pattern; 0 design. Tags: blueprints, game_instance, persistence, unreal_engine.
+- [Implement Save and Load With a SaveGame Child Class](AP_implement_save_and_load_with_a_savegame_child_class.md) - ap; 2 block. Tags: blueprints, persistence, save_load, savegame, unreal_engine.
 - [Investigate an External Asset Before Relying on It](PAT_investigate_an_external_asset_before_relying_on_it.md) - pattern; 0 design. Tags: blueprints, external_assets, maintenance, unreal_engine.
 - [Keep Actors Static Unless They Must Be Manipulated at Runtime](PAT_keep_actors_static_unless_they_must_be_manipulated_at_runtime.md) - pattern; 1 skeleton. Tags: blueprints, mobility, performance, unreal_engine.
 - [Make a Blueprint Function Pure When It Only Computes](PAT_make_blueprint_function_pure_when_it_only_computes.md) - pattern; 1 skeleton. Tags: blueprints, unreal_engine.
+- [Make a Collectible One-Shot by Destroying It on Pickup](PAT_make_a_collectible_one_shot_by_destroying_it_on_pickup.md) - pattern; 0 design. Tags: blueprints, collectible, overlap, pickup, unreal_engine.
+- [Make a Player Action Detectable by AI with a Pawn Noise Emitter](PAT_make_a_player_action_detectable_by_ai_with_a_pawn_noise_emitter.md) - pattern; 1 skeleton. Tags: ai, blueprints, noise, sensing, unreal_engine.
+- [Make Starting a Timer Idempotent](PAT_make_starting_a_timer_idempotent.md) - pattern; 2 block. Tags: blueprints, timers, unreal_engine.
 - [Match a Projectile's Speed Profile to What It Represents](PAT_match_a_projectiles_speed_profile_to_what_it_represents.md) - pattern; 2 block. Tags: blueprints, movement, projectile, tuning, unreal_engine.
+- [Model a Multi-Hit Destruction as a Decrementing Counter](PAT_model_a_multi_hit_destruction_as_a_decrementing_counter.md) - pattern; 1 skeleton. Tags: blueprints, destruction, hit, state, unreal_engine.
 - [Model a Two-Stage Interaction as a Boolean State and a Branch](PAT_model_a_two_stage_interaction_as_a_boolean_state_and_branch.md) - pattern; 1 skeleton. Tags: blueprints, branching, hit, state, unreal_engine.
 - [Model an Actor's Surface Look as a Swappable Material Asset](PAT_model_an_actors_surface_look_as_a_swappable_material_asset.md) - pattern; 0 design. Tags: blueprints, materials, unreal_engine.
 - [Move an Actor Per-Frame with a Delta-Time-Scaled Offset](PAT_move_an_actor_per_frame_with_a_delta_time_scaled_offset.md) - pattern; 2 block. Tags: blueprints, delta_time, movement, unreal_engine.
+- [Normalize a Vector When You Need Direction Only](PAT_normalize_a_vector_when_you_need_direction_only.md) - pattern; 0 design. Tags: blueprints, normalization, unreal_engine, vectors.
+- [Pause the Game and Show the Cursor Before a Mouse Menu](PAT_pause_the_game_and_show_the_cursor_before_a_mouse_menu.md) - pattern; 0 design. Tags: blueprints, menu, pause, ui, umg, unreal_engine.
+- [Persist Only the Coarsest State That Lets the Player Resume](PAT_persist_only_the_coarsest_state_that_lets_the_player_resume.md) - pattern; 0 design. Tags: blueprints, design, persistence, savegame, unreal_engine.
+- [Place Content Along a Path With a Spline Component](PAT_place_content_along_a_path_with_a_spline_component.md) - pattern; 2 block. Tags: blueprints, procedural_generation, spline, unreal_engine.
 - [Place Effects at the Event's Hit Location](PAT_place_effects_at_the_event_hit_location.md) - pattern; 2 block. Tags: blueprints, effects, hit, location, unreal_engine.
+- [Place No Nodes After a Self-Targeting DestroyActor](PAT_place_no_nodes_after_destroy_actor_self.md) - pattern; 0 design. Tags: actor, blueprints, destroy, execution_order, unreal_engine.
+- [Place State-Changing Behavior in the Owner of the State](PAT_place_state_changing_behavior_in_the_owner_of_the_state.md) - pattern; 0 design. Tags: blueprints, ownership, single_source_of_truth, unreal_engine.
 - [Put Player Input Events in the PlayerController](PAT_put_player_input_in_the_player_controller.md) - pattern; 1 skeleton. Tags: blueprints, input, player_controller, unreal_engine.
+- [Reach the Owning Actor from Within a Component with Get Owner](PAT_reach_the_owning_actor_from_within_a_component_with_get_owner.md) - pattern; 1 skeleton. Tags: actor_component, blueprints, casting, get_owner, unreal_engine.
+- [Read an Array Element by Value with Get (a Copy)](PAT_read_an_array_element_by_value_with_get_a_copy.md) - pattern; 2 block. Tags: array, blueprints, get_a_copy, reference_vs_value, unreal_engine.
+- [Render Many Copies of a Mesh With an Instanced Static Mesh Component](PAT_render_many_copies_of_a_mesh_with_an_instanced_static_mesh_component.md) - pattern; 2 block. Tags: blueprints, instanced_static_mesh, procedural_generation, unreal_engine.
+- [Reset Progress by Deleting the Save Slot and Reloading the Level](PAT_reset_progress_by_deleting_the_save_slot_and_reloading_the_level.md) - pattern; 0 design. Tags: blueprints, persistence, reset, savegame, unreal_engine.
 - [Restore the Base Value When a Hold Input Releases](PAT_restore_the_base_value_when_a_hold_input_releases.md) - pattern; 2 block. Tags: blueprints, hold_to_modify, input, unreal_engine.
+- [Route Damage Through the Engine Damage Event](PAT_route_damage_through_the_engine_damage_event.md) - pattern; 1 skeleton. Tags: blueprints, damage, event, unreal_engine.
+- [Run Packaging from a Machine of the Target Platform](PAT_run_packaging_from_a_machine_of_the_target_platform.md) - pattern; 4 final. Tags: blueprints, packaging, platforms, unreal_engine.
+- [Scale Per-Round Difficulty From the Round Number Via a Multiplier](PAT_scale_per_round_difficulty_from_the_round_number_via_a_multiplier.md) - pattern; 0 design. Tags: arcade, blueprints, difficulty, rounds, unreal_engine.
+- [Select a Value From a Small Set by Index With the Select Node](PAT_select_a_value_from_a_small_set_by_index_with_select.md) - pattern; 1 skeleton. Tags: blueprints, select, unreal_engine, value_choice.
 - [Separate Blueprint State from Event-Driven Behavior](PAT_separate_blueprint_state_from_event_driven_behavior.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
+- [Share a Blueprint Reference Across Blueprints via the Game Mode](PAT_share_a_blueprint_reference_across_blueprints_via_the_game_mode.md) - pattern; 2 block. Tags: blueprints, communication, game_mode, service_locator, unreal_engine.
+- [Share Reusable Functions or Macros Project-Wide with a Blueprint Library](PAT_share_reusable_functions_or_macros_project_wide_with_a_blueprint_library.md) - pattern; 0 design. Tags: blueprints, function_library, macro_library, reuse, unreal_engine.
+- [Spawn Actors at a Random Navigable Point](PAT_spawn_actors_at_a_random_navigable_point.md) - pattern; 2 block. Tags: blueprints, navigation, spawning, unreal_engine.
+- [Spawn From a Class Reference Stored in a Variable](PAT_spawn_from_a_class_reference_stored_in_a_variable.md) - pattern; 0 design. Tags: blueprints, class_reference, data_driven, spawning, unreal_engine.
+- [Stop a Periodic Timer When Its Work Is Done](PAT_stop_a_periodic_timer_when_its_work_is_done.md) - pattern; 2 block. Tags: blueprints, timers, unreal_engine.
+- [Store a Timer Name in a Variable](PAT_store_a_timer_name_in_a_variable.md) - pattern; 1 skeleton. Tags: blueprints, timers, unreal_engine.
+- [Store Meter Values as a Normalized Fraction](PAT_store_meter_values_as_a_normalized_fraction.md) - pattern; 0 design. Tags: blueprints, data_representation, meter, ui, umg, unreal_engine.
 - [Store the Reference to an Actor You Spawn](PAT_store_the_spawned_actor_reference.md) - pattern; 2 block. Tags: blueprints, spawning, unreal_engine.
 - [Subclass a Level Actor in Place to Give It Behavior](PAT_subclass_a_level_actor_in_place_to_give_it_behavior.md) - pattern; 1 skeleton. Tags: blueprint_creation, blueprints, unreal_engine.
 - [Swap an Actor's Material at Runtime](PAT_swap_an_actors_material_at_runtime.md) - pattern; 2 block. Tags: blueprints, materials, runtime, unreal_engine.
+- [Switch the Active Camera With Set View Target with Blend](PAT_switch_the_active_camera_with_set_view_target_with_blend.md) - pattern; 1 skeleton. Tags: blueprints, camera, unreal_engine, view_target.
+- [Track a Held Object in a Reference Variable and Clear It on Release](PAT_track_a_held_object_in_a_reference_variable_and_clear_it_on_release.md) - pattern; 1 skeleton. Tags: blueprints, grab, state, unreal_engine, vr.
 - [Use a Direct Object Reference to Call Functions on Another Blueprint](PAT_use_a_direct_object_reference_to_call_functions_on_another_blueprint.md) - pattern; 0 design. Tags: blueprints, communication, object_reference, unreal_engine.
+- [Use a Scene Component as a Reference Location for Other Components](PAT_use_a_scene_component_as_a_reference_location_for_other_components.md) - pattern; 1 skeleton. Tags: attach, blueprints, scene_component, transform, unreal_engine.
+- [Use a Validated Get to Branch on a Reference's Validity](PAT_use_a_validated_get_to_branch_on_a_reference_validity.md) - pattern; 1 skeleton. Tags: blueprints, null_safety, object_reference, unreal_engine, validated_get.
+- [Use Actor Vectors for Direction-Relative Movement](PAT_use_actor_vectors_for_direction_relative_movement.md) - pattern; 2 block. Tags: blueprints, movement, unreal_engine, vectors.
 - [Use an Event Dispatcher to Notify Listeners Without Naming Them](PAT_use_an_event_dispatcher_to_notify_listeners_without_naming_them.md) - pattern; 0 design. Tags: blueprints, communication, decoupling, events, unreal_engine.
 - [Use Cast To to Test a Type or Reach Subclass Members](PAT_use_cast_to_test_a_type_or_reach_subclass_members.md) - pattern; 2 block. Tags: blueprints, casting, type_safety, unreal_engine.
+- [Use Function Local Variables for Temporary Values](PAT_use_function_local_variables_for_temporary_values.md) - pattern; 1 skeleton. Tags: blueprints, scope, unreal_engine, variables.
+- [Use Relative Transforms for Child Components](PAT_use_relative_transforms_for_child_components.md) - pattern; 0 design. Tags: blueprints, components, transforms, unreal_engine.
+- [Use Squared Length to Compare Magnitude](PAT_use_squared_length_to_compare_magnitude.md) - pattern; 2 block. Tags: blueprints, performance, unreal_engine, vectors.
+- [Use Teleport for Collision-Safe Relocation](PAT_use_teleport_for_collision_safe_relocation.md) - pattern; 1 skeleton. Tags: blueprints, movement, teleport, unreal_engine.
+- [Use the Dot Product to Test Direction Alignment](PAT_use_the_dot_product_to_test_direction_alignment.md) - pattern; 0 design. Tags: blueprints, dot_product, unreal_engine, vectors.
+- [Validate a Function's Input Parameters Before Using Them](PAT_validate_a_functions_input_parameters_before_using_them.md) - pattern; 2 block. Tags: blueprints, defensive_programming, input_parameters, unreal_engine, validation.
+- [Validate Class References and Containers Before Use](PAT_validate_class_references_and_containers_before_use.md) - pattern; 2 block. Tags: blueprints, class_reference, containers, defensive_programming, null_safety, unreal_engine.
+- [Write a Formula Inline With a Math Expression Node](PAT_write_a_formula_inline_with_a_math_expression.md) - pattern; 1 skeleton. Tags: blueprints, expression, math, unreal_engine.
+
+## Topics
+
+- [Ai](ai/INDEX.md) - 12 object(s).
+- [Animation](animation/INDEX.md) - 6 object(s).
+- [Data Structures](data-structures/INDEX.md) - 5 object(s).
+- [Flow Control](flow-control/INDEX.md) - 8 object(s).
+- [Traces](traces/INDEX.md) - 5 object(s).

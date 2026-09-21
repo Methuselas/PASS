@@ -110,6 +110,18 @@ class AuthoringWorkflowTests(unittest.TestCase):
             card(self.run.root / name, self.live.stem, note="Test the change against the declared reader effect before acceptance.")
             record["changes"] = [name]
             record["buckets"]["REFINE"] = [{"object_id": self.live.stem, "reason": "Make the acceptance test explicit."}]
+            record["owner_reconciliation"] = [{
+                "object_id": self.live.stem,
+                "compared_owner_ids": [self.live.stem],
+                "reason": "The live card is the nearest existing owner and is being refined rather than duplicated.",
+            }]
+            record["metadata_classification"] = [{
+                "object_id": self.live.stem,
+                "stage_binding": "3 rough",
+                "lane_fit": "skill",
+                "confidence": "high",
+                "reason": "The staged refinement preserves the card's demonstrated execution role and confidence.",
+            }]
         else:
             record["buckets"]["REINFORCE"] = [{"object_id": self.live.stem, "reason": "The existing owner covers the unit completely."}]
         self.run.submit("pass2", record)
@@ -126,6 +138,40 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.first()
         self.second(refine=refine, approval=approval)
         self.third()
+
+
+    def audit_changed(self, record, oid, staged_name, owner_ids=None):
+        fm = workflow.preflight._frontmatter(self.root / staged_name)
+        record["owner_reconciliation"] = [{
+            "object_id": oid,
+            "compared_owner_ids": list(owner_ids or []),
+            "reason": "The candidate was compared against the nearest live owners before disposition.",
+        }]
+        record["metadata_classification"] = [{
+            "object_id": oid,
+            "stage_binding": fm["stage_binding"],
+            "lane_fit": fm["lane_fit"],
+            "confidence": fm["confidence"],
+            "reason": "The staged card metadata was classified explicitly for this object.",
+        }]
+
+    def close_source(self):
+        self.assertEqual(self.run.state["phase"], "closure_pass2")
+        record = self.run.template()
+        record["closure_audits"] = {name: True for name in record["closure_audits"]}
+        self.run.submit("closure_pass2", record)
+        record = self.run.template()
+        record["card_only_review"] = True
+        record["checks"] = {name: True for name in workflow.SEMANTIC_CHECKS}
+        self.run.submit("closure_pass3", record)
+        packet = self.run.present()
+        decision = dict(
+            schema_version=1, unit_id="closure", basis="evidence",
+            presentation_sha256=hashlib.sha256(packet.encode("utf-8")).hexdigest(),
+            reason="The mandatory closure audits found no additional canonical mutation.",
+        )
+        self.run.land(decision)
+        self.assertEqual(self.run.state["phase"], "finished")
 
     def decision(self, basis="evidence"):
         packet = self.run.present()
@@ -183,7 +229,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertTrue(workflow.start(self.repo, self.source, "art", "art-reading").is_dir())
         self.ready()
         self.run.land(self.decision())
-        self.assertEqual(self.run.state["phase"], "finished")
+        self.close_source()
         self.assertTrue(workflow.start(self.repo, self.source, "writing", "second-reading").is_dir())
 
     def test_abandon_retires_the_run_keeps_its_drafts_and_unblocks_start(self):
@@ -207,6 +253,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_finished_run_is_closed_not_abandoned(self):
         self.ready()
         self.run.land(self.decision())
+        self.close_source()
         with self.assertRaisesRegex(workflow.RunError, "close-run"):
             workflow.abandon(self.repo, self.root, "The user asked to abandon it.")
 
@@ -356,6 +403,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.second()
         self.third()
         self.locked(self.run.land, self.decision())
+        self.close_source()
         self.assertTrue((self.root / workflow.CHECKPOINT).is_dir())
         self.locked(self.run.close)
         self.assertFalse((self.root / workflow.CHECKPOINT).exists())
@@ -485,7 +533,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         expected = staged.read_bytes()
         self.run.land(self.decision())
         self.assertEqual(self.live.read_bytes(), expected)
-        self.assertEqual(self.run.state["phase"], "finished")
+        self.assertEqual(self.run.state["phase"], "closure_pass2")
         self.assertFalse(staged.exists())
         self.assertTrue((self.live.parent / "INDEX.md").is_file())
         self.assertFalse((self.repo / ".git").exists())
@@ -588,6 +636,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         retained = self.root / "failure-evidence.md"
         retained.write_text("Explicit evidence hold.\n", encoding="utf-8")
         self.run.land(self.decision())
+        self.close_source()
         self.run.close()
         self.assertFalse(self.run.state_path.exists())
         self.assertTrue(retained.exists())
@@ -618,6 +667,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         card(self.root / name, oid)
         record["changes"] = [name]
         record["buckets"]["NEW_PATTERNS"] = [dict(object_id=oid, reason="Different reusable decision.")]
+        self.audit_changed(record, oid, name, [self.live.stem])
         with self.assertRaisesRegex(workflow.RunError, "NEW_SUBCATEGORY"):
             self.run.submit("pass2", record)
         recipe = self.repo / "workspace/release-recipes/SkillForge_Art.yaml"
@@ -678,6 +728,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         card(self.root / name, oid, note="A new writing owner with a colliding ID.")
         record["changes"] = [name]
         record["buckets"]["NEW_PATTERNS"] = [dict(object_id=oid, reason="Different reusable decision.")]
+        self.audit_changed(record, oid, name, [self.live.stem])
         self.run.submit("pass2", record)
         self.third()
         with self.assertRaisesRegex(workflow.RunError, "validate.py failed"):
@@ -702,7 +753,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         card(other, other.stem, links=[dict(rel="supports", target_object_id=self.live.stem)])
         self.ready()
         self.run.land(self.decision())
-        self.assertEqual(self.run.state["phase"], "finished")
+        self.assertEqual(self.run.state["phase"], "closure_pass2")
 
     def test_live_asset_or_prerequisite_change_also_invalidates_review(self):
         self.ready()
@@ -730,6 +781,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         record["buckets"]["REFINE"] = [dict(object_id=self.live.stem, reason="Reconcile the owner with its actual subject.")]
         record["taxonomy"]["MOVE"] = [dict(path="craft/new-topic", reason="This category owns the decision.")]
         record["taxonomy"]["NEW_SUBCATEGORY"] = [dict(path="craft/new-topic", reason="Give the reusable decision its own topic.")]
+        self.audit_changed(record, self.live.stem, name, [self.live.stem])
         self.run.submit("pass2", record)
         self.third()
         self.run.land(self.decision())

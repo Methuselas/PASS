@@ -6,6 +6,30 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.73 - 2026-09-20
+
+### Added
+
+- Ordinary source runs now enter a mandatory source-closure audit after the
+  final unit lands instead of jumping directly to `finished`. Closure explicitly
+  audits AP synthesis, DRILL synthesis, cross-library reconciliation, and
+  metadata classification; any justified closure delta receives its own
+  card-only PASS 3 and landing gate.
+- PASS 2 now records nearest-owner reconciliation and explicit
+  `stage_binding` / `lane_fit` / `confidence` classification for every changed
+  card. PASS 3 includes matching semantic checks.
+
+### Fixed
+
+- Repaired six Blueprint cards found by the completed book audit: container
+  validation is now precondition-specific; array invalidation no longer blames
+  growth; enum use no longer requires Switch; Sequence no longer implies latent
+  completion; frame-rate scope is an investigation signal rather than proof of
+  cause; and Blueprint float tolerance is linked to the general floating-point
+  foundation.
+- Unattended source orchestration now dispatches, audits, presents, and lands the
+  source-closure phases instead of treating the last unit as source completion.
+
 ## 1.0.0-beta.72 - 2026-09-20
 
 ### Changed

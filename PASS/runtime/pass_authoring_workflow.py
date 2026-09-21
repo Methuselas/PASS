@@ -28,7 +28,8 @@ from . import pass_authoring_run as preflight
 
 
 RUN_SCHEMA = 1
-PHASES = {"load", "preflight", "preflight_accept", "pass1", "checkpoint", "pass2", "pass3", "land", "finished"}
+PHASES = {"load", "preflight", "preflight_accept", "pass1", "checkpoint", "pass2", "pass3", "land",
+          "closure_pass2", "closure_pass3", "closure_land", "finished"}
 BUCKETS = ("NEW_PATTERNS", "REFINE", "REINFORCE", "VARIANTS", "REPLACE", "NEW_APS", "NEW_DRILLS", "REJECT")
 TAXONOMY = ("NEW_SUBCATEGORY", "MOVE", "RENAME", "MERGE")
 BUCKET_LABELS = {
@@ -51,7 +52,7 @@ SEMANTIC_CHECKS = (
     "identity_and_placement", "relations_and_variant_parentage",
     "contradictions_and_field_meaning", "source_independence",
     "examples_and_overreach", "pattern_ap_drill_ownership",
-    "standalone_executability",
+    "standalone_executability", "cross_library_reconciliation", "metadata_classification",
 )
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 FLAG_RE = re.compile(r"^[a-z][a-z0-9_]*$")
@@ -350,8 +351,13 @@ class Run:
             record = preflight.parse_preflight(self.state["plan"])
             if record.domain != self.state["domain"] or self.state["unit_index"] > len(record.units):
                 raise RunError("invalid saved unit plan")
-            if (self.state["phase"] == "finished") != (self.state["unit_index"] == len(record.units)):
-                raise RunError("saved phase does not match the unit plan")
+            at_end = self.state["unit_index"] == len(record.units)
+            if self.state["phase"] == "finished" and not at_end:
+                raise RunError("saved finished phase does not match the unit plan")
+            if at_end and self.state["phase"] not in {"closure_pass2", "closure_pass3", "closure_land", "finished"}:
+                raise RunError("all source units are landed but the mandatory closure audit is not active")
+            if not at_end and self.state["phase"] in {"closure_pass2", "closure_pass3", "closure_land", "finished"}:
+                raise RunError("closure/finished phase cannot start before every source unit lands")
         elif self.state["phase"] not in {"load", "preflight"}:
             raise RunError("saved phase requires a unit plan")
 
@@ -429,7 +435,7 @@ class Run:
     def rollback(self) -> str:
         """Restore the drafts to the last checkpoint so the interrupted phase starts over."""
         phase = self.state["phase"]
-        if phase not in {"preflight", "pass1", "checkpoint", "pass2", "pass3"}:
+        if phase not in {"preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
             raise RunError(f"rollback restarts an interrupted substantive phase; phase {phase} has none to restart")
         manifest = self.checkpoint_manifest()
         if manifest is None:
@@ -495,7 +501,7 @@ class Run:
             done = ", ".join(u["unit_id"].upper() for u in units[:index]) or "none"
             lines += [f"- Units: {len(units)}; landed: {done}"]
         if phase not in {"load", "preflight", "preflight_accept", "finished"}:
-            unit = units[index]
+            unit = self.unit()
             lines += [f"- Current: {unit['unit_id'].upper()} at **{phase}** — {unit['material']}",
                       f"- Unit scope: {unit['locator']}"]
         else:
@@ -603,7 +609,7 @@ class Run:
             return
         # LOAD precedes unattended authorization. Deterministic gates such as
         # preflight acceptance and landing are consumed by source.py itself.
-        if phase not in {"preflight", "pass1", "checkpoint", "pass2", "pass3"}:
+        if phase not in {"preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
             return
         path = self.unattended_action_path()
         if not path.is_file():
@@ -623,7 +629,7 @@ class Run:
             raise RunError("unattended action lease does not match the current PASS phase; rerun source.py drive")
         if type(marker["unit_index"]) is not int or marker["unit_index"] != self.state["unit_index"]:
             raise RunError("unattended action lease belongs to another unit; rerun source.py drive")
-        unit_id = self.unit()["unit_id"] if self.state["plan"] is not None and self.state["unit_index"] < len(self.state["plan"]["units"]) else None
+        unit_id = None if phase == "preflight" else self.unit()["unit_id"]
         if marker["unit_id"] != unit_id:
             raise RunError("unattended action lease unit identity mismatch")
         if marker["state_sha256"] != digest(self.state_path):
@@ -685,7 +691,13 @@ class Run:
         if phase == "preflight_accept":
             return "preflight validated; acceptance pending"
         if phase == "finished":
+            return "source closure landed"
+        if phase == "closure_pass2":
             return f"{units[-1]} landed"
+        if phase == "closure_pass3":
+            return "closure PASS 2"
+        if phase == "closure_land":
+            return "closure PASS 3"
         if phase == "pass1":
             return f"{units[index - 1]} landed" if index else "preflight accepted"
         if phase == "pass2" and self.state["pass1"]["questions"]:
@@ -733,14 +745,18 @@ class Run:
             drafts = "unaccepted scratch from an interrupted PASS 1" if any(p.is_file() for p in (self.root / "drafts").rglob("*")) else "none"
         elif phase in {"checkpoint", "pass2"}:
             drafts = "PASS 1 working drafts (not hash-bound until PASS 3)"
-        elif phase in {"pass3", "land"}:
+        elif phase == "closure_pass2":
+            drafts = "source-closure synthesis/reconciliation drafts (not hash-bound until closure PASS 3)"
+        elif phase in {"pass3", "land", "closure_pass3", "closure_land"}:
             try:
                 if not self.live_unchanged():
-                    blockers.append(f"live library cards changed after PASS 2; run `python PASS/pass.py rewind --run {self.root} --phase pass2`, reconcile, then repeat PASS 3")
-                if phase == "land":
+                    rewind_phase = "closure_pass2" if phase in {"closure_pass3", "closure_land"} else "pass2"
+                    blockers.append(f"live library cards changed after PASS 2; run `python PASS/pass.py rewind --run {self.root} --phase {rewind_phase}`, reconcile, then repeat PASS 3")
+                if phase in {"land", "closure_land"}:
                     if self.staged_hashes() != self.state["reviewed_sha256"]:
                         drafts = "changed after PASS 3"
-                        blockers.append(f"staged files changed after PASS 3; run `python PASS/pass.py rewind --run {self.root} --phase pass3` and rescan")
+                        rewind_phase = "closure_pass3" if phase == "closure_land" else "pass3"
+                        blockers.append(f"staged files changed after PASS 3; run `python PASS/pass.py rewind --run {self.root} --phase {rewind_phase}` and rescan")
                     else:
                         drafts = "verified against PASS 3 hashes"
                 else:
@@ -749,7 +765,7 @@ class Run:
                 drafts = "missing"
                 blockers.append(f"a staged file is missing ({exc}); rewind to pass2 and restage")
 
-        drift = self.checkpoint_drift() if phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3"} else None
+        drift = self.checkpoint_drift() if phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"} else None
         rollback_hint = None
         if drift:
             drafts = f"{len(drift)} file(s) changed since the checkpoint at the end of {self.last_accepted() or 'the run start'}"
@@ -764,7 +780,7 @@ class Run:
             authorization = None
             blockers.append(f"unattended authorization is invalid: {exc}")
         lease = None
-        if authorization and phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3"}:
+        if authorization and phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
             path = self.unattended_action_path()
             if not path.is_file():
                 lease = "none issued; source.py drive will issue one"
@@ -775,7 +791,7 @@ class Run:
 
         units = self.state["plan"]["units"] if self.state["plan"] else []
         index = self.state["unit_index"]
-        active = units[index]["unit_id"].upper() if phase not in {"load", "preflight", "preflight_accept", "finished"} else None
+        active = self.unit()["unit_id"].upper() if phase not in {"load", "preflight", "preflight_accept", "finished"} else None
         try:
             brief = self.brief()
         except RunError as exc:
@@ -830,7 +846,17 @@ class Run:
 
     def unit(self) -> dict:
         plan = self.state["plan"]
-        if plan is None or self.state["unit_index"] >= len(plan["units"]):
+        if plan is None:
+            raise RunError("no active unit")
+        if self.state["phase"] in {"closure_pass2", "closure_pass3", "closure_land"}:
+            return {
+                "unit_id": "closure",
+                "material": "Source-wide closure synthesis and reconciliation audit",
+                "locator": "accepted source corpus plus the live domain library",
+                "overlap_object_ids": [],
+                "card_potential": "mixed",
+            }
+        if self.state["unit_index"] >= len(plan["units"]):
             raise RunError("no active unit")
         return plan["units"][self.state["unit_index"]]
 
@@ -895,7 +921,7 @@ class Run:
             contract["source_preflight"]["instruction"] = (
                 "Perform the one source-wide structural preflight. This preflight establishes the provisional plan for every unit."
             )
-        if phase == "land":
+        if phase in {"land", "closure_land"}:
             if unattended and not self.state["pass2"]["approval_required"]:
                 contract["landing_presentation"] = {
                     "required": True,
@@ -985,16 +1011,27 @@ class Run:
                 result["secondary_subject_flags"] = self.state["pass1"]["secondary_subject_flags"]
                 result["authorized_action"] = (
                     "SOURCE PREFLIGHT IS COMPLETE; do not preflight this unit. Reread this entire unit from scratch; resolve every "
-                    "flag; declare exclusive dispositions, taxonomy and the exact staged change set."
+                    "flag; declare exclusive dispositions, taxonomy and the exact staged change set. For every changed card, record "
+                    "nearest-owner reconciliation and explicit stage/lane/confidence classification."
                 )
-            elif phase == "pass3":
+            elif phase == "closure_pass2":
+                result["authorized_action"] = (
+                    "Run the mandatory source-closure audit over accepted canon: AP synthesis, DRILL synthesis, cross-library owner "
+                    "reconciliation, and metadata classification. Stage only justified closure changes; do not reread the source as "
+                    "another unit and do not manufacture APs or DRILLs merely to populate object types."
+                )
+            elif phase in {"pass3", "closure_pass3"}:
                 result["staged_files"] = self.state["pass2"]["changes"]
                 result["authorized_action"] = (
                     "Close the source/reading notes; scan staged cards as standalone objects. Repair and rescan; submit actual "
-                    "reviewed hashes and every semantic check. Do not rerun preflight."
+                    "reviewed hashes and every semantic check, including cross-library reconciliation and metadata classification. "
+                    "Do not rerun preflight."
                 )
-            elif phase == "land":
-                result["delta"] = {key: self.state["pass2"][key] for key in ("buckets", "taxonomy", "changes", "removals", "approval_required")}
+            elif phase in {"land", "closure_land"}:
+                delta_keys = ("buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification")
+                result["delta"] = {key: self.state["pass2"][key] for key in delta_keys}
+                if "closure_audits" in self.state["pass2"]:
+                    result["delta"]["closure_audits"] = self.state["pass2"]["closure_audits"]
                 result["reviewed_sha256"] = self.state["reviewed_sha256"]
                 if self.unattended_authorization(required=False):
                     result["advance_command"] = f"python PASS/source.py advance --run {self.root}"
@@ -1093,7 +1130,7 @@ class Run:
         return packet
 
     def render_land_packet(self) -> str:
-        if self.state["phase"] != "land":
+        if self.state["phase"] not in {"land", "closure_land"}:
             raise RunError("landing presentation is available only after PASS 3 passes")
         unit = self.unit()
         delta = self.state["pass2"]
@@ -1124,6 +1161,30 @@ class Run:
             else:
                 lines.append("- none")
             lines.append("")
+        if "closure_audits" in delta:
+            lines.append("## SOURCE CLOSURE AUDITS")
+            lines.append("")
+            for name, passed in delta["closure_audits"].items():
+                lines.append(f"- `{name}` — {'pass' if passed else 'FAIL'}")
+            lines.append("")
+        lines.append("## OWNER RECONCILIATION")
+        if delta.get("owner_reconciliation"):
+            for item in delta["owner_reconciliation"]:
+                owners = ", ".join(f"`{oid}`" for oid in item["compared_owner_ids"]) or "none"
+                lines.append(f"- `{item['object_id']}` — compared: {owners} — {item['reason']}")
+        else:
+            lines.append("- none")
+        lines.append("")
+        lines.append("## METADATA CLASSIFICATION")
+        if delta.get("metadata_classification"):
+            for item in delta["metadata_classification"]:
+                lines.append(
+                    f"- `{item['object_id']}` — stage `{item['stage_binding']}`; lane `{item['lane_fit']}`; "
+                    f"confidence `{item['confidence']}` — {item['reason']}"
+                )
+        else:
+            lines.append("- none")
+        lines.append("")
         lines.append("## CHANGES")
         if delta["changes"]:
             lines.extend(f"- `{name}`" for name in delta["changes"])
@@ -1170,10 +1231,15 @@ class Run:
                 result["answers"] = [{"question_id": q["question_id"], "resolution": ""} for q in self.state["pass1"]["questions"]]
             elif phase == "pass2":
                 result.update(full_reread=False, flag_resolutions=[{"flag_id": f["flag_id"], "reason": ""} for f in self.state["pass1"]["secondary_subject_flags"]],
-                              buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False)
-            elif phase == "pass3":
+                              buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False,
+                              owner_reconciliation=[], metadata_classification=[])
+            elif phase == "closure_pass2":
+                result.update(closure_audits={"ap_synthesis": False, "drill_synthesis": False, "cross_library_reconciliation": False, "metadata_classification": False},
+                              buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False,
+                              owner_reconciliation=[], metadata_classification=[])
+            elif phase in {"pass3", "closure_pass3"}:
                 result.update(card_only_review=False, checks={name: False for name in SEMANTIC_CHECKS}, reviewed_sha256=self.staged_hashes())
-            elif phase == "land":
+            elif phase in {"land", "closure_land"}:
                 marker = self.presentation_marker(required=False)
                 result.update(presentation_sha256=marker["sha256"] if marker else "", basis="", reason="")
             else:
@@ -1317,7 +1383,10 @@ class Run:
         elif phase == "pass2":
             self.accept_pass2(data)
             message = f"PASS 2: complete — {self.unit()['unit_id'].upper()}"
-        elif phase == "pass3":
+        elif phase == "closure_pass2":
+            self.accept_closure_pass2(data)
+            message = "CLOSURE PASS 2: synthesis and reconciliation audit complete"
+        elif phase in {"pass3", "closure_pass3"}:
             self.header(data, {"card_only_review", "checks", "reviewed_sha256"})
             if data["card_only_review"] is not True:
                 raise RunError("PASS 3 requires a card-only review with the source and reading notes closed")
@@ -1335,8 +1404,8 @@ class Run:
             if self.staged_hashes() != hashes:
                 raise RunError("drafts changed during validation; repeat PASS 3")
             self.clear_presentation()
-            self.state.update(reviewed_sha256=hashes, phase="land")
-            message = f"PASS 3: pass — {self.unit()['unit_id'].upper()}"
+            self.state.update(reviewed_sha256=hashes, phase="closure_land" if phase == "closure_pass3" else "land")
+            message = ("CLOSURE PASS 3: pass" if phase == "closure_pass3" else f"PASS 3: pass — {self.unit()['unit_id'].upper()}")
         else:
             raise RunError("use land or close-run for this phase")
         self.save()
@@ -1344,7 +1413,7 @@ class Run:
         return message
 
     def accept_pass2(self, data: dict) -> None:
-        self.header(data, {"full_reread", "flag_resolutions", "buckets", "taxonomy", "changes", "removals", "approval_required"})
+        self.header(data, {"full_reread", "flag_resolutions", "buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification"})
         if data["full_reread"] is not True or type(data["approval_required"]) is not bool:
             raise RunError("PASS 2 requires a full cold reread and explicit approval_required Boolean")
         resolved = set()
@@ -1382,7 +1451,91 @@ class Run:
                 relative(item["path"])
                 string(item["reason"], f"{action} reason")
         self.check_change_set(data)
+        self.validate_reconciliation_and_metadata(data)
         self.state.update(pass2=data, live_hashes=self.live_fingerprint(), reviewed_sha256=None, phase="pass3")
+
+    def accept_closure_pass2(self, data: dict) -> None:
+        self.header(data, {"closure_audits", "buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification"})
+        exact(data["closure_audits"], {"ap_synthesis", "drill_synthesis", "cross_library_reconciliation", "metadata_classification"}, "closure audits")
+        if any(value is not True for value in data["closure_audits"].values()):
+            raise RunError("source closure requires explicit AP synthesis, DRILL synthesis, cross-library reconciliation, and metadata audits")
+        if type(data["approval_required"]) is not bool:
+            raise RunError("closure PASS 2 requires an explicit approval_required Boolean")
+        exact(data["buckets"], BUCKETS, "delta buckets")
+        cards = preflight.load_domain_cards(self.repo, self.domain)
+        seen = set()
+        for bucket, entries in data["buckets"].items():
+            for item in array(entries, bucket):
+                exact(item, {"object_id", "reason"}, bucket)
+                oid = string(item["object_id"], "object_id")
+                if not preflight.OBJECT_ID_RE.fullmatch(oid) or oid in seen:
+                    raise RunError("invalid ID or mutually inconsistent/duplicate closure dispositions")
+                seen.add(oid)
+                string(item["reason"], f"{bucket} reason")
+                if bucket in {"REFINE", "REINFORCE", "VARIANTS", "REPLACE"} and oid not in cards:
+                    raise RunError(f"{bucket} requires an active-domain existing owner: {oid}")
+                if bucket.startswith("NEW_") and oid in cards:
+                    raise RunError(f"NEW disposition already has a live owner: {oid}")
+                prefix = {"NEW_PATTERNS": "PAT_", "NEW_APS": "AP_", "NEW_DRILLS": "DRILL_"}.get(bucket)
+                if prefix and not oid.startswith(prefix):
+                    raise RunError(f"wrong object type for {bucket}")
+        exact(data["taxonomy"], TAXONOMY, "taxonomy buckets")
+        for action, entries in data["taxonomy"].items():
+            for item in array(entries, action):
+                exact(item, {"path", "reason"}, action)
+                relative(item["path"])
+                string(item["reason"], f"{action} reason")
+        self.check_change_set(data)
+        self.validate_reconciliation_and_metadata(data)
+        self.state.update(pass2=data, live_hashes=self.live_fingerprint(), reviewed_sha256=None, phase="closure_pass3")
+
+    def validate_reconciliation_and_metadata(self, data: dict) -> None:
+        cards = preflight.load_domain_cards(self.repo, self.domain)
+        changed = {}
+        for name in data["changes"]:
+            source = inside(self.root, name)
+            if source.suffix == ".md":
+                fm = preflight._frontmatter(source)
+                changed[fm["object_id"]] = fm
+
+        owner_entries = array(data["owner_reconciliation"], "owner_reconciliation")
+        owner_seen = set()
+        for entry in owner_entries:
+            exact(entry, {"object_id", "compared_owner_ids", "reason"}, "owner reconciliation")
+            oid = string(entry["object_id"], "owner reconciliation object_id")
+            if oid in owner_seen:
+                raise RunError("duplicate owner reconciliation entry")
+            owner_seen.add(oid)
+            compared = array(entry["compared_owner_ids"], "compared_owner_ids")
+            if len(set(compared)) != len(compared) or any(not isinstance(x, str) or x not in cards for x in compared):
+                raise RunError("owner reconciliation may name only unique live active-domain object IDs")
+            string(entry["reason"], "owner reconciliation reason")
+        if owner_seen != set(changed):
+            raise RunError("every changed card requires exactly one owner reconciliation entry")
+
+        meta_entries = array(data["metadata_classification"], "metadata_classification")
+        meta_seen = set()
+        for entry in meta_entries:
+            exact(entry, {"object_id", "stage_binding", "lane_fit", "confidence", "reason"}, "metadata classification")
+            oid = string(entry["object_id"], "metadata object_id")
+            if oid in meta_seen or oid not in changed:
+                raise RunError("metadata classification must name each changed card exactly once")
+            meta_seen.add(oid)
+            stage = string(entry["stage_binding"], "stage_binding")
+            lane = string(entry["lane_fit"], "lane_fit")
+            confidence = string(entry["confidence"], "confidence")
+            if stage not in {"0 design", "1 skeleton", "2 block", "3 rough", "4 final"}:
+                raise RunError("metadata stage_binding is outside the PASS vocabulary")
+            if lane not in {"teach", "skill", "both"}:
+                raise RunError("metadata lane_fit is outside the PASS vocabulary")
+            if confidence not in {"low", "medium", "high"}:
+                raise RunError("metadata confidence is outside the PASS vocabulary")
+            string(entry["reason"], "metadata classification reason")
+            fm = changed[oid]
+            if fm.get("stage_binding") != stage or fm.get("lane_fit") != lane or fm.get("confidence") != confidence:
+                raise RunError(f"metadata classification does not match staged frontmatter: {oid}")
+        if meta_seen != set(changed):
+            raise RunError("every changed card requires exactly one metadata classification entry")
 
     def check_change_set(self, data: dict) -> None:
         changes = array(data["changes"], "changes")
@@ -1577,8 +1730,8 @@ for name in recipes:
             lease.unlink(missing_ok=True)
 
     def _land(self, decision: dict) -> str:
-        if self.state["phase"] != "land":
-            raise RunError("unit cannot land or advance before PASS 3 and mechanical validation pass")
+        if self.state["phase"] not in {"land", "closure_land"}:
+            raise RunError("delta cannot land or advance before PASS 3 and mechanical validation pass")
         self.header(decision, {"presentation_sha256", "basis", "reason"})
         marker = self.presentation_marker(required=True)
         current_packet_sha = hashlib.sha256(self.render_land_packet().encode("utf-8")).hexdigest()
@@ -1595,7 +1748,8 @@ for name in recipes:
             raise RunError("this delta requires practitioner approval; evidence cannot substitute for it")
         self.check_live()
         if self.staged_hashes() != self.state["reviewed_sha256"]:
-            raise RunError("staged files changed after PASS 3; rewind to pass3 and rescan")
+            rewind_phase = "closure_pass3" if self.state["phase"] == "closure_land" else "pass3"
+            raise RunError(f"staged files changed after PASS 3; rewind to {rewind_phase} and rescan")
         self.check_change_set(self.state["pass2"])
         writes = {}
         generated_removals = []
@@ -1626,6 +1780,7 @@ for name in recipes:
         before = {name: path.read_bytes() if path.is_file() else None for name, path in targets.items()}
         old_state = json.loads(json.dumps(self.state))
         unit = self.unit()["unit_id"]
+        is_closure = self.state["phase"] == "closure_land"
         try:
             for name in removals:
                 targets[name].unlink()
@@ -1634,8 +1789,11 @@ for name in recipes:
             for name, content in writes.items():
                 if targets[name].read_bytes() != content:
                     raise RunError(f"landed file verification failed: {name}")
-            self.state.update(unit_index=self.state["unit_index"] + 1, pass1=None, pass2=None, reviewed_sha256=None, live_hashes=None)
-            self.state["phase"] = "finished" if self.state["unit_index"] == len(self.state["plan"]["units"]) else "pass1"
+            if is_closure:
+                self.state.update(pass1=None, pass2=None, reviewed_sha256=None, live_hashes=None, phase="finished")
+            else:
+                self.state.update(unit_index=self.state["unit_index"] + 1, pass1=None, pass2=None, reviewed_sha256=None, live_hashes=None)
+                self.state["phase"] = "closure_pass2" if self.state["unit_index"] == len(self.state["plan"]["units"]) else "pass1"
             self.save()
             self.clear_presentation()
         except BaseException:
@@ -1653,11 +1811,12 @@ for name in recipes:
             except OSError:
                 cleanup.append(name)
         suffix = f"; retained scratch needs cleanup: {', '.join(cleanup)}" if cleanup else ""
-        return f"UNIT CLOSED AND LANDED: {unit.upper()} (no Git commit created){suffix}"
+        return (f"SOURCE CLOSURE LANDED: synthesis/reconciliation complete (no Git commit created){suffix}"
+                if is_closure else f"UNIT CLOSED AND LANDED: {unit.upper()} (no Git commit created){suffix}")
 
     def rewind(self, phase: str) -> None:
-        if phase not in {"pass1", "pass2", "pass3"}:
-            raise RunError("rewind supports only pass1, pass2 or pass3")
+        if phase not in {"pass1", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
+            raise RunError("rewind supports only pass1/pass2/pass3 or closure_pass2/closure_pass3")
         if self.state["phase"] in {"load", "preflight", "preflight_accept", "finished"}:
             raise RunError("no accepted active unit can be rewound")
         self.clear_presentation()
@@ -1667,7 +1826,7 @@ for name in recipes:
             if self.state["pass1"] is None or (self.state["pass1"]["questions"] and "answers" not in self.state["pass1"]):
                 raise RunError("PASS 1 and any checkpoint must pass before PASS 2")
             self.state.update(pass2=None, live_hashes=None, reviewed_sha256=None)
-        elif phase == "pass3":
+        elif phase in {"pass3", "closure_pass3"}:
             if self.state["pass2"] is None:
                 raise RunError("PASS 2 must pass before PASS 3")
             self.check_live()
@@ -1722,8 +1881,8 @@ for name in recipes:
         audit = inside(self.root, "controller/audit")
         if audit.is_dir():
             owned = ["events.jsonl", "preflight.md", "preflight.json", "final-validate.txt", "final-verify-references.txt"]
-            owned.extend(p.name for p in audit.glob("u*-landing.md"))
-            owned.extend(p.name for p in audit.glob("u*-landing.json"))
+            owned.extend(p.name for p in audit.glob("*-landing.md"))
+            owned.extend(p.name for p in audit.glob("*-landing.json"))
             for name in sorted(set(owned)):
                 inside(audit, name).unlink(missing_ok=True)
             if not any(audit.iterdir()):
@@ -1790,7 +1949,7 @@ def build_parser() -> argparse.ArgumentParser:
         command_parser = sub.add_parser(command)
         command_parser.add_argument("--run", type=Path, required=True)
         if command == "submit":
-            command_parser.add_argument("--phase", choices=("load", "preflight", "pass1", "checkpoint", "pass2", "pass3"), required=True)
+            command_parser.add_argument("--phase", choices=("load", "preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"), required=True)
             command_parser.add_argument("--input", required=True, help="JSON path or '-' for stdin")
         elif command == "land":
             command_parser.add_argument("--decision", required=True, help="JSON landing decision path or '-' for stdin")
@@ -1799,7 +1958,7 @@ def build_parser() -> argparse.ArgumentParser:
         elif command == "revise-preflight":
             command_parser.add_argument("--input", required=True, help="replacement preflight JSON path or '-' for stdin")
         elif command == "rewind":
-            command_parser.add_argument("--phase", choices=("pass1", "pass2", "pass3"), required=True)
+            command_parser.add_argument("--phase", choices=("pass1", "pass2", "pass3", "closure_pass2", "closure_pass3"), required=True)
         elif command == "replan":
             command_parser.add_argument("--input", required=True, help="JSON boundary amendment path or '-' for stdin")
     return parser

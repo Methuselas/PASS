@@ -22,6 +22,8 @@ cross_links:
   target_object_id: PAT_bound_an_arithmetic_expression_before_trusting_it
 - rel: related_to
   target_object_id: PAT_use_dedicated_types_over_general_ones
+- rel: foundation_of
+  target_object_id: PAT_compare_floats_with_a_tolerance
 reference:
   source_title: 'Code Complete: A Practical Handbook of Software Construction, Second Edition'
   author: Steve McConnell

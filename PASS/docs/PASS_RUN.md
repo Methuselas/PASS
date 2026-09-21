@@ -55,8 +55,11 @@ once for the run.** Only accepted preflight releases the first unit for
 substantive reading. Each unit completes PASS 1, any consequential-question
 checkpoint, the full cold PASS 2, the card-only PASS 3, and verified landing before
 the next becomes active. Landing advances the next unit directly to PASS 1; it
-never creates another preflight phase. A low forecast never permits skipping its
-reads.
+never creates another preflight phase. After the final unit lands, the controller
+enters a separate mandatory source-closure audit for AP synthesis, DRILL synthesis,
+cross-library reconciliation, and metadata classification. Any closure changes
+receive their own card-only closure PASS 3 and landing gate before the run becomes
+`finished`. A low forecast never permits skipping its reads.
 
 The supported executable progression is currently **unit ingestion**. Curriculum
 audit records fail closed at this entrypoint until a separate scope contract is
@@ -851,10 +854,25 @@ method that differed. A refinement names what it sharpened. A rejection names
 why. This is the only artifact that distinguishes a mature library correctly
 declining material from an agent that read badly — the counts are identical.
 
-At a meaningful closure boundary, also ask one AP question: **did the accepted
-knowledge materially improve a recurring complete action whose orchestration is
-missing or stale?** If no, close normally. If yes, run §2.8 as a separate approved
-AP synthesis move; do not force it into the last source unit.
+At a meaningful closure boundary, perform the controller-owned closure audit
+before declaring the source finished. It asks four explicit questions:
+
+- **AP synthesis:** did accepted knowledge materially improve a recurring complete
+  action whose orchestration is missing or stale? If yes, run §2.8 as a separate
+  closure change; do not force it into the last source unit.
+- **DRILL synthesis:** does accepted knowledge now support a reusable practice act
+  with an objective success criterion that is not already owned? Do not turn
+  quizzes or demonstrations into Drills merely to populate the type.
+- **Cross-library reconciliation:** were new/refined owners compared against their
+  nearest existing owners so a specialization, refinement, variant, reinforcement,
+  or replacement is not silently emitted as a sibling foundation?
+- **Metadata classification:** do `stage_binding`, `lane_fit`, and `confidence`
+  reflect the actual card rather than a repeated default?
+
+If the audit stages changes, run card-only closure PASS 3 and the normal
+landing/approval gate over that closure delta. If it stages nothing, the empty
+closure delta still passes closure PASS 3 and landing so the audit is explicit
+and resumable. Only then is the run `finished`.
 
 Discard the run state. The accepted cards are what remains. Complete §Workspace
 lifecycle: verify the durable destination, remove owned scratch and staging

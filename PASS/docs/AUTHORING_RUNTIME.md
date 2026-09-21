@@ -252,8 +252,13 @@ bytes match the original identity. A different PDF cannot inherit the run.
    bound to the current packet hash. It then checks the reviewed bytes and
    unchanged live owners, validates the complete repository overlay including
    global ID uniqueness, regenerates the active domain's indexes, verifies written
-   bytes, and advances one unit directly to PASS 1 (or `finished` after the last
-   unit). Ordinary write failures restore affected files and keep the unit open.
+   bytes, and advances one unit directly to PASS 1. After the last source unit
+   lands, it enters `closure_pass2` rather than `finished`. The closure record
+   must explicitly complete AP synthesis, DRILL synthesis, cross-library
+   reconciliation, and metadata-classification audits. Any staged closure delta
+   then passes `closure_pass3` and `closure_land`; only that landing advances the
+   run to `finished`. Ordinary write failures restore affected files and keep the
+   current unit/closure gate open.
    Successfully integrated staged files are removed. Landing creates no Git
    commit; commit sizing and publication remain separate maintainer actions.
 
@@ -270,6 +275,8 @@ nor an accepted forecast makes a missing read valid.
 python PASS/pass.py rewind --run <run-directory> --phase pass1
 python PASS/pass.py rewind --run <run-directory> --phase pass2
 python PASS/pass.py rewind --run <run-directory> --phase pass3
+python PASS/pass.py rewind --run <run-directory> --phase closure_pass2
+python PASS/pass.py rewind --run <run-directory> --phase closure_pass3
 python PASS/pass.py rollback --run <run-directory>
 python PASS/pass.py replan --run <run-directory> --input <amendment.json>
 ```
@@ -303,8 +310,9 @@ inspect the library and verify no operation remains active before removing a
 stale lease. A process termination during filesystem writes may require manual
 reconciliation from preserved drafts; ordinary caught write failures roll back.
 
-After all units land, `close-run` removes generated controller state and its
-task note, prunes empty task directories and preserves nonempty retained work.
+After all units and the mandatory source-closure gate land, `close-run` removes
+generated controller state and its task note, prunes empty task directories and
+preserves nonempty retained work.
 Preserve original inputs, other tasks and explicit failure-evidence holds. Remove
 remaining owned scratch when its purpose ends, under `PASS_RUN.md`'s workspace
 lifecycle. No controller state or drafts ship in project archives or SkillForge

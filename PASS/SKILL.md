@@ -51,8 +51,11 @@ start with `python PASS/pass.py start --source <source> --domain
 says to roll back, run `pass.py rollback` and redo that phase from its beginning.
 Read the run's generated `HANDOFF.md`, never `controller/run.json`. Follow its current
 phase through LOAD, the **one source-wide preflight**, its mandatory presentation
-and explicit user-acceptance gate, then one unit's PASS 1 / 2 / 3 and verified
-landing. **Preflight never repeats per unit.** A validated preflight does not
+and explicit user-acceptance gate, then each unit's PASS 1 / 2 / 3 and verified
+landing. After the final unit lands, complete the separate mandatory source-closure
+audit (AP synthesis, DRILL synthesis, cross-library reconciliation, and metadata
+classification), closure PASS 3, and closure landing before claiming the run is
+finished. **Preflight never repeats per unit.** A validated preflight does not
 release PASS 1: run `present`, reproduce the complete preflight packet, and wait
 for explicit user confirmation of the stated subject and provisional source-wide
 plan before `accept-preflight`. Do not treat the original request to run PASS as

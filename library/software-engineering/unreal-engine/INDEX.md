@@ -6,3 +6,4 @@
 
 - [Blueprints](blueprints/INDEX.md) - 136 object(s).
 - [Editor](editor/INDEX.md) - 31 object(s).
+- [Vfx](vfx/INDEX.md) - 70 object(s).

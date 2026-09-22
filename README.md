@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.75`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.76`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.

@@ -6,6 +6,14 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.76 - 2026-09-21
+
+### Added
+
+- Added 70 Unreal Engine VFX cards covering Niagara effects, modules, events,
+  Blueprint controls, debugging, performance, and reusable practice drills.
+  The cards are part of the existing `software-engineering/unreal-engine` module.
+
 ## 1.0.0-beta.75 - 2026-09-20
 
 ### Fixed

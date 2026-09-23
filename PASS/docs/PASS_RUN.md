@@ -47,19 +47,30 @@ prose promises, hand-edit controller state, write provisional cards into
 does not authorize its destination: use the user's selected existing domain or
 the sole domain of a bounded project. Otherwise obtain the destination first.
 
-After LOAD, preflight permits controlled structural orientation: metadata,
-contents/page map, extraction-quality sampling, and enough instructional
-structure to establish the subject and units. It does not permit chapter
-ingestion or lesson extraction. **Preflight is source-scoped and occurs exactly
-once for the run.** Only accepted preflight releases the first unit for
-substantive reading. Each unit completes PASS 1, any consequential-question
-checkpoint, the full cold PASS 2, the card-only PASS 3, and verified landing before
-the next becomes active. Landing advances the next unit directly to PASS 1; it
-never creates another preflight phase. After the final unit lands, the controller
-enters a separate mandatory source-closure audit for AP synthesis, DRILL synthesis,
-cross-library reconciliation, and metadata classification. Any closure changes
-receive their own card-only closure PASS 3 and landing gate before the run becomes
-`finished`. A low forecast never permits skipping its reads.
+After LOAD, deterministic **Source Prep** creates or verifies a model-facing
+working package before preflight. Source Prep keeps a deterministic extraction
+floor for integrity checks, then emits semantic Markdown: code/preformatted
+whitespace is preserved, headings/lists are structured, suitable tables become
+Markdown/CSV, and significant visuals are retained as on-demand assets. Printed
+hyphen repairs are conservative. Source Prep removes layout-only noise but never
+summarizes, paraphrases, corrects the author, classifies PAT/DRILL/AP content, or
+decides what instruction matters. Its package is bound to the source identity and
+may be reused after a model/provider switch.
+
+Preflight then permits controlled structural orientation: metadata, contents/page
+map, extraction-quality sampling, and enough instructional structure to establish
+the subject and units. It does not permit chapter ingestion or lesson extraction.
+**Preflight is source-scoped and occurs exactly once for the run.** Only accepted
+preflight releases the first unit for substantive reading. Each unit completes
+PASS 1, any consequential-question checkpoint, the full cold PASS 2, the card-only
+PASS 3, and verified acceptance into cumulative skill-staging before the next
+becomes active. Later units reconcile against canonical knowledge plus that
+accepted source delta. After the final unit, the controller enters a separate
+mandatory source-closure audit for AP synthesis, DRILL synthesis, cross-library
+reconciliation, and metadata classification. Any closure changes receive their own
+card-only closure PASS 3 and approval gate. Only the successful close transaction
+canonicalizes the complete source delta and marks the run `finished`. A low
+forecast never permits skipping its reads.
 
 The supported executable progression is currently **unit ingestion**. Curriculum
 audit records fail closed at this entrypoint until a separate scope contract is
@@ -113,34 +124,38 @@ not modified unless that work is explicitly opened.
 ### Workspace lifecycle
 
 Before creating work files, choose one task-named directory under the existing
-purpose bucket: `workspace/authoring/`, `builds/`, `code-studies/`, `drill-runs/`
-or `handoffs/`. Put reusable tools, release recipes, inputs and deliverables in
-their existing `tools/`, `release-recipes/`, `sources/` and `releases/` buckets.
-Do not drop loose generated files or new ad-hoc buckets in the workspace root.
-Keep extraction, probes, logs and build outputs inside the task's area; do not
-create a workspace registry or permanent authoring sidecar to track them.
+purpose bucket: `workspace/skill-staging/`, `builds/`, `code-studies/`,
+`drill-runs/` or `handoffs/`. Put reusable tools, release recipes, inputs and
+deliverables in their existing `tools/`, `release-recipes/`, `sources/` and
+`project-releases/` buckets. Disposable process-local files belong under
+`workspace/tmp/`, not a root-level `tmp/`. Do not drop loose generated files or
+new ad-hoc buckets in the workspace root.
 
-The executable entrypoint owns `workspace/authoring/<domain>/<book-run>/`:
-`controller/` contains disposable progression state; `drafts/<canonical-category>/`
-contains provisional card files; `recipes/` may stage the domain's existing
-canonical recipe alongside a module change. The book name never becomes a
-library category by itself. Separate books and repeated runs use different task
-directories. Drafts retain their intended library paths inside the domain; an
-overlay replaces existing owners for validation instead of creating duplicates.
-This per-source, lane-local scratch is an explicit exception for executing the
-current run, not a retired ledger, source receipt, card field, memory entry or
-runtime dependency. It never ships in a project archive or SkillForge release.
+The executable entrypoint owns `workspace/skill-staging/<domain>/<book-run>/`.
+`controller/` contains progression state and hard checkpoints; `prepared-source/`
+contains verified model-facing input when Source Prep has run;
+`drafts/<canonical-category>/` contains the active unit's provisional changes;
+`accepted/` contains the cumulative reviewed source delta; and `recipes/` may
+stage the domain's existing canonical recipe alongside a module change. The book
+name never becomes a library category by itself. Prepared-source metadata and
+run/checkpoint state remain authoring-only and never enter cards.
 
-Landing validates the complete proposed library overlay, checks repository-wide
-ID uniqueness at integration, regenerates the active domain's indexes, verifies
-written bytes and removes integrated staged files. It creates no Git commit.
-Reviewed hashes bind PASS 3 to the actual delta. If another book changes the live
-domain, assets, prerequisites or recipe, reconcile from PASS 2 and repeat PASS 3.
-One domain's temporary landing lease serializes its book integrations; the host
-must also serialize canonical repository merges across domains. Neither lease
-nor run state contains shared research or permanent progress history.
+A continuation project snapshot may carry the selected domain's active
+`skill-staging/` directory so another capable model can resume from the verified
+checkpoint without chat memory. Published SkillForge releases never carry this
+authoring state. Project snapshots include only the canonical release recipe for
+the selected domain(s).
 
-Project ZIPs go directly in `workspace/releases/PASS-project-<domain>.zip`, without
+Unit landing validates the complete working overlay and accepts the reviewed
+delta into `accepted/`; it does **not** mutate canonical `library/`. Subsequent
+units see canonical knowledge plus this accepted source delta. The source-close
+transaction validates the complete overlay, serializes canonical integration with
+the domain landing lease, writes/verifies canonical bytes, checkpoints the result,
+and only then retires its commit journal. If the process dies before the new
+checkpoint becomes durable, `recover` restores the prior verified controller and
+canonical state.
+
+Project ZIPs go directly in `workspace/project-releases/PASS-project-<domain>.zip`, without
 version subfolders. Finished skill ZIPs go in the SkillForge repository. Follow
 `MODULE_RELEASES.md` §Maintainer destinations unless the user specifies otherwise.
 

@@ -35,8 +35,10 @@ def action_path(run: Run) -> Path:
 
 def action_instruction(run: Run) -> str:
     phase = run.state["phase"]
+    if phase == "source_prep":
+        return "Run deterministic Source Prep through PASS/source_prep.py, verify the prepared package, and finalize it before preflight. Do not ingest PASS units."
     if phase == "preflight":
-        return "Perform the one structural source-wide preflight, write the canonical preflight JSON, then submit phase=preflight through PASS/pass.py."
+        return "Perform the one structural source-wide preflight against the prepared package, write the canonical preflight JSON, then submit phase=preflight through PASS/pass.py."
     if phase == "pass1":
         return f"Read the complete bounded unit {run.unit()['unit_id']} from the source, create only working drafts/notes allowed by PASS 1, then submit phase=pass1 through PASS/pass.py."
     if phase == "checkpoint":
@@ -104,9 +106,9 @@ def progress_report(run: Run) -> dict[str, Any]:
     if not plan:
         statement = f"No preflight plan accepted; current phase={run.state['phase']}."
     elif completion:
-        statement = f"Source complete: {closed}/{count} units landed and final source validation recorded."
+        statement = f"Source complete: {closed}/{count} units accepted and final source validation recorded."
     else:
-        prefix = f"{closed}/{count} units landed"
+        prefix = f"{closed}/{count} units accepted"
         statement = prefix + (f"; current={active}/{run.state['phase']}; source not complete." if active else f"; phase={run.state['phase']}; source not complete.")
     return {
         "schema_version": REPORT_SCHEMA,
@@ -131,6 +133,8 @@ def drive(run: Run) -> dict[str, Any]:
     from ``progress_report``.
     """
     run.unattended_authorization(required=True)
+    if run.state.get("stop_reached"):
+        return {"outcome": "stop_target_reached", "stop_after": run.state.get("stop_after"), "report": progress_report(run)}
     for _ in range(100):
         phase = run.state["phase"]
         if phase in {"preflight_accept", "land", "closure_land", "finished"}:
@@ -139,6 +143,12 @@ def drive(run: Run) -> dict[str, Any]:
             if result.get("outcome") in {"blocked_human_required", "source_complete"}:
                 return {**result, "report": progress_report(run)}
             continue
+        if phase == "source_prep":
+            return {
+                "outcome": "source_prep_required",
+                "instruction": f"Run `python PASS/source_prep.py prepare --run {run.root}` then `python PASS/source_prep.py finalize --run {run.root}`.",
+                "report": progress_report(run),
+            }
         if phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
             action = issue_action(run)
             return {"outcome": "host_action_required", "action": action, "report": progress_report(run)}
@@ -194,7 +204,7 @@ def write_packet(run: Run, name: str, packet: str, sha256: str) -> Path:
 
 
 def authorization_record(run: Run, reason: str) -> dict[str, Any]:
-    run.source_file(required=True)
+    run.source_or_prepared()
     identity = run.source_identity()
     return {
         "schema_version": AUTH_SCHEMA,
@@ -237,18 +247,22 @@ def source_verified(run: Run) -> tuple[bool, str | None]:
         path = Path(run.state["source"]).resolve()
         return (path.is_file(), None if path.is_file() else f"source does not exist: {path}")
     try:
-        run.source_file(required=True)
+        run.source_or_prepared()
         return True, None
     except RunError as exc:
         return False, str(exc)
 
 
 def next_action(run: Run, authorized: bool, source_ok: bool) -> str:
+    if run.state.get("stop_reached"):
+        return f"Stop target {run.state.get('stop_after')} reached; preserve the archive or run pass.py continue-run when the user requests continuation."
     if not source_ok:
         return "Rebind the identical source bytes with source.py rebind-source before continuing."
     phase = run.state["phase"]
     if phase == "load":
         return "Host reads the canonical required documents and submits LOAD through pass.py."
+    if phase == "source_prep":
+        return "Run deterministic Source Prep and finalize the verified prepared package before preflight."
     if phase == "preflight":
         return "Host performs the one structural source-wide preflight and submits it through pass.py."
     if phase == "preflight_accept":
@@ -271,7 +285,7 @@ def next_action(run: Run, authorized: bool, source_ok: bool) -> str:
             return "Interactive landing presentation and decision are required."
         if run.state["pass2"]["approval_required"]:
             return "Run source.py advance to archive the packet; it will stop for practitioner approval."
-        return "Run source.py advance to archive and auto-land the routine delta."
+        return "Run source.py advance to archive and accept the routine delta into skill-staging."
     if phase == "finished":
         return "Run source.py advance once more to execute final source verification and record completion."
     raise RunError(f"unknown phase: {phase}")
@@ -295,7 +309,7 @@ def status(run: Run) -> dict[str, Any]:
         "domain": run.domain,
         "source": run.state["source"],
         "source_sha256": identity["sha256"] if identity else None,
-        "source_identity": "verified" if identity and ok else ("pending_load" if phase == "load" else "unverified"),
+        "source_identity": ("prepared-package" if ok and identity and not Path(run.state["source"]).is_file() else "verified") if identity and ok else ("pending_load" if phase == "load" else "unverified"),
         "source_verified": ok,
         "phase": phase,
         "next_action": next_action(run, authorization is not None, ok),
@@ -304,8 +318,8 @@ def status(run: Run) -> dict[str, Any]:
         result["source_error"] = source_error
     if run.state["plan"] is not None:
         result["unit_count"] = len(run.state["plan"]["units"])
-        result["units_closed"] = run.state["unit_index"]
-    if phase not in {"load", "preflight", "preflight_accept", "finished"}:
+        result["units_accepted"] = run.state["unit_index"]
+    if phase not in {"load", "source_prep", "preflight", "preflight_accept", "finished"}:
         result["unit_id"] = run.unit()["unit_id"]
         result["material"] = run.unit()["material"]
     if phase == "checkpoint":
@@ -334,8 +348,8 @@ def completion_path(run: Run) -> Path:
 
 def verify_finished(run: Run) -> dict[str, Any]:
     if run.state["phase"] != "finished":
-        raise RunError("final source verification is available only after every unit has landed")
-    run.source_file(required=True)
+        raise RunError("final source verification is available only after staged source closure has canonicalized successfully")
+    run.source_or_prepared()
     validate_output = run_tool(run.repo, "validate.py")
     reference_output = run_tool(run.repo, "verify_references.py")
     directory = audit_dir(run)
@@ -391,10 +405,10 @@ def advance(run: Run) -> dict[str, Any]:
             "unit_id": unit,
             "presentation_sha256": marker["sha256"],
             "basis": "unattended authorization",
-            "reason": "Routine delta auto-landed under the user's source-scoped unattended authorization after complete packet render and audit capture.",
+            "reason": "Routine delta accepted into skill-staging under the user's source-scoped unattended authorization after complete packet render and audit capture.",
         }
         message = run.land(decision)
-        append_event(run, {"event": "unit_auto_landed", "unit_id": unit, "sha256": marker["sha256"], "basis": "unattended authorization"})
+        append_event(run, {"event": "unit_auto_accepted", "unit_id": unit, "sha256": marker["sha256"], "basis": "unattended authorization"})
         return {"outcome": "advanced", "message": message, "audit_packet": str(path), "next": status(run)["next_action"]}
     if phase == "finished":
         return verify_finished(run)

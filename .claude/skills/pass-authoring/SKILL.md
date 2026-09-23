@@ -39,8 +39,14 @@ to load it now.
 Ordinary source study first runs `python PASS/pass.py resume --domain
 <authorized-domain> --source <source>`: an unfinished run of that source is
 continued, never duplicated. Only when it reports none, run `python PASS/pass.py
-start --source <source> --domain <authorized-domain>`. Follow the executable phases; keep provisional
-cards in `workspace/authoring/<domain>/<book-run>/drafts/<category>/`. A valid
+start --source <source> --domain <authorized-domain>`. Follow the executable
+phases. After LOAD, deterministic Source Prep creates or verifies the reusable
+model-facing package before one source-wide preflight. User requests such as
+"prep this for PASS" map to `--stop-after source_prep`; "run through preflight"
+or "stop before ingesting units" map to `--stop-after preflight`. If `resume`
+requires `recover`, restore the last verified hard checkpoint before doing any
+new work. Keep provisional cards in
+`workspace/skill-staging/<domain>/<book-run>/drafts/<category>/`. A valid
 source-wide preflight stops at its presentation/acceptance gate: run `present`,
 show the complete packet, and wait for explicit user confirmation before
 `accept-preflight` releases PASS 1. If the user explicitly authorizes this one
@@ -52,9 +58,10 @@ or consumes an `approval_required` delta. Read
 rules in `PASS/docs/PASS_RUN.md`. The old preflight helper alone cannot authorize
 ingestion. Repository maintenance and packaging do not need a source run. Existing Unreal Niagara assets use the separate `python PASS/vfx.py` analysis lane rather than source preflight; read `PASS/docs/UNREAL_VFX_PASS.md` before such a run.
 
-`library/` holds finished knowledge. There is no authoring state to maintain
-beside it — no ledger, no source registry, no reading receipts, no provenance
-records. Do not create any.
+`library/` holds finished knowledge. Active, per-source transactional state lives
+only in `workspace/skill-staging/` and may travel in a continuation project
+snapshot; it is not a ledger, source registry, provenance record, Skillset Memory
+entry, or finished-skill dependency. Unit deltas remain staged until source close.
 
 A card must be valid and executable after its source is gone. Never write a
 `source_id`, locator, page number, or hash onto a card. `reference` is optional

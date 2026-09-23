@@ -6,6 +6,98 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.80 - 2026-09-23
+
+### Fixed
+
+- Made PDF Source Prep code detection typography-independent. Same-font Python,
+  REPL/shell prompts, indented suites, calls, assignments, docstrings, and compact
+  console output are now recognized from syntax plus layout instead of requiring
+  a monospace face.
+- Preserved prompt/output and cross-block indentation without letting nearby
+  instructional prose leak into code fences; tightened C/C++ declaration and
+  shebang heuristics to avoid lexical false positives.
+- Added an independent raw-code/preformatted sanity signal to the Source Prep
+  integrity gate so a programming source can no longer report a clean result
+  merely because the primary detector found zero code. Structured code tables
+  satisfy that sanity check without being misreported as missing code blocks.
+- Bumped the prepared-source schema so beta.79 prepared packages are regenerated
+  under the corrected detector rather than silently reused.
+
+### Evidence
+
+- A 115-page real Python programming source now prepares with 250+ preserved
+  code/REPL regions, including indentation-sensitive `if`/`for`/`while` examples
+  that use the same serif font as body prose, with the integrity gate passing.
+- Re-ran the 112-page Unreal/C++ Chapters 1-4 regression fixture: printed
+  `real-world` punctuation remains intact, all detected code is preserved, 11
+  structured tables and 83 significant visuals remain routed, and the integrity
+  gate passes without false code-missing warnings from code-bearing tables.
+
+## 1.0.0-beta.79 - 2026-09-23
+
+### Changed
+
+- Refined PDF Source Prep into a semantic model-facing layer over the retained
+  deterministic extraction floor. Prepared pages now preserve code/preformatted
+  indentation, expose headings and lists as Markdown, fence detected code/REPL
+  regions, structure suitable tables, and inventory significant visuals as
+  on-demand assets instead of discarding them.
+- Prepared-source indexes and unit files now make PDF/source page coordinates
+  explicit and surface detected tool/version compatibility signals before PASS
+  canonicalization.
+- Large HANDOFF checkpoints summarize recoverable file groups while the
+  checkpoint manifest remains the exhaustive per-file hash authority.
+
+### Fixed
+
+- Removed destructive global whitespace collapsing from Source Prep so
+  indentation-sensitive languages such as Python retain executable structure.
+- Made printed-hyphen line joining conservative: ambiguous hyphens are retained
+  rather than silently deleting real source punctuation (for example,
+  `real-\nworld` remains `real-world`).
+- Added code-preservation and lexical-coverage integrity measurements to prepared
+  segments; Source Prep fails verification if a detected code block is not
+  preserved in the model-facing package.
+
+## 1.0.0-beta.78 - 2026-09-23
+
+### Added
+
+- Added verified hard checkpoints for ordinary PASS runs. Each checkpoint now
+  carries the complete controller state plus recoverable staged/prepared files;
+  `PASS/pass.py recover` restores the last verified transaction after a hard
+  interruption instead of requiring the next model to infer where work stopped.
+- Added deterministic Source Prep before ordinary preflight. Prepared sources
+  preserve model-facing content under the active skill-staging run, bind every
+  prepared file to the source identity, and can be verified/reused without
+  repeating extraction. Runs may stop cleanly after Source Prep or after
+  accepted preflight and later continue from that exact state.
+- Added crash-safe final canonicalization journaling so an interruption during
+  source close can restore the pre-close canonical bytes before resuming.
+
+### Changed
+
+- Ordinary unit landing now accepts the reviewed delta into cumulative
+  `workspace/skill-staging/` state. Later units reconcile against canonical
+  knowledge plus the accepted source delta; only successful source closure
+  canonicalizes the complete staged delta into `library/`.
+- Active skill-staging state for a selected domain now travels in continuation
+  project snapshots, making the archive plus HANDOFF/checkpoint sufficient for
+  model/provider switching. SkillForge releases remain free of authoring state.
+- Renamed ordinary authoring scratch to `workspace/skill-staging/` and project
+  snapshot output guidance to `workspace/project-releases/`. Workspace-local
+  disposable temporary files belong under `workspace/tmp/`.
+- Domain-scoped project snapshots now include only the canonical SkillForge
+  release recipe(s) for the selected domain(s), rather than every domain recipe.
+
+### Fixed
+
+- HANDOFF now advances only with a verified checkpoint and reports the exact
+  recover/continue state, Source Prep state, stop target, and staged-delta state.
+- A stale operation/landing lease left by a dead PASS process can be retired by
+  verified recovery without silently accepting partial work.
+
 ## 1.0.0-beta.77 - 2026-09-22
 
 ### Added
@@ -513,7 +605,7 @@ Unreal entries below; they land here as one release.
   PASS 2 declarations, exclusive reasoned dispositions, and hash-bound card-only
   PASS 3 before verified unit landing. Unsupported curriculum-audit progression
   fails closed.
-- Disposable book/run workspaces under `workspace/authoring/<domain>/<book-run>/`
+- Disposable book/run workspaces under `workspace/skill-staging/<domain>/<book-run>/`
   with canonical category paths for drafts. Validation overlays replace live
   owners, check schema/assets/changed-card relations and staged recipe closure,
   and check library-wide IDs at integration. Landing regenerates indexes,
@@ -535,7 +627,7 @@ Unreal entries below; they land here as one release.
 
 ### Changed
 
-- Require project archives directly in `workspace/releases/PASS-project-<domain>.zip`
+- Require project archives directly in `workspace/project-releases/PASS-project-<domain>.zip`
   under the PASS root, without version subfolders unless requested. Keep finished
   skill ZIPs in the SkillForge repository. Route both agent entrypoints and the
   portable authoring skill to the canonical maintainer destination rules.

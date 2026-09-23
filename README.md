@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.77`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.80`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -185,51 +185,48 @@ PASS work.
 
 1. Build a domain-scoped project ZIP locally.
 2. Upload it to a chat or Project environment that provides file access and
-   Python execution. Attach the source separately, or include a bounded `.txt`
-   or `.md` extract under `SOURCE_INPUT/` as shown below.
+   Python execution. Attach the raw source separately, include a bounded text
+   input, or continue from a snapshot that already carries a verified prepared
+   source package.
 3. Tell the LLM to unpack the archive, work inside its single
-   `PASS-project-*` root, begin with `AGENTS.md` and `PASS/SKILL.md`, and perform
-   one domain-scoped PASS run through `python PASS/pass.py start --source <source>`,
-   after `python PASS/pass.py resume --source <source>` finds no unfinished run of
-   it. A fresh or compacted chat re-enters through `resume` too. A single-domain snapshot supplies the unambiguous domain default. Follow the
-   returned phase. Preflight is source-wide and runs once; after validation, run
-   `present`, show the complete preflight packet, and wait for explicit user
-   confirmation before `accept-preflight` releases PASS 1. After it is accepted,
-   every unit begins at PASS 1. Stage cards under each book's
-   `workspace/authoring/` task and complete all three passes before landing.
-   After the final unit lands, complete the controller-required source-closure
-   audit (AP synthesis, DRILL synthesis, cross-library reconciliation, and
-   metadata classification), its closure PASS 3, and closure landing before the
-   run can become `finished`. If
-   the user explicitly authorizes this one source to continue unattended, finish
-   LOAD and then record it with `PASS/source.py authorize`; repeatedly use `source.py drive` as the authoritative dispatcher. It can archive routine
-   preflight/landing packets instead of spending chat tokens reproducing them.
-4. At each interactive `land` phase, the LLM runs `python PASS/pass.py present --run <run>`
-   and shows the complete generated packet without summarizing it. After the
-   applicable approval/evidence gate, the hash-bound landing decision integrates
-   the reviewed unit. The LLM then runs the bundled PASS validators and returns
-   an updated ZIP preserving the same single root.
-5. Back in the canonical repository, preview the returned archive with the
+   `PASS-project-*` root, begin with `AGENTS.md` and `PASS/SKILL.md`, and resume
+   before starting another run. A new run enters LOAD, then deterministic Source
+   Prep, then one source-wide preflight. Source Prep preserves code indentation,
+   produces semantic Markdown plus structured tables/on-demand visual assets, and
+   remains reusable and checkpointed; a verified package is not regenerated merely because the model/provider
+   changed. `start --stop-after source_prep` supports preparation-only work, and
+   `start --stop-after preflight` supports preparation + preflight while stopping
+   before any unit PASS 1 ingestion. After a deliberate stop, `continue-run`
+   resumes the same transaction history.
+4. During substantive PASS, every unit completes PASS 1, PASS 2 and PASS 3. The
+   reviewed unit is accepted into the run's cumulative `workspace/skill-staging/`
+   delta, not directly into canonical `library/`. Later units reconcile against
+   the live canonical library plus that accepted source delta. After the final
+   unit, complete source closure (AP synthesis, DRILL synthesis, cross-library
+   reconciliation and metadata classification), closure PASS 3 and closure
+   approval. Only successful source closure canonicalizes the complete staged
+   delta into `library/`.
+5. `HANDOFF.md` and the verified hard checkpoint are the restart authority. If
+   `resume` reports an interrupted committed operation, run `recover`; if only
+   unaccepted working files drifted, use `rollback`. A continuation project ZIP
+   carries the selected domain's active skill-staging state so another capable
+   model can resume without chat memory.
+6. Back in the canonical repository, preview the returned archive with the
    importer. Apply it only after the proposed changes pass review.
 
 A suitable instruction to the chat is:
 
 > Unpack this PASS project snapshot and work only inside its `PASS-project-*`
-> root. Read `AGENTS.md` and `PASS/SKILL.md`, then perform one PASS authoring run
-> through `PASS/pass.py` for the selected domain using the supplied source.
-> Run preflight once for the source, never per unit. After validation, run
-> `present`, reproduce the complete preflight packet, and wait for explicit user
-> confirmation before `accept-preflight` releases PASS 1. Follow the controller
-> phases, stage drafts by canonical category, and after PASS 3 run `present` and
-> reproduce its complete landing packet before recording approval/evidence and
-> landing the unit. After the final unit, follow the mandatory source-closure
-> AP/DRILL synthesis, reconciliation, metadata, closure PASS 3, and closure
-> landing phases; do not call the source complete before that gate finishes. If I explicitly tell you to continue this source unattended,
-> use `PASS/source.py authorize`, then repeatedly follow only the action returned by `PASS/source.py drive`; use `PASS/source.py report` for every progress/completion claim, and keep going until source
-> completion; stop only for practitioner-dependent checkpoints,
-> `approval_required` deltas, source-identity failures, or unrecoverable errors.
-> Regenerate indexes, run the bundled validation tools, and return the updated
-> project as a ZIP with the original single root preserved.
+> root. Read `AGENTS.md` and `PASS/SKILL.md`, then run `PASS/pass.py resume`
+> before starting or continuing the selected source. Follow the controller's one
+> next action. Do not repeat verified Source Prep or accepted preflight after a
+> model/provider switch. During unit PASS work, accept reviewed unit deltas into
+> skill-staging; do not treat them as canonical until the mandatory source-close
+> gate succeeds. If `resume` requests `recover`, restore the last verified
+> checkpoint before doing anything else. If I explicitly authorize unattended
+> completion, use `PASS/source.py authorize` and the state-driven dispatcher.
+> Regenerate indexes, run the bundled validation tools, and return an updated
+> project ZIP with the original single root preserved.
 
 Python gates ordinary source-authoring progression and validates its actual
 staged edits; the human-readable method remains in `PASS/docs/PASS_RUN.md`.
@@ -248,7 +245,7 @@ python workspace/tools/build_project_snapshot.py workspace/projects/PASS-project
 
 Create the equivalent uploadable ZIP:
 
-Project archives go directly in `workspace/releases/PASS-project-<domain>.zip`
+Project archives go directly in `workspace/project-releases/PASS-project-<domain>.zip`
 under the current PASS repository root, without version subfolders unless
 explicitly requested. Refresh the matching ZIP with `--force`; verify the new
 archive before removing superseded copies. Finished skill ZIPs go in the
@@ -256,7 +253,7 @@ SkillForge repository's `releases/` directory. The maintainer destination rules
 are in [`MODULE_RELEASES.md`](PASS/docs/MODULE_RELEASES.md#maintainer-destinations).
 
 ```bash
-python workspace/tools/build_project_snapshot.py workspace/releases/PASS-project-art.zip --domain art
+python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-art.zip --domain art
 ```
 
 Inside the unpacked chat project, install the one runtime dependency if the host
@@ -278,8 +275,8 @@ python PASS/tools/memory.py validate
 Add a bounded source extract at the visible top-level `SOURCE_INPUT/` folder:
 
 ```bash
-python workspace/tools/extract_pdf_text.py book.pdf workspace/authoring/book-unit.txt --pages 20-48
-python workspace/tools/build_project_snapshot.py workspace/releases/PASS-project-writing.zip --domain writing --source-text workspace/authoring/book-unit.txt
+python workspace/tools/extract_pdf_text.py book.pdf workspace/skill-staging/book-unit.txt --pages 20-48
+python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-writing.zip --domain writing --source-text workspace/skill-staging/book-unit.txt
 ```
 
 Useful options:
@@ -295,7 +292,7 @@ To start a domain that does not exist here yet, bootstrap its project instead of
 creating folders in this repository:
 
 ```bash
-python workspace/tools/build_project_snapshot.py workspace/releases/PASS-project-agent-kit.zip --new-domain agent-kit
+python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-agent-kit.zip --new-domain agent-kit
 ```
 
 The project carries PASS, `metaskills`, a minimal module, placeholder discovery
@@ -651,7 +648,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.75`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.80`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

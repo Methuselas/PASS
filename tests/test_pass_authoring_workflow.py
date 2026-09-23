@@ -16,6 +16,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "PASS"))
 from runtime import pass_authoring_workflow as workflow
+from runtime import pass_source_prep
 
 
 def card(path, oid, *, links=None, note="Keep only changes with an observable purpose.", placement=None):
@@ -74,8 +75,13 @@ class AuthoringWorkflowTests(unittest.TestCase):
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(f"name: {name}\nrequires: []\n", encoding="utf-8")
 
+    def prep(self):
+        pass_source_prep.prepare(self.run)
+        pass_source_prep.finalize(self.run)
+
     def begin(self, count=1):
         self.run.submit("load", self.run.template())
+        self.prep()
         record = self.run.template()
         record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
                       subject="Revise prose for an observable reader effect.", mode="unit ingestion")
@@ -186,7 +192,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
             with self.subTest(domain=domain), self.assertRaises(workflow.RunError):
                 workflow.start(self.repo, self.source, domain, "another-run")
         self.assertFalse((self.repo / "library/missing").exists())
-        self.assertFalse((self.repo / "workspace/authoring/apa-style").exists())
+        self.assertFalse((self.repo / "workspace/skill-staging/apa-style").exists())
 
     def other_source(self, name="Second Book.txt", text="A different book with different bytes entirely.\n"):
         path = self.repo / name
@@ -222,7 +228,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         for source in (self.source, copy):
             with self.subTest(source=source.name), self.assertRaisesRegex(workflow.RunError, "existing incomplete PASS run"):
                 workflow.start(self.repo, source, "writing", None)
-        self.assertEqual(sorted(p.name for p in (self.repo / "workspace/authoring/writing").iterdir()), [self.root.name])
+        self.assertEqual(sorted(p.name for p in (self.repo / "workspace/skill-staging/writing").iterdir()), [self.root.name])
 
     def test_same_source_may_start_in_another_domain_or_after_finishing(self):
         self.module("art/foundations")
@@ -271,6 +277,8 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertIsNone(check(None)["current_unit"])
         self.run.submit("load", self.run.template())
         check("LOAD")
+        self.prep()
+        check("source prep verified")
         record = self.run.template()
         record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
                       subject="Revise prose for an observable reader effect.", mode="unit ingestion", no_extract=[],
@@ -291,7 +299,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.third()
         self.assertEqual(check("U01 PASS 3")["drafts"], "verified against PASS 3 hashes")
         self.run.land(self.decision())
-        result = check("U01 landed")
+        result = check("U01 accepted to staging")
         self.assertEqual((result["units_completed"], result["current_unit"], result["unit_count"]), (["U01"], "U02", 2))
         self.assertIn("NEXT ACTION", result["statement"])
 
@@ -300,6 +308,11 @@ class AuthoringWorkflowTests(unittest.TestCase):
         moved = self.repo / "moved/Original Book.txt"
         moved.parent.mkdir()
         self.source.replace(moved)
+        # A verified prepared package lets the run continue without the raw source.
+        result = self.resumed(domain="writing", source=moved)
+        self.assertEqual((result["outcome"], result["source_identity"]), ("resume", "prepared-package"))
+        # Without the prepared package, identical bytes at a new path require rebind.
+        shutil.rmtree(self.root / "prepared-source")
         result = self.resumed(domain="writing", source=moved)
         self.assertEqual((result["outcome"], result["source_identity"]), ("blocked", "moved"))
         self.assertIn("rebind-source", result["next_action"])
@@ -326,6 +339,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
         self.source.write_text("Different bytes under the same name.\n", encoding="utf-8")
         result = self.resumed(root=self.root)
+        self.assertEqual((result["outcome"], result["source_identity"]), ("resume", "prepared-package"))
+        shutil.rmtree(self.root / "prepared-source")
+        result = self.resumed(root=self.root)
         self.assertEqual((result["outcome"], result["source_identity"]), ("blocked", "changed"))
 
     def test_resume_asks_when_several_runs_are_open(self):
@@ -341,7 +357,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_every_accepted_step_checkpoints_and_rewrites_the_handoff(self):
         self.locked(self.run.submit, "load", self.run.template())
         manifest = self.run.checkpoint_manifest()
-        self.assertEqual((manifest["phase"], manifest["last_accepted"]), ("preflight", "LOAD"))
+        self.assertEqual((manifest["phase"], manifest["last_accepted"]), ("source_prep", "LOAD"))
         handoff = (self.root / "HANDOFF.md").read_text(encoding="utf-8")
         self.assertIn(workflow.HANDOFF_MARK, handoff)
         self.assertIn("Last safe endpoint: **LOAD**", handoff)
@@ -356,7 +372,6 @@ class AuthoringWorkflowTests(unittest.TestCase):
         staged.write_bytes(accepted + b"\nHalf-finished PASS 3 repair.\n")
         extra = self.root / "drafts/craft/PAT_half_written.md"
         extra.write_text("Interrupted.\n", encoding="utf-8")
-        self.locked(lambda: None)  # an operation that accepts nothing must not move the checkpoint
         result = self.resumed(domain="writing")
         self.assertEqual(result["phase"], "pass3")
         self.assertIn("rollback", result["next_action"])
@@ -391,9 +406,13 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.begin()
         self.first()
         self.second()
-        self.assertTrue(self.run.state["live_hashes"].startswith("sha256:"))
+        self.assertIsInstance(self.run.state["live_hashes"], dict)
+        self.assertTrue(self.run.live_unchanged())
+        self.run.state["live_hashes"] = self.run.live_snapshot()
         self.assertTrue(self.run.live_unchanged())
         self.run.state["live_hashes"] = self.run.live_hashes()
+        self.assertTrue(self.run.live_unchanged())
+        self.run.state["live_hashes"] = self.run.live_fingerprint()
         self.assertTrue(self.run.live_unchanged())
 
     def test_close_removes_the_checkpoint_and_generated_handoff_but_keeps_notes(self):
@@ -424,12 +443,13 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaises(workflow.RunError):
             self.run.submit("load", bad)
         self.run.submit("load", self.run.template())
-        self.assertIn("source-wide structural preflight", self.run.brief()["authorized_action"])
+        self.assertIn("source_prep.py prepare", self.run.brief()["authorized_action"])
         with self.assertRaises(workflow.RunError):
             self.run.land(dict(schema_version=1))
 
     def test_validated_preflight_waits_for_bound_explicit_confirmation(self):
         self.run.submit("load", self.run.template())
+        self.prep()
         record = self.run.template()
         record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
                       subject="Revise prose for an observable reader effect.", mode="unit ingestion")
@@ -454,6 +474,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
     def test_preflight_domain_cannot_be_changed(self):
         self.run.submit("load", self.run.template())
+        self.prep()
         record = workflow.preflight.template_record()
         record["domain"] = "art"
         with self.assertRaises(workflow.RunError):
@@ -462,6 +483,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
     def test_curriculum_audit_fails_closed_instead_of_falling_through(self):
         self.run.submit("load", self.run.template())
+        self.prep()
         record = self.run.template()
         record["mode"] = "curriculum audit"
         with self.assertRaisesRegex(workflow.RunError, "unit ingestion only"):
@@ -532,9 +554,15 @@ class AuthoringWorkflowTests(unittest.TestCase):
         staged = self.root / self.run.state["pass2"]["changes"][0]
         expected = staged.read_bytes()
         self.run.land(self.decision())
-        self.assertEqual(self.live.read_bytes(), expected)
         self.assertEqual(self.run.state["phase"], "closure_pass2")
         self.assertFalse(staged.exists())
+        # The accepted delta is staged in skill-staging; the live canon is
+        # untouched until the source close transaction.
+        accepted = self.root / "accepted/files/library/writing/craft" / self.live.name
+        self.assertEqual(accepted.read_bytes(), expected)
+        self.assertNotEqual(self.live.read_bytes(), expected)
+        self.close_source()
+        self.assertEqual(self.live.read_bytes(), expected)
         self.assertTrue((self.live.parent / "INDEX.md").is_file())
         self.assertFalse((self.repo / ".git").exists())
 
@@ -589,6 +617,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.run = workflow.Run(self.repo, other_root)
         self.ready(refine=True)
         self.run.land(self.decision())
+        self.close_source()
+        # The other book's source close canonicalized into the live domain; the
+        # older run's review predates that change and must be redone.
         self.run = older
         with self.assertRaisesRegex(workflow.RunError, "live domain/prerequisites changed"):
             self.run.land(self.decision())
@@ -651,7 +682,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         stale = workflow.Run(self.repo, self.root)
         self.run.submit("load", self.run.template())
         with stale.locked():
-            self.assertEqual(stale.state["phase"], "preflight")
+            self.assertEqual(stale.state["phase"], "source_prep")
             with self.assertRaises(workflow.RunError):
                 with self.run.locked():
                     pass
@@ -785,6 +816,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.run.submit("pass2", record)
         self.third()
         self.run.land(self.decision())
+        # The move is staged in skill-staging; the live canon is untouched until close.
+        self.assertTrue(self.live.exists())
+        self.close_source()
         self.assertFalse(self.live.exists())
         self.assertFalse(old_index.exists())
         self.assertTrue((self.repo / "library/writing/craft/new-topic/INDEX.md").exists())

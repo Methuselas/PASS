@@ -2,7 +2,7 @@
 
 status: active
 owner: PASS/runtime
-last_reviewed: 2026-09-19
+last_reviewed: 2026-09-23
 
 `PASS_RUN.md` owns the human method. `PASS/pass.py` owns supported ordinary
 source-authoring transitions and staged unit integration. Repository maintenance,
@@ -15,7 +15,12 @@ environment with `PASS/requirements.txt` installed:
 
 ```text
 python PASS/pass.py resume --domain <authorized-domain> [--source <source-file>] [--run <run-directory>]
-python PASS/pass.py start --source <source-file> --domain <authorized-domain>
+python PASS/pass.py start --source <source-file> --domain <authorized-domain> [--stop-after source_prep|preflight|complete]
+python PASS/source_prep.py prepare --run <run-directory>
+python PASS/source_prep.py verify --run <run-directory>
+python PASS/source_prep.py finalize --run <run-directory>
+python PASS/pass.py recover --run <run-directory>
+python PASS/pass.py continue-run --run <run-directory>
 python PASS/pass.py abandon --run <run-directory> --reason <explicit-user-instruction>
 python PASS/pass.py status --run <run-directory>
 python PASS/pass.py template --run <run-directory>
@@ -58,7 +63,12 @@ authoritative; domain creation requires a separate authorized maintenance task.
 
 `start --task <book-run-slug>` optionally sets a unique lowercase task name. The
 default derives a readable book name plus a unique suffix. Existing task paths
-are never overwritten; resume with `--run`.
+are never overwritten; resume with `--run`. `--stop-after source_prep` prepares
+and verifies the source package but does not enter preflight. `--stop-after
+preflight` prepares the source and accepts preflight but stops before any unit
+PASS 1 work. The default `complete` target runs the normal full workflow.
+`continue-run` releases a deliberate early stop without discarding the verified
+checkpoint.
 
 ### Re-entry after context loss
 
@@ -74,45 +84,50 @@ draft state, then names the **one** next legal action and repeats the current
 
 `resume` fails closed, changing nothing, when:
 
-- `controller/operation.lock` remains, meaning an operation was interrupted. The
-  lock records its process ID and time. Confirm no PASS process is running and
-  inspect the library and staged files before removing it.
-- the bound source moved (it prints the exact `rebind-source` command when
-  `--source` names identical bytes) or its bytes changed;
-- staged files changed after PASS 3, or live cards changed after PASS 2 (it names
-  the required `rewind`).
+- controller state no longer matches the last verified hard checkpoint, a stale
+  operation/landing lease remains from a dead process, or an interrupted final
+  canonicalization journal exists. It prints the exact `recover` command; never
+  guess where the previous model stopped.
+- the bound raw source moved or changed and no verified prepared package can
+  satisfy the same source identity. When `--source` names identical bytes,
+  `rebind-source` may update only the path.
+- unaccepted working files drift from the checkpoint (`rollback`) or a live owner
+  needed by the reviewed working overlay changed (`rewind` / reconciliation).
 
-### Hard checkpoints and rollback
+### Hard checkpoints, recovery and rollback
 
-Every operation that changes `controller/run.json` ends at a **hard checkpoint**:
-the controller copies the run's `drafts/` and `recipes/` into
-`controller/checkpoint/`, bound to that exact state, and rewrites `HANDOFF.md`.
-An operation that accepts nothing (`present`, `drive`) never moves the
-checkpoint, so half-finished work is never captured as the safe endpoint.
+Every successful operation that changes controller state ends at a **hard
+checkpoint**. The controller builds a fresh checkpoint containing the exact
+`run.json` plus recoverable `drafts/`, `recipes/`, cumulative `accepted/` delta
+and `prepared-source/` package. It verifies the state/file hashes before
+atomically promoting that checkpoint and only then regenerates `HANDOFF.md`. An
+operation that accepts nothing never advances the checkpoint.
 
-A phase is atomic: it is either accepted or restarted. If a session stops inside
-a phase, `resume` lists the drafts changed since the checkpoint and directs the
-next session to `python PASS/pass.py rollback --run <run>`, which restores the
-drafts exactly (changed files restored, new files removed) and leaves the phase
-to be redone from its beginning. Stopping inside PASS 3 therefore returns to the
-end of PASS 2; inside PASS 2, to the end of PASS 1 or its checkpoint; inside
-PASS 1, to the unit's start. Never finish a phase another session left half
-done, and never claim a read the current session did not do. Only the session
-that made the edits, still inside the phase, keeps them.
+If the process dies after state or canonical bytes changed but before the new
+checkpoint becomes durable, `resume` detects the mismatch and directs the next
+model to `python PASS/pass.py recover --run <run>`. Recovery restores the exact
+previous checkpoint, including controller state and staged/prepared files. The
+final source-close transaction additionally keeps a verified before-image
+journal for canonical files; recovery rolls an interrupted close back before
+restoring the controller. A stale lease owned by a dead process is retired only
+as part of that verified recovery.
 
-`HANDOFF.md` is generated from controller state after every checkpoint: the last
-safe endpoint, the current unit and scope, the drafts at the checkpoint and the
-pick-up commands. Do not edit it. Notes worth carrying between sessions
-(corrections, traps, discussion) go in `NOTES.md`, which the controller never
-rewrites; a hand-written `HANDOFF.md` found in a run is moved there. Do not read
-`controller/run.json` to orient: it is the controller's state, not a briefing,
-and `resume`, `status` and `template` give what a session needs. PASS 2 stores
-one fingerprint of the live library files it depends on rather than their full
-hash map, which kept `run.json` hundreds of kilobytes large. In unattended mode `resume` directs the host to `source.py
-drive`, which returns the unchanged lease when nothing was accepted and archives
-a stale one before issuing its replacement. PASS cannot see the host's context
-usage, so when to compact remains the host's or user's decision; `resume` makes
-any compaction at an accepted step safe.
+`rollback` has a narrower purpose: it restores **unaccepted working-file drift**
+to the current checkpoint without moving the accepted controller state backward.
+A phase is atomic: it is accepted, rolled back and repeated, or explicitly
+rewound. Never finish a phase another session left half done, and never claim a
+read the current session did not do.
+
+`HANDOFF.md` is generated only after the checkpoint is verified. It names the
+last successful transaction, controller/runtime version, stop target, Source Prep
+state, staged-delta state, current phase, exact next action and recovery command.
+Do not edit it. Notes worth carrying between sessions (corrections, traps,
+discussion) go in `NOTES.md`, which the controller never rewrites. Do not use
+`controller/run.json` as a briefing; `resume`, `status`, `template` and HANDOFF
+are the supported interfaces. In unattended mode `resume` directs the host to
+`source.py drive`. PASS cannot see host context usage, so compaction remains the
+host's/user's decision; every verified checkpoint is a safe provider/context
+boundary.
 
 `abandon` retires an unfinished run only on the user's explicit instruction,
 quoted in `--reason`. It moves the final state to `controller/abandoned-run.json`,
@@ -122,13 +137,20 @@ retained directory once it is no longer needed. A finished run is closed with
 `close-run`, not abandoned.
 
 ```text
-workspace/authoring/<domain>/<book-run>/
+workspace/skill-staging/<domain>/<book-run>/
   RUN_NOTE.md
+  HANDOFF.md
   controller/run.json
+  controller/checkpoint/controller/run.json
+  controller/checkpoint/manifest.json
+  prepared-source/INDEX.md
+  prepared-source/source.json
+  prepared-source/...
   drafts/<canonical-category>/PAT_<slug>.md
   drafts/<canonical-category>/AP_<slug>.md
   drafts/<canonical-category>/DRILL_<slug>.md
   drafts/<canonical-category>/assets/<image-and-sidecar>
+  accepted/<complete-cumulative-source-delta>
   recipes/<existing-owned-SkillForge-recipe>.yaml
 ```
 
@@ -182,7 +204,17 @@ bytes match the original identity. A different PDF cannot inherit the run.
 1. **LOAD.** Read every current canonical document listed by `status` and submit
    their exact paths in `documents_read`, once each. A handoff is orientation,
    never a substitute. No source access is authorized before LOAD.
-2. **Preflight.** Run exactly once for the entire source. Structural orientation
+2. **Source Prep.** Run deterministic extraction/normalization before preflight
+   when the source does not already have a verified prepared package. The package
+   is model-facing working input only: preserve instructional content and code
+   indentation, remove layout-only noise, retain source/page anchors, structure
+   suitable tables, inventory/retain visuals whose meaning may not survive text,
+   and do not summarize, silently correct the author, or make PAT/DRILL/AP
+   judgments. Ambiguous printed hyphens are preserved rather than guessed away.
+   `prepare` may resume by segment;
+   `verify` checks its hashes/source identity; `finalize` checkpoints it. A run
+   started with `--stop-after source_prep` stops here.
+3. **Preflight.** Run exactly once for the entire source. Structural orientation
    only: metadata, contents, page map, extraction-quality sampling and
    instructional boundaries. Complete the generated preflight record, including
    subject, contiguous units, live active-domain overlap IDs, explicit forecasts
@@ -195,23 +227,25 @@ bytes match the original identity. A different PDF cannot inherit the run.
    repeat the exact subject, use basis `user confirmation`, and include a reason.
    If the user requests a correction, submit a complete replacement record with
    `revise-preflight`, then `present` it again before acceptance. Once accepted,
-   every later unit begins at PASS 1; there is no unit-level preflight. Only
-   `unit ingestion` progression is supported. `curriculum audit` fails closed;
+   a run started with `--stop-after preflight` checkpoints and stops before unit
+   ingestion; `continue-run` later releases PASS 1. Otherwise every later unit
+   begins at PASS 1; there is no unit-level preflight. Only `unit ingestion`
+   progression is supported. `curriculum audit` fails closed;
    the standalone old preflight helper cannot authorize it. `replan` is an
    evidence-backed amendment to remaining unit boundaries after acceptance, not a
    second preflight.
-3. **PASS 1.** Read the entire current unit. Declare `full_read: true`, relative
+4. **PASS 1.** Read the entire current unit. Declare `full_read: true`, relative
    `working_drafts`, live `overlap_object_ids`, `secondary_subject_flags` and
    consequential `questions`. Flag entries are `{flag_id, subject}`; question
    entries are `{question_id, question}`. Their IDs are unique lowercase words
    with optional underscores. Use explicit `[]` when none. Working drafts must
    exist in the owned task; they do not enter the library yet.
-4. **Checkpoint, when questions exist.** Submit `answers` entries
+5. **Checkpoint, when questions exist.** Submit `answers` entries
    `{question_id, resolution}` for every question. Report the actual practitioner
    answer or evidence-settled resolution permitted by the human rules. Do not
    invent an answer or treat elapsed time as approval. PASS 2 stays blocked until
    the checkpoint is resolved.
-5. **PASS 2.** Reread the complete unit cold. Declare `full_reread: true` and
+6. **PASS 2.** Reread the complete unit cold. Declare `full_reread: true` and
    resolve every flag with `{flag_id, reason}`. Every delta bucket must appear:
    `NEW_PATTERNS`, `REFINE`, `REINFORCE`, `VARIANTS`, `REPLACE`, `NEW_APS`,
    `NEW_DRILLS`, `REJECT`. Entries are `{object_id, reason}`; each object gets
@@ -229,7 +263,7 @@ bytes match the original identity. A different PDF cannot inherit the run.
    Asset support folders do not create knowledge subcategories. Ordinary runs
    update the existing canonical recipe's module list only, explicitly covering
    every active-domain module; release metadata/composition is separate maintenance.
-6. **PASS 3.** Close the source and reading notes. Review the finished cards as
+7. **PASS 3.** Close the source and reading notes. Review the finished cards as
    standalone executable objects, repair defects and rescan. Declare
    `card_only_review: true`, every generated semantic check `true`, and the exact
    `reviewed_sha256` map for the files actually reviewed. The controller validates
@@ -239,7 +273,7 @@ bytes match the original identity. A different PDF cannot inherit the run.
    remains separate; edited cards and newly introduced defects must be clean.
    Module identities and any staged recipe's full prerequisite closure must
    resolve. Any failure leaves this unit active.
-7. **Landing.** Run `present` first and reproduce its generated packet in full.
+8. **Landing / staged acceptance.** Run `present` first and reproduce its generated packet in full.
    `present` renders every disposition/taxonomy bucket (including empty ones),
    every reason, exact changes/removals, and approval status, then records a
    disposable packet SHA-256. Do not summarize the packet. After the applicable
@@ -250,17 +284,17 @@ bytes match the original identity. A different PDF cannot inherit the run.
    `approval_required` accepts only `user approval`. The controller rejects a
    landing decision unless `present` ran for the current unit and the decision is
    bound to the current packet hash. It then checks the reviewed bytes and
-   unchanged live owners, validates the complete repository overlay including
-   global ID uniqueness, regenerates the active domain's indexes, verifies written
-   bytes, and advances one unit directly to PASS 1. After the last source unit
-   lands, it enters `closure_pass2` rather than `finished`. The closure record
-   must explicitly complete AP synthesis, DRILL synthesis, cross-library
-   reconciliation, and metadata-classification audits. Any staged closure delta
-   then passes `closure_pass3` and `closure_land`; only that landing advances the
-   run to `finished`. Ordinary write failures restore affected files and keep the
-   current unit/closure gate open.
-   Successfully integrated staged files are removed. Landing creates no Git
-   commit; commit sizing and publication remain separate maintainer actions.
+   unchanged live owners, validates the complete working overlay including global
+   ID uniqueness, regenerates indexes in that overlay, and replaces `accepted/`
+   with the complete cumulative source delta relative to current canon. Canonical
+   `library/` is not modified by an ordinary unit landing. The next unit reconciles
+   against canonical knowledge plus this accepted delta. After the last source
+   unit is accepted, the run enters `closure_pass2`. The closure record explicitly
+   completes AP synthesis, DRILL synthesis, cross-library reconciliation and
+   metadata-classification audits. Any closure delta passes `closure_pass3` and
+   `closure_land`; only closure landing performs the journaled canonical merge and
+   advances the run to `finished`. Landing creates no Git commit; commit sizing and
+   publication remain separate maintainer actions.
 
 Read/reread declarations and semantic checks record the host's truthful work;
 they are not proof of cognition. An unrestricted host can still access sources
@@ -278,6 +312,8 @@ python PASS/pass.py rewind --run <run-directory> --phase pass3
 python PASS/pass.py rewind --run <run-directory> --phase closure_pass2
 python PASS/pass.py rewind --run <run-directory> --phase closure_pass3
 python PASS/pass.py rollback --run <run-directory>
+python PASS/pass.py recover --run <run-directory>
+python PASS/pass.py continue-run --run <run-directory>
 python PASS/pass.py replan --run <run-directory> --input <amendment.json>
 ```
 
@@ -298,24 +334,20 @@ never the source identity, subject, domain or any closed unit. Context pressure
 is not instructional evidence, and `replan` does not authorize another
 source-orientation read.
 
-Several books may stage independently. They validate against the live library,
-not copies accepted at the beginning of a source. A changed live card, asset,
-shared prerequisite or canonical recipe invalidates an older review and requires
-PASS 2 reconciliation. A transient `.landing.lock` in the domain's authoring
-workspace serializes its integrations; the host serializes canonical merges
-across domains. It is an exclusive lease, not shared research state or a history.
-Per-run `controller/operation.lock` similarly prevents overlapping operations
-on one task. Both are removed on normal completion. After an interrupted process,
-inspect the library and verify no operation remains active before removing a
-stale lease. A process termination during filesystem writes may require manual
-reconciliation from preserved drafts; ordinary caught write failures roll back.
+Several books may stage independently. Each run validates against the current live
+library **plus its own accepted cumulative source delta**, never another run's
+unclosed staging. A changed live card, asset, shared prerequisite or canonical
+recipe can invalidate an older review and require PASS 2 reconciliation. The
+domain `.landing.lock` serializes only canonical close/integration; per-run
+`controller/operation.lock` prevents overlapping operations on one task. Both are
+exclusive leases, not research state. `recover` is the supported path for a dead
+process that left either lease or a controller/checkpoint mismatch.
 
-After all units and the mandatory source-closure gate land, `close-run` removes
-generated controller state and its task note, prunes empty task directories and
-preserves nonempty retained work.
-Preserve original inputs, other tasks and explicit failure-evidence holds. Remove
-remaining owned scratch when its purpose ends, under `PASS_RUN.md`'s workspace
-lifecycle. No controller state or drafts ship in project archives or SkillForge
-releases. Deleting scratch never invalidates the accepted library. A returned
-project archive lands changes normally through the existing snapshot importer;
-workspace organization is not a new integration format.
+After successful source closure, `close-run` removes generated controller state,
+prepared source, accepted staging and its task note, prunes empty task directories
+and preserves nonempty retained work. Preserve original inputs, other tasks and
+explicit failure-evidence holds. Continuation **project snapshots may carry active
+`skill-staging/` state for their selected domain** so another model/provider can
+resume from HANDOFF/checkpoint. Published SkillForge releases never carry that
+authoring state. Deleting closed scratch never invalidates canonical library
+knowledge.

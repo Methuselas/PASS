@@ -327,7 +327,10 @@ def render_preflight(record: PreflightRecord, cards: dict[str, CardRef]) -> str:
         "|---|---|---|---|",
     ]
     for unit in record.units:
-        material = f"{unit.material}, {unit.locator}"
+        locator = unit.locator
+        if re.match(r"^\s*(?:pp?\.)", locator, re.I):
+            locator = "PDF/source " + locator.strip()
+        material = f"{unit.material}, {locator}"
         if unit.overlap_object_ids:
             overlap = "; ".join(cards[oid].name for oid in unit.overlap_object_ids)
         else:

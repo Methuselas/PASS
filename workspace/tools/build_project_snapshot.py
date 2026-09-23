@@ -30,10 +30,17 @@ SKIP_DIRECTORY_NAMES = {
     ".pytest_cache",
     "__pycache__",
     "archive",
-    "releases",
+    "project-releases",
     "sources",
+    "source-prep-raw",
     "tmp",
+    "checkpoint.new",
+    "checkpoint.old",
+    "accepted.new",
+    "accepted.old",
+    "canonical-commit.new",
 }
+SKIP_FILE_NAMES = {"operation.lock", ".landing.lock"}
 SKIP_SUFFIXES = {".pdf", ".zip", ".pyc"}
 # Same shape pass.py accepts for an authorable domain.
 DOMAIN_NAME = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*")
@@ -124,7 +131,7 @@ def iter_files(root: Path) -> list[Path]:
 
     files: list[Path] = []
     for path in root.rglob("*"):
-        if not path.is_file() or path.is_symlink():
+        if not path.is_file() or path.is_symlink() or path.name in SKIP_FILE_NAMES:
             continue
         relative_parts = path.relative_to(root).parts
         if any(part in SKIP_DIRECTORY_NAMES for part in relative_parts[:-1]):
@@ -164,18 +171,23 @@ def matching_skill_roots(repo: Path, host: str, domain: str) -> list[Path]:
     ]
 
 
-def canonical_recipe_files(repo: Path) -> list[Path]:
+def canonical_recipe_files(repo: Path, domains: list[str]) -> list[Path]:
+    """Return only the canonical release recipe(s) owned by this snapshot.
+
+    Project archives are domain-scoped working artifacts, so carrying unrelated
+    SkillForge recipes leaks other skills into the project and makes snapshot
+    diffs noisier. Multi-domain snapshots receive one recipe per selected
+    domain; a single-domain snapshot receives exactly one when it exists.
+    """
     recipes = repo / "workspace/release-recipes"
     if not recipes.is_dir():
         return []
-    return [
-        path
-        for path in sorted(recipes.iterdir())
-        if path.is_file()
-        and not path.is_symlink()
-        and path.name.startswith("SkillForge_")
-        and path.suffix == ".yaml"
-    ]
+    result: list[Path] = []
+    for domain in domains:
+        path = recipes / recipe_name(domain)
+        if path.is_file() and not path.is_symlink():
+            result.append(path)
+    return sorted(result)
 
 
 def domain_handoff_files(repo: Path, domains: list[str]) -> list[Path]:
@@ -221,7 +233,12 @@ def snapshot_roots(
     if include_tests:
         roots.append(repo / "tests")
     if include_recipes:
-        roots.extend(canonical_recipe_files(repo))
+        roots.extend(canonical_recipe_files(repo, domains))
+    # Continuation snapshots carry only the selected domain's active staging
+    # state. This makes archive + HANDOFF sufficient for provider/model switch
+    # recovery without leaking other domains' in-flight work.
+    for domain in domains:
+        roots.append(repo / "workspace" / "skill-staging" / domain)
     return roots
 
 
@@ -312,7 +329,8 @@ def main() -> int:
         epilog=(
             "PASS, metaskills, selected domain cards, domain memory, and matching "
             "host skills, matching project handoffs, reusable workspace tools, "
-            "and canonical release recipes are included. Source PDFs, "
+            "and the selected domain's canonical release recipe are included. Active "
+            "skill-staging state for selected domains is included for recovery. Source PDFs, "
             "nested ZIPs, .git, archive, and workspace scratch are excluded. "
             "Explicit text inputs are transient."
         ),

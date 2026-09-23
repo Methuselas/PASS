@@ -198,30 +198,35 @@ Until the user says otherwise, treat every build as a development artifact.
 Prefer deletion over abstraction; plain files over state machinery;
 self-contained cards over reconstructed provenance.
 
-Do not reintroduce an authoring ledger, a provenance graph or database, a source
-manifest system, source staging, page receipts, quality attestations, source
-projections, state sidecars, a synchronization protocol, a universal meta-domain,
-a shared Teaching lane, a migration framework, or a mandatory session-state
-object.
+Do not reintroduce an authoring ledger, a provenance graph or database, a global
+source registry, page receipts on canonical cards, quality attestations, source
+projections, a cross-run synchronization protocol, a universal meta-domain, a
+shared Teaching lane, a migration framework, or a permanent mandatory
+session-state object.
 
 Retired 2026-08-15.
 
-**Executable authoring, accepted 2026-09-18, uses disposable per-book scratch.**
-`PASS/pass.py` gates ordinary unit ingestion using
-`workspace/authoring/<domain>/<book-run>/controller/` and drafts in canonical
-category paths. `PASS/source.py` is a separate source-level orchestration layer:
-it may persist one bounded unattended authorization, exact packet audit copies,
-source-byte identity and final source verification, but it does not perform PASS
-reads or own library knowledge. This narrowly scoped progression state is
-temporary authoring scratch under contract item 16, never a ledger, source
-manifest, card field, Skillset Memory entry or finished-skill dependency. One
-temporary domain landing lease prevents simultaneous integration of its books;
-it stores no research. There is no shared run registry or permanent history.
-Human rules remain in `PASS/docs/PASS_RUN.md`; executable contracts live in
-`PASS/docs/AUTHORING_RUNTIME.md`.
-Deleting a run never invalidates accepted cards or releases. Neither host discovery
-nor ordinary authoring progression changes the separate SkillForge Code
-Apprenticeship runner or domain action logic.
+**Executable authoring uses recoverable, per-source transactional staging.**
+`PASS/pass.py` gates ordinary authoring in
+`workspace/skill-staging/<domain>/<book-run>/`. Deterministic Source Prep may keep
+a verified model-facing source package inside that active run; it is disposable
+authoring input, not card provenance, a shared source registry, or finished-skill
+state. The controller keeps a complete verified checkpoint and generated
+`HANDOFF.md` so an interrupted run can be restored without conversational memory.
+Accepted unit deltas accumulate in this run-local staging area and participate in
+later-unit reconciliation; they do not become canonical `library/` knowledge until
+the mandatory source-close transaction succeeds.
+
+`PASS/source.py` remains a separate source-level orchestration layer: it may
+persist one bounded unattended authorization, exact packet audit copies, source
+identity and final source verification, but it does not perform PASS reads or own
+library knowledge. Run state, prepared source, checkpoints and accepted staged
+deltas are never card fields, Skillset Memory entries or SkillForge release
+dependencies. A temporary domain landing lease serializes canonical close; it
+stores no research. There is no shared run registry or permanent history. Human
+rules remain in `PASS/docs/PASS_RUN.md`; executable contracts live in
+`PASS/docs/AUTHORING_RUNTIME.md`. Deleting a closed run never invalidates accepted
+cards or releases.
 
 **Domain lifecycle and module runtimes, accepted 2026-09-18.** A new domain
 originates as a bootstrapped project (`build_project_snapshot.py --new-domain`)

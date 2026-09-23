@@ -61,8 +61,14 @@ class SnapshotSelectionTests(unittest.TestCase):
         self.assertIn("workspace/tools/import_project_snapshot.py", relative)
         self.assertFalse(any("/__pycache__/" in path for path in relative))
         self.assertFalse(any(path.casefold().endswith(".pyc") for path in relative))
-        self.assertFalse(any(path.startswith("workspace/authoring/") for path in relative))
-        self.assertFalse(any(path.startswith("workspace/releases/") for path in relative))
+        self.assertFalse(any(path.startswith("workspace/project-releases/") for path in relative))
+        self.assertFalse(
+            any(
+                path.startswith("workspace/skill-staging/")
+                and not path.startswith("workspace/skill-staging/art/")
+                for path in relative
+            )
+        )
 
     def test_snapshot_includes_only_handoffs_for_selected_domains(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

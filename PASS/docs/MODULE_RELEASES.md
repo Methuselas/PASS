@@ -109,7 +109,7 @@ instructions, cards, declarative profiles, memory, and original assets are
 
 ## Maintainer destinations
 
-Project archives belong directly in the PASS repository's `workspace/releases/`
+Project archives belong directly in the PASS repository's `workspace/project-releases/`
 directory, named `PASS-project-<domain>.zip`. Resolve this path from the current
 PASS root. Do not introduce version subfolders for project ZIPs unless the user
 explicitly requests them. The archive's `VERSION` file identifies the snapshot

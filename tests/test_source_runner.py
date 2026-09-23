@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import patch
 
 from PASS.runtime import pass_authoring_run as preflight
+from PASS.runtime import pass_source_prep
 from PASS.runtime.pass_authoring_workflow import Run, SEMANTIC_CHECKS, BUCKETS, TAXONOMY, required_documents, resume, start
 from PASS.runtime.pass_source_runner import advance, authorize, drive, progress_report
 
@@ -44,6 +45,8 @@ class SourceRunnerTests(unittest.TestCase):
         root = start(self.repo, self.source, "writing", task)
         run = Run(self.repo, root)
         run.submit("load", {"schema_version": 1, "documents_read": required_documents(self.repo)})
+        pass_source_prep.prepare(run)
+        pass_source_prep.finalize(run)
         record = preflight.template_record()
         record.update(
             title="Test Source",
@@ -181,6 +184,8 @@ class SourceRunnerTests(unittest.TestCase):
         root = start(self.repo, self.source, "writing", "preflight-lease")
         run = Run(self.repo, root)
         run.submit("load", {"schema_version": 1, "documents_read": required_documents(self.repo)})
+        pass_source_prep.prepare(run)
+        pass_source_prep.finalize(run)
         authorize(run, "User asked for unattended source completion.")
         record = preflight.template_record()
         record.update(
@@ -234,12 +239,15 @@ class SourceRunnerTests(unittest.TestCase):
         report = progress_report(run)
         self.assertEqual(report["units_completed"], 0)
         self.assertFalse(report["source_complete"])
-        self.assertIn("0/1 units landed", report["statement"])
+        self.assertIn("0/1 units accepted", report["statement"])
 
     def test_rebind_requires_identical_source_bytes(self):
         run = self.make_run(task="rebind-test")
         moved = Path(self.temp.name) / "moved-source.txt"
         self.source.replace(moved)
+        # A verified prepared package keeps unattended work possible without the raw source.
+        self.assertIsNotNone(run.unattended_authorization(required=True))
+        shutil.rmtree(run.root / "prepared-source")
         with self.assertRaisesRegex(Exception, "rebind"):
             run.unattended_authorization(required=True)
         message = run.rebind_source(moved)

@@ -50,7 +50,7 @@ progress only from `source.py report`. It never answers a practitioner checkpoin
 or consumes an `approval_required` delta. Read
 `PASS/docs/AUTHORING_RUNTIME.md` for commands and recovery alongside the human
 rules in `PASS/docs/PASS_RUN.md`. The old preflight helper alone cannot authorize
-ingestion. Repository maintenance and packaging do not need a source run.
+ingestion. Repository maintenance and packaging do not need a source run. Existing Unreal Niagara assets use the separate `python PASS/vfx.py` analysis lane rather than source preflight; read `PASS/docs/UNREAL_VFX_PASS.md` before such a run.
 
 `library/` holds finished knowledge. There is no authoring state to maintain
 beside it — no ledger, no source registry, no reading receipts, no provenance

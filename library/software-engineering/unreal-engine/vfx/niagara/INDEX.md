@@ -72,3 +72,7 @@
 - [Verify Exposed VFX Controls by Changing Each One at the Actor Boundary](PAT_verify_exposed_vfx_controls_by_changing_each_one_at_the_actor_boundary.md) - pattern; 4 final. Tags: niagara, unreal_engine, vfx.
 - [Visualize Hidden Niagara Module Behavior with Debug Drawing](PAT_visualize_hidden_niagara_module_behavior_with_debug_drawing.md) - pattern; 3 rough. Tags: niagara, unreal_engine, vfx.
 - [Wrap a Niagara Effect and Supporting Material behind Synchronized Blueprint Controls](DRILL_wrap_a_niagara_effect_and_supporting_material_behind_synchronized_blueprint_controls.md) - drill; 4 final. Tags: niagara, unreal_engine, vfx.
+
+## Topics
+
+- [Recipes](recipes/INDEX.md) - 18 object(s).

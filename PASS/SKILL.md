@@ -35,12 +35,16 @@ decision:
 - skill consumption or drill administration: `docs/PASS_CONSUMPTION.md`;
 - software card field tests against human-written code:
   `docs/SOFTWARE_CARD_FIELD_TESTS.md`;
+- Unreal/Niagara VFX asset-analysis runs, isolated temporal capture, recipe
+  extraction, and visual validation: `docs/UNREAL_VFX_PASS.md`;
 - Skillset Memory: `docs/MEMORY_SCHEMA.md`.
 
 Read a complete document only when the task genuinely spans its complete
 contract. Load later-phase references when that phase begins, not in anticipation.
 
 ## Working rules
+
+For an existing Unreal Niagara effect rather than a book/video/document source, use the separate VFX analysis lane: start from a UE-exported inventory with `python PASS/vfx.py start --inventory <inventory.json> --task <slug>`, follow its generated whole-system and isolated-emitter capture plan, and read `docs/UNREAL_VFX_PASS.md`. Do not force an asset-analysis run through ordinary source preflight. The VFX controller stages candidate cards only; canonical library integration still goes through ordinary repository review and validation.
 
 For ordinary source authoring, first run `python PASS/pass.py resume --domain
 <authorized-domain> --source <source>` from the project root. If an unfinished run

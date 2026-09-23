@@ -6,6 +6,28 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.77 - 2026-09-22
+
+### Added
+
+- Added a skeleton Unreal/Niagara VFX PASS lane (`PASS/vfx.py`) for durable
+  runs against existing effects: inventory, whole-system/isolated capture
+  coverage, visual/implementation classification, staged Recipe/Drill/AP
+  extraction, and visual validation.
+- Added `workspace/tools/extract_vfx_stills.py`, a temporal VFX adapter over the
+  existing video-stills engine. It samples whole-system and solo emitter/component
+  recordings uniformly and keeps every planned time sample for temporal review.
+- Added a self-contained Niagara recipe library under
+  `software-engineering/unreal-engine/vfx/niagara/recipes/`, organized by effect
+  family with family-local variant and visual-style tags. Patterns are Recipes;
+  APs are Composite Recipes.
+
+### Changed
+
+- VFX Recipes no longer carry book/page/source identity or runtime links to
+  other recipes. Composite Recipes contain the full procedure they need, while
+  generated family indexes provide navigation.
+
 ## 1.0.0-beta.76 - 2026-09-21
 
 ### Added

@@ -10,6 +10,20 @@ consumer_instructions:
   is unavailable, follow the AP's steps in order and account for each one
   explicitly in the reply.
 - >-
+  For Unreal Niagara VFX production, treat cards under
+  `unreal-engine/vfx/niagara/recipes/` as the reusable effect catalog: Patterns
+  are self-contained Recipes, APs are self-contained Composite Recipes, and
+  Drills are repeatable practice/qualification. Select by effect family, local
+  variant tag, visual-style tag, and verified engine compatibility; do not make
+  a recipe depend on the source it was learned from or on another recipe.
+- >-
+  When a VFX request combines several behaviors, decompose the brief into visual
+  roles and implementation needs, retrieve suitable family recipes, and compose
+  one coherent effect with explicit spatial and temporal relationships. Keep
+  visual role separate from renderer implementation: a trail can be sprites, a
+  ribbon, a beam, or another implementation. Validate the assembled effect over
+  time, not from one frame.
+- >-
   Honor a C++ project's declared language standard and supported toolchains. If
   the project declares none, use C++20 as the default floor. Present C++23
   facilities only as clearly labeled options, retain a C++20 path, and verify

@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.76`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.77`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -94,7 +94,7 @@ by it.
 - `library/metaskills/` — universal process knowledge included in every release
 - `memory/` — per-domain learned and calibrated state plus empirical training history, separate from canon
 - `docs/` — human-facing repository and skill-author guides
-- `workspace/tools/` — PDF extraction and project snapshot utilities
+- `workspace/tools/` — PDF/video/VFX capture, extraction, and project snapshot utilities
 - `workspace/release-recipes/` — named release products; canonical recipes start
   with `SkillForge_`
 - `workspace/handoffs/` — domain-prefixed project continuity and trainer-entry
@@ -122,6 +122,27 @@ Validate one domain while maintaining it:
 ```bash
 python PASS/tools/validate.py --package art
 ```
+
+### Analyze an existing Unreal Niagara effect
+
+`PASS/vfx.py` is the asset-analysis lane for existing Niagara systems. It is
+separate from ordinary source authoring: a UE inventory defines the system and
+its emitters, the run generates a whole-system plus isolated-emitter capture
+plan, `workspace/tools/extract_vfx_stills.py` turns those recordings into
+uniform temporal evidence, and the controller gates classification, recipe/AP
+extraction, and visual validation. Candidate cards stage inside the run rather
+than writing directly to `library/`.
+
+```bash
+python PASS/vfx.py start --inventory inventory.json --task boss-spawn
+python workspace/tools/extract_vfx_stills.py captures.json -o evidence --interval 0.5
+python PASS/vfx.py register-captures --run workspace/vfx-authoring/boss-spawn --manifest evidence/vfx-stills-manifest.json
+```
+
+Niagara Recipes live under
+`library/software-engineering/unreal-engine/vfx/niagara/recipes/`, organized by
+effect family. Pattern cards are Recipes, APs are Composite Recipes, and Drills
+provide repeatable practice/qualification. See `PASS/docs/UNREAL_VFX_PASS.md`.
 
 Retrieve a bounded set of relevant knowledge instead of opening a whole index:
 

@@ -234,6 +234,16 @@ project it serves owns its state. This is not a second installation system and
 not a runtime registry. A runtime's declaration lives in its own `MODULE.yaml`,
 and a release carries it exactly like any other module file.
 
+**Unreal VFX asset analysis, accepted 2026-09-22, uses disposable per-effect scratch.**
+`PASS/vfx.py` is not a second source-authoring system: it stages analysis of an
+existing Niagara asset through inventory, whole-system/isolated temporal capture,
+classification, candidate card extraction and visual validation under
+`workspace/vfx-authoring/<task>/`. The Unreal project/plugin owns asset inspection
+and recording; PASS owns only the temporary evidence contract and staged cards.
+No capture path, emitter receipt, project asset identity or run state becomes a
+finished card field or release dependency. `workspace/tools/extract_vfx_stills.py`
+is factory tooling over the existing video-stills engine, not canonical knowledge.
+
 **Skillset Memory is not one of these, and must not become one.** It records
 compact learned and calibrated state about using the craft, while the
 append-oriented training history records the empirical events. The retired

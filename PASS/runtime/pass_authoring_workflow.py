@@ -1885,7 +1885,10 @@ class Run:
     @contextmanager
     def accepted_overlay(self, integration: bool = False):
         with tempfile.TemporaryDirectory(prefix="pass-accepted-overlay-") as temporary:
-            tree = Path(temporary)
+            # Windows may return an 8.3 path here while copied/indexed children
+            # resolve to the long spelling. Canonicalize the root before any
+            # lexical relative_to checks compare those paths.
+            tree = Path(temporary).resolve()
             self.copy_working_base(tree, integration=integration)
             yield tree
 
@@ -1944,7 +1947,7 @@ class Run:
     @contextmanager
     def overlay(self, integration: bool = False):
         with tempfile.TemporaryDirectory(prefix="pass-authoring-overlay-") as temporary:
-            tree = Path(temporary)
+            tree = Path(temporary).resolve()
             self.copy_working_base(tree, integration=integration)
             for name in self.state["pass2"]["removals"]:
                 inside(tree, self.removal_target(name)).unlink(missing_ok=True)

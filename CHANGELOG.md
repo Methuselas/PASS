@@ -6,6 +6,20 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.82 - 2026-09-23
+
+### Fixed
+
+- Canonicalized temporary overlay roots before indexing and comparing staged
+  card paths. This prevents Windows 8.3 short-path spellings from conflicting
+  with their resolved long-path equivalents during PASS 2 and PASS 3.
+
+### Evidence
+
+- Re-ran the refinement-overlay and legacy Source Prep backfill regressions on
+  Python 3.14 for Windows, where the temporary-directory API returned the short
+  user-profile spelling and copied card paths resolved to the long spelling.
+
 ## 1.0.0-beta.81 - 2026-09-23
 
 ### Added

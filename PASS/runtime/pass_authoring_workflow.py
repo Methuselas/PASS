@@ -1146,6 +1146,10 @@ class Run:
             "phase": phase,
             "stage_contract": self.stage_contract(),
         }
+        prep_state = self.state.get("source_prep")
+        if isinstance(prep_state, dict):
+            result["source_prep_integrity"] = prep_state.get("integrity")
+            result["source_prep_package_sha256"] = prep_state.get("package_sha256")
         if self.state.get("stop_reached"):
             result["stop_target"] = self.state.get("stop_after")
             result["authorized_action"] = (
@@ -1281,9 +1285,23 @@ class Run:
         cards = preflight.validate_against_library(record, self.repo)
         packet = preflight.render_preflight(record, cards)
         prep = self.state.get("source_prep")
-        if isinstance(prep, dict) and prep.get("compatibility_baseline"):
-            packet += "\n\n**Prepared-source compatibility/version signals:** " + "; ".join(prep["compatibility_baseline"])
-            packet += "\n\nTreat UI paths, generated templates, APIs, and tool-specific procedures as version-sensitive until PASS validates durable ownership."
+        if isinstance(prep, dict):
+            if prep.get("compatibility_baseline"):
+                packet += "\n\n**Prepared-source compatibility/version signals:** " + "; ".join(prep["compatibility_baseline"])
+                packet += "\n\nTreat UI paths, generated templates, APIs, and tool-specific procedures as version-sensitive until PASS validates durable ownership."
+            from .pass_source_prep import verify as verify_prepared_source
+            manifest = verify_prepared_source(self)
+            warnings = list((manifest.get("integrity_gate") or {}).get("warnings") or [])
+            if warnings:
+                packet += "\n\n## SOURCE PREP INTEGRITY WARNINGS\n"
+                for warning in warnings:
+                    page = warning.get("page")
+                    prefix = f"PDF/source page {page}: " if page is not None else "source-wide: "
+                    packet += f"\n- {prefix}{warning.get('warning', 'unspecified Source Prep warning')}"
+                packet += (
+                    "\n\nThese warnings must be reviewed before accepting the source-wide plan. "
+                    "Do not infer that an integrity warning is harmless merely because deterministic extraction completed."
+                )
         return packet + (
             "\n\n**PREFLIGHT ACCEPTANCE REQUIRED:** Confirm the stated instructional subject and provisional "
             "source-wide unit plan before PASS 1. Corrections must be applied with `revise-preflight` and presented again."
@@ -1564,6 +1582,7 @@ class Run:
             if record.mode != "unit ingestion":
                 raise RunError("controller orchestration currently supports unit ingestion only; curriculum audit requires its own scope contract")
             preflight.validate_against_library(record, self.repo)
+            self.validate_preflight_source_coordinates(record)
             self.clear_preflight_presentation()
             self.state.update(plan=json.loads(json.dumps(asdict(record))), phase="preflight_accept")
             message = "PREFLIGHT: validated — presentation and explicit user confirmation required before PASS 1"
@@ -2010,6 +2029,47 @@ for name in recipes:
         if result.returncode:
             raise RunError(f"identity/relation/release closure audit failed:\n{result.stdout}\n{result.stderr}")
 
+    def validate_preflight_source_coordinates(self, record: preflight.PreflightRecord) -> None:
+        """Validate machine-authoritative source coordinates before presentation.
+
+        Prepared PDF runs must never reach the user-acceptance gate with unit
+        boundaries that the materializer cannot resolve deterministically. New
+        schema-v2 plans carry structured ``source_pages``; legacy schema-v1
+        plans remain resumable but their prose locators must resolve
+        unambiguously to explicit PDF/source coordinates.
+        """
+        if not self.state.get("source_prep"):
+            return
+        from .pass_source_prep import locator_pages, verify
+
+        manifest = verify(self)
+        if manifest.get("source_kind") != "pdf":
+            return
+        page_count = len(manifest.get("segments") or [])
+        if page_count < 1:
+            raise RunError("prepared PDF manifest has no source segments")
+
+        for unit in record.units:
+            if record.schema_version >= 2:
+                span = unit.source_pages
+                if span is None:
+                    raise RunError(
+                        f"preflight {unit.unit_id} requires machine-readable source_pages for a prepared PDF; "
+                        "printed pagination and locator prose are display metadata only"
+                    )
+                if span.start < 1 or span.end < span.start or span.end > page_count:
+                    raise RunError(
+                        f"preflight {unit.unit_id} source_pages {span.start}-{span.end} fall outside prepared PDF "
+                        f"1-{page_count}"
+                    )
+            else:
+                pages = locator_pages(unit.locator, page_count)
+                if not pages:
+                    raise RunError(
+                        f"legacy preflight {unit.unit_id} locator is ambiguous or outside prepared PDF: {unit.locator!r}; "
+                        "revise with schema_version 2 and explicit source_pages before presentation"
+                    )
+
     def revise_preflight(self, data: dict) -> str:
         if self.state["phase"] != "preflight_accept":
             raise RunError("preflight can be revised only while it is awaiting acceptance")
@@ -2019,6 +2079,7 @@ for name in recipes:
         if record.mode != "unit ingestion":
             raise RunError("controller orchestration currently supports unit ingestion only; curriculum audit requires its own scope contract")
         preflight.validate_against_library(record, self.repo)
+        self.validate_preflight_source_coordinates(record)
         self.clear_preflight_presentation()
         self.state["plan"] = json.loads(json.dumps(asdict(record)))
         self.save()

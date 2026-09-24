@@ -6,6 +6,55 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.83 - 2026-09-24
+
+### Fixed
+
+- Repaired the unit materializer's page-coordinate resolution. A locator such as
+  `pp. 3-26 (PDF 55-78)` now resolves from the explicitly labelled PDF/source
+  range instead of the first numeric range, so prepared units start and end on
+  the authoritative PDF pages. One unlabelled range remains supported for legacy
+  plans; multiple ambiguous unlabelled ranges and conflicting explicit ranges
+  fail closed instead of guessing.
+- Made unit materialization fail closed. Before a unit file is accepted, the
+  materializer verifies that every required prepared page exists, that each page
+  declares the expected `source-page` marker, and that the generated unit carries
+  the exact contiguous marker sequence for the authoritative range.
+- Added an independent numbered-table sanity signal to Source Prep. A source
+  with at least three numbered table captions but zero structurally detected
+  tables now records an integrity warning, carried into the preflight
+  presentation packet under `SOURCE PREP INTEGRITY WARNINGS`, instead of
+  silently implying that tables were converted successfully.
+
+### Added
+
+- Preflight schema 2 as the preferred schema for new runs: each unit carries
+  machine-authoritative `source_pages` separately from human display metadata
+  (`locator`, `printed_pages`). Prepared-PDF preflight records are blocked before
+  presentation when `source_pages` is missing or outside the prepared PDF.
+  Schema-1 plans remain readable so legacy runs can be repaired without
+  repeating preflight.
+- `status` and `resume` now expose the Source Prep integrity status and package
+  hash alongside the controller state.
+
+### Evidence
+
+- Regression-tested the repaired legacy parser: `pp. 3-26 (PDF 55-78)` resolves
+  to 55-78; one unlabelled range stays supported; multiple ambiguous unlabelled
+  ranges and conflicting explicit ranges fail closed.
+- Regression-tested schema-2 coordinate gating: valid `source_pages` passes;
+  missing or out-of-range `source_pages` on a prepared PDF is blocked before
+  presentation; schema-1 explicit-PDF plans remain supported.
+- Rematerialized the active Learning Python run against the repaired
+  materializer: all 41 units match their explicit PDF ranges exactly with zero
+  marker/range errors; `prepared-source/source.json` and the controller package
+  hash were refreshed and a verified recovery checkpoint was created. The
+  1,594-page Source Prep was not rerun.
+- Synthetic source with three numbered table captions and zero structured
+  tables produces the integrity warning, and the warning appears in the
+  preflight presentation packet.
+- Full test suite green: 337 tests on Python 3.14 for Windows.
+
 ## 1.0.0-beta.82 - 2026-09-23
 
 ### Fixed

@@ -86,6 +86,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
                       subject="Revise prose for an observable reader effect.", mode="unit ingestion")
         record["units"] = [dict(unit_id=f"u{i:02d}", material=f"Instructional unit {i}", locator=f"chapter {i}",
+                                source_pages=None, printed_pages=None,
                                 overlap_object_ids=[self.live.stem], card_potential="medium") for i in range(1, count + 1)]
         record["no_extract"] = []
         self.run.submit("preflight", record)
@@ -283,6 +284,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
                       subject="Revise prose for an observable reader effect.", mode="unit ingestion", no_extract=[],
                       units=[dict(unit_id=f"u0{i}", material=f"Unit {i}", locator=f"chapter {i}",
+                                  source_pages=None, printed_pages=None,
                                   overlap_object_ids=[self.live.stem], card_potential="medium") for i in (1, 2)])
         self.run.submit("preflight", record)
         check("preflight validated; acceptance pending")
@@ -491,6 +493,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
                       subject="Revise prose for an observable reader effect.", mode="unit ingestion")
         record["units"] = [dict(unit_id="u01", material="Instructional unit 1", locator="chapter 1",
+                                source_pages=None, printed_pages=None,
                                 overlap_object_ids=[self.live.stem], card_potential="medium")]
         record["no_extract"] = []
         self.run.submit("preflight", record)
@@ -508,6 +511,93 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertEqual(self.run.state["phase"], "preflight_accept")
         self.accept()
         self.assertEqual(self.run.state["phase"], "pass1")
+
+    def test_prepared_pdf_preflight_requires_machine_readable_coordinates(self):
+        self.run.submit("load", self.run.template())
+        self.prep()
+        manifest = {"source_kind": "pdf", "segments": list(range(1, 21))}
+        with patch.object(pass_source_prep, "verify", return_value=manifest):
+            def parsed(unit, schema_version=2):
+                record = self.run.template()
+                record["schema_version"] = schema_version
+                record.update(title="Original Book", author="Fixture Author", extent="20 pages",
+                             text_quality="readable", subject="Revise prose for an observable reader effect.",
+                             mode="unit ingestion", no_extract=[])
+                record["units"] = [unit]
+                return workflow.preflight.parse_preflight(record)
+            base = dict(unit_id="u01", material="Unit 1", locator="chapter 1",
+                        source_pages={"start": 1, "end": 10}, printed_pages="1-10",
+                        overlap_object_ids=[], card_potential="medium")
+            self.run.validate_preflight_source_coordinates(parsed(base))
+            missing = dict(base, source_pages=None)
+            with self.assertRaisesRegex(workflow.RunError, "source_pages"):
+                self.run.validate_preflight_source_coordinates(parsed(missing))
+            outside = dict(base, source_pages={"start": 15, "end": 25})
+            with self.assertRaisesRegex(workflow.RunError, "outside prepared PDF"):
+                self.run.validate_preflight_source_coordinates(parsed(outside))
+            legacy = dict(unit_id="u01", material="Unit 1", locator="pp. 3-10 (PDF 5-12)",
+                         overlap_object_ids=[], card_potential="medium")
+            self.run.validate_preflight_source_coordinates(parsed(legacy, schema_version=1))
+            ambiguous = dict(legacy, locator="pp. 3-10 and pp. 11-20")
+            with self.assertRaisesRegex(workflow.RunError, "ambiguous"):
+                self.run.validate_preflight_source_coordinates(parsed(ambiguous, schema_version=1))
+            conflicting = dict(legacy, locator="pp. 3-10 (PDF 5-12) (source 6-13)")
+            with self.assertRaisesRegex(workflow.RunError, "ambiguous"):
+                self.run.validate_preflight_source_coordinates(parsed(conflicting, schema_version=1))
+
+    def test_locator_pages_prefers_explicit_pdf_coordinates(self):
+        self.assertEqual(pass_source_prep.locator_pages("pp. 3-26 (PDF 55-78)", 1594), list(range(55, 79)))
+
+    def test_locator_pages_accepts_a_single_unlabelled_range(self):
+        self.assertEqual(pass_source_prep.locator_pages("pp. 3-26", 1594), list(range(3, 27)))
+
+    def test_locator_pages_rejects_multiple_unlabelled_ranges(self):
+        self.assertIsNone(pass_source_prep.locator_pages("pp. 3-26 and pp. 27-42", 1594))
+
+    def test_locator_pages_rejects_conflicting_explicit_ranges(self):
+        self.assertIsNone(pass_source_prep.locator_pages("pp. 3-26 (PDF 55-78) (source 56-79)", 1594))
+
+    def test_locator_pages_rejects_out_of_range_explicit_range(self):
+        self.assertIsNone(pass_source_prep.locator_pages("pp. 3-26 (PDF 55-1600)", 1594))
+
+    def test_locator_pages_resolves_explicit_single_page(self):
+        self.assertEqual(pass_source_prep.locator_pages("PDF p. 55", 1594), [55])
+
+    def test_numbered_table_signals_are_counted_independently(self):
+        text = "Table 5-1. Operators\n\nTable 5-2. Precedence\n\nTable 6-1. Types\n\nProse only.\n"
+        self.assertEqual(pass_source_prep._raw_table_signal_count(text), 3)
+
+    def test_inline_table_mentions_are_not_counted(self):
+        text = "As shown in table 5-1 above, the values differ.\n"
+        self.assertEqual(pass_source_prep._raw_table_signal_count(text), 0)
+
+    def test_table_signal_warning_when_no_structured_tables_detected(self):
+        import fitz
+        source = self.repo / "Tables Book.pdf"
+        doc = fitz.open()
+        page = doc.new_page()
+        page.insert_text((72, 100), "Table 1-1. First table\n\nTable 1-2. Second table\n\nTable 1-3. Third table\n\nSome prose around the tables.\n")
+        doc.save(source)
+        doc.close()
+        root = workflow.start(self.repo, source, "writing", "tables-book-run")
+        run = workflow.Run(self.repo, root)
+        run.submit("load", run.template())
+        pass_source_prep.prepare(run)
+        pass_source_prep.finalize(run)
+        manifest = pass_source_prep.verify(run)
+        gate = manifest["integrity_gate"]
+        self.assertEqual(gate["status"], "warning")
+        self.assertTrue(any("table sanity check" in warning["warning"] for warning in gate["warnings"]))
+        record = run.template()
+        record.update(title="Tables Book", author="Fixture Author", extent="1 page", text_quality="readable",
+                      subject="Use numbered reference tables.", mode="unit ingestion", no_extract=[])
+        record["units"] = [dict(unit_id="u01", material="Table unit", locator="page 1",
+                                 source_pages={"start": 1, "end": 1}, printed_pages=None,
+                                 overlap_object_ids=[], card_potential="low")]
+        run.submit("preflight", record)
+        packet = run.present()
+        self.assertIn("SOURCE PREP INTEGRITY WARNINGS", packet)
+        self.assertIn("table sanity check", packet)
 
     def test_preflight_domain_cannot_be_changed(self):
         self.run.submit("load", self.run.template())

@@ -30,10 +30,28 @@ from typing import Iterable, Any
 from . import pass_authoring_run as preflight
 from .pass_authoring_workflow import Run, RunError, atomic_write, digest, inside
 
-PREP_SCHEMA = 3
+PREP_SCHEMA = 4
+SUPPORTED_PREP_SCHEMAS = {3, 4}
 SUPPORTED_TEXT = {".txt", ".md", ".markdown"}
-PAGE_RE = re.compile(r"(?:pdf\s+|source\s+)?(?:pp?\.?\s*)?(\d+)\s*(?:[-–—]|to)\s*(\d+)", re.I)
-SINGLE_PAGE_RE = re.compile(r"(?:pdf\s+|source\s+)?(?:p(?:age)?\.?\s*)(\d+)", re.I)
+# Human-facing preflight locators may contain both printed-book and PDF/source
+# coordinates, for example: ``pp. 3-26 (PDF 55-78)``.  Materialization must
+# never guess that the first numeric range is the source coordinate.  Prefer an
+# explicitly labelled PDF/source range; use an unlabelled range only when it is
+# the sole range in the locator.
+EXPLICIT_PAGE_RANGE_RE = re.compile(
+    r"(?:\bpdf(?:\s*/\s*source)?|\bsource(?:\s+pages?)?)\s*(?:pp?\.?\s*)?(\d+)\s*(?:[-–—]|to)\s*(\d+)",
+    re.I,
+)
+GENERIC_PAGE_RANGE_RE = re.compile(
+    r"(?:pp?\.?\s*)?(\d+)\s*(?:[-–—]|to)\s*(\d+)", re.I
+)
+EXPLICIT_SINGLE_PAGE_RE = re.compile(
+    r"(?:\bpdf(?:\s*/\s*source)?|\bsource(?:\s+pages?)?)\s*(?:p(?:age)?\.?\s*)?(\d+)",
+    re.I,
+)
+SINGLE_PAGE_RE = re.compile(r"(?:p(?:age)?\.?\s*)(\d+)", re.I)
+SOURCE_PAGE_MARKER_RE = re.compile(r"<!--\s*source-page:\s*(\d+)\s*-->")
+TABLE_SIGNAL_RE = re.compile(r"^\s*Table\s+\d+(?:[-.]\d+)+(?:\.|\b)", re.I)
 FIGURE_RE = re.compile(r"^\s*(Figure|Fig\.)\s+([A-Za-z0-9._-]+)\s*(?:[–—:-]\s*)?(.*)$", re.I)
 LIST_RE = re.compile(r"^\s*([•●▪◦‣]|[-*])\s+(.*)$")
 ORDERED_RE = re.compile(r"^\s*(\d+)[.)]\s+(.*)$")
@@ -186,6 +204,17 @@ def _integrity_metrics(raw_text: str, prepared_text: str, code_fragments: list[s
         "code_blocks_preserved": sum(1 for x in code_checks if x["preserved"]),
         "code_checks": code_checks,
     }
+
+
+def _raw_table_signal_count(text: str) -> int:
+    """Count strong source-text signals that a numbered table is present.
+
+    This is intentionally independent of pdfplumber's table detector. It does
+    not prove that a table can be reconstructed structurally; it exists to
+    prevent a source with many explicit table captions/references from silently
+    reporting zero table structure with a clean integrity result.
+    """
+    return sum(1 for line in _nfc(text).splitlines() if TABLE_SIGNAL_RE.match(line))
 
 
 def _table_to_markdown(rows: list[list[str | None]]) -> str | None:
@@ -763,6 +792,7 @@ def _semantic_pdf_page(page, plumber_page, root: Path, page_no: int, repeated: s
                 integrity_payload += "\n" + csv_path.read_text(encoding="utf-8")
     metrics = _integrity_metrics(raw_text, integrity_payload, code_fragments)
     metrics["raw_code_signal_lines"] = _raw_code_signal_count(page_dict, page.rect.height, repeated)
+    metrics["raw_table_signal_lines"] = _raw_table_signal_count(raw_text)
     return prepared, {
         "body_font_size": body_size,
         "tables": [{k: v for k, v in e.items() if k != "content"} for e in table_events],
@@ -939,26 +969,35 @@ def prepare(run: Run, min_text_chars: int = 80, force: bool = False, legacy_back
     ]
     total_code_signals = sum(int((seg.get("integrity") or {}).get("raw_code_signal_lines", 0)) for seg in page_manifest)
     total_code_blocks = sum(int((seg.get("integrity") or {}).get("code_blocks", 0)) for seg in page_manifest)
+    total_table_signals = sum(int((seg.get("integrity") or {}).get("raw_table_signal_lines", 0)) for seg in page_manifest)
+    total_structured_tables = sum(int(seg.get("tables", 0)) for seg in page_manifest)
     if total_code_signals >= 5 and total_code_blocks == 0:
         aggregate_warnings.append({
             "page": None,
             "warning": f"source-wide code sanity check: {total_code_signals} code-like/preformatted lines but zero detected code blocks",
+        })
+    if total_table_signals >= 3 and total_structured_tables == 0:
+        aggregate_warnings.append({
+            "page": None,
+            "warning": f"source-wide table sanity check: {total_table_signals} numbered table signals but zero structured tables; inspect table preservation before preflight acceptance",
         })
     manifest = {
         "schema_version": PREP_SCHEMA,
         "source": {"name": identity["name"], "size": identity["size"], "sha256": identity["sha256"]},
         "source_kind": source_kind,
         "extractor": backend,
-        "normalization": "semantic Markdown; code/preformatted whitespace preserved; conservative printed-hyphen handling; tables structured; visuals inventoried and retained on demand",
+        "normalization": "semantic Markdown; code/preformatted whitespace preserved; conservative printed-hyphen handling; tables structurally converted when detected and independently sanity-checked; visuals inventoried and retained on demand",
         "preservation_contract": "no summarization, paraphrase, author correction, or silent ambiguous dehyphenation",
         "low_text_threshold": min_text_chars,
         "compatibility_baseline": compatibility,
         "integrity_gate": {
             "status": "warning" if aggregate_warnings else "pass",
             "warnings": aggregate_warnings,
-            "policy": "code blocks must be exactly preserved in prepared Markdown; code-like source signals are independently sanity-checked; low lexical coverage is surfaced for inspection rather than silently repaired",
+            "policy": "code blocks must be exactly preserved in prepared Markdown; code-like and numbered-table source signals are independently sanity-checked; low lexical coverage is surfaced for inspection rather than silently repaired",
             "raw_code_signal_lines": total_code_signals,
             "detected_code_blocks": total_code_blocks,
+            "raw_table_signal_lines": total_table_signals,
+            "detected_structured_tables": total_structured_tables,
         },
         "segments": page_manifest,
         "unit_files": {},
@@ -975,7 +1014,7 @@ def verify(run: Run) -> dict:
         raise RunError("prepared-source/source.json is missing; run deterministic source preparation first")
     data = preflight._read_json(str(path))
     required = {"schema_version", "source", "source_kind", "extractor", "normalization", "preservation_contract", "low_text_threshold", "compatibility_baseline", "integrity_gate", "segments", "unit_files", "files", "package_sha256"}
-    if set(data) != required or data["schema_version"] != PREP_SCHEMA:
+    if set(data) != required or data["schema_version"] not in SUPPORTED_PREP_SCHEMAS:
         raise RunError("unsupported or malformed prepared source manifest")
     identity = run.source_identity()
     if data["source"].get("sha256") != identity["sha256"] or data["source"].get("size") != identity["size"]:
@@ -993,27 +1032,102 @@ def verify(run: Run) -> dict:
     return data
 
 
-def locator_pages(locator: str, page_count: int) -> list[int] | None:
-    match = PAGE_RE.search(locator)
-    if match:
-        start, end = int(match.group(1)), int(match.group(2))
-        if 1 <= start <= end <= page_count:
-            return list(range(start, end + 1))
-    single = SINGLE_PAGE_RE.search(locator)
-    if single:
-        page = int(single.group(1))
-        if 1 <= page <= page_count:
-            return [page]
+def _validated_page_range(start: int, end: int, page_count: int) -> list[int] | None:
+    if 1 <= start <= end <= page_count:
+        return list(range(start, end + 1))
     return None
 
 
+def locator_pages(locator: str, page_count: int) -> list[int] | None:
+    """Return authoritative PDF/source pages for a human-facing locator.
+
+    Explicit ``PDF``/``PDF/source``/``source`` coordinates always win.  This is
+    important for locators such as ``pp. 3-26 (PDF 55-78)`` where the first
+    range is printed-book pagination and must never drive materialization.
+
+    For legacy locators with no explicit coordinate label, a single numeric
+    range is accepted for backward compatibility.  Multiple unlabelled ranges
+    are ambiguous and therefore fail closed.
+    """
+    explicit = list(EXPLICIT_PAGE_RANGE_RE.finditer(locator))
+    if explicit:
+        # Multiple explicit source ranges are ambiguous; do not silently choose.
+        unique = {(int(m.group(1)), int(m.group(2))) for m in explicit}
+        if len(unique) != 1:
+            return None
+        start, end = next(iter(unique))
+        return _validated_page_range(start, end, page_count)
+
+    explicit_single = list(EXPLICIT_SINGLE_PAGE_RE.finditer(locator))
+    if explicit_single:
+        unique = {int(m.group(1)) for m in explicit_single}
+        if len(unique) != 1:
+            return None
+        page = next(iter(unique))
+        return [page] if 1 <= page <= page_count else None
+
+    ranges = list(GENERIC_PAGE_RANGE_RE.finditer(locator))
+    if len(ranges) == 1:
+        start, end = int(ranges[0].group(1)), int(ranges[0].group(2))
+        return _validated_page_range(start, end, page_count)
+    if len(ranges) > 1:
+        return None
+
+    singles = list(SINGLE_PAGE_RE.finditer(locator))
+    if len(singles) == 1:
+        page = int(singles[0].group(1))
+        return [page] if 1 <= page <= page_count else None
+    return None
+
+
+def _structured_unit_pages(unit: dict[str, Any], page_count: int, plan_schema: int) -> list[int] | None:
+    """Resolve machine-authoritative PDF/source coordinates for a unit.
+
+    Preflight schema v2+ separates source coordinates from human-facing printed
+    pagination. For those plans, a PDF unit must carry ``source_pages``; the
+    materializer will not fall back to prose parsing. Schema v1 remains readable
+    for legacy runs and uses the conservative locator parser.
+    """
+    raw = unit.get("source_pages")
+    if raw is not None:
+        if not isinstance(raw, dict) or set(raw) != {"start", "end"}:
+            return None
+        start, end = raw.get("start"), raw.get("end")
+        if type(start) is not int or type(end) is not int:
+            return None
+        return _validated_page_range(start, end, page_count)
+    if plan_schema >= 2:
+        return None
+    return locator_pages(unit.get("locator", ""), page_count)
+
+
+def _unit_locator_label(unit: dict[str, Any], pages: list[int]) -> str:
+    if unit.get("source_pages") is not None:
+        printed = unit.get("printed_pages")
+        label = f"PDF/source pp. {pages[0]}-{pages[-1]}"
+        if printed:
+            label += f"; printed pp. {printed}"
+        human = str(unit.get("locator") or "").strip()
+        return f"{human}; {label}" if human else label
+    return _locator_label(str(unit.get("locator") or ""))
+
+
 def _locator_label(locator: str) -> str:
-    # Existing beta.78 records often say simply "pp. 1-18". Materialized unit
-    # files make the coordinate system explicit without mutating the accepted
-    # preflight record.
+    # Preserve a locator that already names its PDF/source coordinate system.
+    # Do not relabel a printed range in ``pp. 3-26 (PDF 55-78)`` as PDF/source.
+    if EXPLICIT_PAGE_RANGE_RE.search(locator) or EXPLICIT_SINGLE_PAGE_RE.search(locator):
+        return locator.strip()
     if re.match(r"^\s*(?:pp?\.)", locator, re.I):
         return "PDF/source " + locator.strip()
     return locator.strip()
+
+
+def _page_marker(path: Path) -> int:
+    text = path.read_text(encoding="utf-8")
+    match = SOURCE_PAGE_MARKER_RE.search(text)
+    if not match:
+        raise RunError(f"prepared source page has no source-page marker: {path.name}")
+    return int(match.group(1))
 
 
 def materialize_units(run: Run) -> dict[str, str]:
@@ -1027,19 +1141,49 @@ def materialize_units(run: Run) -> dict[str, str]:
     units_dir = package_root(run) / "units"
     units_dir.mkdir(exist_ok=True)
     unit_files: dict[str, str] = {}
+    plan_schema = int(run.state.get("plan", {}).get("schema_version", 1))
     for unit in run.state["plan"]["units"]:
-        pages = locator_pages(unit["locator"], page_count)
+        pages = _structured_unit_pages(unit, page_count, plan_schema)
         if not pages:
-            continue
-        parts = [f"# {unit['unit_id'].upper()} — {unit['material']}", "", f"Source locator: {_locator_label(unit['locator'])}", ""]
+            if plan_schema >= 2:
+                raise RunError(
+                    f"cannot materialize {unit['unit_id']}: preflight schema {plan_schema} requires valid machine-readable "
+                    f"source_pages for PDF units; printed pagination and free-form locator text are display metadata only"
+                )
+            raise RunError(
+                f"cannot materialize {unit['unit_id']}: legacy source locator is ambiguous or outside the prepared PDF: "
+                f"{unit.get('locator')!r}. Revise preflight with an explicit PDF/source page range or schema-v2 source_pages."
+            )
+        parts = [f"# {unit['unit_id'].upper()} — {unit['material']}", "", f"Source locator: {_unit_locator_label(unit, pages)}", ""]
         if manifest.get("compatibility_baseline"):
             parts += ["Compatibility/version signals detected in source: " + "; ".join(manifest["compatibility_baseline"]), ""]
+        observed_markers: list[int] = []
         for page in pages:
             p = package_root(run) / "pages" / f"P{page:04d}.md"
+            if not p.is_file():
+                raise RunError(f"cannot materialize {unit['unit_id']}: prepared page is missing: {p.name}")
+            marker = _page_marker(p)
+            if marker != page:
+                raise RunError(
+                    f"cannot materialize {unit['unit_id']}: {p.name} declares source-page {marker}, expected {page}"
+                )
+            observed_markers.append(marker)
             parts.append(p.read_text(encoding="utf-8").rstrip())
             parts.append("")
+        if observed_markers != pages:
+            raise RunError(
+                f"cannot materialize {unit['unit_id']}: materialized source-page markers do not match locator "
+                f"({observed_markers[0]}-{observed_markers[-1]} vs {pages[0]}-{pages[-1]})"
+            )
         out = units_dir / f"{unit['unit_id'].upper()}.md"
-        out.write_text("\n".join(parts).rstrip() + "\n", encoding="utf-8", newline="\n")
+        content = "\n".join(parts).rstrip() + "\n"
+        written_markers = [int(value) for value in SOURCE_PAGE_MARKER_RE.findall(content)]
+        if written_markers != pages:
+            raise RunError(
+                f"cannot materialize {unit['unit_id']}: generated unit markers do not exactly match authoritative "
+                f"PDF/source pages {pages[0]}-{pages[-1]}"
+            )
+        out.write_text(content, encoding="utf-8", newline="\n")
         unit_files[unit["unit_id"]] = out.relative_to(package_root(run)).as_posix()
     # Unit files are routing derivatives; refresh the package manifest atomically.
     manifest["unit_files"] = unit_files

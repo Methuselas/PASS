@@ -22,7 +22,8 @@ except ImportError as exc:  # pragma: no cover - environment contract
     raise SystemExit("PyYAML is required; install PASS/requirements.txt") from exc
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+SUPPORTED_SCHEMA_VERSIONS = {1, 2}
 PHASE = "preflight"
 MODES = {"unit ingestion", "curriculum audit"}
 CARD_POTENTIALS = {"low", "medium", "high", "mixed"}
@@ -43,10 +44,18 @@ class CardRef:
 
 
 @dataclass(frozen=True)
+class PageSpan:
+    start: int
+    end: int
+
+
+@dataclass(frozen=True)
 class PreflightUnit:
     unit_id: str
     material: str
     locator: str
+    source_pages: PageSpan | None
+    printed_pages: str | None
     overlap_object_ids: tuple[str, ...]
     card_potential: str
 
@@ -85,13 +94,14 @@ TOP_LEVEL_KEYS = {
     "units",
     "no_extract",
 }
-UNIT_KEYS = {
+UNIT_KEYS_V1 = {
     "unit_id",
     "material",
     "locator",
     "overlap_object_ids",
     "card_potential",
 }
+UNIT_KEYS_V2 = UNIT_KEYS_V1 | {"source_pages", "printed_pages"}
 NO_EXTRACT_KEYS = {"material", "locator"}
 
 
@@ -114,6 +124,24 @@ def _nonempty_string(value: Any, where: str) -> str:
     return value.strip()
 
 
+def _optional_string(value: Any, where: str) -> str | None:
+    if value is None:
+        return None
+    return _nonempty_string(value, where)
+
+
+def _page_span(value: Any, where: str) -> PageSpan | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise PreflightError(f"{where}: expected null or an object with integer start/end")
+    _require_exact_keys(value, {"start", "end"}, where)
+    start, end = value["start"], value["end"]
+    if type(start) is not int or type(end) is not int or start < 1 or end < start:
+        raise PreflightError(f"{where}: expected 1 <= start <= end integer page coordinates")
+    return PageSpan(start=start, end=end)
+
+
 def _read_json(path: str) -> dict[str, Any]:
     if path == "-":
         raw = sys.stdin.read()
@@ -132,9 +160,9 @@ def parse_preflight(data: dict[str, Any]) -> PreflightRecord:
     _require_exact_keys(data, TOP_LEVEL_KEYS, "preflight")
 
     schema_version = data["schema_version"]
-    if type(schema_version) is not int or schema_version != SCHEMA_VERSION:
+    if type(schema_version) is not int or schema_version not in SUPPORTED_SCHEMA_VERSIONS:
         raise PreflightError(
-            f"preflight.schema_version: expected {SCHEMA_VERSION}, got {schema_version!r}"
+            f"preflight.schema_version: expected one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}, got {schema_version!r}"
         )
     phase = _nonempty_string(data["phase"], "preflight.phase")
     if phase != PHASE:
@@ -155,7 +183,7 @@ def parse_preflight(data: dict[str, Any]) -> PreflightRecord:
         where = f"preflight.units[{index - 1}]"
         if not isinstance(item, dict):
             raise PreflightError(f"{where}: expected an object")
-        _require_exact_keys(item, UNIT_KEYS, where)
+        _require_exact_keys(item, UNIT_KEYS_V2 if schema_version >= 2 else UNIT_KEYS_V1, where)
         unit_id = _nonempty_string(item["unit_id"], f"{where}.unit_id").lower()
         match = UNIT_ID_RE.fullmatch(unit_id)
         if not match:
@@ -201,6 +229,8 @@ def parse_preflight(data: dict[str, Any]) -> PreflightRecord:
                 unit_id=unit_id,
                 material=_nonempty_string(item["material"], f"{where}.material"),
                 locator=_nonempty_string(item["locator"], f"{where}.locator"),
+                source_pages=_page_span(item.get("source_pages"), f"{where}.source_pages") if schema_version >= 2 else None,
+                printed_pages=_optional_string(item.get("printed_pages"), f"{where}.printed_pages") if schema_version >= 2 else None,
                 overlap_object_ids=tuple(overlap),
                 card_potential=potential,
             )
@@ -327,9 +357,19 @@ def render_preflight(record: PreflightRecord, cards: dict[str, CardRef]) -> str:
         "|---|---|---|---|",
     ]
     for unit in record.units:
-        locator = unit.locator
-        if re.match(r"^\s*(?:pp?\.)", locator, re.I):
-            locator = "PDF/source " + locator.strip()
+        if unit.source_pages is not None:
+            source_label = f"PDF/source pp. {unit.source_pages.start}-{unit.source_pages.end}"
+            printed_label = f"; printed pp. {unit.printed_pages}" if unit.printed_pages else ""
+            locator = f"{unit.locator}; {source_label}{printed_label}"
+        else:
+            locator = unit.locator
+            # Legacy v1 plans may carry both printed-book and PDF/source ranges
+            # in one free-form string. Keep them visibly distinct.
+            has_explicit_source = bool(
+                re.search(r"(?:\bpdf(?:\s*/\s*source)?|\bsource(?:\s+pages?)?)\s*(?:pp?\.?\s*)?\d+", locator, re.I)
+            )
+            if not has_explicit_source and re.match(r"^\s*(?:pp?\.)", locator, re.I):
+                locator = "PDF/source " + locator.strip()
         material = f"{unit.material}, {locator}"
         if unit.overlap_object_ids:
             overlap = "; ".join(cards[oid].name for oid in unit.overlap_object_ids)
@@ -370,7 +410,9 @@ def template_record() -> dict[str, Any]:
             {
                 "unit_id": "u01",
                 "material": "UNIT LABEL",
-                "locator": "SOURCE LOCATOR",
+                "locator": "CHAPTER/SECTION OR OTHER HUMAN LOCATOR",
+                "source_pages": {"start": 1, "end": 10},
+                "printed_pages": None,
                 "overlap_object_ids": [],
                 "card_potential": "medium",
             }

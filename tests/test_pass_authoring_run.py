@@ -90,10 +90,39 @@ class PreflightGateTests(unittest.TestCase):
         self.assertIn("None identified", mod.render_preflight(record, cards))
 
     def test_schema_version_requires_integer(self):
-        for value in (True, 1.0, "1", 2):
+        for value in (True, 1.0, "1", 3):
             with self.subTest(value=value):
                 data = self.base_record()
                 data["schema_version"] = value
+                with self.assertRaises(mod.PreflightError):
+                    mod.parse_preflight(data)
+
+    def test_schema_2_record_with_source_pages_parses(self):
+        data = self.base_record()
+        data["schema_version"] = 2
+        data["units"][0]["source_pages"] = {"start": 1, "end": 10}
+        data["units"][0]["printed_pages"] = "1-10"
+        record = mod.parse_preflight(data)
+        self.assertEqual(record.schema_version, 2)
+        self.assertEqual((record.units[0].source_pages.start, record.units[0].source_pages.end), (1, 10))
+        self.assertEqual(record.units[0].printed_pages, "1-10")
+
+    def test_schema_2_null_source_pages_parses(self):
+        data = self.base_record()
+        data["schema_version"] = 2
+        data["units"][0]["source_pages"] = None
+        data["units"][0]["printed_pages"] = None
+        record = mod.parse_preflight(data)
+        self.assertIsNone(record.units[0].source_pages)
+        self.assertIsNone(record.units[0].printed_pages)
+
+    def test_schema_2_invalid_span_fails(self):
+        for span in ({"start": 10, "end": 1}, {"start": 0, "end": 5}, {"start": "1", "end": 5},
+                    {"start": 1}, {"start": 1, "end": 5, "extra": 1}):
+            with self.subTest(span=span):
+                data = self.base_record()
+                data["schema_version"] = 2
+                data["units"][0]["source_pages"] = span
                 with self.assertRaises(mod.PreflightError):
                     mod.parse_preflight(data)
 

@@ -60,6 +60,8 @@ class SourceRunnerTests(unittest.TestCase):
                 "unit_id": "u01",
                 "material": "Test material",
                 "locator": "entire source",
+                "source_pages": None,
+                "printed_pages": None,
                 "overlap_object_ids": [],
                 "card_potential": "low",
             }],
@@ -192,7 +194,7 @@ class SourceRunnerTests(unittest.TestCase):
             title="Test Source", author="Test Author", domain="writing",
             extent="one unit", text_quality="clean",
             subject="Test unattended dispatcher entry.", mode="unit ingestion",
-            units=[{"unit_id":"u01","material":"Test material","locator":"entire source","overlap_object_ids":[],"card_potential":"low"}],
+            units=[{"unit_id":"u01","material":"Test material","locator":"entire source","source_pages":None,"printed_pages":None,"overlap_object_ids":[],"card_potential":"low"}],
             no_extract=[],
         )
         with self.assertRaisesRegex(Exception, "no issued action lease"):

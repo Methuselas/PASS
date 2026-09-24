@@ -42,6 +42,8 @@
 - [Drive Per-Instance Configuration From the Construction Script](PAT_use_construction_script_for_per_instance_configuration.md) - pattern; 2 block. Tags: blueprints, construction_script, unreal_engine.
 - [Drive Periodic Behavior with a Looping Timer](PAT_drive_periodic_behavior_with_a_looping_timer.md) - pattern; 2 block. Tags: blueprints, periodic_behavior, timers, unreal_engine.
 - [Encapsulate Reusable Behavior and State in an Actor Component](PAT_encapsulate_reusable_behavior_and_state_in_an_actor_component.md) - pattern; 1 skeleton. Tags: actor_component, blueprints, encapsulation, reuse, unreal_engine.
+- [Encode Unreal Blueprint Subscription Lifecycles in One Node](PAT_encode_unreal_blueprint_subscription_lifecycles_in_one_node.md) - pattern; 0 design. Tags: blueprints, delegates, lifecycle, subscriptions, unreal_engine.
+- [Expand Custom Unreal K2 Nodes with Verified Pin Contracts](PAT_expand_custom_unreal_k2_nodes_with_verified_pin_contracts.md) - pattern; 2 block. Tags: blueprints, compiler, graph_expansion, k2_nodes, unreal_engine.
 - [Gate an Action on Its Resource](PAT_gate_an_action_on_its_resource.md) - pattern; 1 skeleton. Tags: blueprints, constraints, resources, unreal_engine.
 - [Gate an Actor's Input Responsiveness With Enable and Disable Input](PAT_gate_an_actors_input_responsiveness_with_enable_disable_input.md) - pattern; 1 skeleton. Tags: blueprints, enable_disable, input, unreal_engine.
 - [Gate an Analog Axis Input on a Deadzone](PAT_gate_an_analog_axis_input_on_a_deadzone.md) - pattern; 1 skeleton. Tags: axis, blueprints, deadzone, input, unreal_engine.
@@ -53,6 +55,7 @@
 - [Implement Save and Load With a SaveGame Child Class](AP_implement_save_and_load_with_a_savegame_child_class.md) - ap; 2 block. Tags: blueprints, persistence, save_load, savegame, unreal_engine.
 - [Investigate an External Asset Before Relying on It](PAT_investigate_an_external_asset_before_relying_on_it.md) - pattern; 0 design. Tags: blueprints, external_assets, maintenance, unreal_engine.
 - [Keep Actors Static Unless They Must Be Manipulated at Runtime](PAT_keep_actors_static_unless_they_must_be_manipulated_at_runtime.md) - pattern; 1 skeleton. Tags: blueprints, mobility, performance, unreal_engine.
+- [Lower Unreal K2 Exec Outputs to Typed Delegate Events](PAT_lower_unreal_k2_exec_outputs_to_typed_delegate_events.md) - pattern; 2 block. Tags: blueprints, compiler, delegates, k2_nodes, unreal_engine.
 - [Make a Blueprint Function Pure When It Only Computes](PAT_make_blueprint_function_pure_when_it_only_computes.md) - pattern; 1 skeleton. Tags: blueprints, unreal_engine.
 - [Make a Collectible One-Shot by Destroying It on Pickup](PAT_make_a_collectible_one_shot_by_destroying_it_on_pickup.md) - pattern; 0 design. Tags: blueprints, collectible, overlap, pickup, unreal_engine.
 - [Make a Player Action Detectable by AI with a Pawn Noise Emitter](PAT_make_a_player_action_detectable_by_ai_with_a_pawn_noise_emitter.md) - pattern; 1 skeleton. Tags: ai, blueprints, noise, sensing, unreal_engine.
@@ -69,6 +72,8 @@
 - [Place Effects at the Event's Hit Location](PAT_place_effects_at_the_event_hit_location.md) - pattern; 2 block. Tags: blueprints, effects, hit, location, unreal_engine.
 - [Place No Nodes After a Self-Targeting DestroyActor](PAT_place_no_nodes_after_destroy_actor_self.md) - pattern; 0 design. Tags: actor, blueprints, destroy, execution_order, unreal_engine.
 - [Place State-Changing Behavior in the Owner of the State](PAT_place_state_changing_behavior_in_the_owner_of_the_state.md) - pattern; 0 design. Tags: blueprints, ownership, single_source_of_truth, unreal_engine.
+- [Place Unreal K2 Compiler Extensions in Uncooked Modules](PAT_place_unreal_k2_compiler_extensions_in_uncooked_modules.md) - pattern; 1 skeleton. Tags: blueprints, k2_nodes, modules, packaging, unreal_engine.
+- [Publish an Unreal Blueprint Subscription Node](AP_publish_an_unreal_blueprint_subscription_node.md) - ap; 1 skeleton. Tags: blueprints, delegates, k2_nodes, subscriptions, unreal_engine.
 - [Put Player Input Events in the PlayerController](PAT_put_player_input_in_the_player_controller.md) - pattern; 1 skeleton. Tags: blueprints, input, player_controller, unreal_engine.
 - [Reach the Owning Actor from Within a Component with Get Owner](PAT_reach_the_owning_actor_from_within_a_component_with_get_owner.md) - pattern; 1 skeleton. Tags: actor_component, blueprints, casting, get_owner, unreal_engine.
 - [Read an Array Element by Value with Get (a Copy)](PAT_read_an_array_element_by_value_with_get_a_copy.md) - pattern; 2 block. Tags: array, blueprints, get_a_copy, reference_vs_value, unreal_engine.
@@ -82,6 +87,7 @@
 - [Separate Blueprint State from Event-Driven Behavior](PAT_separate_blueprint_state_from_event_driven_behavior.md) - pattern; 0 design. Tags: blueprints, unreal_engine.
 - [Share a Blueprint Reference Across Blueprints via the Game Mode](PAT_share_a_blueprint_reference_across_blueprints_via_the_game_mode.md) - pattern; 2 block. Tags: blueprints, communication, game_mode, service_locator, unreal_engine.
 - [Share Reusable Functions or Macros Project-Wide with a Blueprint Library](PAT_share_reusable_functions_or_macros_project_wide_with_a_blueprint_library.md) - pattern; 0 design. Tags: blueprints, function_library, macro_library, reuse, unreal_engine.
+- [Snapshot Unreal Container Iteration Before Exposing Loop Pins](PAT_snapshot_unreal_container_iteration_before_exposing_loop_pins.md) - pattern; 2 block. Tags: blueprints, containers, determinism, iteration, unreal_engine.
 - [Spawn Actors at a Random Navigable Point](PAT_spawn_actors_at_a_random_navigable_point.md) - pattern; 2 block. Tags: blueprints, navigation, spawning, unreal_engine.
 - [Spawn From a Class Reference Stored in a Variable](PAT_spawn_from_a_class_reference_stored_in_a_variable.md) - pattern; 0 design. Tags: blueprints, class_reference, data_driven, spawning, unreal_engine.
 - [Stop a Periodic Timer When Its Work Is Done](PAT_stop_a_periodic_timer_when_its_work_is_done.md) - pattern; 2 block. Tags: blueprints, timers, unreal_engine.
@@ -104,6 +110,7 @@
 - [Use the Dot Product to Test Direction Alignment](PAT_use_the_dot_product_to_test_direction_alignment.md) - pattern; 0 design. Tags: blueprints, dot_product, unreal_engine, vectors.
 - [Validate a Function's Input Parameters Before Using Them](PAT_validate_a_functions_input_parameters_before_using_them.md) - pattern; 2 block. Tags: blueprints, defensive_programming, input_parameters, unreal_engine, validation.
 - [Validate Class References and Containers Before Use](PAT_validate_class_references_and_containers_before_use.md) - pattern; 2 block. Tags: blueprints, class_reference, containers, defensive_programming, null_safety, unreal_engine.
+- [Verify an Unreal K2 Subscription Node End to End](DRILL_verify_an_unreal_k2_subscription_node_end_to_end.md) - drill; 4 final. Tags: blueprints, cooking, k2_nodes, subscriptions, unreal_engine.
 - [Write a Formula Inline With a Math Expression Node](PAT_write_a_formula_inline_with_a_math_expression.md) - pattern; 1 skeleton. Tags: blueprints, expression, math, unreal_engine.
 
 ## Topics

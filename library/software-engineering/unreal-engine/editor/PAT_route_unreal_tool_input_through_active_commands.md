@@ -34,19 +34,21 @@ variants: []
 
 ## Do
 - Define searchable command names and descriptions with `UI_COMMAND`, an appropriate action type and an optional default `FInputChord`.
+- For toggle actions, bind `FIsActionChecked` to a cheap query of the real tool resource or state transition result. Let `ToggleButton` presentation reflect that query instead of maintaining a second unchecked source of truth.
 - Register commands from module startup after their style resources exist; unregister them when the module shuts down.
 - For a callback, map the command to an `FExecuteAction` with `FUICommandList::MapAction`. Let the command list match current bindings and modifiers rather than copying the default chord into another comparison.
 - Own the command list in the scope where the action should be active: a mode for mode-local input, or a module for a deliberately persistent action. When accepting a weak command-list pointer, pin it into a local shared pointer and check that pointer before mapping an action.
 - Ensure a callback cannot outlive its receiver. A lambda capturing raw `this` requires the receiver to survive every retained command-list mapping; unmap the action or release every retaining owner before destroying the receiver.
 - Filter input phases deliberately. Route an intended key press once; reject release events and permit repeats only when the action is designed for them. Pass the actual repeat policy to `ProcessCommandBindings` instead of treating every event as a fresh press.
 - Decide whether a matched but currently invalid action should consume the gesture and report its rejection. A false can-execute predicate may let another command sharing the chord run; use validation inside the callback when that fallthrough would violate the intended behavior.
-- Keep frequently polled can-execute predicates cheap. Read and validate changing external input again when the action executes; avoid repeatedly parsing the clipboard just to paint button availability, and justify caching or additional polling work with measurements and an invalidation policy.
+- Keep frequently polled can-execute and checked-state predicates cheap. Read and validate changing external input again when the action executes; avoid repeatedly parsing the clipboard just to paint button availability, and justify caching or additional polling work with measurements and an invalidation policy.
 - For polled viewport gestures, check both active chord slots and their modifiers. Obtain the clicked actor, component and material slot from the hit proxy; do not substitute the actor's first component or slot zero.
 - Validate the hit proxy and component type for pointer gestures. Explicitly reject unsupported targets such as volumes where the gesture would be a mistake.
 - Let unrelated input continue through the installed mode's input chain. If a delegated helper declines an event, use the appropriate base handler or command-list result for that engine hook.
 
 ## Don't
 - Don't hardcode the initial default as the only accepted key.
+- Don't keep a toggle's checked appearance in an independent Boolean that can disagree with the resource it represents.
 - Don't return handled for unrelated input and suppress the editor's normal behavior.
 - Don't dereference an expired weak command list or leave a callback mapped to a destroyed helper.
 - Don't invoke the action again on key release merely because the input hook also receives release events.
@@ -54,6 +56,7 @@ variants: []
 
 ## Checklist
 - Do primary and secondary rebindings change the accepted gesture?
+- Does a toggle's checked state follow the real active resource after success, rejection, external teardown and repeated invocation?
 - Are modifiers, press/release phases and repeats tested with an observable callback count?
 - Can mode exit or module shutdown leave a callable mapping to a destroyed receiver?
 - For pointer gestures, are the clicked component and slot the ones edited?
@@ -61,4 +64,4 @@ variants: []
 - Does an intentionally rejected gesture explain its failure without accidentally triggering a competing command?
 
 ## Notes
-A command declaration makes input discoverable and rebindable. Target resolution, callback lifetime and event consumption are separate responsibilities. A key-only comparison does not establish complete modifier-chord matching, and a registered command does not prove its callback is safely routed. Test the actual input path and check any engine routing patch against the installed version.
+A command declaration makes input discoverable and rebindable. Target resolution, callback lifetime, checked-state truth and event consumption are separate responsibilities. A key-only comparison does not establish complete modifier-chord matching, and a registered command does not prove its callback is safely routed. Test the actual input path and check any engine routing patch against the installed version.

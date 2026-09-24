@@ -33,6 +33,8 @@ variants: []
 
 ## Do
 - Treat the plugin descriptor and module build rules as different contracts: the descriptor selects module type and loading phase; `Build.cs` declares compile/link dependencies.
+- Put a data or settings type needed by both game and editor code in a runtime-safe project or plugin module, export it with that module's API macro, and let the editor module depend inward on that shared owner.
+- Keep editor menus, Slate helpers and UnrealEd types on the editor side of that boundary; game code reads the shared settings without acquiring an editor-module dependency.
 - For an `FEdMode` extension, declare `UnrealEd` and `EditorFramework` dependencies; add `Slate` and `SlateCore` for the shared UI styles.
 - Use private dependencies for implementation-only use. Check the dependency exposure again if a public header exposes another module's types.
 - Start with the default loading phase when it meets the feature's needs; change the phase for an initialization requirement, rather than copying another feature's setting.
@@ -42,14 +44,16 @@ variants: []
 
 ## Don't
 - Don't leave an editor-only module as `Runtime` merely because the Blank plugin template generated that value.
+- Don't place a game-consumed settings contract in the editor module and force runtime code to depend outward on tooling.
 - Don't try to cure unresolved external symbols by adding more include files. Identify the providing module and declare the dependency.
 - Don't remove content support from a mixed plugin just because an editor-only example does not use content.
 
 ## Checklist
 - Does every editor feature belong to an editor module?
+- Is shared game/editor data owned and exported by a runtime-safe module with dependency arrows pointing toward it?
 - Do build rules explicitly name the modules supplying the symbols used?
 - Are plugin enablement and C++ dependencies both declared where needed?
-- Does a clean editor-target build compile and link the extension?
+- Does a clean editor-target build compile and link the extension without making the game target load editor code?
 
 ## Notes
-A plugin may contain multiple modules with different lifetimes and dependency sets. That split lets game-facing code remain usable without pulling editor tooling into the runtime. Header visibility and link visibility are separate: reading a declaration does not provide its compiled implementation.
+A plugin may contain multiple modules with different lifetimes and dependency sets. That split lets game-facing code remain usable without pulling editor tooling into the runtime. Header visibility and link visibility are separate: reading a declaration does not provide its compiled implementation. Shared data belongs at the stable side of the boundary; editor UI may mutate it without becoming its owner.

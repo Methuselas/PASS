@@ -6,6 +6,37 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.84 - 2026-09-24
+
+### Added
+
+- Completed the 20-unit software-engineering study of Roger Mattsson's
+  *Extending and Customizing Unreal Engine Editor*. The canonical library now
+  contains 67 cards from the source: 40 Patterns, 15 Action Procedures and 12
+  Drills.
+- Added reusable Unreal guidance for editor previews, Slate browsers, asset and
+  Blueprint validation, World Partition migrations, component visualizers,
+  secure Data Table synchronization, latent actions, reflection-safe wildcard
+  thunks, custom K2 compiler expansion and lifecycle-safe subscription nodes.
+- Added an end-to-end K2 subscription-node drill during source closure to join
+  reconstruction, compiler lowering, runtime cleanup and cooked-module
+  verification.
+
+### Changed
+
+- Refined the existing Unreal editor module-boundary, command-routing and
+  shared-versus-local settings cards against the completed source.
+- Regenerated software-engineering and Unreal navigation indexes for the new
+  editor and Blueprint material.
+
+### Evidence
+
+- Completed deterministic Source Prep for all 287 PDF pages, including 46
+  visually significant segments and 1,231 preserved code blocks; verified and
+  finalized the prepared package before continuing at U06.
+- PASS reported all 20 units accepted, source closure complete, schema
+  validation passing and reference verification passing.
+
 ## 1.0.0-beta.83 - 2026-09-24
 
 ### Fixed

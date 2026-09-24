@@ -61,6 +61,21 @@ domain of a bounded snapshot is the only automatic default. Never infer a new
 package from a book's title, front matter or topic. Missing-domain rejection is
 authoritative; domain creation requires a separate authorized maintenance task.
 
+An active run created before Source Prep may already have an accepted preflight
+and landed units while `source_prep` is empty. Do not rewind, repeat preflight or
+edit controller state. Backfill the package with the explicit compatibility path:
+
+```text
+python PASS/source_prep.py prepare --run <run-directory> --legacy-backfill
+python PASS/source_prep.py verify --run <run-directory>
+python PASS/source_prep.py finalize --run <run-directory> --legacy-backfill
+```
+
+The backfill is accepted only for a planned, post-preflight active phase with no
+prior Source Prep. It binds the source identity, checkpoints deterministic
+preparation, materializes the accepted unit plan, and returns to the exact same
+phase and unit index without changing the accepted delta or preflight.
+
 `start --task <book-run-slug>` optionally sets a unique lowercase task name. The
 default derives a readable book name plus a unique suffix. Existing task paths
 are never overwritten; resume with `--run`. `--stop-after source_prep` prepares

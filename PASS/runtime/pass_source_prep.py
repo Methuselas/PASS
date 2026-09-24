@@ -806,9 +806,34 @@ def render_index(source_name: str, rows: list[dict], compatibility: list[str]) -
     return "\n".join(lines) + "\n"
 
 
-def prepare(run: Run, min_text_chars: int = 80, force: bool = False) -> dict:
-    if run.state["phase"] != "source_prep":
-        raise RunError(f"source preparation is available only in source_prep; current phase is {run.state['phase']}")
+LEGACY_ACTIVE_PHASES = {
+    "pass1", "checkpoint", "pass2", "pass3", "land",
+    "closure_pass2", "closure_pass3", "closure_land",
+}
+
+
+def legacy_backfill_allowed(run: Run, *, prepared: bool = False) -> bool:
+    prep = run.state.get("source_prep")
+    prep_matches = (
+        isinstance(prep, dict) and prep.get("status") == "prepared"
+        if prepared else prep is None
+    )
+    return (
+        run.state["phase"] in LEGACY_ACTIVE_PHASES
+        and run.state.get("plan") is not None
+        and prep_matches
+        and not run.state.get("stop_reached")
+    )
+
+
+def prepare(run: Run, min_text_chars: int = 80, force: bool = False, legacy_backfill: bool = False) -> dict:
+    if run.state["phase"] != "source_prep" and not (legacy_backfill and legacy_backfill_allowed(run)):
+        raise RunError(
+            f"source preparation is available only in source_prep; current phase is {run.state['phase']}"
+            + (" (not an eligible legacy active run)" if legacy_backfill else "")
+        )
+    if legacy_backfill and not run.source_identity_path().is_file():
+        run.capture_source_identity()
     source = run.source_file(required=True)
     root = package_root(run)
     raw = raw_root(run)
@@ -1025,7 +1050,13 @@ def materialize_units(run: Run) -> dict[str, str]:
     return unit_files
 
 
-def finalize(run: Run) -> str:
+def finalize(run: Run, legacy_backfill: bool = False) -> str:
+    phase = run.state["phase"]
+    if phase != "source_prep" and not (legacy_backfill and legacy_backfill_allowed(run, prepared=True)):
+        raise RunError(
+            f"source preparation finalization is available only in source_prep; current phase is {phase}"
+            + (" (not an eligible legacy active run)" if legacy_backfill else "")
+        )
     manifest = verify(run)
     run.state["source_prep"] = {
         "status": "verified",
@@ -1036,10 +1067,17 @@ def finalize(run: Run) -> str:
         "integrity": manifest["integrity_gate"]["status"],
         "compatibility_baseline": manifest.get("compatibility_baseline", []),
     }
-    run.state["phase"] = "preflight"
-    if run.state.get("stop_after") == "source_prep":
-        run.state["stop_reached"] = True
+    if legacy_backfill:
+        materialize_units(run)
+        manifest = verify(run)
+        run.state["source_prep"]["package_sha256"] = manifest["package_sha256"]
+    else:
+        run.state["phase"] = "preflight"
+        if run.state.get("stop_after") == "source_prep":
+            run.state["stop_reached"] = True
     run.save()
+    if legacy_backfill:
+        return f"SOURCE PREP: verified legacy backfill — resumed at {phase} without changing accepted progress"
     suffix = " (stop target reached)" if run.state.get("stop_reached") else ""
     warning = " — review Source Prep warnings before preflight" if manifest["integrity_gate"]["status"] == "warning" else ""
     return "SOURCE PREP: verified" + warning + " — preflight is next" + suffix
@@ -1052,6 +1090,11 @@ def build_parser() -> argparse.ArgumentParser:
     for command in ("prepare", "verify", "finalize"):
         p = sub.add_parser(command)
         p.add_argument("--run", type=Path, required=True)
+        if command in {"prepare", "finalize"}:
+            p.add_argument(
+                "--legacy-backfill", action="store_true",
+                help="backfill Source Prep into an accepted pre-Source-Prep active run without changing its phase or accepted progress",
+            )
         if command == "prepare":
             p.add_argument("--min-text-chars", type=int, default=80)
             p.add_argument("--force", action="store_true")
@@ -1068,7 +1111,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             return 0
         with run.locked():
             if args.command == "prepare":
-                result = prepare(run, args.min_text_chars, args.force)
+                result = prepare(run, args.min_text_chars, args.force, args.legacy_backfill)
                 # Preparation itself is a recoverable accepted transaction even
                 # before finalization; record its current package in state.
                 run.state["source_prep"] = {
@@ -1083,7 +1126,7 @@ def main(argv: Iterable[str] | None = None) -> int:
                 run.save()
                 print(json.dumps(run.state["source_prep"], indent=2))
             elif args.command == "finalize":
-                print(finalize(run))
+                print(finalize(run, args.legacy_backfill))
         return 0
     except (OSError, RunError, preflight.PreflightError) as exc:
         print(f"SOURCE PREP BLOCKED: {exc}", file=sys.stderr)

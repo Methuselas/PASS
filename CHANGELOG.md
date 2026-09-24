@@ -6,6 +6,27 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.81 - 2026-09-23
+
+### Added
+
+- Added an explicit legacy Source Prep backfill path for planned, post-preflight
+  runs that began before Source Prep existed. The compatibility path binds the
+  original source identity, prepares and verifies the complete source package,
+  materializes the accepted unit plan, and resumes the exact active phase.
+
+### Fixed
+
+- Preserved accepted preflight state, unit index, staged cards and cumulative
+  accepted deltas while bringing an active legacy run under the current Source
+  Prep and hard-checkpoint contract.
+
+### Evidence
+
+- Added a regression that lands one unit, removes the simulated pre-Source-Prep
+  artifacts, performs the legacy backfill, and verifies that every accepted
+  progress field and staged-delta hash remains unchanged.
+
 ## 1.0.0-beta.80 - 2026-09-23
 
 ### Fixed

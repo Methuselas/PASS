@@ -447,6 +447,43 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaises(workflow.RunError):
             self.run.land(dict(schema_version=1))
 
+    def test_legacy_active_run_backfills_source_prep_without_losing_accepted_progress(self):
+        self.begin(count=2)
+        self.first()
+        self.second()
+        self.third()
+        self.run.land(self.decision())
+        accepted_before = self.run.accepted_file_hashes()
+        preserved_before = {
+            key: copy.deepcopy(self.run.state[key])
+            for key in ("phase", "unit_index", "plan", "pass1", "pass2", "reviewed_sha256", "live_hashes")
+        }
+
+        shutil.rmtree(self.root / "prepared-source")
+        shutil.rmtree(self.root / "controller/source-prep-raw")
+        (self.root / "controller/source-identity.json").unlink()
+        self.run.state["source_prep"] = None
+        self.run.save()
+        self.run.checkpoint()
+
+        with self.assertRaisesRegex(workflow.RunError, "available only in source_prep"):
+            pass_source_prep.prepare(self.run)
+        self.assertEqual(pass_source_prep.main([
+            "--repo-root", str(self.repo), "prepare", "--run", str(self.root), "--legacy-backfill",
+        ]), 0)
+        self.run.reload()
+        self.assertEqual(pass_source_prep.verify(self.run)["source"]["sha256"], self.run.source_identity()["sha256"])
+        self.assertEqual(pass_source_prep.main([
+            "--repo-root", str(self.repo), "finalize", "--run", str(self.root), "--legacy-backfill",
+        ]), 0)
+        self.run.reload()
+
+        self.assertEqual(self.run.state["phase"], "pass1")
+        self.assertEqual(self.run.state["source_prep"]["status"], "verified")
+        self.assertEqual(self.run.accepted_file_hashes(), accepted_before)
+        for key, value in preserved_before.items():
+            self.assertEqual(self.run.state[key], value)
+
     def test_validated_preflight_waits_for_bound_explicit_confirmation(self):
         self.run.submit("load", self.run.template())
         self.prep()

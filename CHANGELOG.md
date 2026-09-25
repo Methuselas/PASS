@@ -6,6 +6,115 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.87 - 2026-09-25
+
+### Added
+
+- Added Source Prep schema 5 integrity severity: `fail`, `review`, `warning`,
+  and `pass`. Strong PDF/font decode corruption on code-bearing pages now fails
+  closed instead of reaching preflight as apparently valid text.
+- Added retained whole-page integrity fallback images for suspicious decode and
+  unstructured numbered-table evidence. The fallback is review evidence only;
+  Source Prep never silently OCRs or reconstructs missing source content.
+- Added deterministic prepared-PDF unit-boundary auditing. Overlapping units and
+  strong heading/material matches assigned to a neighboring unit block preflight;
+  implausibly tiny spans and weaker heading mismatches are surfaced for review.
+- Added `workspace/tools/test_pass_source_quality.py` regression coverage for
+  corruption detection, legacy table warnings, unattended acceptance blocking,
+  and Karumanchi-style boundary drift.
+
+### Changed
+
+- Numbered-table evidence with zero structured preservation is now an explicit
+  review requirement. Unattended authorization cannot auto-accept a preflight
+  while Source Prep or boundary review requirements remain; explicit
+  human/frontier confirmation may still accept after inspection.
+- Legacy prepared-source schema 3/4 table/code sanity warnings are upgraded into
+  the new review gate at acceptance time instead of being silently grandfathered.
+- PDF C1 control characters commonly produced by broken bullet/list glyphs are
+  recorded but no longer treated as code corruption by themselves, avoiding
+  false failures on otherwise healthy technical books.
+- Source Prep, PASS run, runtime, README, and skill documentation now describe
+  the fail-closed corruption gate, visual fallback policy, table review rule,
+  and unit-boundary coherence checks.
+
+## 1.0.0-beta.86 - 2026-09-25
+
+### Added
+
+- Added `PASS/pass.py start-over`, a first-class reset transition for explicit
+  user instructions to start over/reset/discard an unfinished source run. The
+  command does not ask the model to reconcile old checkpoints before obeying the
+  reset; it makes the old continuation chain ineligible and creates a fresh run
+  identity.
+- Added three explicit reset boundaries: `--from scratch`, `--from source_prep`,
+  and `--from preflight`, plus optional `--carry-notes`. Only the named artifacts
+  may seed the replacement run. Source-Prep reuse requires a verified package;
+  preflight reuse additionally requires an accepted eligible plan.
+- Added a durable `controller/reset-intent.json` transaction marker. If reset is
+  interrupted, the old run is blocked from resume/recover/save until the same
+  start-over transaction finishes, preventing a stale process or checkpoint from
+  resurrecting abandoned controller state.
+- Added start-over regression coverage for stale operation locks, notes-only
+  scratch reset, verified Source Prep reuse, accepted preflight reuse, old-state
+  resurrection blocking, and legacy Software Engineering preflight rejection.
+
+### Changed
+
+- `start-over` archives and clears stale operation leases from dead processes,
+  revokes unattended/action leases, and refuses to race a PID that still appears
+  live.
+- Reusing `source_prep` deliberately removes unit files materialized from the
+  abandoned plan before rerunning preflight. Reusing `preflight` rematerializes
+  units from the carried accepted plan and begins at U01 PASS 1 with no carried
+  PASS 1/2/3 state.
+- Software Engineering schema-1/2 preflights cannot be reused as the starting
+  point of a new reset run because they predate beta.85's mandatory language
+  policy. Such runs must restart from verified Source Prep so preflight can
+  establish the current-version modernization contract.
+
+## 1.0.0-beta.85 - 2026-09-25
+
+### Added
+
+- Added preflight schema 3 for Software Engineering language work. New
+  Software Engineering preflights must explicitly classify the source as
+  `programming-language` or `not-programming-language`. Programming-language
+  sources declare the language, current target version, target-version basis,
+  and mandatory modernization policy before PASS 1 begins.
+- Added PASS 1 `version_sensitive_flags` and a PASS 2
+  `language_modernization` audit. Every flagged source-era claim must resolve as
+  current, modernized, historical, or rejected against the accepted target
+  version, with explicit current guidance and verification evidence.
+- Added PASS 3 semantic checks for `core_language_agnosticism` and
+  `language_modernization` on programming-language runs.
+- Added regression coverage for schema-3 round trips, schema-2 recovery,
+  mandatory modernization, phase templates, modernization resolution, and
+  schema-downgrade rejection.
+
+### Changed
+
+- Software Engineering Core ownership is now mechanically constrained against
+  specialized routing: `software-engineering/core/` cards must keep
+  `specialization_axis: none` and may not use `routing_class: specialized`.
+  PASS 2 additionally requires an explicit agnosticism review for every Core
+  card changed by a programming-language run.
+- Stateful preflight persistence now uses the canonical preflight serializer
+  instead of generic dataclass serialization, preserving schema-specific
+  language policy through initial submission, revision, and unit replanning.
+- Software Engineering language authoring doctrine now distinguishes immutable
+  source-era evidence from current instructional guidance: source text is
+  preserved, while version-sensitive library instruction is always reconciled
+  to the accepted current target version.
+- `PASS_LIBRARY.md` is now part of the required authoring document set so the
+  Core/language ownership contract is loaded before a new run proceeds.
+
+### Compatibility
+
+- Existing schema-1 and schema-2 preflight plans remain readable and resumable.
+  A schema-3 Software Engineering plan cannot be revised or replanned into a
+  legacy shape that silently drops its language policy.
+
 ## 1.0.0-beta.84 - 2026-09-24
 
 ### Added

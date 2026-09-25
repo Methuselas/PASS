@@ -57,9 +57,20 @@ summarizes, paraphrases, corrects the author, classifies PAT/DRILL/AP content, o
 decides what instruction matters. Its package is bound to the source identity and
 may be reused after a model/provider switch.
 
+Source Prep also fails closed on strong PDF/font decode corruption in code-bearing
+pages and retains a rendered page fallback for integrity review. Numbered-table
+signals that produce no structured table become explicit review requirements;
+they are not silently treated as successful extraction. Review-required packages
+may proceed to structural preflight, but unattended authorization may not consume
+the preflight acceptance gate until the warning is explicitly reviewed.
+
 Preflight then permits controlled structural orientation: metadata, contents/page
 map, extraction-quality sampling, and enough instructional structure to establish
-the subject and units. It does not permit chapter ingestion or lesson extraction.
+the subject and units. The controller mechanically audits PDF unit coordinates for
+overlap, implausibly tiny spans, and strong heading/material matches that land in a
+neighboring unit; a strong mismatch fails the plan before presentation, while
+weaker anomalies are surfaced for review. It does not permit chapter ingestion or
+lesson extraction.
 **Preflight is source-scoped and occurs exactly once for the run.** Only accepted
 preflight releases the first unit for substantive reading. Each unit completes
 PASS 1, any consequential-question checkpoint, the full cold PASS 2, the card-only
@@ -92,6 +103,16 @@ run, a recovered tool, or a handoff conflicts with current accepted state,
 current accepted state governs. A handoff never outranks it. Reconstructing a
 loop from old documents without chronology resurrects systems that were
 deliberately abandoned.
+
+**Explicit user reset outranks continuation state.** If the user says to start
+over/reset/discard the current source run, that instruction is not a checkpoint
+question. Invoke the controller's `start-over` transition with the boundary the
+user named; do not inspect or debate old checkpoints to infer whether they meant
+resume. `scratch` carries nothing except optional notes, `source_prep` carries
+only verified Source Prep, and `preflight` carries only verified Source Prep plus
+an accepted eligible preflight. The old run becomes abandoned and ineligible for
+resume before the replacement proceeds. See `AUTHORING_RUNTIME.md` §Explicit
+start-over outranks recovery.
 
 **No research or authoring state is shared across lanes.** No registry, no index
 of sources, no aggregate of what has been read, no cross-lane synchronization.
@@ -363,6 +384,17 @@ one canonical table:
 End with explicit no-extract spans, or `none`. Overlap is predicted against the
 active domain's live cards; card potential is a forecast (§1), not a skip gate.
 
+For **Software Engineering**, preflight schema 3 also makes one explicit
+classification before any unit work: is this a programming-language source or
+not? A programming-language source must declare the language, the **current
+target version**, the basis used to establish that target, and
+`modernization_required: true`. The source's original version remains evidence;
+it is never silently rewritten. What changes is the instruction admitted to the
+library: version-sensitive source claims must be checked against the declared
+current target before they can become current guidance. A legacy schema-1/2 plan
+remains resumable as historical controller state, but a new Software Engineering
+preflight may not omit this classification.
+
 `runtime/pass_authoring_run.py` remains the stateless helper for this boundary:
 `preflight template` prints its JSON record; `preflight gate --input <record.json>`
 validates exact fields and live overlap IDs, then renders the table.
@@ -464,6 +496,15 @@ The first read therefore preserves ambiguity without postponing authoring:
    dropped;
 3. provisional status leaves topology and disposition free to change on reread.
 
+For a Software Engineering programming-language source, PASS 1 also records
+**version-sensitive flags**. Flag syntax, standard-library/API behavior,
+toolchain/runtime behavior, language guarantees, implementation claims,
+ecosystem advice, and any other instruction whose truth may have changed since
+the source was written. The purpose is not to rewrite the source while reading
+it; the flag preserves the source-era claim so PASS 2 can decide whether it is
+still current, must be modernized, is historical context only, or should be
+rejected as current instruction.
+
 A PASS 1 SitRep ends with an explicit completion stamp naming the unit
 (`PASS 1: complete — Uxx`) and records every secondary-subject flag that PASS 2
 must resolve. A missing or dangling flag blocks unit closure.
@@ -527,6 +568,29 @@ Extraction happens **here**, with the staged information, the answers, and the
 neighbouring cards all in hand. PASS 2 must explicitly resolve every PASS 1
 secondary-subject flag; it may add new findings, but it may not silently drop a
 flag. Its SitRep ends with `PASS 2: complete — Uxx`.
+
+For a Software Engineering programming-language source, PASS 2 has a second
+non-optional closure: **language modernization**. It must attest that all
+version-sensitive material in the unit was reviewed against the accepted target
+version, and it must resolve every PASS 1 version-sensitive flag as one of:
+
+- `current` — still correct for the target version;
+- `modernized` — durable lesson retained, obsolete mechanics/wording replaced;
+- `historical` — useful only as historical context, not current instruction;
+- `rejected` — stale claim with no durable instructional value to promote.
+
+Each resolution records the current guidance and the verification basis. A
+version-sensitive claim may not become a current card merely because it was true
+in the book. Source authority establishes what the author taught; it does not
+override the current language/toolchain.
+
+The same gate protects Software Engineering Core. Read existing Core owners as
+**language-agnostic decisions**. If the unit creates or changes a Core card, its
+decision rule must still be stateable without the source language. Syntax,
+idioms, runtime mechanics and necessary language-specific exceptions belong in
+`languages/<language>/` (or the appropriate specialized module). Language-
+specific examples may illustrate a Core decision, but they may not define it.
+PASS 2 records an agnosticism review for every staged Core card change.
 
 Separate two questions and keep them separate:
 
@@ -645,6 +709,11 @@ to the validator and plainly visible in the card.**
 The third read is one pass over what this run produced, read cold against the
 schema. It happens before the delta is presented, so what is presented is already
 conformant — the repair costs one pass now instead of a lane-wide sweep later.
+
+For a programming-language source, the card-only PASS 3 checklist adds two hard
+questions: **did every changed Core card remain language-agnostic, and did every
+current language-specific claim reflect the accepted target version rather than
+the source era?** Both must pass before landing.
 
 **Scope is the delta, not the library.** Every card the run created or changed: a
 refinement counts, a replacement's migrated links count, and so do the cards on

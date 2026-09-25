@@ -84,6 +84,14 @@ consumer_instructions:
   new cards, with target-version/toolchain checks for executable claims. Keep
   one core owner; put language realization in its module. Book-driven authoring
   review is not empirical qualification and is not required for ordinary use.
+- >-
+  When PASS ingests a programming-language source, preserve the source era as
+  evidence but modernize every version-sensitive instructional claim to the
+  accepted current target language version before treating it as current
+  guidance. Record stale claims as modernized, historical, or rejected rather
+  than copying them forward. Read and modify software-engineering/core as
+  language-agnostic decisions; keep language syntax, idioms, runtime mechanics,
+  and necessary exceptions in the language module.
 - Before administering a Software Engineering Drill, declare whether the run is a portability probe, blind Drill sitting, deterministic regression, or comparative study. Do not treat one type as evidence for another.
 - >-
   When using a repository workspace, use its existing purpose buckets and a

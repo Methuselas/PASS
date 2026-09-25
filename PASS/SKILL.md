@@ -72,6 +72,27 @@ commands, records and recovery. The standalone preflight helper and reading
 the Markdown alone do not start an authorized executable run. Maintenance and
 release packaging do not need a source run.
 
+**Exception: an explicit user instruction to start over/reset/discard the active
+run is authoritative.** Do not call `resume`, `recover`, `rollback`, or reread
+checkpoints to reinterpret that instruction. Use `python PASS/pass.py start-over
+--run <run-directory> --reason <user-instruction>` and select only the reuse
+boundary the user actually authorized: `--from scratch`, `--from source_prep`, or
+`--from preflight`; add `--carry-notes` only when notes were explicitly allowed.
+The controller makes the old checkpoint chain ineligible before creating the
+replacement, so a crashed or manually stopped run cannot trap the next model in
+a resume-vs-reset loop. See `docs/AUTHORING_RUNTIME.md` §Explicit start-over
+outranks recovery.
+
+**Treat Source Prep integrity as a gate, not a suggestion.** Strong PDF/font
+decode corruption on code-bearing pages fails closed and must be repaired or
+re-extracted before preflight. Table evidence that cannot be preserved
+structurally and weaker unit-boundary anomalies require explicit review; they
+may be presented, but unattended authorization may not auto-accept the preflight.
+For prepared PDFs, revise a plan when the controller reports overlap or a strong
+heading/material match inside the wrong neighboring unit. Use retained integrity
+fallback page images as evidence; never reconstruct missing source content from
+what the code or table "probably" said.
+
 When the user explicitly authorizes one source to continue unattended through
 completion, finish LOAD first, then record that bounded instruction with `python PASS/source.py
 authorize --run <run-directory> --reason <user-instruction>`. The source runner does not fabricate PASS reads: the host still performs the substantive reading and adjudication, but in unattended mode it must obtain the next action from `python PASS/source.py drive --run <run-directory>` before every preflight/PASS/checkpoint submission. `PASS/pass.py` rejects unattended substantive submissions that lack the matching persisted action lease. The runner also consumes routine presentation/acceptance and landing gates after rendering their complete packets into the run audit. Progress claims must come from `python PASS/source.py report --run <run-directory>`, never from model narration or memory. It must stop for practitioner-dependent checkpoint

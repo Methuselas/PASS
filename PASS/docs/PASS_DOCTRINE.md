@@ -252,6 +252,16 @@ rebuild. The library improves with every source.
 - Preserve variants. Replace inferior with superior. Genericize what travels.
 - Treat each source as one route worth learning, never as proof that its route is
   the only one.
+- **Software Core Agnosticism.** Software Engineering Core owns reusable
+  decisions, not one language's realization. Read, create, and refine Core rules
+  so they remain valid across programming languages; keep language syntax,
+  idioms, runtime mechanics, and necessary exceptions in specialized language
+  modules.
+- **Language Modernity.** For programming-language sources, preserve the source
+  era as evidence but interpret version-sensitive instruction against the
+  explicitly accepted current target version before admitting it as current
+  library guidance. Modernize what changed, mark historical what is historical,
+  and reject stale claims with no durable lesson.
 - Every object must be usable **without** the original source in hand.
 - Favor thoroughness. Extract more, not less. Do not quietly reduce density.
 - **Fail closed.** If the source cannot actually be read, stop and say so. Never

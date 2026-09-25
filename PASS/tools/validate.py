@@ -236,6 +236,15 @@ def validate_record(record: ObjectRecord, library_root: Path) -> None:
         record.errors.append("rule 5: general routing requires specialization_axis none")
     if data.get("routing_class") == "specialized" and data.get("specialization_axis") == "none":
         record.errors.append("rule 5: specialized routing requires a specialization axis")
+    if record.relative_path.parts[:2] == ("software-engineering", "core"):
+        # Core may contain general execution cards and teaching cards, but it is
+        # never a language/tool/framework specialization.  Language-specific
+        # realization belongs below languages/<language> (or the appropriate
+        # framework/tool module), while Core owns the reusable decision.
+        if data.get("specialization_axis") != "none" or data.get("routing_class") == "specialized":
+            record.errors.append(
+                "rule 5: software-engineering/core must remain language-agnostic (specialization_axis none; routing_class not specialized)"
+            )
     library_path = data.get("library_path")
     if not isinstance(library_path, list) or len(library_path) < 2 or not all(isinstance(part, str) and PATH_SEGMENT_RE.fullmatch(part) for part in library_path):
         record.errors.append("rule 4: library_path must contain at least two lowercase path segments")

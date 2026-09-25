@@ -25,13 +25,14 @@ import sys
 import unicodedata
 from collections import Counter
 from pathlib import Path
+from statistics import median
 from typing import Iterable, Any
 
 from . import pass_authoring_run as preflight
 from .pass_authoring_workflow import Run, RunError, atomic_write, digest, inside
 
-PREP_SCHEMA = 4
-SUPPORTED_PREP_SCHEMAS = {3, 4}
+PREP_SCHEMA = 5
+SUPPORTED_PREP_SCHEMAS = {3, 4, 5}
 SUPPORTED_TEXT = {".txt", ".md", ".markdown"}
 # Human-facing preflight locators may contain both printed-book and PDF/source
 # coordinates, for example: ``pp. 3-26 (PDF 55-78)``.  Materialization must
@@ -83,6 +84,13 @@ GENERIC_CODE_START_RE = re.compile(
 )
 MONO_FONT_RE = re.compile(r"(?:courier|mono|consolas|code|sourcecode|menlo)", re.I)
 BOLD_FONT_RE = re.compile(r"(?:bold|semibold|demi|black)", re.I)
+
+CORRUPT_TEXT_RE = re.compile(r"(?:\(cid:\d+\)|<cid:\d+>|\bcid:\d+\b|\buni[0-9a-f]{4,6}\b|\ufffd)", re.I)
+MOJIBAKE_RE = re.compile(r"(?:Ã.|Â.|â(?:€|€™|€œ|€\x9d|€“|€”|€¦)|ðŸ)")
+GENERIC_HEADING_WORDS = {
+    "chapter", "part", "section", "unit", "lesson", "appendix", "page", "pages",
+    "the", "and", "for", "with", "from", "into", "using", "use", "about", "overview",
+}
 VERSION_PATTERNS = [
     ("Unreal Engine", re.compile(r"\b(?:Unreal Engine|UE)\s*(5(?:\.\d+){0,2})\b", re.I)),
     ("Visual Studio", re.compile(r"\bVisual Studio\s*(20\d{2})\b", re.I)),
@@ -215,6 +223,73 @@ def _raw_table_signal_count(text: str) -> int:
     reporting zero table structure with a clean integrity result.
     """
     return sum(1 for line in _nfc(text).splitlines() if TABLE_SIGNAL_RE.match(line))
+
+
+def _text_corruption_metrics(text: str, *, code_signal_lines: int = 0) -> dict[str, Any]:
+    """Detect extraction artifacts that are unsafe to silently treat as source truth.
+
+    Clean Unicode does not prove that extraction matches the rendered page, but
+    explicit CID/replacement markers and low controls are strong failure signals.
+    C1 controls are treated more softly because PDF list bullets are often
+    mis-decoded into that range.
+    """
+    text = _nfc(text)
+    replacement_or_cid = len(CORRUPT_TEXT_RE.findall(text))
+    mojibake = len(MOJIBAKE_RE.findall(text))
+    private_use = sum(1 for ch in text if unicodedata.category(ch) == "Co")
+    low_controls = sum(
+        1 for ch in text
+        if unicodedata.category(ch) in {"Cc", "Cs"}
+        and ch not in "\n\r\t"
+        and ord(ch) < 0x80
+    )
+    c1_controls = sum(1 for ch in text if 0x80 <= ord(ch) <= 0x9F)
+    nonspace = max(1, len(re.sub(r"\s+", "", text)))
+    explicit_bad = replacement_or_cid + low_controls
+    suspicious = explicit_bad + private_use
+    ratio = suspicious / nonspace
+    hard = (
+        (code_signal_lines >= 2 and explicit_bad > 0)
+        or explicit_bad >= 3
+        or (code_signal_lines >= 2 and private_use >= 5)
+        or ratio >= 0.02
+    )
+    review = (
+        hard
+        or mojibake >= 3
+        or (code_signal_lines >= 2 and mojibake > 0)
+        or private_use >= 3
+    )
+    return {
+        "replacement_or_cid_markers": replacement_or_cid,
+        "mojibake_markers": mojibake,
+        "private_use_chars": private_use,
+        "low_control_or_surrogate_chars": low_controls,
+        "c1_control_chars": c1_controls,
+        "suspicious_char_ratio": round(ratio, 6),
+        "status": "fail" if hard else ("review" if review else "pass"),
+    }
+
+def _write_page_fallback(page, root: Path, page_no: int, reason: str) -> dict[str, Any]:
+    """Render a whole-page visual fallback for text/table integrity review."""
+    rel = f"assets/P{page_no:04d}/page_fallback.png"
+    path = root / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    # 1.5x is readable for code/table inspection without exploding archive size.
+    pix = page.get_pixmap(dpi=108, alpha=False)
+    if pix is None:  # pragma: no cover - defensive; get_pixmap normally returns a Pixmap
+        raise RuntimeError("failed to render page fallback")
+    pix.save(str(path))
+    return {
+        "page": page_no,
+        "file": rel,
+        "bbox": [0.0, 0.0, round(float(page.rect.width), 2), round(float(page.rect.height), 2)],
+        "pixel_size": [pix.width, pix.height],
+        "caption": None,
+        "retention": "integrity-fallback",
+        "reason": reason,
+        "sha256": digest(path),
+    }
 
 
 def _table_to_markdown(rows: list[list[str | None]]) -> str | None:
@@ -491,13 +566,14 @@ def _body_font_size(page_dict: dict, page_height: float) -> float:
     return weighted.most_common(1)[0][0] if weighted else 10.0
 
 
-def _extract_tables(plumber_page, assets_root: Path, page_no: int) -> tuple[list[dict], list[tuple[float, float, float, float]]]:
+def _extract_tables(plumber_page, assets_root: Path, page_no: int) -> tuple[list[dict], list[tuple[float, float, float, float]], int]:
     entries: list[dict] = []
     bboxes: list[tuple[float, float, float, float]] = []
     try:
         tables = plumber_page.find_tables()
     except Exception:
         tables = []
+    candidate_count = 0
     count = 0
     for table in tables:
         try:
@@ -507,9 +583,10 @@ def _extract_tables(plumber_page, assets_root: Path, page_no: int) -> tuple[list
         cols = max((len(r) for r in rows), default=0)
         if len(rows) < 2 or cols < 2:
             continue
-        # Avoid treating bordered code examples as tables.
+        # Avoid treating empty/degenerate detector boxes as actual table evidence.
         if sum(1 for row in rows for cell in row if normalize_prose_line(cell or "")) < 4:
             continue
+        candidate_count += 1
         count += 1
         bbox = tuple(float(v) for v in table.bbox)
         bboxes.append(bbox)
@@ -521,7 +598,7 @@ def _extract_tables(plumber_page, assets_root: Path, page_no: int) -> tuple[list
             rel = f"assets/P{page_no:04d}/table_{count:02d}.csv"
             _write_csv(assets_root.parent / rel, rows)
             entries.append({"y": bbox[1], "bbox": bbox, "kind": "table_csv", "file": rel, "rows": len(rows), "columns": cols})
-    return entries, bboxes
+    return entries, bboxes, candidate_count
 
 
 def _extract_visuals(page, page_dict: dict, root: Path, page_no: int) -> tuple[list[dict], list[dict]]:
@@ -766,7 +843,7 @@ def _coalesce_events(events: list[dict]) -> list[dict]:
 def _semantic_pdf_page(page, plumber_page, root: Path, page_no: int, repeated: set[str]) -> tuple[str, dict[str, Any]]:
     page_dict = page.get_text("dict", sort=True)
     body_size = _body_font_size(page_dict, page.rect.height)
-    table_events, table_bboxes = _extract_tables(plumber_page, root / "assets", page_no)
+    table_events, table_bboxes, table_candidate_count = _extract_tables(plumber_page, root / "assets", page_no)
     visual_records, visual_events = _extract_visuals(page, page_dict, root, page_no)
     text_events, code_fragments = _render_text_events(page_dict, page.rect.height, body_size, repeated, table_bboxes)
 
@@ -793,6 +870,28 @@ def _semantic_pdf_page(page, plumber_page, root: Path, page_no: int, repeated: s
     metrics = _integrity_metrics(raw_text, integrity_payload, code_fragments)
     metrics["raw_code_signal_lines"] = _raw_code_signal_count(page_dict, page.rect.height, repeated)
     metrics["raw_table_signal_lines"] = _raw_table_signal_count(raw_text)
+    metrics["table_candidates_detected"] = table_candidate_count
+    metrics["text_corruption"] = _text_corruption_metrics(
+        raw_text, code_signal_lines=int(metrics["raw_code_signal_lines"])
+    )
+
+    # When text extraction itself is suspect, or table structure is visibly
+    # signaled but could not be reconstructed, retain a rendered page image.
+    # The fallback is evidence for repair/review; it is never OCR'd or silently
+    # substituted for the archival source text by Source Prep.
+    needs_fallback = metrics["text_corruption"]["status"] != "pass" or (
+        not table_events and metrics["raw_table_signal_lines"] > 0
+    )
+    if needs_fallback and not any(v.get("retention") == "integrity-fallback" for v in visual_records):
+        reasons = []
+        if metrics["text_corruption"]["status"] != "pass":
+            reasons.append("text/font decode integrity review")
+        if not table_events and metrics["raw_table_signal_lines"] > 0:
+            reasons.append("unstructured table review")
+        fallback = _write_page_fallback(page, root, page_no, "; ".join(reasons))
+        visual_records.append(fallback)
+        prepared = prepared.rstrip() + f"\n\n[Integrity fallback page image](../{fallback['file']})\n"
+
     return prepared, {
         "body_font_size": body_size,
         "tables": [{k: v for k, v in e.items() if k != "content"} for e in table_events],
@@ -908,13 +1007,34 @@ def prepare(run: Run, min_text_chars: int = 80, force: bool = False, legacy_back
                 ratio = float(detail["integrity"]["coverage_ratio"])
                 code_ok = detail["integrity"]["code_blocks"] == detail["integrity"]["code_blocks_preserved"]
                 warnings: list[str] = []
+                hard_failures: list[str] = []
+                review_requirements: list[str] = []
                 if ratio < 0.62:
                     warnings.append("low lexical coverage; inspect layout/tables/visual dependence")
                 if not code_ok:
-                    warnings.append("one or more detected code blocks failed exact prepared-text preservation")
+                    msg = "one or more detected code blocks failed exact prepared-text preservation"
+                    warnings.append(msg)
+                    hard_failures.append(msg)
                 raw_code_signals = int(detail["integrity"].get("raw_code_signal_lines", 0))
                 if raw_code_signals >= 2 and detail["integrity"]["code_blocks"] == 0 and not detail.get("tables"):
-                    warnings.append("code-like/preformatted source lines detected but no code block or structured table was classified")
+                    msg = "code-like/preformatted source lines detected but no code block or structured table was classified"
+                    warnings.append(msg)
+                    review_requirements.append(msg)
+                corruption = detail["integrity"].get("text_corruption") or {}
+                if corruption.get("status") == "fail":
+                    msg = "text/font extraction contains corruption markers on a code-bearing or heavily corrupted page; use the retained page fallback and repair/re-extract before preflight"
+                    warnings.append(msg)
+                    hard_failures.append(msg)
+                elif corruption.get("status") == "review":
+                    msg = "text/font extraction contains suspicious decode artifacts; compare prepared text against the retained page fallback before preflight acceptance"
+                    warnings.append(msg)
+                    review_requirements.append(msg)
+                table_candidates = int(detail["integrity"].get("table_candidates_detected", 0))
+                table_signals = int(detail["integrity"].get("raw_table_signal_lines", 0))
+                if not detail.get("tables") and table_signals > 0:
+                    msg = "table structure is signaled/detected but no structured table was preserved; inspect the retained page fallback and repair or explicitly review row/column associations"
+                    warnings.append(msg)
+                    review_requirements.append(msg)
                 row = {
                     "page": index,
                     "file": f"pages/{out.name}",
@@ -935,6 +1055,8 @@ def prepare(run: Run, min_text_chars: int = 80, force: bool = False, legacy_back
                     "visual_inventory": detail["visuals"],
                     "integrity": detail["integrity"],
                     "warnings": warnings,
+                    "hard_failures": hard_failures,
+                    "review_requirements": review_requirements,
                 })
         doc.close()
         backend = "pymupdf+pdfplumber"
@@ -950,7 +1072,7 @@ def prepare(run: Run, min_text_chars: int = 80, force: bool = False, legacy_back
         chars = len(re.sub(r"\s+", "", normalized))
         metrics = _integrity_metrics(raw_text, normalized, [])
         rows.append({"page": 1, "file": "source.md", "chars": chars, "tokens": max(1, round(len(normalized)/4)) if normalized else 0, "low_text": False, "tables": 0, "visuals": 0, "integrity_ratio": metrics["coverage_ratio"]})
-        page_manifest.append({**rows[0], "sha256": digest(out), "raw_sha256": digest(raw_file), "table_inventory": [], "visual_inventory": [], "integrity": metrics, "warnings": []})
+        page_manifest.append({**rows[0], "sha256": digest(out), "raw_sha256": digest(raw_file), "table_inventory": [], "visual_inventory": [], "integrity": metrics, "warnings": [], "hard_failures": [], "review_requirements": []})
         backend = "utf8-text"
         source_kind = "text"
     else:
@@ -967,20 +1089,30 @@ def prepare(run: Run, min_text_chars: int = 80, force: bool = False, legacy_back
         {"page": seg["page"], "warning": warning}
         for seg in page_manifest for warning in seg.get("warnings", [])
     ]
+    aggregate_hard_failures = [
+        {"page": seg["page"], "failure": failure}
+        for seg in page_manifest for failure in seg.get("hard_failures", [])
+    ]
+    aggregate_review_requirements = [
+        {"page": seg["page"], "requirement": requirement}
+        for seg in page_manifest for requirement in seg.get("review_requirements", [])
+    ]
     total_code_signals = sum(int((seg.get("integrity") or {}).get("raw_code_signal_lines", 0)) for seg in page_manifest)
     total_code_blocks = sum(int((seg.get("integrity") or {}).get("code_blocks", 0)) for seg in page_manifest)
     total_table_signals = sum(int((seg.get("integrity") or {}).get("raw_table_signal_lines", 0)) for seg in page_manifest)
+    total_table_candidates = sum(int((seg.get("integrity") or {}).get("table_candidates_detected", 0)) for seg in page_manifest)
     total_structured_tables = sum(int(seg.get("tables", 0)) for seg in page_manifest)
     if total_code_signals >= 5 and total_code_blocks == 0:
-        aggregate_warnings.append({
-            "page": None,
-            "warning": f"source-wide code sanity check: {total_code_signals} code-like/preformatted lines but zero detected code blocks",
-        })
+        msg = f"source-wide code sanity check: {total_code_signals} code-like/preformatted lines but zero detected code blocks"
+        aggregate_warnings.append({"page": None, "warning": msg})
+        aggregate_review_requirements.append({"page": None, "requirement": msg})
     if total_table_signals >= 3 and total_structured_tables == 0:
-        aggregate_warnings.append({
-            "page": None,
-            "warning": f"source-wide table sanity check: {total_table_signals} numbered table signals but zero structured tables; inspect table preservation before preflight acceptance",
-        })
+        msg = (
+            f"source-wide table sanity check: {total_table_signals} numbered table signals and "
+            f"{total_table_candidates} detector candidates but zero structured tables; visual table review is required before unattended acceptance"
+        )
+        aggregate_warnings.append({"page": None, "warning": msg})
+        aggregate_review_requirements.append({"page": None, "requirement": msg})
     manifest = {
         "schema_version": PREP_SCHEMA,
         "source": {"name": identity["name"], "size": identity["size"], "sha256": identity["sha256"]},
@@ -991,12 +1123,24 @@ def prepare(run: Run, min_text_chars: int = 80, force: bool = False, legacy_back
         "low_text_threshold": min_text_chars,
         "compatibility_baseline": compatibility,
         "integrity_gate": {
-            "status": "warning" if aggregate_warnings else "pass",
+            "status": (
+                "fail" if aggregate_hard_failures else
+                "review" if aggregate_review_requirements else
+                "warning" if aggregate_warnings else
+                "pass"
+            ),
             "warnings": aggregate_warnings,
-            "policy": "code blocks must be exactly preserved in prepared Markdown; code-like and numbered-table source signals are independently sanity-checked; low lexical coverage is surfaced for inspection rather than silently repaired",
+            "hard_failures": aggregate_hard_failures,
+            "review_requirements": aggregate_review_requirements,
+            "policy": (
+                "detected code blocks must be exactly preserved; explicit PDF/font decode corruption on code-bearing pages fails closed; "
+                "code-like source signals and table candidates are independently sanity-checked; unstructured detected tables require visual review; "
+                "low lexical coverage is surfaced rather than silently repaired"
+            ),
             "raw_code_signal_lines": total_code_signals,
             "detected_code_blocks": total_code_blocks,
             "raw_table_signal_lines": total_table_signals,
+            "detected_table_candidates": total_table_candidates,
             "detected_structured_tables": total_structured_tables,
         },
         "segments": page_manifest,
@@ -1029,8 +1173,136 @@ def verify(run: Run) -> dict:
         integrity = segment.get("integrity") or {}
         if integrity.get("code_blocks") != integrity.get("code_blocks_preserved"):
             raise RunError(f"prepared source code-preservation gate failed: {segment.get('file')}")
+    gate = data.get("integrity_gate") or {}
+    hard = list(gate.get("hard_failures") or [])
+    if gate.get("status") == "fail" or hard:
+        pages = sorted({str(item.get("page")) for item in hard if item.get("page") is not None})
+        page_text = ", ".join(pages[:12]) + (" ..." if len(pages) > 12 else "")
+        detail = f" affected pages: {page_text}" if page_text else ""
+        raise RunError(
+            "prepared source integrity gate failed closed; repair or re-extract the flagged source pages before preflight." + detail
+        )
     return data
 
+
+
+def _heading_terms(text: str) -> set[str]:
+    words = re.findall(r"[a-z][a-z0-9_+-]{2,}", _nfc(text).casefold())
+    return {word for word in words if word not in GENERIC_HEADING_WORDS and not word.isdigit()}
+
+
+def _prepared_headings(run: Run, manifest: dict[str, Any]) -> list[tuple[int, str, set[str]]]:
+    headings: list[tuple[int, str, set[str]]] = []
+    if manifest.get("source_kind") != "pdf":
+        return headings
+    for segment in manifest.get("segments", []):
+        page = int(segment.get("page", 0) or 0)
+        file = inside(package_root(run), str(segment.get("file", "")))
+        if page < 1 or not file.is_file():
+            continue
+        for line in file.read_text(encoding="utf-8").splitlines():
+            match = re.match(r"^#{1,3}\s+(.+?)\s*$", line)
+            if not match:
+                continue
+            title = match.group(1).strip()
+            terms = _heading_terms(title)
+            if terms:
+                headings.append((page, title, terms))
+    return headings
+
+
+def audit_unit_boundaries(run: Run, record) -> dict[str, Any]:
+    """Deterministically sanity-check an accepted-looking PDF unit map.
+
+    This is not a semantic replacement for preflight. It catches mechanical
+    plan defects that are especially common in OCR/image-heavy books: overlap,
+    implausibly tiny spans, and a strong heading/material match that lands in a
+    neighboring unit instead of the unit that claims it.
+    """
+    manifest = verify(run)
+    if manifest.get("source_kind") != "pdf" or getattr(record, "schema_version", 1) < 2:
+        return {"status": "pass", "blocking": [], "review": []}
+    units = [u for u in record.units if u.source_pages is not None]
+    if not units:
+        return {"status": "pass", "blocking": [], "review": []}
+
+    blocking: list[dict[str, Any]] = []
+    review: list[dict[str, Any]] = []
+    spans = [u.source_pages.end - u.source_pages.start + 1 for u in units]
+    typical = float(median(spans)) if spans else 1.0
+
+    previous = None
+    for unit in units:
+        span = unit.source_pages
+        if previous is not None and span.start <= previous.source_pages.end:
+            blocking.append({
+                "unit_id": unit.unit_id,
+                "kind": "overlap",
+                "message": (
+                    f"{unit.unit_id} starts at source page {span.start}, overlapping "
+                    f"{previous.unit_id} which ends at {previous.source_pages.end}"
+                ),
+            })
+        if typical >= 6 and (span.end - span.start + 1) <= 2:
+            review.append({
+                "unit_id": unit.unit_id,
+                "kind": "tiny_span",
+                "message": (
+                    f"{unit.unit_id} spans only {span.end - span.start + 1} source page(s) "
+                    f"while the median unit span is {typical:g}; verify the boundary against nearby headings"
+                ),
+            })
+        previous = unit
+
+    headings = _prepared_headings(run, manifest)
+    for index, unit in enumerate(units):
+        terms = _heading_terms(unit.material)
+        if len(terms) < 2:
+            continue
+        span = unit.source_pages
+        candidates: list[tuple[float, int, int, str]] = []
+        for page, title, hterms in headings:
+            if page < max(1, span.start - 40) or page > span.end + 40:
+                continue
+            shared = len(terms & hterms)
+            if shared < 2:
+                continue
+            score = shared / max(1, len(terms))
+            if score < 0.80:
+                continue
+            distance = 0 if span.start <= page <= span.end else min(abs(page - span.start), abs(page - span.end))
+            candidates.append((score, -distance, page, title))
+        if not candidates:
+            continue
+        score, neg_distance, page, title = max(candidates)
+        if span.start <= page <= span.end:
+            continue
+        distance = -neg_distance
+        next_unit = units[index + 1] if index + 1 < len(units) else None
+        swallowed_by_next = bool(
+            next_unit and next_unit.source_pages.start <= page <= next_unit.source_pages.end
+        )
+        issue = {
+            "unit_id": unit.unit_id,
+            "kind": "heading_outside_unit",
+            "page": page,
+            "heading": title,
+            "score": round(score, 3),
+            "message": (
+                f"{unit.unit_id} material {unit.material!r} strongly matches heading {title!r} on source page {page}, "
+                f"outside its declared {span.start}-{span.end} span"
+                + (f" and inside {next_unit.unit_id}" if swallowed_by_next else "")
+            ),
+        }
+        # A near-exact heading assigned to the next unit is the Karumanchi-style
+        # failure: the claimed chapter/unit boundary is mechanically wrong.
+        if score >= 0.95 and swallowed_by_next and distance <= 20:
+            blocking.append(issue)
+        else:
+            review.append(issue)
+
+    status = "fail" if blocking else ("review" if review else "pass")
+    return {"status": status, "blocking": blocking, "review": review}
 
 def _validated_page_range(start: int, end: int, page_count: int) -> list[int] | None:
     if 1 <= start <= end <= page_count:
@@ -1223,7 +1495,13 @@ def finalize(run: Run, legacy_backfill: bool = False) -> str:
     if legacy_backfill:
         return f"SOURCE PREP: verified legacy backfill — resumed at {phase} without changing accepted progress"
     suffix = " (stop target reached)" if run.state.get("stop_reached") else ""
-    warning = " — review Source Prep warnings before preflight" if manifest["integrity_gate"]["status"] == "warning" else ""
+    status = manifest["integrity_gate"]["status"]
+    if status == "review":
+        warning = " — integrity review required before unattended preflight acceptance"
+    elif status == "warning":
+        warning = " — review Source Prep warnings before preflight"
+    else:
+        warning = ""
     return "SOURCE PREP: verified" + warning + " — preflight is next" + suffix
 
 

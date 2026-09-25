@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.84`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.87`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -192,8 +192,11 @@ PASS work.
    `PASS-project-*` root, begin with `AGENTS.md` and `PASS/SKILL.md`, and resume
    before starting another run. A new run enters LOAD, then deterministic Source
    Prep, then one source-wide preflight. Source Prep preserves code indentation,
-   produces semantic Markdown plus structured tables/on-demand visual assets, and
-   remains reusable and checkpointed; a verified package is not regenerated merely because the model/provider
+   produces semantic Markdown plus structured tables/on-demand visual assets,
+   fails closed on strong code-page decode corruption, retains rendered fallback
+   pages for repair, and marks unstructured table evidence for explicit review.
+   Prepared-PDF preflight also checks unit-boundary coherence against extracted
+   headings. The package remains reusable and checkpointed; a verified package is not regenerated merely because the model/provider
    changed. `start --stop-after source_prep` supports preparation-only work, and
    `start --stop-after preflight` supports preparation + preflight while stopping
    before any unit PASS 1 ingestion. After a deliberate stop, `continue-run`
@@ -648,7 +651,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.84`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.87`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

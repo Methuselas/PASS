@@ -60,6 +60,16 @@ Module metadata is local. PASS does not require a global module registry.
 Software Engineering `core` cards are language-agnostic decisions, not C++ cards
 and not automatically verified in every language. Keep one canonical core owner.
 
+This is a hard ownership invariant, not a naming convention. A Core card may be
+`routing_class: general` or `routing_class: teaching`, but its
+`specialization_axis` is `none`; `validate.py` rejects specialized cards placed
+under `software-engineering/core/`. More importantly, the rule itself must not
+depend on one language's syntax, standard library, compiler/interpreter,
+runtime, memory model, annotation system, or idiom. Those details may illustrate
+the decision in examples where useful, but the decision must survive replacing
+the example language. If it does not, it belongs in a language/specialized
+module instead of Core.
+
 When creating or extending a language module from instructional books, review
 the relevant existing core Patterns, APs and Drills against each book's actual
 language instruction. Select core owners per instructional unit, not by a
@@ -70,6 +80,17 @@ assess design judgments against the book's real examples and constraints, not
 compiler success alone. A module dependency or schema pass is not compatibility
 evidence. Human-code field tests supplement this book-driven review; they do not
 replace it.
+
+Programming-language books are also subject to the **Language Modernity
+Invariant**. Preserve the source exactly as evidence, but never promote a
+version-sensitive source claim as current guidance merely because the source
+says it. The accepted preflight names the current target language version and
+how that target was established. PASS 1 flags version-sensitive claims; PASS 2
+checks all such material against that target and records whether each claim is
+current, modernized, historical, or rejected. Current cards and executable
+examples follow the accepted target version. Historical claims remain historical
+claims. A later source may change the target version, but it may not silently
+revert the library to an older source era.
 
 Put language syntax, idioms and necessary exceptions in the language module.
 Repair a falsely universal core claim at its existing owner; never fork core per

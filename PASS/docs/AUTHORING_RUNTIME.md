@@ -2,7 +2,7 @@
 
 status: active
 owner: PASS/runtime
-last_reviewed: 2026-09-23
+last_reviewed: 2026-09-25
 
 `PASS_RUN.md` owns the human method. `PASS/pass.py` owns supported ordinary
 source-authoring transitions and staged unit integration. Repository maintenance,
@@ -22,6 +22,7 @@ python PASS/source_prep.py finalize --run <run-directory>
 python PASS/pass.py recover --run <run-directory>
 python PASS/pass.py continue-run --run <run-directory>
 python PASS/pass.py abandon --run <run-directory> --reason <explicit-user-instruction>
+python PASS/pass.py start-over --run <run-directory> --reason <explicit-user-instruction> [--from scratch|source_prep|preflight] [--carry-notes]
 python PASS/pass.py status --run <run-directory>
 python PASS/pass.py template --run <run-directory>
 python PASS/pass.py present --run <run-directory>
@@ -49,6 +50,13 @@ records and reading notes inside the owned task directory, not the workspace roo
 edit it only after doing the authorized work. Unknown or missing record fields
 fail the gate. Every phase record uses integer `schema_version: 1`; unit records
 must name the only active `unit_id`.
+
+The **preflight plan** has its own schema. New plans use schema 3. In Software
+Engineering, schema 3 requires an explicit `language_policy`: a source is either
+`programming-language` (with language, current target version, target basis, and
+mandatory modernization) or `not-programming-language`. Legacy schema-1/2 plans
+remain readable for recovery; a schema-3 Software Engineering plan may not be
+revised or replanned into a legacy shape that drops its language policy.
 
 `start` checks the source exists but does not read its content. It refuses to
 open a second unfinished run of the same source in the same domain: it compares
@@ -151,6 +159,38 @@ can no longer be resumed, and its source may be started again. Delete the
 retained directory once it is no longer needed. A finished run is closed with
 `close-run`, not abandoned.
 
+### Explicit start-over outranks recovery
+
+When the user explicitly says to **start over, reset, discard the run, or begin
+again from a named earlier boundary**, do not call `resume`, `recover`, `rollback`
+or `rewind` to decide what the user "really meant." Run `start-over` directly.
+This is a controller-level repudiation of the old continuation chain, not a
+recovery heuristic. The command writes a durable reset intent first, invalidates
+the old run/checkpoints/handoff, retires stale unattended/action leases, marks
+the old run abandoned, and creates a fresh run identity. If the reset operation
+itself is interrupted, the reset intent blocks the old run from being resumed or
+saved again; rerun the **same** `start-over` command to finish the transaction.
+
+The `--from` value is an allowlist of the only old artifacts the replacement may
+reuse:
+
+- `scratch` — reuse nothing from the old run. With `--carry-notes`, copy only
+  `NOTES.md`; begin at LOAD and redo Source Prep/preflight/PASS normally.
+- `source_prep` — reuse only the **verified** prepared-source package (plus
+  optional `NOTES.md`); discard the old plan and all PASS progress, then begin at
+  source-wide preflight. Materialized old unit files are removed because they
+  belong to the abandoned plan.
+- `preflight` — reuse the verified Source Prep package and an **accepted**
+  source-wide preflight (plus optional `NOTES.md`); discard every unit's PASS
+  state and begin at U01 PASS 1. For Software Engineering, a legacy schema-1/2
+  preflight is not eligible because it lacks the schema-3 language policy; use
+  `--from source_prep` so the replacement run performs a current preflight.
+
+A stale `controller/operation.lock` from a dead process is archived and removed
+by `start-over`; a lock whose PID still appears live blocks the reset until that
+process is stopped. This prevents a still-running old process from racing the
+replacement while also ensuring a crashed process cannot make reset impossible.
+
 ```text
 workspace/skill-staging/<domain>/<book-run>/
   RUN_NOTE.md
@@ -226,14 +266,23 @@ bytes match the original identity. A different PDF cannot inherit the run.
    suitable tables, inventory/retain visuals whose meaning may not survive text,
    and do not summarize, silently correct the author, or make PAT/DRILL/AP
    judgments. Ambiguous printed hyphens are preserved rather than guessed away.
-   `prepare` may resume by segment;
-   `verify` checks its hashes/source identity; `finalize` checkpoints it. A run
-   started with `--stop-after source_prep` stops here.
+   `prepare` may resume by segment. Strong PDF/font decode corruption on a
+   code-bearing page is a hard integrity failure and blocks `finalize`; a rendered
+   whole-page fallback is retained for repair. Numbered-table evidence with no
+   structured table is a review requirement and blocks unattended preflight
+   acceptance, even though structural preflight may still be drafted. `verify`
+   checks hashes/source identity and the hard integrity gate; `finalize`
+   checkpoints only a non-failed package. A run started with
+   `--stop-after source_prep` stops here.
 3. **Preflight.** Run exactly once for the entire source. Structural orientation
    only: metadata, contents, page map, extraction-quality sampling and
    instructional boundaries. Complete the generated preflight record, including
    subject, contiguous units, live active-domain overlap IDs, explicit forecasts
-   and no-extract spans. Validation moves the run to `preflight_accept`, **not**
+   and no-extract spans. For prepared PDFs, the controller additionally rejects
+   overlapping unit coordinates and strong heading/material matches that have
+   been assigned to a neighboring unit; suspiciously tiny spans and weaker
+   heading mismatches are rendered as review warnings. Validation moves the run
+   to `preflight_accept`, **not**
    PASS 1. Run `present` and reproduce the complete generated preflight packet,
    then wait for explicit user confirmation of the stated subject and provisional
    source-wide plan. The original request to run PASS is not that confirmation.

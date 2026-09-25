@@ -22,11 +22,12 @@ except ImportError as exc:  # pragma: no cover - environment contract
     raise SystemExit("PyYAML is required; install PASS/requirements.txt") from exc
 
 
-SCHEMA_VERSION = 2
-SUPPORTED_SCHEMA_VERSIONS = {1, 2}
+SCHEMA_VERSION = 3
+SUPPORTED_SCHEMA_VERSIONS = {1, 2, 3}
 PHASE = "preflight"
 MODES = {"unit ingestion", "curriculum audit"}
 CARD_POTENTIALS = {"low", "medium", "high", "mixed"}
+LANGUAGE_CLASSIFICATIONS = {"programming-language", "not-programming-language"}
 OBJECT_ID_RE = re.compile(r"^(?:PAT|DRILL|AP)_[a-z0-9_]+$")
 UNIT_ID_RE = re.compile(r"^u(\d{2,})$")
 DOMAIN_RE = re.compile(r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")
@@ -67,6 +68,15 @@ class NoExtractSpan:
 
 
 @dataclass(frozen=True)
+class LanguagePolicy:
+    classification: str
+    language: str | None
+    target_version: str | None
+    target_basis: str | None
+    modernization_required: bool
+
+
+@dataclass(frozen=True)
 class PreflightRecord:
     schema_version: int
     phase: str
@@ -79,9 +89,10 @@ class PreflightRecord:
     mode: str
     units: tuple[PreflightUnit, ...]
     no_extract: tuple[NoExtractSpan, ...]
+    language_policy: LanguagePolicy | None
 
 
-TOP_LEVEL_KEYS = {
+TOP_LEVEL_KEYS_V1_V2 = {
     "schema_version",
     "phase",
     "title",
@@ -94,6 +105,9 @@ TOP_LEVEL_KEYS = {
     "units",
     "no_extract",
 }
+TOP_LEVEL_KEYS_V3 = TOP_LEVEL_KEYS_V1_V2 | {"language_policy"}
+# Latest-shape alias used by callers that need to compare immutable plan fields.
+TOP_LEVEL_KEYS = TOP_LEVEL_KEYS_V3
 UNIT_KEYS_V1 = {
     "unit_id",
     "material",
@@ -103,6 +117,13 @@ UNIT_KEYS_V1 = {
 }
 UNIT_KEYS_V2 = UNIT_KEYS_V1 | {"source_pages", "printed_pages"}
 NO_EXTRACT_KEYS = {"material", "locator"}
+LANGUAGE_POLICY_KEYS = {
+    "classification",
+    "language",
+    "target_version",
+    "target_basis",
+    "modernization_required",
+}
 
 
 def _require_exact_keys(obj: dict[str, Any], expected: set[str], where: str) -> None:
@@ -142,6 +163,76 @@ def _page_span(value: Any, where: str) -> PageSpan | None:
     return PageSpan(start=start, end=end)
 
 
+def _language_policy(value: Any, domain: str, schema_version: int) -> LanguagePolicy | None:
+    """Parse the schema-3 software-language authoring contract.
+
+    The source remains immutable evidence.  For Software Engineering sources,
+    schema 3 forces the author to say whether the source teaches a programming
+    language.  A language source cannot enter PASS without an explicit current
+    target version and a modernization obligation.  Older accepted plans remain
+    readable exactly as they were; they do not silently acquire a new policy.
+    """
+    if schema_version < 3:
+        return None
+    if domain != "software-engineering":
+        if value is not None:
+            raise PreflightError(
+                "preflight.language_policy: only software-engineering uses the programming-language policy; expected null"
+            )
+        return None
+    if not isinstance(value, dict):
+        raise PreflightError(
+            "preflight.language_policy: software-engineering schema 3 requires an explicit language classification"
+        )
+    _require_exact_keys(value, LANGUAGE_POLICY_KEYS, "preflight.language_policy")
+    classification = _nonempty_string(
+        value["classification"], "preflight.language_policy.classification"
+    ).lower()
+    if classification not in LANGUAGE_CLASSIFICATIONS:
+        raise PreflightError(
+            "preflight.language_policy.classification: expected programming-language or not-programming-language"
+        )
+    required = value["modernization_required"]
+    if type(required) is not bool:
+        raise PreflightError(
+            "preflight.language_policy.modernization_required: expected a Boolean"
+        )
+    if classification == "programming-language":
+        language = _nonempty_string(value["language"], "preflight.language_policy.language")
+        target_version = _nonempty_string(
+            value["target_version"], "preflight.language_policy.target_version"
+        )
+        target_basis = _nonempty_string(
+            value["target_basis"], "preflight.language_policy.target_basis"
+        )
+        if required is not True:
+            raise PreflightError(
+                "preflight.language_policy.modernization_required: programming-language sources must set true"
+            )
+        return LanguagePolicy(
+            classification=classification,
+            language=language,
+            target_version=target_version,
+            target_basis=target_basis,
+            modernization_required=True,
+        )
+    if any(value[name] is not None for name in ("language", "target_version", "target_basis")):
+        raise PreflightError(
+            "preflight.language_policy: not-programming-language requires null language, target_version, and target_basis"
+        )
+    if required is not False:
+        raise PreflightError(
+            "preflight.language_policy.modernization_required: not-programming-language must set false"
+        )
+    return LanguagePolicy(
+        classification=classification,
+        language=None,
+        target_version=None,
+        target_basis=None,
+        modernization_required=False,
+    )
+
+
 def _read_json(path: str) -> dict[str, Any]:
     if path == "-":
         raw = sys.stdin.read()
@@ -157,13 +248,18 @@ def _read_json(path: str) -> dict[str, Any]:
 
 
 def parse_preflight(data: dict[str, Any]) -> PreflightRecord:
-    _require_exact_keys(data, TOP_LEVEL_KEYS, "preflight")
-
-    schema_version = data["schema_version"]
+    if not isinstance(data, dict):
+        raise PreflightError("preflight: expected an object")
+    schema_version = data.get("schema_version")
     if type(schema_version) is not int or schema_version not in SUPPORTED_SCHEMA_VERSIONS:
         raise PreflightError(
             f"preflight.schema_version: expected one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}, got {schema_version!r}"
         )
+    _require_exact_keys(
+        data,
+        TOP_LEVEL_KEYS_V3 if schema_version >= 3 else TOP_LEVEL_KEYS_V1_V2,
+        "preflight",
+    )
     phase = _nonempty_string(data["phase"], "preflight.phase")
     if phase != PHASE:
         raise PreflightError(f"preflight.phase: expected {PHASE!r}, got {phase!r}")
@@ -173,6 +269,11 @@ def parse_preflight(data: dict[str, Any]) -> PreflightRecord:
         raise PreflightError(
             "preflight.mode: expected one of " + ", ".join(sorted(MODES))
         )
+
+    domain = _nonempty_string(data["domain"], "preflight.domain").lower()
+    if not DOMAIN_RE.fullmatch(domain):
+        raise PreflightError("preflight.domain: expected a single domain package name")
+    language_policy = _language_policy(data.get("language_policy"), domain, schema_version)
 
     units_raw = data["units"]
     if not isinstance(units_raw, list) or not units_raw:
@@ -252,10 +353,6 @@ def parse_preflight(data: dict[str, Any]) -> PreflightRecord:
             )
         )
 
-    domain = _nonempty_string(data["domain"], "preflight.domain").lower()
-    if not DOMAIN_RE.fullmatch(domain):
-        raise PreflightError("preflight.domain: expected a single domain package name")
-
     return PreflightRecord(
         schema_version=schema_version,
         phase=phase,
@@ -268,7 +365,57 @@ def parse_preflight(data: dict[str, Any]) -> PreflightRecord:
         mode=mode,
         units=tuple(units),
         no_extract=tuple(no_extract),
+        language_policy=language_policy,
     )
+
+
+def serialize_preflight(record: PreflightRecord) -> dict[str, Any]:
+    """Serialize a parsed plan without losing schema-specific meaning."""
+    data: dict[str, Any] = {
+        "schema_version": record.schema_version,
+        "phase": record.phase,
+        "title": record.title,
+        "author": record.author,
+        "domain": record.domain,
+        "extent": record.extent,
+        "text_quality": record.text_quality,
+        "subject": record.subject,
+        "mode": record.mode,
+        "units": [],
+        "no_extract": [
+            {"material": span.material, "locator": span.locator}
+            for span in record.no_extract
+        ],
+    }
+    for unit in record.units:
+        item: dict[str, Any] = {
+            "unit_id": unit.unit_id,
+            "material": unit.material,
+            "locator": unit.locator,
+            "overlap_object_ids": list(unit.overlap_object_ids),
+            "card_potential": unit.card_potential,
+        }
+        if record.schema_version >= 2:
+            item["source_pages"] = (
+                {"start": unit.source_pages.start, "end": unit.source_pages.end}
+                if unit.source_pages is not None
+                else None
+            )
+            item["printed_pages"] = unit.printed_pages
+        data["units"].append(item)
+    if record.schema_version >= 3:
+        if record.language_policy is None:
+            data["language_policy"] = None
+        else:
+            policy = record.language_policy
+            data["language_policy"] = {
+                "classification": policy.classification,
+                "language": policy.language,
+                "target_version": policy.target_version,
+                "target_basis": policy.target_basis,
+                "modernization_required": policy.modernization_required,
+            }
+    return data
 
 
 def _frontmatter(path: Path) -> dict[str, Any]:
@@ -352,6 +499,20 @@ def render_preflight(record: PreflightRecord, cards: dict[str, CardRef]) -> str:
         f"**Subject:** {record.subject}",
         f"**Mode:** {record.mode} — provisional",
         f"**Provisional units:** **{len(record.units)}**",
+    ]
+    if record.language_policy is not None:
+        policy = record.language_policy
+        if policy.classification == "programming-language":
+            lines += [
+                f"**Programming language:** {policy.language}",
+                f"**Current target version:** {policy.target_version}",
+                f"**Target-version basis:** {policy.target_basis}",
+                "**Modernization:** required — source-era version-sensitive guidance is evidence, not current instruction",
+                "**Core handling:** software-engineering/core remains language-agnostic; language realization belongs in the language module",
+            ]
+        else:
+            lines.append("**Programming-language modernization:** not applicable — source classified not-programming-language")
+    lines += [
         "",
         "| Unit | Material | Likely existing-card overlap | Card potential |",
         "|---|---|---|---|",
@@ -395,13 +556,13 @@ def render_preflight(record: PreflightRecord, cards: dict[str, CardRef]) -> str:
     return "\n".join(lines)
 
 
-def template_record() -> dict[str, Any]:
-    return {
+def template_record(domain: str = "writing") -> dict[str, Any]:
+    record = {
         "schema_version": SCHEMA_VERSION,
         "phase": PHASE,
         "title": "SOURCE TITLE",
         "author": "AUTHOR OR SOURCE CREDIT",
-        "domain": "writing",
+        "domain": domain,
         "extent": "SOURCE EXTENT",
         "text_quality": "TEXT QUALITY",
         "subject": "WHAT THE INSTRUCTIONAL BODY TEACHES THE PRACTITIONER TO DO",
@@ -419,6 +580,19 @@ def template_record() -> dict[str, Any]:
         ],
         "no_extract": [],
     }
+    if domain == "software-engineering":
+        # Deliberately not a valid classification: the author must make the
+        # source-specific decision instead of inheriting a permissive default.
+        record["language_policy"] = {
+            "classification": "REQUIRED: programming-language | not-programming-language",
+            "language": None,
+            "target_version": None,
+            "target_basis": None,
+            "modernization_required": False,
+        }
+    else:
+        record["language_policy"] = None
+    return record
 
 
 def find_repo_root(start: Path) -> Path:

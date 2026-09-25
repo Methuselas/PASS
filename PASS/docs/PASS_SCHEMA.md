@@ -94,6 +94,14 @@ references:
   `foundation_object_id` in any other package is a domain coupling and fails.
 - `routing_class: general` requires `specialization_axis: none`.
   `routing_class: specialized` requires an axis other than `none`.
+- **`software-engineering/core/` is language-agnostic ownership.** Core may hold
+  `general` execution cards and `teaching` cards, but never a `specialized`
+  card and never a specialization axis other than `none`. This structural rule
+  is mechanically enforced. Semantic review goes further: the card's governing
+  rule must remain stateable without one programming language's syntax, runtime,
+  toolchain, or idiom. Language-specific realization belongs under the language
+  module; examples may be language-flavoured only when they illustrate rather
+  than define the Core decision.
 - **Default to `foundation` / `general` / `none`.** Mark `specialization` only when
   the pattern's IF/THEN cannot be stated without a language-, tool-, framework-,
   medium-, style-, genre-, tradition-, method-, or domain-specific constraint.

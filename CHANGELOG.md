@@ -6,6 +6,14 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.88 - 2026-09-26
+
+### Added
+
+- Added `PASS/docs/CANDIDATE_REFINEMENT_DESIGN.md`, the proposed design for Candidate
+  Refinement & Qualification (CRQ). It is a working input for the CRQ implementation branch and is
+  replaced by `PASS/docs/CANDIDATE_REFINEMENT.md` before that branch merges. No runtime behaviour changes.
+
 ## 1.0.0-beta.87 - 2026-09-25
 
 ### Added

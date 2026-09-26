@@ -38,6 +38,13 @@ registry; the C++ pilot keeps taker and grader material separate; the Software
 Engineering release carries the field-test protocol, Drill ceilings, and
 contamination stop contract.
 
+**`test_candidate_qualification_*.py` — Candidate Refinement & Qualification
+administration.** A command from the wrong state changes nothing; terminal runs
+stay read-only; state survives an interrupted write and is read back before
+success is claimed; a changed controller cannot continue a run; baseline drift in
+canon or in the frozen snapshot stops continuation; run paths cannot escape the
+run. These tests use a synthetic library and never touch canon.
+
 ## What no suite here can prove
 
 Nothing in this directory touches a live host. These behaviors depend on the

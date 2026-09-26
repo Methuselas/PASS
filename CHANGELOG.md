@@ -6,6 +6,29 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.89 - 2026-09-26
+
+### Added
+
+- Added `PASS/runtime/pass_candidate_qualification.py`, stage 1 of the Candidate
+  Refinement & Qualification (CRQ) controller: the schema-1 `controller/run.json`
+  record, the linear run state machine with `invalidated` and `abandoned` exits,
+  atomic state writes with read-back, bounded run-relative paths that refuse
+  symlink escape, SHA-256 freeze records, the controller fingerprint check, and
+  baseline-drift verification against both canon and the run's frozen snapshot.
+  Its commands are `status`, `invalidate` and `abandon`; the lifecycle commands
+  arrive in later stages. The controller never writes `library/` or Skillset
+  Memory and calls no model.
+- Added `tests/test_candidate_qualification_state.py` for state transitions,
+  wrong-state refusal, resume and read-back, interrupted writes, the controller
+  fingerprint, path containment and baseline drift.
+
+### Changed
+
+- `PASS/docs/PASS_RUN.md` §Workspace lifecycle registers the
+  `workspace/candidate-qualification/` bucket with its owner, layout and cleanup
+  condition.
+
 ## 1.0.0-beta.88 - 2026-09-26
 
 ### Added

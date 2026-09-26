@@ -146,7 +146,7 @@ not modified unless that work is explicitly opened.
 
 Before creating work files, choose one task-named directory under the existing
 purpose bucket: `workspace/skill-staging/`, `builds/`, `code-studies/`,
-`drill-runs/` or `handoffs/`. Put reusable tools, release recipes, inputs and
+`drill-runs/`, `candidate-qualification/` or `handoffs/`. Put reusable tools, release recipes, inputs and
 deliverables in their existing `tools/`, `release-recipes/`, `sources/` and
 `project-releases/` buckets. Disposable process-local files belong under
 `workspace/tmp/`, not a root-level `tmp/`. Do not drop loose generated files or
@@ -175,6 +175,19 @@ the domain landing lease, writes/verifies canonical bytes, checkpoints the resul
 and only then retires its commit journal. If the process dies before the new
 checkpoint becomes durable, `recover` restores the prior verified controller and
 canonical state.
+
+`PASS/runtime/pass_candidate_qualification.py` owns
+`workspace/candidate-qualification/<domain>/<run-id>/`, one Candidate Refinement
+& Qualification (CRQ) run. The first run creates the bucket. `controller/` holds
+run state, the frozen baseline manifest and freeze records; `baseline/cards/`
+holds the frozen canonical copies; `candidate/`, `cases/` and `synthesis/` hold
+the staged overlay, arm evidence and review material. The run is administration
+scratch: it never ships, never enters cards or Skillset Memory, and deleting it
+never invalidates canon or memory. Cleanup condition: once the run is finalized,
+invalidated or abandoned and its outcome is handled (an approved delta verified
+in `library/`, accepted regressions in the test suite, the memory disposition
+applied through `memory.py`), remove the run directory. Keep it only under an
+explicit evidence hold or while invalid or contaminated evidence awaits diagnosis.
 
 Project ZIPs go directly in `workspace/project-releases/PASS-project-<domain>.zip`, without
 version subfolders. Finished skill ZIPs go in the SkillForge repository. Follow

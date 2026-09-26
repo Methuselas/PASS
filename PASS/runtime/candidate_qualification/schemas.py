@@ -944,3 +944,52 @@ def validate_manifest_template(
         for change in changes if not _nonempty_str(change["rationale"])
     ]
     return errors, {change["object_id"]: change["rationale"].strip() for change in changes}
+
+
+# ------------------------------------------------------------ arm results
+
+
+VERDICTS = ("pass", "fail", "invalid")
+CRITERION_RESULTS = ("pass", "fail", "not-assessed")
+EXECUTOR_KINDS = ("ai", "human", "tool")
+EXECUTOR_KEYS = frozenset({"kind", "runtime", "model"})
+CONTAMINATION_STATES = ("none", "suspected", "confirmed")
+RESULT_KEYS = frozenset({
+    "schema_version", "case_id", "arm", "case_sha256", "verdict", "evaluation_mode",
+    "evaluator_relation", "executor", "environment", "criteria", "evidence_manifest",
+    "contamination", "invalid_reason", "notes",
+})
+CRITERION_KEYS = frozenset({"criterion", "result", "evidence"})
+EVIDENCE_ENTRY_KEYS = frozenset({"path", "sha256", "kind"})
+RESULT_FILE = "result.json"
+EVIDENCE_DIR = "evidence"
+ARM_BUNDLES = "arms"
+QUALIFICATION_RESULT_KEYS = frozenset({
+    "schema_version", "run_id", "status", "reason", "candidate_memory_entry",
+    "changed_objects", "change_accounting", "case_deltas", "blocking_cases",
+    "positive_qualification_cases", "synthetic_cases", "protected_case_gap",
+    "contamination_confirmed", "canon_modified",
+})
+
+
+def result_template(case: dict[str, Any], arm: str, case_sha256: str) -> dict[str, Any]:
+    """Blank arm result; the arm's executor and evaluator fill it."""
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "case_id": case["case_id"],
+        "arm": arm,
+        "case_sha256": case_sha256,
+        "verdict": None,
+        "evaluation_mode": case["evaluation_mode"],
+        "evaluator_relation": case["evaluator_relation"],
+        "executor": {"kind": None, "runtime": None, "model": None},
+        "environment": {},
+        "criteria": [
+            {"criterion": criterion, "result": None, "evidence": ""}
+            for criterion in case["success_contract"]
+        ],
+        "evidence_manifest": [],
+        "contamination": "none",
+        "invalid_reason": None,
+        "notes": "",
+    }

@@ -51,8 +51,12 @@ plan freezes only with an eligible real target, synthetic cases that can never
 prove anything, and an honest protection gap; held-out cases never reach the
 candidate author's brief; every staged file and authorized action is accounted
 for; and a candidate freezes only after the ordinary validators pass on a
-temporary overlay that is always removed. These tests use a synthetic library and
-memory store and never touch canon or memory.
+temporary overlay that is always removed. Every arm verdict is all-or-nothing,
+backed by hashed evidence and a planned evaluator relation; an invalid arm or an
+asymmetric comparison is never a candidate failure; and the final gate applies
+the section 23 precedence case by case, so no number of improvements can hide a
+protected regression. These tests use a synthetic library and memory store and
+never touch canon or memory.
 
 ## What no suite here can prove
 

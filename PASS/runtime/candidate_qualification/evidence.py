@@ -22,18 +22,33 @@ from typing import Any, Iterable
 import yaml
 
 from .schemas import (
+    _nonempty_str,
     CANDIDATE_CARDS,
     CANDIDATE_STATUSES,
     CANDIDATE_TYPE,
     CandidateQualificationError,
+    contained,
+    CONTAMINATION_STATES,
+    CRITERION_KEYS,
+    CRITERION_RESULTS,
+    digest_bytes,
+    digest_file,
+    EVIDENCE_DIR,
+    EVIDENCE_ENTRY_KEYS,
+    EXECUTOR_KEYS,
+    EXECUTOR_KINDS,
     MODULE_MANIFEST,
     OBJECT_ID_RE,
+    RESULT_FILE,
+    RESULT_KEYS,
+    safe_relative,
+    SCHEMA_VERSION,
     SCOPE_KEYS,
+    SHA256_RE,
     SHARED_PACKAGE,
     TOOLS_DIR,
+    VERDICTS,
     WORKSPACE_BUCKET,
-    contained,
-    digest_bytes,
 )
 
 
@@ -537,4 +552,163 @@ def overlay_problems(library_root: Path, cards: Path, files: Iterable[str]) -> l
             if code:
                 shown = "\n".join(output.strip().splitlines()[-40:]).replace(str(overlay), "<overlay>")
                 problems.append(f"{tool}.py --library <overlay> failed:\n{shown}")
+    return problems
+
+
+# ------------------------------------------------------------ arm evidence
+
+
+def validate_evidence_manifest(
+    manifest: Any, arm_dir: Path, label: str, *, required: bool
+) -> tuple[list[str], list[str]]:
+    """Check an arm's evidence manifest; return (errors, arm-relative files)."""
+    if not isinstance(manifest, list):
+        return [f"{label}: evidence_manifest must be a list"], []
+    if required and not manifest:
+        return [f"{label}: a pass or fail verdict needs its evidence listed in evidence_manifest"], []
+    errors: list[str] = []
+    files: list[str] = []
+    for index, item in enumerate(manifest):
+        where = f"{label} evidence {index}"
+        if not isinstance(item, dict) or set(item) != EVIDENCE_ENTRY_KEYS:
+            errors.append(f"{where} must have exactly {sorted(EVIDENCE_ENTRY_KEYS)}")
+            continue
+        try:
+            relative = safe_relative(item["path"], where)
+            if relative.parts[0] != EVIDENCE_DIR or len(relative.parts) < 2:
+                raise CandidateQualificationError(f"{where} must sit under {EVIDENCE_DIR}/")
+            path = contained(arm_dir, item["path"], where)
+        except CandidateQualificationError as exc:
+            errors.append(str(exc))
+            continue
+        if item["path"] in files:
+            errors.append(f"{where} repeats {item['path']}")
+            continue
+        if not _nonempty_str(item["kind"]):
+            errors.append(f"{where}: kind must say what the evidence is")
+        if not path.is_file():
+            errors.append(f"{where}: {item['path']} does not exist")
+        elif digest_file(path) != item["sha256"]:
+            errors.append(f"{where}: {item['path']} does not match its sha256")
+        else:
+            files.append(item["path"])
+    evidence_root = arm_dir / EVIDENCE_DIR
+    if evidence_root.exists():
+        for path in sorted(evidence_root.rglob("*")):
+            relative = path.relative_to(arm_dir).as_posix()
+            if path.is_symlink():
+                errors.append(f"{label}: evidence symlinks are not allowed: {relative}")
+            elif path.is_file() and relative not in {i.get("path") for i in manifest if isinstance(i, dict)}:
+                errors.append(f"{label}: {relative} is not listed in evidence_manifest")
+    return errors, files
+
+
+def validate_arm_result(
+    result: Any,
+    *,
+    entry: dict[str, Any],
+    case: dict[str, Any],
+    arm: str,
+    arm_dir: Path,
+) -> tuple[list[str], list[str]]:
+    """Every structural reason an arm result cannot be frozen, and its evidence files.
+
+    Card qualification is all-or-nothing: a pass needs every criterion to pass,
+    a fail names the failing criteria, and an arm that could not exercise the
+    capability is invalid, never a fail. Arm symmetry is checked separately
+    because a mismatch invalidates the comparison rather than the freeze.
+    """
+    label = f"{entry['case_id']}/{arm}"
+    if not isinstance(result, dict) or set(result) != RESULT_KEYS:
+        return [f"{label}: result.json must have exactly {sorted(RESULT_KEYS)}"], []
+    errors: list[str] = []
+    if result["schema_version"] != SCHEMA_VERSION or result["case_id"] != entry["case_id"] or result["arm"] != arm:
+        errors.append(f"{label}: result.json names a different case, arm or schema")
+    if not isinstance(result["case_sha256"], str) or not SHA256_RE.fullmatch(result["case_sha256"]):
+        errors.append(f"{label}: case_sha256 must be the SHA-256 of the case definition")
+    verdict = result["verdict"]
+    if verdict not in VERDICTS:
+        errors.append(
+            f"{label}: verdict must be one of {list(VERDICTS)}; there is no partial result "
+            "in candidate qualification"
+        )
+    if result["evaluation_mode"] != entry["evaluation_mode"]:
+        errors.append(f"{label}: evaluation_mode differs from the plan")
+    if result["evaluator_relation"] != entry["evaluator_relation"]:
+        errors.append(
+            f"{label}: evaluator_relation {result['evaluator_relation']!r} differs from the planned "
+            f"{entry['evaluator_relation']!r}; a required semantic case is graded by a separate evaluator"
+        )
+    executor = result["executor"]
+    if not isinstance(executor, dict) or set(executor) != EXECUTOR_KEYS:
+        errors.append(f"{label}: executor must have exactly {sorted(EXECUTOR_KEYS)}")
+    else:
+        if executor["kind"] not in EXECUTOR_KINDS:
+            errors.append(f"{label}: executor.kind must be one of {list(EXECUTOR_KINDS)}")
+        if not _nonempty_str(executor["runtime"]):
+            errors.append(f"{label}: executor.runtime must name the runtime")
+        if executor["kind"] == "ai" and not _nonempty_str(executor["model"]):
+            errors.append(f"{label}: an AI executor names its model")
+        elif executor["model"] is not None and not isinstance(executor["model"], str):
+            errors.append(f"{label}: executor.model must be a string or null")
+    if not isinstance(result["environment"], dict):
+        errors.append(f"{label}: environment must be an object")
+    if not isinstance(result["notes"], str):
+        errors.append(f"{label}: notes must be a string")
+
+    contamination = result["contamination"]
+    if contamination not in CONTAMINATION_STATES:
+        errors.append(f"{label}: contamination must be one of {list(CONTAMINATION_STATES)}")
+    elif contamination == "suspected":
+        errors.append(f"{label}: suspected contamination must be resolved to none or confirmed before freezing")
+    elif contamination == "confirmed" and verdict != "invalid":
+        errors.append(f"{label}: confirmed contamination makes the arm invalid, never a pass or fail")
+
+    contract = case["success_contract"]
+    criteria = result["criteria"]
+    if not isinstance(criteria, list) or any(
+        not isinstance(item, dict) or set(item) != CRITERION_KEYS for item in criteria
+    ):
+        errors.append(f"{label}: each criterion must have exactly {sorted(CRITERION_KEYS)}")
+        criteria = []
+    if verdict in {"pass", "fail"}:
+        if result["invalid_reason"] is not None:
+            errors.append(f"{label}: invalid_reason belongs only to an invalid verdict")
+        if [item["criterion"] for item in criteria] != contract:
+            errors.append(f"{label}: criteria must grade the frozen success_contract, in order")
+        for item in criteria:
+            if item["result"] not in {"pass", "fail"}:
+                errors.append(f"{label}: criterion {item['criterion']!r} must be graded pass or fail")
+            if not _nonempty_str(item["evidence"]):
+                errors.append(f"{label}: criterion {item['criterion']!r} must cite its evidence")
+        results = [item["result"] for item in criteria]
+        if verdict == "pass" and any(value != "pass" for value in results):
+            errors.append(f"{label}: a pass needs every criterion to pass")
+        if verdict == "fail" and "fail" not in results:
+            errors.append(f"{label}: a fail must name at least one failing criterion")
+    elif verdict == "invalid":
+        if not _nonempty_str(result["invalid_reason"]):
+            errors.append(f"{label}: an invalid verdict records invalid_reason")
+        for item in criteria:
+            if item["criterion"] not in contract or item["result"] not in CRITERION_RESULTS:
+                errors.append(f"{label}: criterion {item['criterion']!r} is not a graded contract item")
+    for child in sorted(arm_dir.iterdir()) if arm_dir.is_dir() else []:
+        if child.name not in {RESULT_FILE, EVIDENCE_DIR}:
+            errors.append(f"{label}: unexpected {child.name} in the arm folder")
+    manifest_errors, files = validate_evidence_manifest(
+        result["evidence_manifest"], arm_dir, label, required=verdict in {"pass", "fail"},
+    )
+    return errors + manifest_errors, files
+
+
+def comparison_problems(
+    baseline: dict[str, Any], candidate: dict[str, Any], case_sha256: str
+) -> list[str]:
+    """Why the two arms of one case cannot be compared; empty means symmetric."""
+    problems = []
+    for arm, result in (("baseline", baseline), ("candidate", candidate)):
+        if result["case_sha256"] != case_sha256:
+            problems.append(f"the {arm} result was graded against a different case definition or fixture set")
+    if baseline["environment"] != candidate["environment"]:
+        problems.append("the arms declare different environments")
     return problems

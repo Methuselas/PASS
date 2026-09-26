@@ -182,7 +182,8 @@ canonical state.
 run state, the frozen memory intake, the frozen baseline manifest, the assessment
 and freeze records; `baseline/cards/`
 holds the frozen canonical copies; `candidate/`, `cases/` and `synthesis/` hold
-the staged overlay, arm evidence and review material. The run is administration
+the staged overlay, arm evidence and review material; `arms/` holds the frozen
+baseline and candidate card bundles each arm executes. The run is administration
 scratch: it never ships, never enters cards or Skillset Memory, and deleting it
 never invalidates canon or memory. Cleanup condition: once the run is finalized,
 invalidated or abandoned and its outcome is handled (an approved delta verified

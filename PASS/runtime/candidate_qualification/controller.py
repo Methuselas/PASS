@@ -17,54 +17,59 @@ from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Iterable
 
 from .schemas import (
+    _is_int,
+    ARM_BUNDLES,
     ARMS,
+    assessment_template,
     BASELINE_ROLES,
     BaselineDriftError,
     CANDIDATE_CARDS,
     CANDIDATE_DISPOSITIONS,
+    CandidateQualificationError,
     CASE_FILE,
     CASE_ORIGINS,
     CASE_ROLES,
     CLOSING_COMMANDS,
-    CandidateQualificationError,
+    contained,
     ControllerMismatchError,
     DEFAULT_SCOPE_LIMITS,
+    digest_bytes,
+    digest_file,
     DOMAIN_RE,
     ENTRY_SCRIPT,
     EVALUATION_MODES,
     EVALUATOR_RELATIONS,
+    EVIDENCE_DIR,
     EXECUTION_STATES,
     FREEZE_NAME_RE,
     NONCANON_DISPOSITIONS,
+    now_utc,
     PACKAGE_DIR,
     PLAN_CASE_KEYS,
+    plan_template,
     PRIMARY_ATTRIBUTIONS,
+    QUALIFICATION_RESULT_KEYS,
+    read_json,
     READABLE_SCHEMA_VERSIONS,
     REPO_ROOT,
-    RUNTIME_DIR,
+    RESULT_FILE,
+    result_template,
     RUN_FILES,
     RUN_ID_RE,
+    RUNTIME_DIR,
     SCHEMA_VERSION,
     SCOPE_KEYS,
     SHARED_PACKAGE,
     TERMINAL_STATES,
     TRANSITIONS,
-    VISIBILITIES,
-    WORKSPACE_BUCKET,
-    _is_int,
-    assessment_template,
-    contained,
-    digest_bytes,
-    digest_file,
-    now_utc,
-    plan_template,
-    read_json,
     validate_assessment,
     validate_baseline_manifest,
     validate_intake,
     validate_manifest_template,
     validate_plan,
     validate_run_record,
+    VISIBILITIES,
+    WORKSPACE_BUCKET,
     write_json_atomic,
     write_text_atomic,
 )
@@ -73,6 +78,7 @@ from .evidence import (
     admissible_event_ids,
     baseline_objects,
     card_index,
+    comparison_problems,
     evidence_references,
     exposed_card_ids,
     load_pass_tool,
@@ -81,7 +87,9 @@ from .evidence import (
     resolve_memory_candidate,
     resolve_owners,
     support_closure,
+    validate_arm_result,
 )
+from .gate import case_delta, final_gate
 
 
 def controller_files() -> list[tuple[str, Path]]:
@@ -1002,6 +1010,236 @@ def freeze_candidate(run_dir: Path) -> dict[str, Any]:
     return apply_transition(run_dir, "freeze-candidate", update)
 
 
+# ---------------------------------------------------------------- execution
+
+
+def frozen_case_hashes(root: Path, run: dict[str, Any]) -> dict[str, str]:
+    """case id -> SHA-256 of its frozen case.json, from the plan freeze record."""
+    record = read_json(contained(root, run["freezes"]["plan"]["path"], "plan freeze"))
+    hashes = {}
+    for item in record["files"]:
+        parts = PurePosixPath(item["path"]).parts
+        if len(parts) == 3 and parts[0] == "cases" and parts[2] == CASE_FILE:
+            hashes[parts[1]] = item["sha256"]
+    return hashes
+
+
+def open_execution(run_dir: Path) -> dict[str, Any]:
+    """Write one result template per case and arm, and freeze both arm bundles.
+
+    `arms/baseline/cards/` is the frozen baseline; `arms/candidate/cards/` is the
+    same bundle with the frozen candidate laid over it. Held-out cases are
+    revealed to the execution phase only from here on.
+    """
+
+    def update(root: Path, run: dict[str, Any]) -> None:
+        plan = load_frozen_json(root, run, "plan", "qualification_plan")
+        cases = plan_cases(root, plan)
+        hashes = frozen_case_hashes(root, run)
+        arms_root = contained(root, ARM_BUNDLES, "arm bundles")
+        if arms_root.exists():
+            raise CandidateQualificationError(f"{ARM_BUNDLES}/ already exists before execution opened")
+        for entry in plan["cases"]:
+            for arm in ARMS:
+                if contained(root, f"cases/{entry['case_id']}/{arm}", "arm folder").exists():
+                    raise CandidateQualificationError(
+                        f"cases/{entry['case_id']}/{arm} already exists before execution opened"
+                    )
+        baseline_cards = contained(root, "baseline/cards", "baseline snapshot")
+        candidate_cards = contained(root, CANDIDATE_CARDS, "candidate cards")
+        manifest = read_json(contained(root, run["files"]["candidate_manifest"], "candidate manifest"))
+        bundle_files = []
+        for arm in ARMS:
+            destination = contained(root, f"{ARM_BUNDLES}/{arm}/cards", "arm bundle")
+            shutil.copytree(baseline_cards, destination)
+            if arm == "candidate":
+                for change in manifest["changes"]:
+                    target = contained(destination, change["relative_path"], "arm bundle card")
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(contained(candidate_cards, change["relative_path"], "candidate card"), target)
+            bundle_files += [
+                f"{ARM_BUNDLES}/{arm}/cards/{path.relative_to(destination).as_posix()}"
+                for path in sorted(destination.rglob("*")) if path.is_file()
+            ]
+        for entry in plan["cases"]:
+            case = dict(cases[entry["case_id"]])
+            for arm in ARMS:
+                arm_dir = contained(root, f"cases/{entry['case_id']}/{arm}", "arm folder")
+                (arm_dir / EVIDENCE_DIR).mkdir(parents=True)
+                write_json_atomic(arm_dir / RESULT_FILE, result_template(case, arm, hashes[entry["case_id"]]))
+        record_freeze(root, run, "arms", bundle_files)
+        write_text_atomic(root / "README.md", execution_brief(run, plan, cases))
+
+    return apply_transition(run_dir, "open-execution", update)
+
+
+def load_arm_results(
+    root: Path, plan: dict[str, Any]
+) -> dict[str, dict[str, dict[str, Any]]]:
+    results: dict[str, dict[str, dict[str, Any]]] = {}
+    for entry in plan["cases"]:
+        for arm in ARMS:
+            path = contained(root, f"cases/{entry['case_id']}/{arm}/{RESULT_FILE}", "arm result")
+            if not path.is_file():
+                raise CandidateQualificationError(f"cases/{entry['case_id']}/{arm}/{RESULT_FILE} is missing")
+            results.setdefault(entry["case_id"], {})[arm] = read_json(path)
+    return results
+
+
+def freeze_execution(run_dir: Path) -> dict[str, Any]:
+    """Validate every arm result and its evidence, then freeze them all."""
+
+    def update(root: Path, run: dict[str, Any]) -> None:
+        plan = load_frozen_json(root, run, "plan", "qualification_plan")
+        cases = plan_cases(root, plan)
+        results = load_arm_results(root, plan)
+        errors: list[str] = []
+        files: list[str] = []
+        for entry in plan["cases"]:
+            for arm in ARMS:
+                prefix = f"cases/{entry['case_id']}/{arm}"
+                problems, evidence = validate_arm_result(
+                    results[entry["case_id"]][arm], entry=entry, case=cases[entry["case_id"]],
+                    arm=arm, arm_dir=contained(root, prefix, "arm folder"),
+                )
+                errors += problems
+                files += [f"{prefix}/{RESULT_FILE}", *(f"{prefix}/{path}" for path in evidence)]
+        if errors:
+            raise CandidateQualificationError("execution cannot be frozen: " + "; ".join(errors))
+        record_freeze(root, run, "execution", files)
+
+    return apply_transition(run_dir, "freeze-execution", update)
+
+
+def change_accounting(status: str) -> str:
+    """How a qualified, rejected or undecided candidate accounts for its changes."""
+    if status == "qualified-for-synthesis-review":
+        return "accepted-for-synthesis-review"
+    if status in {"rejected-regression", "rejected-target-failure", "blocked-by-synthetic-stress"}:
+        return "rejected-by-qualification"
+    return "applied-to-candidate"
+
+
+def qualification_result(root: Path, run: dict[str, Any]) -> dict[str, Any]:
+    """Compute every per-case delta and the final gate from frozen material."""
+    plan = load_frozen_json(root, run, "plan", "qualification_plan")
+    results = load_arm_results(root, plan)
+    hashes = frozen_case_hashes(root, run)
+    manifest = read_json(contained(root, run["files"]["candidate_manifest"], "candidate manifest"))
+    deltas = []
+    for entry in plan["cases"]:
+        baseline, candidate = (results[entry["case_id"]][arm] for arm in ARMS)
+        problems = comparison_problems(baseline, candidate, hashes[entry["case_id"]])
+        delta = "invalid" if problems else case_delta(baseline["verdict"], candidate["verdict"])
+        deltas.append({
+            "case_id": entry["case_id"],
+            "role": entry["role"],
+            "origin": entry["origin"],
+            "required": entry["required"],
+            "positive_qualification_eligible": entry["positive_qualification_eligible"],
+            "baseline": baseline["verdict"],
+            "candidate": candidate["verdict"],
+            "delta": delta,
+            "comparison_problems": problems,
+        })
+    contamination = any(
+        results[entry["case_id"]][arm]["contamination"] == "confirmed"
+        for entry in plan["cases"] for arm in ARMS
+    )
+    gate = final_gate(
+        [{key: value for key, value in item.items() if key != "comparison_problems"} for item in deltas],
+        contamination_confirmed=contamination,
+    )
+    accounting = change_accounting(gate["status"])
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "run_id": run["run_id"],
+        "status": gate["status"],
+        "reason": gate["reason"],
+        "candidate_memory_entry": run["memory_entry_id"],
+        "changed_objects": [change["object_id"] for change in manifest["changes"]],
+        "change_accounting": [
+            {"action": change["action"], "object_id": change["object_id"],
+             "relative_path": change["relative_path"], "accounting": accounting}
+            for change in manifest["changes"]
+        ],
+        "case_deltas": deltas,
+        "blocking_cases": gate["blocking_cases"],
+        "positive_qualification_cases": gate["positive_qualification_cases"],
+        "synthetic_cases": [entry["case_id"] for entry in plan["cases"] if entry["origin"] == "synthetic"],
+        "protected_case_gap": plan["protected_case_gap"],
+        "contamination_confirmed": contamination,
+        "canon_modified": False,
+    }
+
+
+def evaluate(run_dir: Path) -> dict[str, Any]:
+    """Write and freeze `qualification_result.json`. It never edits canon or memory."""
+
+    def update(root: Path, run: dict[str, Any]) -> None:
+        document = qualification_result(root, run)
+        if set(document) != QUALIFICATION_RESULT_KEYS:
+            raise CandidateQualificationError("qualification result does not have its closed key set")
+        path = contained(root, run["files"]["qualification_result"], "qualification result")
+        write_json_atomic(path, document)
+        record_freeze(root, run, "result", [run["files"]["qualification_result"]])
+
+    return apply_transition(run_dir, "evaluate", update)
+
+
+def execution_brief(run: dict[str, Any], plan: dict[str, Any], cases: dict[str, dict[str, Any]]) -> str:
+    """The brief for executing and grading both arms of every case."""
+    lines = [
+        f"# CRQ run {run['run_id']}: execute and grade",
+        "",
+        "Every case runs twice under identical instructions: once with",
+        f"`{ARM_BUNDLES}/baseline/cards/` and once with `{ARM_BUNDLES}/candidate/cards/`.",
+        "Both bundles are frozen. Never edit `library/`.",
+        "",
+        "## Isolation",
+        "",
+        "- Give each arm a fresh context. The candidate arm never sees baseline answers;",
+        "  the baseline arm never sees candidate card content.",
+        "- Grade the frozen arm artifact, never a summary the arm wrote about itself.",
+        "- A required semantic case is graded by a separate evaluator; a deterministic",
+        "  case is checked deterministically.",
+        "- Record `contamination` as none, suspected or confirmed. Suspected must be",
+        "  resolved before `freeze-execution`; confirmed makes the arm invalid and the",
+        "  whole qualification invalid.",
+        "",
+        "## Results",
+        "",
+        "Fill `cases/<CASE_ID>/<arm>/result.json` for both arms and list every file",
+        f"under `cases/<CASE_ID>/<arm>/{EVIDENCE_DIR}/` in `evidence_manifest` with its sha256.",
+        "",
+        "- `verdict` is pass, fail or invalid; there is no partial result. A pass needs",
+        "  every criterion to pass; a fail names the failing criteria. An arm that could",
+        "  not exercise the capability (tooling, fixture, contamination, missing",
+        "  context) is invalid with an `invalid_reason`, never a fail.",
+        "- Keep `case_sha256` as written. Both arms declare the same `environment`;",
+        "  a mismatch invalidates the comparison.",
+        "",
+        "## Cases",
+        "",
+    ]
+    for entry in plan["cases"]:
+        case = cases[entry["case_id"]]
+        lines += [
+            f"### {entry['case_id']} ({entry['role']}, {entry['origin']}, {entry['evaluation_mode']}, "
+            f"{entry['visibility']}, {'required' if entry['required'] else 'diagnostic'})",
+            "",
+            f"Task: {' '.join(case['task'].split())}",
+            "",
+            "Success contract:",
+            "",
+            *(f"- {item}" for item in case["success_contract"]),
+        ]
+        if case["constraints"]:
+            lines += ["", "Constraints:", "", *(f"- {item}" for item in case["constraints"])]
+        lines.append("")
+    return "\n".join(lines)
+
+
 # -------------------------------------------------------------------- status
 
 
@@ -1056,7 +1294,8 @@ def status_report(run_dir: Path) -> dict[str, Any]:
                     except CandidateQualificationError:
                         missing_results.append(label)
                         continue
-                    if not path.is_file():
+                    result = _optional_json(root, f"cases/{case_id}/{arm}/result.json") if path.is_file() else None
+                    if result is None or result.get("verdict") is None:
                         missing_results.append(label)
 
     result = _optional_json(root, files["qualification_result"])

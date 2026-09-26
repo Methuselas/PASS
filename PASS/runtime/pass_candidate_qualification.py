@@ -26,11 +26,14 @@ from candidate_qualification.controller import (  # noqa: E402
     WORKSPACE_BUCKET,
     CandidateQualificationError,
     abandon,
+    evaluate,
     freeze_assessment,
     freeze_candidate,
+    freeze_execution,
     freeze_plan,
     invalidate,
     load_baseline_manifest,
+    open_execution,
     prepare,
     stage_candidate,
     status_report,
@@ -65,6 +68,9 @@ def build_parser() -> argparse.ArgumentParser:
         ("freeze-plan", "validate and freeze the qualification plan and its cases"),
         ("stage-candidate", "copy the revisable cards into candidate/cards/ for authoring"),
         ("freeze-candidate", "account for the candidate, validate its overlay, and freeze it"),
+        ("open-execution", "write arm result templates and freeze both arm card bundles"),
+        ("freeze-execution", "validate and freeze every arm result and its evidence"),
+        ("evaluate", "compute per-case deltas and the final gate; write qualification_result.json"),
     ):
         command = commands.add_parser(name, help=text)
         command.add_argument("--run", type=Path, required=True)
@@ -113,6 +119,16 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "freeze-candidate":
             run = freeze_candidate(args.run)
             print(f"CANDIDATE FROZEN: {run['run_id']}")
+        elif args.command == "open-execution":
+            run = open_execution(args.run)
+            print(f"EXECUTION OPEN: {run['run_id']}; run both arms of every case as README.md describes")
+        elif args.command == "freeze-execution":
+            run = freeze_execution(args.run)
+            print(f"EXECUTION FROZEN: {run['run_id']}")
+        elif args.command == "evaluate":
+            run = evaluate(args.run)
+            status = status_report(args.run)["gate"]
+            print(f"EVALUATED: {run['run_id']}: {status}; canon was not modified")
         elif args.command == "status":
             print(json.dumps(status_report(args.run), indent=2, ensure_ascii=False))
         elif args.command == "invalidate":

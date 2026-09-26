@@ -6,6 +6,43 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.94 - 2026-09-26
+
+### Added
+
+- CRQ stage 4: `open-execution` writes a result template for both arms of every
+  case (bound to the frozen case definition's SHA-256), builds and freezes
+  `arms/baseline/cards/` and `arms/candidate/cards/` (the baseline with the
+  frozen candidate laid over it), and replaces the brief with the execution brief,
+  which now reveals held-out cases.
+- CRQ stage 4: `freeze-execution` validates every arm result: a closed key set;
+  verdict pass, fail or invalid with no partial result; a pass only when every
+  frozen success criterion passes and a fail only when one fails; invalid only
+  with a reason; the planned evaluation mode and evaluator relation; a named
+  executor; hashed evidence under `evidence/`, every file listed; suspected
+  contamination refused until resolved and confirmed contamination only on an
+  invalid arm. It then freezes all results and evidence.
+- CRQ stage 4: `evaluate` checks arm symmetry (both results graded against the
+  frozen case definition and declaring the same environment; a mismatch makes that
+  comparison invalid), computes each case's delta, applies the section 23 gate, and
+  writes and freezes `qualification_result.json` with the deltas, blocking and
+  positive cases, synthetic cases, the protection gap, change accounting
+  (accepted-for-synthesis-review, rejected-by-qualification or
+  applied-to-candidate) and `canon_modified: false`.
+- `PASS/runtime/candidate_qualification/gate.py` holds the pure per-case delta
+  and final gate: invalidity (any required invalid comparison or any confirmed
+  contamination), protected regression, target failure, synthetic stress,
+  protection gap, positive improvement, qualified. Non-required cases never
+  decide the status and synthetic success never counts.
+- Added `tests/test_candidate_qualification_gate.py` (every delta pair, every
+  rule, every adjacent precedence pair, the aggregate net-win case) and
+  `tests/test_candidate_qualification_execution.py` (design fixtures A and B end
+  to end, result validation, symmetry, contamination, the frozen result).
+
+### Changed
+
+- `status` counts an arm result with no verdict yet as missing.
+
 ## 1.0.0-beta.93 - 2026-09-26
 
 ### Changed

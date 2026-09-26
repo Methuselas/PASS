@@ -355,27 +355,75 @@ class PersistenceTests(CandidateRunFixture):
 class ControllerFingerprintTests(CandidateRunFixture):
     def test_prepare_records_the_controller_hash(self) -> None:
         run = crq.load_run(self.make_run())[1]
-        self.assertEqual(run["controller_sha256"], crq.digest_file(CONTROLLER))
+        self.assertEqual(run["controller_sha256"], crq.controller_sha256())
+        self.assertEqual(
+            run["controller_sha256"],
+            crq.digest_bytes(CONTROLLER.read_bytes().replace(b"\r\n", b"\n")),
+        )
 
-    def test_changed_controller_cannot_continue_or_close_a_run(self) -> None:
-        run_dir = self.make_run()
-        crq.apply_transition(run_dir, "freeze-assessment")
-        changed = self.base / "changed_controller.py"
+    def changed_controller(self, name: str = "changed_controller.py"):
+        changed = self.base / name
         changed.write_text(
             CONTROLLER.read_text(encoding="utf-8") + "\n# administration rules changed\n",
             encoding="utf-8",
         )
-        other = load_controller(changed, "pass_candidate_qualification_changed")
+        return load_controller(changed, f"pass_candidate_qualification_{changed.stem}")
+
+    def test_changed_controller_cannot_continue_a_run(self) -> None:
+        run_dir = self.make_run()
+        crq.apply_transition(run_dir, "freeze-assessment")
+        other = self.changed_controller()
         before = self.run_bytes(run_dir)
         with self.assertRaises(other.ControllerMismatchError):
             other.apply_transition(run_dir, "freeze-plan")
-        with self.assertRaises(other.ControllerMismatchError):
-            other.invalidate(run_dir, "controller changed")
         self.assertEqual(self.run_bytes(run_dir), before)
         status = other.status_report(run_dir)
         self.assertFalse(status["controller_matches"])
         self.assertEqual(status["state"], "assessment-frozen")
         self.assertEqual(crq.apply_transition(run_dir, "freeze-plan")["state"], "plan-frozen")
+
+    def test_changed_controller_can_close_a_run_and_records_both_hashes(self) -> None:
+        other = self.changed_controller()
+        for number, command in enumerate(crq.CLOSING_COMMANDS, start=1):
+            with self.subTest(command=command):
+                run_dir = self.make_run(f"SE_CRQ_{number:04d}")
+                crq.apply_transition(run_dir, "freeze-assessment")
+                run = other.close_run(run_dir, command, "controller changed mid-run")
+                self.assertEqual(run["state"], crq.CLOSING_COMMANDS[command])
+                self.assertEqual(run["controller_sha256"], crq.controller_sha256())
+                self.assertEqual(run["closing_controller_sha256"], other.controller_sha256())
+                self.assertNotEqual(run["controller_sha256"], run["closing_controller_sha256"])
+                self.assertEqual(crq.load_run(run_dir)[1], run)
+
+    def test_closing_under_the_same_controller_records_the_same_hash(self) -> None:
+        run = crq.abandon(self.make_run(), "no longer needed")
+        self.assertEqual(run["closing_controller_sha256"], run["controller_sha256"])
+
+    def test_closing_hash_belongs_only_to_closed_runs(self) -> None:
+        run = crq.load_run(self.make_run())[1]
+        self.assertIsNone(run["closing_controller_sha256"])
+        errors = crq.validate_run_record(dict(run, closing_controller_sha256="0" * 64))
+        self.assertTrue(any("closing_controller_sha256" in error for error in errors))
+        closed = dict(run, state="abandoned", abandoned_reason="stopped",
+                      history=[*run["history"], {"command": "abandon", "from": "prepared",
+                                                 "to": "abandoned", "at": run["created_at"]}])
+        self.assertTrue(any("closing_controller_sha256" in e for e in crq.validate_run_record(closed)))
+
+    def test_line_endings_do_not_change_the_controller_fingerprint(self) -> None:
+        source = CONTROLLER.read_bytes().replace(b"\r\n", b"\n")
+        crlf = self.base / "crlf_controller.py"
+        crlf.write_bytes(source.replace(b"\n", b"\r\n"))
+        other = load_controller(crlf, "pass_candidate_qualification_crlf")
+        self.assertEqual(other.controller_sha256(), crq.controller_sha256())
+        self.assertEqual(crq.controller_sha256(), crq.digest_bytes(source))
+        run_dir = self.make_run()
+        self.assertEqual(other.apply_transition(run_dir, "freeze-assessment")["state"], "assessment-frozen")
+
+    def test_card_hashes_stay_byte_exact(self) -> None:
+        path = self.base / "card.md"
+        path.write_bytes(b"line\r\n")
+        self.assertEqual(crq.digest_file(path), crq.digest_bytes(b"line\r\n"))
+        self.assertNotEqual(crq.digest_file(path), crq.digest_bytes(b"line\n"))
 
 
 class ContainmentTests(CandidateRunFixture):

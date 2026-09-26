@@ -6,6 +6,38 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.90 - 2026-09-26
+
+### Added
+
+- CRQ stage 2: `prepare` starts a run from one Skillset Memory `card_candidate`.
+  It resolves the entry through `PASS/tools/memory.py` (the whole store must
+  validate; the entry must be an active or monitoring candidate citing only valid,
+  uncorrected, unquarantined events), resolves object-id likely owners inside the
+  run's domain plus `metaskills` without reading any other domain, freezes the
+  entry and its cited events as `controller/intake.json`, snapshots a bounded
+  baseline (targets, their transitive hard prerequisites, one hop of their other
+  links, and owning `MODULE.yaml` files), and writes an assessment template and an
+  operator brief. Run ids are allocated from the memory entry prefix by scanning
+  only that domain's run folder.
+- CRQ stage 2: `freeze-assessment` validates and freezes
+  `controller/assessment.json`: closed dispositions and attributions, the Skillset
+  Memory failure-layer vocabulary, canon candidates limited to knowledge,
+  orchestration or training failures attributed to `skillcard`, owners and
+  revisions confined to the frozen baseline and the active domain, an exposure
+  check when the cited evidence records exposed cards, routing reasons for
+  layer/object-type mismatches, `revise`/`create` actions only, and the run's
+  scope ceilings. Non-canon dispositions freeze for the record with no actions.
+- Added `tests/test_candidate_qualification_intake.py`.
+
+### Changed
+
+- CRQ `invalidate` and `abandon` no longer require the preparing controller's
+  fingerprint; `run.json` records the closing controller's fingerprint in
+  `closing_controller_sha256` beside the original.
+- The CRQ controller fingerprint hashes its source with CRLF normalized to LF;
+  card and evidence hashes remain byte-exact.
+
 ## 1.0.0-beta.89 - 2026-09-26
 
 ### Added

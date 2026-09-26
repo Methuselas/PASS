@@ -41,9 +41,13 @@ contamination stop contract.
 **`test_candidate_qualification_*.py` — Candidate Refinement & Qualification
 administration.** A command from the wrong state changes nothing; terminal runs
 stay read-only; state survives an interrupted write and is read back before
-success is claimed; a changed controller cannot continue a run; baseline drift in
-canon or in the frozen snapshot stops continuation; run paths cannot escape the
-run. These tests use a synthetic library and never touch canon.
+success is claimed; a changed controller cannot continue a run but can still close
+it; baseline drift in canon or in the frozen snapshot stops continuation; run
+paths cannot escape the run. Intake accepts only a valid active or monitoring
+`card_candidate` whose owners resolve inside one domain plus metaskills, and
+freezes exact baseline bytes; a defect assessment routes non-canon failures away
+from candidate authoring and bounds every proposed card action. These tests use a
+synthetic library and memory store and never touch canon or memory.
 
 ## What no suite here can prove
 

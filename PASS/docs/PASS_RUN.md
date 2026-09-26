@@ -179,7 +179,8 @@ canonical state.
 `PASS/runtime/pass_candidate_qualification.py` owns
 `workspace/candidate-qualification/<domain>/<run-id>/`, one Candidate Refinement
 & Qualification (CRQ) run. The first run creates the bucket. `controller/` holds
-run state, the frozen baseline manifest and freeze records; `baseline/cards/`
+run state, the frozen memory intake, the frozen baseline manifest, the assessment
+and freeze records; `baseline/cards/`
 holds the frozen canonical copies; `candidate/`, `cases/` and `synthesis/` hold
 the staged overlay, arm evidence and review material. The run is administration
 scratch: it never ships, never enters cards or Skillset Memory, and deleting it

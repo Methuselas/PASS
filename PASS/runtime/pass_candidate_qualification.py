@@ -5,9 +5,10 @@ A CRQ run compares one bounded candidate change to ordinary PASS cards against a
 frozen canonical baseline. This controller owns only administration: the run
 state machine, atomic state writes, path containment, frozen-file hashes, the
 controller fingerprint, baseline-drift detection, intake of one Skillset Memory
-`card_candidate`, and the structural checks on a defect assessment. It never
-writes `library/` or Skillset Memory, never calls a model, and never judges
-domain semantics.
+`card_candidate`, the structural checks on a defect assessment and a
+qualification plan, candidate staging, mutation accounting, and ordinary PASS
+validation of a temporary candidate overlay. It never writes `library/` or
+Skillset Memory, never calls a model, and never judges domain semantics.
 
 Run directories live under `workspace/candidate-qualification/<domain>/<run-id>/`
 and are disposable administration scratch. `controller/run.json` is the
@@ -17,9 +18,11 @@ authoritative state of one run.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import copy
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -816,17 +819,25 @@ def load_pass_tool(name: str) -> Any:
     if not path.is_file():
         raise CandidateQualificationError(f"PASS tool is missing: {path}")
     tools = str(TOOLS_DIR)
+    private = f"_pass_crq_tool_{name}"
     before = set(sys.modules)
     sys.path.insert(0, tools)
     try:
-        spec = importlib.util.spec_from_file_location(f"_pass_crq_tool_{name}", path)
+        spec = importlib.util.spec_from_file_location(private, path)
         if spec is None or spec.loader is None:
             raise CandidateQualificationError(f"cannot load PASS tool: {path}")
         module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
+        # Registered under its private name while it executes: dataclasses
+        # resolve their defining module through sys.modules.
+        sys.modules[private] = module
+        try:
+            spec.loader.exec_module(module)
+        except BaseException:
+            del sys.modules[private]
+            raise
     finally:
         sys.path.remove(tools)
-        for leaked in set(sys.modules) - before:
+        for leaked in set(sys.modules) - before - {private}:
             origin = getattr(sys.modules[leaked], "__file__", None)
             if origin and Path(origin).resolve().parent == TOOLS_DIR:
                 del sys.modules[leaked]
@@ -1526,6 +1537,9 @@ def freeze_assessment(run_dir: Path) -> dict[str, Any]:
         if errors:
             raise CandidateQualificationError("assessment cannot be frozen: " + "; ".join(errors))
         record_freeze(root, run, "assessment", [run["files"]["assessment"]])
+        plan = contained(root, run["files"]["qualification_plan"], "qualification plan")
+        if not plan.exists():
+            write_json_atomic(plan, plan_template(run))
 
     return apply_transition(run_dir, "freeze-assessment", update)
 
@@ -1598,8 +1612,748 @@ def assessment_brief(run: dict[str, Any], intake: dict[str, Any], entries: list[
         "- `unresolved_questions`: `{question, decides_ownership}`; a question that decides",
         "  ownership blocks a canon-candidate.",
         "",
+        "## Plan the qualification",
+        "",
+        "After the assessment freezes, fill `controller/qualification_plan.json` and write",
+        "`cases/<CASE_ID>/case.json` for every planned case, then run `freeze-plan`. The plan",
+        "freezes before any candidate is staged, so held-out cases cannot shape the edit.",
+        "",
+        f"- Each plan case: {', '.join(sorted(PLAN_CASE_KEYS))}; a synthetic case adds",
+        "  `in_scope_reason`. `case.json` repeats the metadata and adds `task`,",
+        "  `success_contract`, `constraints`, `fixture_manifest` and `notes`.",
+        f"- role {'/'.join(CASE_ROLES)}; origin {'/'.join(CASE_ORIGINS)}; evaluation_mode",
+        f"  {'/'.join(EVALUATION_MODES)}; visibility {'/'.join(VISIBILITIES)}; evaluator_relation",
+        f"  {'/'.join(EVALUATOR_RELATIONS)}.",
+        "- A synthetic case is only a protected stress probe: never positive qualification,",
+        "  never an empirical event. A required semantic case is graded by a separate",
+        "  evaluator; a deterministic case is checked deterministically.",
+        "- The plan needs a required non-synthetic target case eligible for positive",
+        "  qualification. Without a required non-synthetic protected case it must record",
+        "  `protected_case_gap`, and the run cannot qualify beyond that gap.",
+        "- Fixtures live under `cases/<CASE_ID>/fixture/` and are each listed with a sha256.",
+        "",
     ]
     return "\n".join(lines)
+
+
+# ------------------------------------------------------- qualification plan
+
+
+CASE_ROLES = ("target", "protected")
+CASE_ORIGINS = ("empirical", "deterministic", "synthetic")
+EVALUATION_MODES = ("deterministic", "semantic")
+VISIBILITIES = ("author-visible", "held-out")
+EVALUATOR_RELATIONS = ("deterministic", "separate", "same-reader")
+CASE_ID_RE = re.compile(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*\Z")
+PLAN_KEYS = frozenset({"schema_version", "run_id", "cases", "protected_case_gap"})
+# Plan metadata that each case.json repeats and must agree with.
+CASE_METADATA = (
+    "role", "origin", "evaluation_mode", "visibility", "required",
+    "positive_qualification_eligible", "evaluator_relation", "source_event_ids",
+)
+PLAN_CASE_KEYS = frozenset({"case_id", "purpose", *CASE_METADATA})
+PLAN_CASE_OPTIONAL_KEYS = frozenset({"in_scope_reason"})
+CASE_KEYS = frozenset({
+    "schema_version", "case_id", *CASE_METADATA, "task", "success_contract",
+    "constraints", "fixture_manifest", "notes",
+})
+FIXTURE_ENTRY_KEYS = frozenset({"path", "sha256"})
+CASE_FILE = "case.json"
+FIXTURE_DIR = "fixture"
+
+
+def plan_template(run: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "run_id": run["run_id"],
+        "cases": [],
+        "protected_case_gap": None,
+    }
+
+
+def admissible_event_ids(memory_root: Path, domain: str) -> set[str]:
+    """Events a case may cite: valid, performance, not quarantined."""
+    memory = load_pass_tool("memory")
+    events, _ = memory.load_events(Path(memory_root) / domain)
+    quarantined = quarantined_events(events)
+    return {
+        str(event["event_id"])
+        for event in events
+        if isinstance(event.get("event_id"), str)
+        and event.get("validity") == "valid"
+        and event.get("event_kind", "performance") == "performance"
+        and event["event_id"] not in quarantined
+    }
+
+
+def validate_plan_entry(entry: Any, label: str, admissible: set[str]) -> list[str]:
+    """Rules one plan case must satisfy on its own."""
+    if not isinstance(entry, dict):
+        return [f"{label} must be an object"]
+    keys = set(entry)
+    if not PLAN_CASE_KEYS <= keys or keys - PLAN_CASE_KEYS - PLAN_CASE_OPTIONAL_KEYS:
+        return [f"{label} must have {sorted(PLAN_CASE_KEYS)} and optionally {sorted(PLAN_CASE_OPTIONAL_KEYS)}"]
+    errors: list[str] = []
+    for key, allowed in (
+        ("role", CASE_ROLES), ("origin", CASE_ORIGINS), ("evaluation_mode", EVALUATION_MODES),
+        ("visibility", VISIBILITIES), ("evaluator_relation", EVALUATOR_RELATIONS),
+    ):
+        if entry[key] not in allowed:
+            errors.append(f"{label}: {key} must be one of {list(allowed)}")
+    for key in ("required", "positive_qualification_eligible"):
+        if not isinstance(entry[key], bool):
+            errors.append(f"{label}: {key} must be true or false")
+    if not _nonempty_str(entry["purpose"]):
+        errors.append(f"{label}: purpose must say what the case protects or proves")
+    events = entry["source_event_ids"]
+    if not isinstance(events, list) or any(not isinstance(item, str) for item in events):
+        errors.append(f"{label}: source_event_ids must be a list of event ids")
+        events = []
+    elif len(events) != len(set(events)):
+        errors.append(f"{label}: source_event_ids may not repeat")
+    for event_id in events:
+        if event_id not in admissible:
+            errors.append(
+                f"{label}: {event_id} is not a valid, uncorrected, unquarantined event in this domain's history"
+            )
+
+    origin, role = entry["origin"], entry["role"]
+    eligible = entry["positive_qualification_eligible"]
+    if origin == "synthetic":
+        if role != "protected":
+            errors.append(f"{label}: a synthetic case is a stress probe and may only be protected")
+        if eligible is not False:
+            errors.append(f"{label}: a synthetic case never provides positive qualification")
+        if events:
+            errors.append(f"{label}: a synthetic case cites no empirical event")
+        if not _nonempty_str(entry.get("in_scope_reason")):
+            errors.append(f"{label}: a synthetic case needs in_scope_reason saying why it stays inside the card's contract")
+    elif "in_scope_reason" in entry:
+        errors.append(f"{label}: in_scope_reason belongs only to a synthetic case")
+    if origin == "empirical" and not events:
+        errors.append(f"{label}: an empirical case cites the events it comes from")
+    if eligible is True and role != "target":
+        errors.append(f"{label}: only a target case can provide positive qualification")
+
+    mode, relation = entry["evaluation_mode"], entry["evaluator_relation"]
+    if mode == "deterministic" and relation != "deterministic":
+        errors.append(f"{label}: a deterministic case is checked deterministically")
+    if mode == "semantic" and relation == "deterministic":
+        errors.append(f"{label}: a semantic case needs a separate or same-reader evaluator")
+    if mode == "semantic" and entry["required"] is True and relation != "separate":
+        errors.append(f"{label}: a required semantic case must be graded by a separate evaluator")
+    return errors
+
+
+def validate_case_directory(root: Path, entry: dict[str, Any], label: str) -> tuple[list[str], list[str]]:
+    """Check `cases/<id>/`; return (errors, run-relative files to freeze)."""
+    case_id = entry["case_id"]
+    case_dir = contained(root, f"cases/{case_id}", label)
+    case_path = case_dir / CASE_FILE
+    if not case_path.is_file():
+        return [f"{label}: cases/{case_id}/{CASE_FILE} is missing"], []
+    errors: list[str] = []
+    for child in sorted(case_dir.iterdir()):
+        if child.name not in {CASE_FILE, FIXTURE_DIR}:
+            errors.append(f"{label}: unexpected cases/{case_id}/{child.name} before execution")
+    try:
+        case = read_json(case_path)
+    except CandidateQualificationError as exc:
+        return [f"{label}: {exc}"], []
+    keys = set(case)
+    if keys != CASE_KEYS:
+        errors.append(f"{label}: case.json must have exactly {sorted(CASE_KEYS)}")
+        return errors, []
+    if case["schema_version"] != SCHEMA_VERSION or case["case_id"] != case_id:
+        errors.append(f"{label}: case.json names a different case or schema")
+    for key in CASE_METADATA:
+        if case[key] != entry[key]:
+            errors.append(f"{label}: case.json {key} disagrees with the plan")
+    if not _nonempty_str(case["task"]):
+        errors.append(f"{label}: task must be the identical instruction both arms receive")
+    for key, required in (("success_contract", True), ("constraints", False)):
+        value = case[key]
+        if not isinstance(value, list) or any(not _nonempty_str(item) for item in value):
+            errors.append(f"{label}: {key} must be a list of non-empty strings")
+        elif required and not value:
+            errors.append(f"{label}: success_contract needs at least one observable criterion")
+        elif len(value) != len(set(value)):
+            errors.append(f"{label}: {key} may not repeat an item")
+    if not isinstance(case["notes"], str):
+        errors.append(f"{label}: notes must be a string")
+
+    files = [f"cases/{case_id}/{CASE_FILE}"]
+    fixtures = case["fixture_manifest"]
+    listed: set[str] = set()
+    if not isinstance(fixtures, list):
+        errors.append(f"{label}: fixture_manifest must be a list")
+        fixtures = []
+    for index, item in enumerate(fixtures):
+        where = f"{label} fixture {index}"
+        if not isinstance(item, dict) or set(item) != FIXTURE_ENTRY_KEYS:
+            errors.append(f"{where} must have exactly path and sha256")
+            continue
+        try:
+            relative = safe_relative(item["path"], where)
+            if relative.parts[0] != FIXTURE_DIR or len(relative.parts) < 2:
+                raise CandidateQualificationError(f"{where} must sit under {FIXTURE_DIR}/")
+            path = contained(case_dir, item["path"], where)
+        except CandidateQualificationError as exc:
+            errors.append(str(exc))
+            continue
+        if item["path"] in listed:
+            errors.append(f"{where} repeats {item['path']}")
+        listed.add(item["path"])
+        if not path.is_file():
+            errors.append(f"{where}: {item['path']} does not exist")
+        elif digest_file(path) != item["sha256"]:
+            errors.append(f"{where}: {item['path']} does not match its sha256")
+        else:
+            files.append(f"cases/{case_id}/{item['path']}")
+    fixture_root = case_dir / FIXTURE_DIR
+    if fixture_root.exists():
+        for path in sorted(fixture_root.rglob("*")):
+            if path.is_symlink():
+                errors.append(f"{label}: fixture symlinks are not allowed: {path.name}")
+            elif path.is_file():
+                relative = path.relative_to(case_dir).as_posix()
+                if relative not in listed:
+                    errors.append(f"{label}: {relative} is not in fixture_manifest")
+    return errors, files
+
+
+def validate_plan(
+    plan: Any, *, run: dict[str, Any], root: Path, admissible: set[str]
+) -> tuple[list[str], list[str]]:
+    """Every reason the plan cannot be frozen, and the files a freeze covers."""
+    if not isinstance(plan, dict) or set(plan) != PLAN_KEYS:
+        return [f"qualification plan must have exactly {sorted(PLAN_KEYS)}"], []
+    errors: list[str] = []
+    if plan["schema_version"] != SCHEMA_VERSION or plan["run_id"] != run["run_id"]:
+        errors.append("qualification plan belongs to a different run or schema")
+    cases = plan["cases"]
+    if not isinstance(cases, list) or not cases:
+        return errors + ["qualification plan must list at least one case"], []
+    files = [run["files"]["qualification_plan"]]
+    seen: set[str] = set()
+    valid_entries = []
+    for index, entry in enumerate(cases):
+        case_id = entry.get("case_id") if isinstance(entry, dict) else None
+        label = f"case {case_id}" if isinstance(case_id, str) else f"cases[{index}]"
+        if not isinstance(case_id, str) or not CASE_ID_RE.fullmatch(case_id):
+            errors.append(f"{label}: case_id must look like TARGET_001")
+            continue
+        if case_id in seen:
+            errors.append(f"{label}: case_id repeats")
+            continue
+        seen.add(case_id)
+        problems = validate_plan_entry(entry, label, admissible)
+        errors.extend(problems)
+        if problems:
+            continue
+        valid_entries.append(entry)
+        directory_errors, case_files = validate_case_directory(root, entry, label)
+        errors.extend(directory_errors)
+        files.extend(case_files)
+    cases_root = root / "cases"
+    if cases_root.is_dir():
+        for child in sorted(cases_root.iterdir()):
+            if child.name not in seen:
+                errors.append(f"cases/{child.name} is not a planned case")
+
+    required = [entry for entry in valid_entries if entry["required"]]
+    if not any(entry["role"] == "target" for entry in required):
+        errors.append("the plan needs at least one required target case")
+    if not any(
+        entry["role"] == "target" and entry["origin"] != "synthetic"
+        and entry["positive_qualification_eligible"] for entry in required
+    ):
+        errors.append("the plan needs a required non-synthetic target case eligible for positive qualification")
+    protected = any(entry["role"] == "protected" and entry["origin"] != "synthetic" for entry in required)
+    gap = plan["protected_case_gap"]
+    if protected and gap is not None:
+        errors.append("protected_case_gap must be null when a required non-synthetic protected case exists")
+    if not protected and not _nonempty_str(gap):
+        errors.append(
+            "no required non-synthetic protected case: record protected_case_gap; the run "
+            "then cannot qualify beyond inconclusive-protection-gap"
+        )
+    return errors, files
+
+
+def load_frozen_json(root: Path, run: dict[str, Any], name: str, key: str) -> dict[str, Any]:
+    if name not in run["freezes"]:
+        raise CandidateQualificationError(f"{name} is not frozen in this run")
+    return read_json(contained(root, run["files"][key], name))
+
+
+def plan_cases(root: Path, plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    return {
+        entry["case_id"]: read_json(contained(root, f"cases/{entry['case_id']}/{CASE_FILE}", "case"))
+        for entry in plan["cases"]
+    }
+
+
+def freeze_plan(run_dir: Path) -> dict[str, Any]:
+    """Validate the qualification plan and every case, then freeze them."""
+
+    def update(root: Path, run: dict[str, Any]) -> None:
+        path = contained(root, run["files"]["qualification_plan"], "qualification plan")
+        if not path.is_file():
+            raise CandidateQualificationError("controller/qualification_plan.json is missing")
+        errors, files = validate_plan(
+            read_json(path), run=run, root=root,
+            admissible=admissible_event_ids(Path(run["memory_root"]), run["domain"]),
+        )
+        if errors:
+            raise CandidateQualificationError("plan cannot be frozen: " + "; ".join(errors))
+        record_freeze(root, run, "plan", files)
+
+    return apply_transition(run_dir, "freeze-plan", update)
+
+
+# -------------------------------------------------------- candidate staging
+
+
+CANDIDATE_CARDS = "candidate/cards"
+MANIFEST_CHANGE_KEYS = frozenset({"action", "object_id", "relative_path", "rationale"})
+FROZEN_CHANGE_KEYS = MANIFEST_CHANGE_KEYS | {
+    "baseline_sha256", "candidate_sha256", "changed_sections", "accounting",
+}
+MANIFEST_KEYS = frozenset({"schema_version", "run_id", "changes", "unmatched_actions", "scope"})
+SCOPE_KEYS = ("changed_existing_cards", "new_cards", "deleted_cards", "renamed_object_ids", "moved_existing_cards")
+
+
+def action_paths(assessment: dict[str, Any], baseline: dict[str, dict[str, Any]]) -> list[dict[str, str]]:
+    """Each frozen object action with the library-relative path it edits."""
+    return [
+        {
+            "action": action["action"],
+            "object_id": action["object_id"],
+            "object_type": action["object_type"],
+            "relative_path": (
+                baseline[action["object_id"]]["relative_path"]
+                if action["action"] == "revise" else action["relative_path"]
+            ),
+        }
+        for action in assessment["proposed_object_actions"]
+    ]
+
+
+def stage_candidate(run_dir: Path) -> dict[str, Any]:
+    """Copy the revisable cards out of the baseline for editing.
+
+    Refused unless the frozen assessment is a canon-candidate. A new-card action
+    gets only its empty destination folder; Python never writes card content.
+    """
+
+    def update(root: Path, run: dict[str, Any]) -> None:
+        assessment = load_frozen_json(root, run, "assessment", "assessment")
+        disposition = assessment["candidate_disposition"]
+        if disposition != "canon-candidate":
+            raise CandidateQualificationError(
+                f"the frozen assessment routes this candidate to {disposition}; only a "
+                "canon-candidate is staged for authoring. Close the run with abandon and "
+                "handle the finding where it belongs"
+            )
+        candidate_root = root / "candidate"
+        if candidate_root.exists():
+            raise CandidateQualificationError(
+                "candidate/ already exists before staging; remove the leftover folder first"
+            )
+        manifest = load_baseline_manifest(root, run)
+        baseline = baseline_objects(root, manifest)
+        actions = action_paths(assessment, baseline)
+        cards = contained(root, CANDIDATE_CARDS, "candidate cards")
+        cards.mkdir(parents=True)
+        changes = []
+        for action in actions:
+            destination = contained(cards, action["relative_path"], "candidate path")
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            if action["action"] == "revise":
+                shutil.copyfile(
+                    contained(root, f"baseline/cards/{action['relative_path']}", "snapshot"), destination
+                )
+            changes.append({key: action[key] for key in ("action", "object_id", "relative_path")} | {"rationale": ""})
+        write_json_atomic(contained(root, run["files"]["candidate_manifest"], "candidate manifest"), {
+            "schema_version": SCHEMA_VERSION,
+            "run_id": run["run_id"],
+            "changes": changes,
+            "unmatched_actions": [],
+            "scope": {key: 0 for key in SCOPE_KEYS},
+        })
+        plan = load_frozen_json(root, run, "plan", "qualification_plan")
+        write_text_atomic(root / "README.md", candidate_brief(
+            run, load_intake(root, run), assessment, plan, plan_cases(root, plan), actions,
+        ))
+
+    return apply_transition(run_dir, "stage-candidate", update)
+
+
+def candidate_brief(
+    run: dict[str, Any],
+    intake: dict[str, Any],
+    assessment: dict[str, Any],
+    plan: dict[str, Any],
+    cases: dict[str, dict[str, Any]],
+    actions: list[dict[str, str]],
+) -> str:
+    """The candidate-author brief. Held-out case details are never written here."""
+    entry = intake["memory_entry"]
+    diagnosis = entry.get("diagnosis") or {}
+    limits = run["scope_limits"]
+    visible = [e for e in plan["cases"] if e["role"] == "target" and e["visibility"] == "author-visible"]
+    held_out = [e for e in plan["cases"] if e["visibility"] == "held-out"]
+    lines = [
+        f"# CRQ run {run['run_id']}: author the candidate",
+        "",
+        "Edit only the files under `candidate/cards/`. Never edit `library/`; a",
+        "qualified candidate still needs deliberate synthesis review.",
+        "",
+        "## Why this candidate exists",
+        "",
+        f"- Memory candidate {entry.get('id')}: {' '.join(str(entry.get('observation', '')).split())}",
+        f"- Diagnosis: {diagnosis.get('failure_layer', 'not recorded')}"
+        + (f" ({' '.join(str(diagnosis['hypothesis']).split())})" if diagnosis.get("hypothesis") else ""),
+        f"- Likely owners: {', '.join(o['label'] for o in intake['owners'])}",
+        "",
+        "## Frozen assessment",
+        "",
+        f"- Disposition: {assessment['candidate_disposition']}; failure layer: "
+        f"{assessment['failure_layer']}; attribution: {assessment['primary_attribution']}",
+        f"- Owners: {', '.join(assessment['owner_object_ids']) or 'none (new card)'}",
+        f"- Rationale: {' '.join(assessment['rationale'].split())}",
+        "",
+        "## Allowed actions",
+        "",
+    ]
+    for action in actions:
+        if action["action"] == "revise":
+            lines.append(
+                f"- revise {action['object_type']} `{action['object_id']}` at "
+                f"`candidate/cards/{action['relative_path']}` (copied from the frozen baseline)"
+            )
+        else:
+            lines.append(
+                f"- create {action['object_type']} `{action['object_id']}` as "
+                f"`candidate/cards/{action['relative_path']}` (its folder exists; write the card)"
+            )
+    lines += [
+        "",
+        f"Ceilings: {limits['max_changed_cards']} revised, {limits['max_new_cards']} new. Nothing",
+        "else may appear under `candidate/cards/`: no deleted, renamed, moved or extra files.",
+        "",
+        "## Card rules",
+        "",
+        "- Each card must stay an ordinary, valid, source-independent PASS card; the ordinary",
+        "  validators run on a temporary overlay at `freeze-candidate`.",
+        "- A card never names this run, a memory entry, a training event, a qualification",
+        "  case, a workspace path or an evidence hash. The evidence justifies the edit; it",
+        "  is not a runtime dependency of the card.",
+        "- Fill each `rationale` in `controller/candidate_manifest.json`; the controller",
+        "  computes hashes, changed sections and scope when it freezes the candidate.",
+        "",
+        "## Author-visible target cases",
+        "",
+    ]
+    for entry_ in visible:
+        case = cases[entry_["case_id"]]
+        lines += [f"### {entry_['case_id']}", "", f"Task: {' '.join(case['task'].split())}", "", "Success contract:", ""]
+        lines += [f"- {item}" for item in case["success_contract"]]
+        if case["constraints"]:
+            lines += ["", "Constraints:", ""] + [f"- {item}" for item in case["constraints"]]
+        lines.append("")
+    if not visible:
+        lines += ["None.", ""]
+    lines += [
+        "## Withheld cases",
+        "",
+        f"{len(held_out)} held-out case(s) are intentionally withheld until the candidate is",
+        "frozen. Do not open `cases/` for them; reading one early is contamination and",
+        "invalidates the qualification it touches.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+# ------------------------------------------------------- candidate freezing
+
+
+# An identifier shaped like a run, memory entry or history event never belongs in a card.
+EVIDENCE_ID_RE = re.compile(r"\b[A-Z][A-Z0-9]*_(?:CRQ|MEM|EV)_[0-9]+\b")
+CARD_HEADING_RE = re.compile(r"(?m)^## ([^\r\n]+?)\s*$")
+CARD_TITLE_RE = re.compile(r"(?m)^# ([^\r\n]+?)\s*$")
+
+
+def card_parts(raw: bytes) -> tuple[dict[str, Any] | None, str | None, dict[str, str]]:
+    """Frontmatter, H1 and `##` sections of a card's bytes."""
+    text = raw.decode("utf-8", errors="replace").replace("\r\n", "\n")
+    match = re.match(r"\A---\n(?P<front>.*?)\n---\n(?P<body>.*)\Z", text, re.DOTALL)
+    if not match:
+        return None, None, {}
+    try:
+        front = yaml.safe_load(match.group("front"))
+    except yaml.YAMLError:
+        front = None
+    body = match.group("body")
+    title = CARD_TITLE_RE.search(body)
+    headings = list(CARD_HEADING_RE.finditer(body))
+    sections = {}
+    for index, heading in enumerate(headings):
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(body)
+        sections[heading.group(1)] = " ".join(body[heading.end():end].split())
+    return front if isinstance(front, dict) else None, title.group(1) if title else None, sections
+
+
+def changed_sections(before: bytes | None, after: bytes) -> list[str]:
+    """Which parts of a card changed: Frontmatter, Title, and each `##` section."""
+    new_front, new_title, new_sections = card_parts(after)
+    if before is None:
+        return ["Frontmatter", "Title", *new_sections]
+    old_front, old_title, old_sections = card_parts(before)
+    changed = []
+    if old_front != new_front:
+        changed.append("Frontmatter")
+    if old_title != new_title:
+        changed.append("Title")
+    for heading in [*new_sections, *(h for h in old_sections if h not in new_sections)]:
+        if old_sections.get(heading) != new_sections.get(heading):
+            changed.append(heading)
+    return changed
+
+
+def candidate_file_list(cards: Path) -> tuple[list[str], list[str]]:
+    """(files, problems) under `candidate/cards/`, refusing symlinks."""
+    files, problems = [], []
+    if not cards.is_dir():
+        return files, ["candidate/cards/ is missing"]
+    for path in sorted(cards.rglob("*")):
+        relative = path.relative_to(cards).as_posix()
+        if path.is_symlink():
+            problems.append(f"{relative}: symlinks are not allowed in a candidate")
+        elif path.is_file():
+            files.append(relative)
+    return files, problems
+
+
+def account_candidate(
+    root: Path,
+    actions: list[dict[str, str]],
+    baseline_ids: set[str],
+) -> tuple[list[dict[str, Any]], list[dict[str, str]], dict[str, int]]:
+    """Match every authorized action to a real change and every file to an action.
+
+    Returns (applied changes, unmatched actions, scope counts). Anything
+    unmatched blocks the freeze; nothing is silently dropped.
+    """
+    cards = contained(root, CANDIDATE_CARDS, "candidate cards")
+    files, problems = candidate_file_list(cards)
+    unmatched = [{"object_id": None, "relative_path": None, "problem": text} for text in problems]
+    scope = {key: 0 for key in SCOPE_KEYS}
+    applied = []
+    expected = {action["relative_path"] for action in actions}
+
+    def miss(action: dict[str, str], text: str) -> None:
+        unmatched.append({
+            "object_id": action["object_id"], "relative_path": action["relative_path"], "problem": text,
+        })
+
+    for action in actions:
+        relative = action["relative_path"]
+        path = contained(cards, relative, "candidate path")
+        before = (
+            contained(root, f"baseline/cards/{relative}", "snapshot").read_bytes()
+            if action["action"] == "revise" else None
+        )
+        if not path.is_file():
+            if action["action"] == "revise":
+                scope["deleted_cards"] += 1
+                miss(action, "the revised card is missing; deleting a card is never allowed")
+            else:
+                miss(action, "the new-card action created no card")
+            continue
+        after = path.read_bytes()
+        front, _title, _sections = card_parts(after)
+        if front is None:
+            miss(action, "the file is not a card with readable frontmatter")
+            continue
+        if front.get("object_id") != action["object_id"]:
+            if action["action"] == "revise":
+                scope["renamed_object_ids"] += 1
+            miss(action, f"object_id is {front.get('object_id')!r}; renaming is never allowed")
+            continue
+        if front.get("object_type") != action["object_type"]:
+            miss(action, f"object_type is {front.get('object_type')!r}, not {action['object_type']}")
+            continue
+        if before is not None and after == before:
+            miss(action, "the staged card is byte-identical to the baseline")
+            continue
+        sections = changed_sections(before, after)
+        if not sections:
+            miss(action, "only whitespace or line endings changed")
+            continue
+        scope["changed_existing_cards" if action["action"] == "revise" else "new_cards"] += 1
+        applied.append({
+            "action": action["action"],
+            "object_id": action["object_id"],
+            "relative_path": relative,
+            "baseline_sha256": digest_bytes(before) if before is not None else None,
+            "candidate_sha256": digest_bytes(after),
+            "changed_sections": sections,
+            "accounting": "applied-to-candidate",
+        })
+    for relative in files:
+        if relative in expected:
+            continue
+        front, _title, _sections = card_parts(contained(cards, relative, "candidate file").read_bytes())
+        object_id = front.get("object_id") if front else None
+        if object_id in baseline_ids:
+            scope["moved_existing_cards"] += 1
+            text = f"a copy of existing card {object_id} at an unauthorized path; moving or changing an unauthorized card is never allowed"
+        else:
+            text = "this file was never authorized by the frozen assessment"
+        unmatched.append({"object_id": object_id, "relative_path": relative, "problem": text})
+    return applied, unmatched, scope
+
+
+def evidence_references(
+    root: Path, files: Iterable[str], forbidden: Iterable[str]
+) -> list[str]:
+    """Candidate files that name the run's evidence instead of standing alone."""
+    tokens = sorted({token for token in forbidden if token})
+    patterns = [re.compile(r"(?<![A-Za-z0-9_])" + re.escape(token) + r"(?![A-Za-z0-9_])") for token in tokens]
+    problems = []
+    for relative in files:
+        text = contained(root, f"{CANDIDATE_CARDS}/{relative}", "candidate file").read_text(
+            encoding="utf-8", errors="replace"
+        )
+        found = set(EVIDENCE_ID_RE.findall(text))
+        found |= {token for token, pattern in zip(tokens, patterns) if pattern.search(text)}
+        if PurePosixPath(WORKSPACE_BUCKET).name in text:
+            found.add("a candidate-qualification workspace path")
+        if found:
+            problems.append(f"{relative} names run evidence ({', '.join(sorted(found))}); a card must stand alone")
+    return problems
+
+
+def run_tool_cli(name: str, argv: list[str]) -> tuple[int, str]:
+    """Run a PASS tool's own `main()` in-process with `argv`; return (code, output)."""
+    module = load_pass_tool(name)
+    output = io.StringIO()
+    saved = sys.argv
+    sys.argv = [f"{name}.py", *argv]
+    try:
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+            try:
+                code = module.main()
+            except SystemExit as exc:
+                code = exc.code if isinstance(exc.code, int) else 1
+    finally:
+        sys.argv = saved
+    return int(code or 0), output.getvalue()
+
+
+OVERLAY_PREFIX = "pass-crq-overlay-"
+OVERLAY_VALIDATORS = ("validate", "verify_references")
+
+
+def overlay_problems(library_root: Path, cards: Path, files: Iterable[str]) -> list[str]:
+    """Validate the live library with the candidate files laid over it.
+
+    The overlay is a temporary copy named `library/` (the reference checker
+    finds its repo root by that name). It is removed on success and failure,
+    and the canonical library is only ever read.
+    """
+    problems = []
+    with tempfile.TemporaryDirectory(prefix=OVERLAY_PREFIX) as temporary:
+        overlay = Path(temporary) / "library"
+        shutil.copytree(library_root, overlay, ignore=shutil.ignore_patterns("__pycache__", ".pytest_cache"))
+        for relative in files:
+            destination = overlay.joinpath(*PurePosixPath(relative).parts)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(contained(cards, relative, "candidate file"), destination)
+        for tool in OVERLAY_VALIDATORS:
+            code, output = run_tool_cli(tool, ["--library", str(overlay)])
+            if code:
+                shown = "\n".join(output.strip().splitlines()[-40:]).replace(str(overlay), "<overlay>")
+                problems.append(f"{tool}.py --library <overlay> failed:\n{shown}")
+    return problems
+
+
+def validate_manifest_template(
+    template: Any, run: dict[str, Any], actions: list[dict[str, str]]
+) -> tuple[list[str], dict[str, str]]:
+    """Check the author's manifest; return (errors, rationale by object id)."""
+    if not isinstance(template, dict) or set(template) != MANIFEST_KEYS:
+        return [f"candidate manifest must have exactly {sorted(MANIFEST_KEYS)}"], {}
+    if template["schema_version"] != SCHEMA_VERSION or template["run_id"] != run["run_id"]:
+        return ["candidate manifest belongs to a different run or schema"], {}
+    changes = template["changes"]
+    if not isinstance(changes, list) or any(not isinstance(c, dict) or set(c) != MANIFEST_CHANGE_KEYS for c in changes):
+        return [f"each candidate manifest change must have exactly {sorted(MANIFEST_CHANGE_KEYS)}"], {}
+    expected = sorted((a["action"], a["object_id"], a["relative_path"]) for a in actions)
+    found = sorted((c["action"], c["object_id"], c["relative_path"]) for c in changes)
+    if found != expected:
+        return ["candidate manifest changes must be exactly the frozen assessment's actions"], {}
+    errors = [
+        f"{change['object_id']}: rationale must explain the change"
+        for change in changes if not _nonempty_str(change["rationale"])
+    ]
+    return errors, {change["object_id"]: change["rationale"].strip() for change in changes}
+
+
+def freeze_candidate(run_dir: Path) -> dict[str, Any]:
+    """Account for every candidate change, validate the overlay, and freeze."""
+
+    def update(root: Path, run: dict[str, Any]) -> None:
+        assessment = load_frozen_json(root, run, "assessment", "assessment")
+        manifest = load_baseline_manifest(root, run)
+        baseline = baseline_objects(root, manifest)
+        actions = action_paths(assessment, baseline)
+        manifest_path = contained(root, run["files"]["candidate_manifest"], "candidate manifest")
+        if not manifest_path.is_file():
+            raise CandidateQualificationError("controller/candidate_manifest.json is missing")
+        errors, rationale = validate_manifest_template(read_json(manifest_path), run, actions)
+        library = Path(run["library_root"])
+        for action in actions:
+            if action["action"] == "create" and (library / Path(*PurePosixPath(action["relative_path"]).parts)).exists():
+                errors.append(f"{action['relative_path']} now exists in the library; start a fresh run")
+        applied, unmatched, scope = account_candidate(root, actions, set(baseline))
+        errors += [f"unmatched {item['relative_path'] or '-'}: {item['problem']}" for item in unmatched]
+        limits = run["scope_limits"]
+        if scope["changed_existing_cards"] > limits["max_changed_cards"]:
+            errors.append(f"{scope['changed_existing_cards']} changed cards exceed max_changed_cards")
+        if scope["new_cards"] > limits["max_new_cards"]:
+            errors.append(f"{scope['new_cards']} new cards exceed max_new_cards")
+        files = [change["relative_path"] for change in applied]
+        intake = load_intake(root, run)
+        plan = load_frozen_json(root, run, "plan", "qualification_plan")
+        errors += evidence_references(root, files, [
+            run["run_id"], run["memory_entry_id"],
+            *(str(event.get("event_id")) for event in intake["events"]),
+            *(entry["case_id"] for entry in plan["cases"]),
+        ])
+        if errors:
+            raise CandidateQualificationError("candidate cannot be frozen: " + "; ".join(errors))
+        problems = overlay_problems(library, contained(root, CANDIDATE_CARDS, "candidate cards"), files)
+        if problems:
+            raise CandidateQualificationError(
+                "candidate overlay fails ordinary PASS validation:\n" + "\n".join(problems)
+            )
+        for change in applied:
+            change["rationale"] = rationale[change["object_id"]]
+        write_json_atomic(manifest_path, {
+            "schema_version": SCHEMA_VERSION,
+            "run_id": run["run_id"],
+            "changes": applied,
+            "unmatched_actions": [],
+            "scope": scope,
+        })
+        record_freeze(root, run, "candidate", [
+            run["files"]["candidate_manifest"], *(f"{CANDIDATE_CARDS}/{path}" for path in files),
+        ])
+
+    return apply_transition(run_dir, "freeze-candidate", update)
 
 
 # -------------------------------------------------------------------- status
@@ -1716,6 +2470,13 @@ def build_parser() -> argparse.ArgumentParser:
         "freeze-assessment", help="validate and freeze controller/assessment.json"
     )
     freeze.add_argument("--run", type=Path, required=True)
+    for name, text in (
+        ("freeze-plan", "validate and freeze the qualification plan and its cases"),
+        ("stage-candidate", "copy the revisable cards into candidate/cards/ for authoring"),
+        ("freeze-candidate", "account for the candidate, validate its overlay, and freeze it"),
+    ):
+        command = commands.add_parser(name, help=text)
+        command.add_argument("--run", type=Path, required=True)
     status = commands.add_parser("status", help="print a read-only run summary")
     status.add_argument("--run", type=Path, required=True)
     for name, text in (
@@ -1752,6 +2513,15 @@ def main(argv: list[str] | None = None) -> int:
         elif args.command == "freeze-assessment":
             run = freeze_assessment(args.run)
             print(f"ASSESSMENT FROZEN: {run['run_id']}")
+        elif args.command == "freeze-plan":
+            run = freeze_plan(args.run)
+            print(f"PLAN FROZEN: {run['run_id']}")
+        elif args.command == "stage-candidate":
+            run = stage_candidate(args.run)
+            print(f"CANDIDATE STAGED: {run['run_id']}; edit candidate/cards/ as README.md describes")
+        elif args.command == "freeze-candidate":
+            run = freeze_candidate(args.run)
+            print(f"CANDIDATE FROZEN: {run['run_id']}")
         elif args.command == "status":
             print(json.dumps(status_report(args.run), indent=2, ensure_ascii=False))
         elif args.command == "invalidate":

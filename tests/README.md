@@ -46,8 +46,13 @@ it; baseline drift in canon or in the frozen snapshot stops continuation; run
 paths cannot escape the run. Intake accepts only a valid active or monitoring
 `card_candidate` whose owners resolve inside one domain plus metaskills, and
 freezes exact baseline bytes; a defect assessment routes non-canon failures away
-from candidate authoring and bounds every proposed card action. These tests use a
-synthetic library and memory store and never touch canon or memory.
+from candidate authoring and bounds every proposed card action. A qualification
+plan freezes only with an eligible real target, synthetic cases that can never
+prove anything, and an honest protection gap; held-out cases never reach the
+candidate author's brief; every staged file and authorized action is accounted
+for; and a candidate freezes only after the ordinary validators pass on a
+temporary overlay that is always removed. These tests use a synthetic library and
+memory store and never touch canon or memory.
 
 ## What no suite here can prove
 

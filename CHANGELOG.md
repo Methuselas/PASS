@@ -6,6 +6,39 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.91 - 2026-09-26
+
+### Added
+
+- CRQ stage 3: `freeze-plan` validates `controller/qualification_plan.json` and
+  every `cases/<id>/case.json` against closed vocabularies (role, origin,
+  evaluation mode, visibility, evaluator relation), then freezes the plan, each
+  case and each listed fixture. Synthetic cases are protected stress probes only:
+  never positively eligible, never citing an event, and each states why it stays
+  inside the card's contract. Empirical cases cite valid, uncorrected,
+  unquarantined history events; a required semantic case needs a separate
+  evaluator; a deterministic case is checked deterministically. The plan needs a
+  required non-synthetic eligible target and records `protected_case_gap` exactly
+  when no required non-synthetic protected case exists. Unplanned case folders,
+  premature result folders and unlisted or changed fixtures are refused.
+- CRQ stage 3: `stage-candidate` refuses any assessment that is not a
+  canon-candidate, copies each revised card byte-for-byte from the frozen baseline
+  into `candidate/cards/`, creates only the empty folder for a new card, writes a
+  candidate manifest template, and rewrites the brief for the candidate author
+  with author-visible target cases only; held-out cases are counted, never shown.
+- CRQ stage 3: `freeze-candidate` accounts for every authorized action and every
+  staged file (missing, byte-identical, whitespace-only, renamed, retyped,
+  unauthorized, moved or support-card copies are unmatched and block the freeze),
+  refuses cards that name the run, its memory entry, events, cases or workspace,
+  enforces the scope ceilings, then lays the candidate over a temporary copy of
+  the live library and runs `validate.py` and `verify_references.py` with
+  `--library` through their own `main()`. The overlay is removed on success and
+  failure. The frozen manifest records baseline and candidate hashes, computed
+  changed sections, the author's rationale and the scope counts.
+- `freeze-assessment` writes a qualification-plan template; the operator brief
+  documents the plan and case format.
+- Added `tests/test_candidate_qualification_candidate.py`.
+
 ## 1.0.0-beta.90 - 2026-09-26
 
 ### Added

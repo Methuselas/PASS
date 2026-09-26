@@ -11,6 +11,7 @@ ordinary validator; no canonical card or memory entry is read or written.
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
 import json
 import shutil
@@ -25,19 +26,27 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTROLLER = ROOT / "PASS" / "runtime" / "pass_candidate_qualification.py"
+RUNTIME = ROOT / "PASS" / "runtime"
+CONTROLLER = RUNTIME / "pass_candidate_qualification.py"
 
 
-def load_controller():
-    spec = importlib.util.spec_from_file_location("pass_candidate_qualification", CONTROLLER)
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
+def load_package(runtime: Path, name: str = "candidate_qualification"):
+    """Load the CRQ package found in `runtime` under `name`; return its controller."""
+    if name not in sys.modules:
+        package_dir = runtime / "candidate_qualification"
+        spec = importlib.util.spec_from_file_location(
+            name, package_dir / "__init__.py", submodule_search_locations=[str(package_dir)]
+        )
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+    return importlib.import_module(f"{name}.controller")
 
 
-crq = load_controller()
+crq = load_package(RUNTIME)
+schemas = importlib.import_module("candidate_qualification.schemas")
+evidence = importlib.import_module("candidate_qualification.evidence")
 
 
 def write_text(path: Path, text: str) -> None:
@@ -246,7 +255,7 @@ class CandidateFixture(unittest.TestCase):
                 fixture.parent.mkdir(exist_ok=True)
                 write_text(fixture, "assert True\n")
                 fixtures.append({"path": "fixture/test_boundary.py", "sha256": crq.digest_file(fixture)})
-            case = {key: entry[key] for key in crq.CASE_METADATA}
+            case = {key: entry[key] for key in schemas.CASE_METADATA}
             case.update({
                 "schema_version": 1, "case_id": entry["case_id"],
                 "task": (tasks or TASKS).get(entry["case_id"], f"Exercise {entry['case_id']}."),
@@ -690,12 +699,12 @@ class FreezeCandidateTests(CandidateFixture):
             return {
                 name for name, module in list(sys.modules.items())
                 if not name.startswith("_pass_crq_tool_")
-                and Path(getattr(module, "__file__", None) or "").parent == crq.TOOLS_DIR
+                and Path(getattr(module, "__file__", None) or "").parent == schemas.TOOLS_DIR
             }
 
-        crq._TOOLS.clear()
+        evidence._TOOLS.clear()
         path_before, modules_before = list(sys.path), tool_modules()
-        code, output = crq.run_tool_cli("validate", ["--library", str(self.library)])
+        code, output = evidence.run_tool_cli("validate", ["--library", str(self.library)])
         self.assertEqual(code, 0, output)
         self.assertIn("PASS", output)
         self.assertEqual(sys.path, path_before)
@@ -718,7 +727,7 @@ class LineEndingTests(CandidateFixture):
         self.assertIn(b"\r\n", baseline)
         self.assertEqual(baseline, (self.library / TARGET).read_bytes(), "the snapshot is byte-exact")
         self.assertEqual(self.candidate(out).read_bytes(), baseline, "staging is byte-exact")
-        self.assertEqual(crq.card_frontmatter(self.candidate(out))["object_id"], "PAT_target")
+        self.assertEqual(evidence.card_frontmatter(self.candidate(out))["object_id"], "PAT_target")
         path = self.candidate(out)
         path.write_bytes(path.read_bytes().replace(b"\r\n\r\n## Don't", self.INSERT, 1))
         self.fill_rationale(out)
@@ -740,8 +749,8 @@ class LineEndingTests(CandidateFixture):
     def test_card_readers_accept_both_line_endings(self) -> None:
         crlf = (self.library / TARGET).read_bytes()
         lf = swap_line_endings(crlf)
-        self.assertEqual(crq.card_parts(crlf), crq.card_parts(lf))
-        self.assertEqual(crq.changed_sections(crlf, lf), [])
+        self.assertEqual(evidence.card_parts(crlf), evidence.card_parts(lf))
+        self.assertEqual(evidence.changed_sections(crlf, lf), [])
         self.assertNotEqual(crq.digest_bytes(crlf), crq.digest_bytes(lf))
 
 

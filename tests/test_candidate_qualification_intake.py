@@ -9,6 +9,7 @@ synthetic; no canonical card or memory entry is read or written.
 
 from __future__ import annotations
 
+import importlib
 import importlib.util
 import json
 import subprocess
@@ -21,19 +22,27 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTROLLER = ROOT / "PASS" / "runtime" / "pass_candidate_qualification.py"
+RUNTIME = ROOT / "PASS" / "runtime"
+CONTROLLER = RUNTIME / "pass_candidate_qualification.py"
 
 
-def load_controller():
-    spec = importlib.util.spec_from_file_location("pass_candidate_qualification", CONTROLLER)
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
+def load_package(runtime: Path, name: str = "candidate_qualification"):
+    """Load the CRQ package found in `runtime` under `name`; return its controller."""
+    if name not in sys.modules:
+        package_dir = runtime / "candidate_qualification"
+        spec = importlib.util.spec_from_file_location(
+            name, package_dir / "__init__.py", submodule_search_locations=[str(package_dir)]
+        )
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+    return importlib.import_module(f"{name}.controller")
 
 
-crq = load_controller()
+crq = load_package(RUNTIME)
+schemas = importlib.import_module("candidate_qualification.schemas")
+evidence = importlib.import_module("candidate_qualification.evidence")
 
 
 def write_text(path: Path, text: str) -> None:
@@ -305,7 +314,7 @@ class PrepareTests(IntakeFixture):
             crq.apply_transition(out, "freeze-assessment")
 
     def test_memory_tool_is_loaded_without_leaking_its_imports(self) -> None:
-        crq._TOOLS.clear()
+        evidence._TOOLS.clear()
         sys.modules.pop("paths", None)
         path_before = list(sys.path)
         memory = crq.load_pass_tool("memory")

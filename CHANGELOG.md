@@ -6,6 +6,23 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.93 - 2026-09-26
+
+### Changed
+
+- The CRQ controller is split into the `PASS/runtime/candidate_qualification/`
+  package: `schemas.py` (vocabularies, errors, hashes, atomic JSON, path
+  containment and document validation), `evidence.py` (memory intake, canon
+  reading, candidate accounting, overlay validation), `controller.py` (run
+  state, freezes, drift and the lifecycle commands) and `gate.py` (reserved for
+  the execution-stage gate). `PASS/runtime/pass_candidate_qualification.py`
+  remains the command line and only parses arguments. The move changes no
+  behavior.
+- The CRQ controller fingerprint now covers every package file plus the entry
+  script: each file LF-normalized and hashed, the (relative path, hash) pairs
+  sorted by path and combined into one SHA-256. Runs prepared before this
+  version no longer match and can only be closed or discarded.
+
 ## 1.0.0-beta.92 - 2026-09-26
 
 ### Fixed

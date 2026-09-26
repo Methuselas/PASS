@@ -7,6 +7,8 @@ fixture library is synthetic; no canonical card is read or written.
 
 from __future__ import annotations
 
+import hashlib
+import importlib
 import importlib.util
 import json
 import os
@@ -20,19 +22,27 @@ from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTROLLER = ROOT / "PASS" / "runtime" / "pass_candidate_qualification.py"
+RUNTIME = ROOT / "PASS" / "runtime"
+CONTROLLER = RUNTIME / "pass_candidate_qualification.py"
 
 
-def load_controller(path: Path, name: str):
-    spec = importlib.util.spec_from_file_location(name, path)
-    assert spec and spec.loader
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return module
+def load_package(runtime: Path, name: str = "candidate_qualification"):
+    """Load the CRQ package found in `runtime` under `name`; return its controller."""
+    if name not in sys.modules:
+        package_dir = runtime / "candidate_qualification"
+        spec = importlib.util.spec_from_file_location(
+            name, package_dir / "__init__.py", submodule_search_locations=[str(package_dir)]
+        )
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        spec.loader.exec_module(module)
+    return importlib.import_module(f"{name}.controller")
 
 
-crq = load_controller(CONTROLLER, "pass_candidate_qualification")
+crq = load_package(RUNTIME)
+schemas = importlib.import_module("candidate_qualification.schemas")
+evidence = importlib.import_module("candidate_qualification.evidence")
 
 
 def write_text(path: Path, text: str) -> None:
@@ -159,9 +169,9 @@ class StateMachineTests(CandidateRunFixture):
         self.assertEqual(before, after)
 
     def test_wrong_state_command_fails_without_changing_state(self) -> None:
-        for state in crq.LIFECYCLE_STATES[:-1]:
+        for state in schemas.LIFECYCLE_STATES[:-1]:
             with self.subTest(state=state):
-                run_dir = self.make_run(f"SE_CRQ_{crq.LIFECYCLE_STATES.index(state) + 1:04d}")
+                run_dir = self.make_run(f"SE_CRQ_{schemas.LIFECYCLE_STATES.index(state) + 1:04d}")
                 self.advance_to(run_dir, state)
                 before = self.run_bytes(run_dir)
                 for command, (required, _target) in crq.TRANSITIONS.items():
@@ -182,7 +192,7 @@ class StateMachineTests(CandidateRunFixture):
 
     def test_invalidate_and_abandon_from_every_nonterminal_state(self) -> None:
         number = 0
-        for state in crq.LIFECYCLE_STATES[:-1]:
+        for state in schemas.LIFECYCLE_STATES[:-1]:
             for command, target, key in (
                 ("invalidate", "invalidated", "invalid_reason"),
                 ("abandon", "abandoned", "abandoned_reason"),
@@ -280,14 +290,14 @@ class PersistenceTests(CandidateRunFixture):
     def test_read_back_mismatch_fails_loudly(self) -> None:
         run_dir = self.make_run()
         root, run = crq.load_run(run_dir)
-        original = crq.stable_json
+        original = schemas.stable_json
 
         def corrupting(value):
             if isinstance(value, dict) and "run_id" in value and "state" in value:
                 value = dict(value, memory_entry_id="SE_MEM_9999")
             return original(value)
 
-        with mock.patch.object(crq, "stable_json", corrupting):
+        with mock.patch.object(schemas, "stable_json", corrupting):
             with self.assertRaisesRegex(crq.CandidateQualificationError, "read-back"):
                 crq.save_run(root, run)
 
@@ -358,18 +368,57 @@ class PersistenceTests(CandidateRunFixture):
 
 
 class ControllerFingerprintTests(CandidateRunFixture):
+    def covered_files(self) -> list[tuple[str, Path]]:
+        """The fingerprinted files, found independently of the controller."""
+        package = RUNTIME / "candidate_qualification"
+        files = [
+            (path.relative_to(RUNTIME).as_posix(), path)
+            for path in package.rglob("*")
+            if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc"
+        ]
+        return sorted([*files, (CONTROLLER.relative_to(RUNTIME).as_posix(), CONTROLLER)])
+
+    def controller_copy(self, name: str, edit: str | None = None, crlf: bool = False):
+        """Copy the entry script and package, optionally changing one file, and load it."""
+        runtime = self.base / name
+        for relative, path in crq.controller_files():
+            data = path.read_bytes().replace(b"\r\n", b"\n")
+            if relative == edit:
+                data += b"\n# administration rules changed\n"
+            if crlf:
+                data = data.replace(b"\n", b"\r\n")
+            target = runtime / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+        unique = hashlib.sha256(str(runtime).encode("utf-8")).hexdigest()[:12]
+        return load_package(runtime, f"crq_copy_{name}_{unique}")
+
+    def changed_controller(self):
+        return self.controller_copy("changed", edit="candidate_qualification/gate.py")
+
+    def test_fingerprint_covers_the_package_and_entry_script(self) -> None:
+        covered = self.covered_files()
+        self.assertEqual(crq.controller_files(), covered)
+        relative = [name for name, _path in covered]
+        for expected in ("pass_candidate_qualification.py", "candidate_qualification/__init__.py",
+                         "candidate_qualification/controller.py", "candidate_qualification/schemas.py",
+                         "candidate_qualification/evidence.py", "candidate_qualification/gate.py"):
+            self.assertIn(expected, relative)
+        combined = hashlib.sha256()
+        for name, path in covered:
+            digest = hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+            combined.update(f"{name}\0{digest}\n".encode("utf-8"))
+        self.assertEqual(crq.controller_sha256(), combined.hexdigest())
+
     def test_prepare_records_the_controller_hash(self) -> None:
         run = crq.load_run(self.make_run())[1]
         self.assertEqual(run["controller_sha256"], crq.controller_sha256())
-        self.assertEqual(
-            run["controller_sha256"],
-            crq.digest_bytes(CONTROLLER.read_bytes().replace(b"\r\n", b"\n")),
-        )
 
-    def changed_controller(self, name: str = "changed_controller.py"):
-        changed = self.base / name
-        write_text(changed, CONTROLLER.read_text(encoding="utf-8") + "\n# administration rules changed\n")
-        return load_controller(changed, f"pass_candidate_qualification_{changed.stem}")
+    def test_every_covered_file_changes_the_fingerprint(self) -> None:
+        for number, (relative, _path) in enumerate(self.covered_files()):
+            with self.subTest(file=relative):
+                other = self.controller_copy(f"edit{number}", edit=relative)
+                self.assertNotEqual(other.controller_sha256(), crq.controller_sha256())
 
     def test_changed_controller_cannot_continue_a_run(self) -> None:
         run_dir = self.make_run()
@@ -412,12 +461,9 @@ class ControllerFingerprintTests(CandidateRunFixture):
         self.assertTrue(any("closing_controller_sha256" in e for e in crq.validate_run_record(closed)))
 
     def test_line_endings_do_not_change_the_controller_fingerprint(self) -> None:
-        source = CONTROLLER.read_bytes().replace(b"\r\n", b"\n")
-        crlf = self.base / "crlf_controller.py"
-        crlf.write_bytes(source.replace(b"\n", b"\r\n"))
-        other = load_controller(crlf, "pass_candidate_qualification_crlf")
+        other = self.controller_copy("crlf", crlf=True)
+        self.assertIn(b"\r\n", (self.base / "crlf" / "candidate_qualification" / "schemas.py").read_bytes())
         self.assertEqual(other.controller_sha256(), crq.controller_sha256())
-        self.assertEqual(crq.controller_sha256(), crq.digest_bytes(source))
         run_dir = self.make_run()
         self.assertEqual(other.apply_transition(run_dir, "freeze-assessment")["state"], "assessment-frozen")
 
@@ -430,11 +476,11 @@ class ControllerFingerprintTests(CandidateRunFixture):
 
 class ContainmentTests(CandidateRunFixture):
     def test_relative_paths_must_be_bounded(self) -> None:
-        self.assertEqual(crq.safe_relative("a/b.md", "path").as_posix(), "a/b.md")
+        self.assertEqual(schemas.safe_relative("a/b.md", "path").as_posix(), "a/b.md")
         for value in ("", "../x", "a/../../x", "/abs", "C:/x", "C:x", "a\\b", "a/./b", "a//b", "a/", 7):
             with self.subTest(value=value):
                 with self.assertRaises(crq.CandidateQualificationError):
-                    crq.safe_relative(value, "path")
+                    schemas.safe_relative(value, "path")
 
     def test_symlink_cannot_escape_the_run(self) -> None:
         root = self.base / "run"
@@ -589,7 +635,7 @@ class CommandLineTests(CandidateRunFixture):
         self.assertIn("not a CRQ run", result.stderr)
 
     def test_controller_calls_no_model_and_writes_no_canon(self) -> None:
-        source = CONTROLLER.read_text(encoding="utf-8")
+        source = "".join(path.read_text(encoding="utf-8") for _name, path in crq.controller_files())
         for forbidden in ("import anthropic", "import openai", "import requests", "urllib.request", "subprocess"):
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, source)

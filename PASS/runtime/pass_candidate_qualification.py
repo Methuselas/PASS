@@ -27,6 +27,7 @@ from candidate_qualification.controller import (  # noqa: E402
     CandidateQualificationError,
     abandon,
     evaluate,
+    finalize,
     freeze_assessment,
     freeze_candidate,
     freeze_execution,
@@ -35,6 +36,7 @@ from candidate_qualification.controller import (  # noqa: E402
     load_baseline_manifest,
     open_execution,
     prepare,
+    prepare_synthesis,
     stage_candidate,
     status_report,
 )
@@ -71,6 +73,8 @@ def build_parser() -> argparse.ArgumentParser:
         ("open-execution", "write arm result templates and freeze both arm card bundles"),
         ("freeze-execution", "validate and freeze every arm result and its evidence"),
         ("evaluate", "compute per-case deltas and the final gate; write qualification_result.json"),
+        ("prepare-synthesis", "build or advance hierarchical evidence packets before assessment"),
+        ("finalize", "check the synthesis disposition, write the report, and close the run"),
     ):
         command = commands.add_parser(name, help=text)
         command.add_argument("--run", type=Path, required=True)
@@ -129,6 +133,18 @@ def main(argv: list[str] | None = None) -> int:
             run = evaluate(args.run)
             status = status_report(args.run)["gate"]
             print(f"EVALUATED: {run['run_id']}: {status}; canon was not modified")
+        elif args.command == "prepare-synthesis":
+            report = prepare_synthesis(args.run)
+            if report["complete"]:
+                print("SYNTHESIS COMPLETE: synthesis/input.json holds the final summary for the assessor")
+            else:
+                print(
+                    f"SYNTHESIS LEVEL {report['level']}: {report['batches']} batch(es); write summary.json "
+                    "beside each input.json, then run prepare-synthesis again"
+                )
+        elif args.command == "finalize":
+            run = finalize(args.run)
+            print(f"FINALIZED: {run['run_id']}; synthesis/report.md written; library and memory unchanged")
         elif args.command == "status":
             print(json.dumps(status_report(args.run), indent=2, ensure_ascii=False))
         elif args.command == "invalidate":

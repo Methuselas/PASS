@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.94`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.95`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -552,6 +552,36 @@ Invalid runs are recorded as tool, controller, package, or interface failures;
 they never count as evidence of a craft weakness. The full contract is in
 [`PASS/docs/MEMORY_SCHEMA.md`](PASS/docs/MEMORY_SCHEMA.md).
 
+## Refine a candidate card from empirical evidence
+
+When a Skillset Memory `card_candidate` has valid evidence that a card may be
+wrong, Candidate Refinement & Qualification (CRQ) tests one bounded change against
+the current canon before anyone edits `library/`. It stages the change outside
+canon, runs the same target and protected cases on the frozen baseline and on the
+candidate, and refuses to qualify a candidate that breaks any protected case,
+however many targets it fixed. It never edits cards or memory; its strongest
+outcome is `qualified-for-synthesis-review`.
+
+```bash
+CRQ="python PASS/runtime/pass_candidate_qualification.py"
+$CRQ prepare --domain software-engineering --memory-entry SE_MEM_0042
+RUN=workspace/candidate-qualification/software-engineering/SE_CRQ_0001
+$CRQ prepare-synthesis --run $RUN      # optional, for large evidence sets
+$CRQ freeze-assessment --run $RUN      # after filling controller/assessment.json
+$CRQ freeze-plan --run $RUN            # after writing the plan and cases/
+$CRQ stage-candidate --run $RUN        # then edit candidate/cards/
+$CRQ freeze-candidate --run $RUN       # ordinary validators run on an overlay
+$CRQ open-execution --run $RUN         # run both arms of every case
+$CRQ freeze-execution --run $RUN
+$CRQ evaluate --run $RUN               # per-case deltas and the no-regression gate
+$CRQ finalize --run $RUN               # after filling synthesis/disposition.json
+$CRQ status --run $RUN
+```
+
+Each step writes a brief to the run's `README.md`. An accepted candidate still
+lands through the ordinary repository workflow. The method is in
+[`PASS/docs/CANDIDATE_REFINEMENT.md`](PASS/docs/CANDIDATE_REFINEMENT.md).
+
 ## Build an installable release
 
 Named releases select a product intent. PASS resolves the complete dependency
@@ -651,7 +681,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.94`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.95`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

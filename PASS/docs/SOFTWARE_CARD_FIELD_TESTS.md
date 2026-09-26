@@ -355,6 +355,24 @@ Finding a human defect does not make the review subject bad evidence. Human code
 is a precedent with real constraints, not an answer key. A card that helps the
 model identify and demonstrate a real defect has produced useful field evidence.
 
+## After a card-attributed failure
+
+A field test never edits the card it exposed. The repair path is:
+
+```text
+valid FAIL attributed to an exposed skillcard -> training_history event
+  -> card_candidate in Skillset Memory -> CRQ -> fresh target and protected
+  qualification cases -> synthesis review
+```
+
+Candidate Refinement & Qualification (`CANDIDATE_REFINEMENT.md`) consumes the
+recorded result; it does not duplicate this controller and does not weaken its
+rules. The field test's attribution stays authoritative for that run: a valid
+`application` result is not reinterpreted as a card defect because a later
+reviewer wants to edit the card, and one field test still proves neither that
+PASS caused an improvement nor that the card works universally. The candidate is
+requalified on fresh cases, never on the case that motivated it alone.
+
 ## Language evidence and core cards
 
 Core ownership and verified language coverage are different facts. A core card

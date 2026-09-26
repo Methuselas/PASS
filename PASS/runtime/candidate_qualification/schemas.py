@@ -993,3 +993,157 @@ def result_template(case: dict[str, Any], arm: str, case_sha256: str) -> dict[st
         "invalid_reason": None,
         "notes": "",
     }
+
+
+# ---------------------------------------------------------------- synthesis
+
+
+SYNTHESIS_DIR = "synthesis"
+SYNTHESIS_LEVELS = "synthesis/levels"
+SYNTHESIS_INPUT = "synthesis/input.json"
+DISPOSITION_FILE = "synthesis/disposition.json"
+REPORT_FILE = "synthesis/report.md"
+PACKET_FILE = "input.json"
+SUMMARY_FILE = "summary.json"
+LEAF_BATCH_SIZE = 6
+FAN_IN = 4
+SUMMARY_KEYS = frozenset({
+    "schema_version", "claims", "persistent_failures", "stable_successes",
+    "boundary_notes", "unresolved_conflicts",
+})
+SUMMARY_CLAIM_KEYS = frozenset({"claim", "supporting_event_ids", "contradicting_event_ids"})
+SUMMARY_NOTE_KEYS = frozenset({"note", "event_ids"})
+SUMMARY_NOTE_LISTS = ("persistent_failures", "stable_successes", "boundary_notes", "unresolved_conflicts")
+# Section 40: what deliberate synthesis review may decide.
+SYNTHESIS_DECISIONS = (
+    "accept-canonical-delta", "revise-in-fresh-run", "split-candidate",
+    "redirect-ownership", "retain-in-memory", "add-deterministic-regression",
+    "reject-redundant", "reject-false", "reject-too-narrow",
+)
+# Section 28.2: the memory update a human or model later applies through memory.py.
+MEMORY_ACTIONS = (
+    "keep-active", "keep-monitoring", "narrow-boundary", "supersede-candidate",
+    "resolve-after-canon-fix", "obsolete", "no-change",
+)
+DISPOSITION_KEYS = frozenset({
+    "schema_version", "run_id", "memory_entry_id", "qualification_status",
+    "synthesis_decision", "memory_action", "reason", "reviewer_notes",
+})
+
+
+def summary_event_ids(summary: dict[str, Any], *, contradictions_only: bool = False) -> set[str]:
+    """Event ids a valid summary cites; optionally only its contradictions."""
+    ids: set[str] = set()
+    for claim in summary["claims"]:
+        ids.update(claim["contradicting_event_ids"])
+        if not contradictions_only:
+            ids.update(claim["supporting_event_ids"])
+    for key in SUMMARY_NOTE_LISTS:
+        if contradictions_only and key != "unresolved_conflicts":
+            continue
+        for note in summary[key]:
+            ids.update(note["event_ids"])
+    return ids
+
+
+def validate_summary(
+    summary: Any, known: set[str], children: Iterable[dict[str, Any]] = ()
+) -> list[str]:
+    """Structure and traceability of one synthesis summary.
+
+    Every cited id must be an event under the batch; a claim needs support; and a
+    parent must keep every contradiction its children recorded, as a
+    contradiction or an unresolved conflict. Whether the prose is faithful is
+    the reviewer's judgment, not this check's.
+    """
+    if not isinstance(summary, dict) or set(summary) != SUMMARY_KEYS:
+        return [f"summary must have exactly {sorted(SUMMARY_KEYS)}"]
+    errors: list[str] = []
+    if summary["schema_version"] != SCHEMA_VERSION:
+        errors.append("summary schema_version mismatch")
+
+    def check_ids(value: Any, where: str, *, nonempty: bool) -> None:
+        if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+            errors.append(f"{where} must be a list of event ids")
+            return
+        if nonempty and not value:
+            errors.append(f"{where} must cite at least one event")
+        for event_id in value:
+            if event_id not in known:
+                errors.append(f"{where} cites {event_id}, which is not an event under this batch")
+
+    claims = summary["claims"]
+    if not isinstance(claims, list):
+        errors.append("claims must be a list")
+        claims = []
+    for index, claim in enumerate(claims):
+        if not isinstance(claim, dict) or set(claim) != SUMMARY_CLAIM_KEYS or not _nonempty_str(claim.get("claim")):
+            errors.append(f"claims[{index}] needs claim, supporting_event_ids and contradicting_event_ids")
+            continue
+        check_ids(claim["supporting_event_ids"], f"claims[{index}].supporting_event_ids", nonempty=True)
+        check_ids(claim["contradicting_event_ids"], f"claims[{index}].contradicting_event_ids", nonempty=False)
+    for key in SUMMARY_NOTE_LISTS:
+        notes = summary[key]
+        if not isinstance(notes, list):
+            errors.append(f"{key} must be a list")
+            continue
+        for index, note in enumerate(notes):
+            if not isinstance(note, dict) or set(note) != SUMMARY_NOTE_KEYS or not _nonempty_str(note.get("note")):
+                errors.append(f"{key}[{index}] needs note and event_ids")
+                continue
+            check_ids(note["event_ids"], f"{key}[{index}].event_ids", nonempty=True)
+    if errors:
+        return errors
+    kept = summary_event_ids(summary, contradictions_only=True)
+    for child in children:
+        lost = sorted(summary_event_ids(child, contradictions_only=True) - kept)
+        if lost:
+            errors.append(
+                "a parent summary may not erase a contradiction; keep "
+                + ", ".join(lost) + " as a contradicting event or an unresolved conflict"
+            )
+    return errors
+
+
+def disposition_template(run: dict[str, Any], status: str) -> dict[str, Any]:
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "run_id": run["run_id"],
+        "memory_entry_id": run["memory_entry_id"],
+        "qualification_status": status,
+        "synthesis_decision": None,
+        "memory_action": None,
+        "reason": "",
+        "reviewer_notes": "",
+    }
+
+
+def validate_disposition(disposition: Any, *, run: dict[str, Any], status: str) -> list[str]:
+    """The synthesis review's decision; only a qualified candidate may be accepted."""
+    if not isinstance(disposition, dict) or set(disposition) != DISPOSITION_KEYS:
+        return [f"disposition must have exactly {sorted(DISPOSITION_KEYS)}"]
+    errors: list[str] = []
+    if (
+        disposition["schema_version"] != SCHEMA_VERSION or disposition["run_id"] != run["run_id"]
+        or disposition["memory_entry_id"] != run["memory_entry_id"]
+    ):
+        errors.append("disposition belongs to a different run, memory entry or schema")
+    if disposition["qualification_status"] != status:
+        errors.append(f"disposition must restate the frozen qualification status {status}")
+    decision = disposition["synthesis_decision"]
+    if decision not in SYNTHESIS_DECISIONS:
+        errors.append(f"synthesis_decision must be one of {list(SYNTHESIS_DECISIONS)}")
+    elif decision == "accept-canonical-delta" and status != "qualified-for-synthesis-review":
+        errors.append(f"a {status} candidate cannot be accepted as a canonical delta")
+    action = disposition["memory_action"]
+    if action not in MEMORY_ACTIONS:
+        errors.append(f"memory_action must be one of {list(MEMORY_ACTIONS)}")
+    elif action == "resolve-after-canon-fix" and decision not in {
+        "accept-canonical-delta", "add-deterministic-regression",
+    }:
+        errors.append("resolve-after-canon-fix needs an accepted delta or a deterministic regression")
+    if not _nonempty_str(disposition["reason"]):
+        errors.append("reason must explain the decision")
+    if not isinstance(disposition["reviewer_notes"], str):
+        errors.append("reviewer_notes must be a string")
+    return errors

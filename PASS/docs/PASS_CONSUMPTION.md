@@ -183,6 +183,14 @@ records. Reusable coding habits carry an observation, an adoption rule, a
 verification method, and a disposition rather than silently turning one
 project's technique into canon.
 
+Ordinary use never produces a qualification claim. Helping with a project, taking
+a Drill, or running a field test may add evidence to Skillset Memory, but only a
+Candidate Refinement & Qualification run
+([`CANDIDATE_REFINEMENT.md`](CANDIDATE_REFINEMENT.md)) compares a bounded card
+change against the current canon, and even its strongest result only qualifies
+the change for deliberate review. Do not describe a card as improved, repaired or
+requalified because it helped once.
+
 Begin qualification with the authored language module. A core card exercised
 only through one language has verified support in that language; it does not yet
 have field evidence from other languages. Do not test the entire core first or

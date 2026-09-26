@@ -55,8 +55,11 @@ temporary overlay that is always removed. Every arm verdict is all-or-nothing,
 backed by hashed evidence and a planned evaluator relation; an invalid arm or an
 asymmetric comparison is never a candidate failure; and the final gate applies
 the section 23 precedence case by case, so no number of improvements can hide a
-protected regression. These tests use a synthetic library and memory store and
-never touch canon or memory.
+protected regression. Evidence synthesis packs every cited event exactly once,
+traces every claim to events under its batch, and never lets a merge erase a
+contradiction; finalization accepts only a qualified candidate and writes neither
+cards nor memory. These tests use a synthetic library and memory store and never
+touch canon or memory.
 
 ## What no suite here can prove
 

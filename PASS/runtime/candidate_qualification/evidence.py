@@ -37,6 +37,8 @@ from .schemas import (
     EVIDENCE_ENTRY_KEYS,
     EXECUTOR_KEYS,
     EXECUTOR_KINDS,
+    FAN_IN,
+    LEAF_BATCH_SIZE,
     MODULE_MANIFEST,
     OBJECT_ID_RE,
     RESULT_FILE,
@@ -712,3 +714,69 @@ def comparison_problems(
     if baseline["environment"] != candidate["environment"]:
         problems.append("the arms declare different environments")
     return problems
+
+
+# -------------------------------------------------------- evidence synthesis
+
+
+def batch_id(level: int, number: int) -> str:
+    return f"L{level}-B{number:03d}"
+
+
+def leaf_packets(run_id: str, events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Level 0: every cited event exactly once, in cited order, six per batch."""
+    packets = []
+    for number, start in enumerate(range(0, len(events), LEAF_BATCH_SIZE), start=1):
+        chunk = events[start:start + LEAF_BATCH_SIZE]
+        packets.append({
+            "schema_version": SCHEMA_VERSION,
+            "run_id": run_id,
+            "level": 0,
+            "batch_id": batch_id(0, number),
+            "kind": "events",
+            "event_ids": [str(event["event_id"]) for event in chunk],
+            "events": chunk,
+            "children": [],
+            "attention": [],
+        })
+    return packets
+
+
+def attention_items(child_id: str, summary: dict[str, Any]) -> list[dict[str, Any]]:
+    """A child's failures and contradictions, surfaced before its successes."""
+    items = [
+        {"batch_id": child_id, "kind": key, "note": note["note"], "event_ids": note["event_ids"]}
+        for key in ("persistent_failures", "unresolved_conflicts") for note in summary[key]
+    ]
+    items += [
+        {"batch_id": child_id, "kind": "contradicted_claim", "note": claim["claim"],
+         "event_ids": claim["contradicting_event_ids"]}
+        for claim in summary["claims"] if claim["contradicting_event_ids"]
+    ]
+    return items
+
+
+def parent_packets(
+    run_id: str, level: int, children: list[tuple[dict[str, Any], dict[str, Any]]]
+) -> list[dict[str, Any]]:
+    """Level `level`: child (packet, summary) pairs merged four at a time."""
+    packets = []
+    for number, start in enumerate(range(0, len(children), FAN_IN), start=1):
+        group = children[start:start + FAN_IN]
+        packets.append({
+            "schema_version": SCHEMA_VERSION,
+            "run_id": run_id,
+            "level": level,
+            "batch_id": batch_id(level, number),
+            "kind": "summaries",
+            "event_ids": [event_id for packet, _summary in group for event_id in packet["event_ids"]],
+            "events": [],
+            "children": [
+                {"batch_id": packet["batch_id"], "event_ids": packet["event_ids"], "summary": summary}
+                for packet, summary in group
+            ],
+            "attention": [
+                item for packet, summary in group for item in attention_items(packet["batch_id"], summary)
+            ],
+        })
+    return packets

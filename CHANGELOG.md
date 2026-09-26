@@ -6,6 +6,51 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.95 - 2026-09-26
+
+### Added
+
+- CRQ stage 5: `prepare-synthesis` (only while a run is `prepared`, never
+  changing state) packs every cited event exactly once, six per leaf batch,
+  checks each `summary.json` against the events under its batch, merges four
+  summaries per parent until one remains, re-derives every level on each call,
+  refuses a parent that drops a child's contradiction, surfaces failures and
+  conflicts first, and writes `synthesis/input.json` when complete.
+- CRQ stage 5: `evaluate` also writes a `synthesis/disposition.json` template and
+  a review brief. `finalize` accepts a disposition that restates the frozen
+  status, a section 40 synthesis decision (only a qualified candidate may be
+  accepted) and a section 28.2 memory recommendation, writes
+  `synthesis/report.md` with the recommended headings, freezes both, and closes
+  the run read-only. It writes neither `library/` nor Skillset Memory.
+- `PASS/docs/CANDIDATE_REFINEMENT.md`, the CRQ contract, replaces
+  `PASS/docs/CANDIDATE_REFINEMENT_DESIGN.md`. A frozen step is never revised in
+  place: an unmatched candidate action blocks the freeze until the staged files
+  are corrected, a different set of actions is a fresh run, and a synthetic stress
+  case found out of scope after the plan froze is replaced in a fresh run rather
+  than removed. `environment` holds only comparison-relevant facts; incidental
+  details go in `notes` or the `executor` block.
+- `ARCHITECTURE.md` contract item 21 defines CRQ as a factory/runtime empirical
+  refinement mechanism. `MEMORY_SCHEMA.md`, `SOFTWARE_CARD_FIELD_TESTS.md` and
+  `PASS_CONSUMPTION.md` cross-reference it, and `README.md` gains "Refine a
+  candidate card from empirical evidence".
+- `AGENTS.md` and `CLAUDE.md` share the rule lead "Candidate qualification never
+  edits canon automatically."
+- Added `tests/test_candidate_qualification_synthesis.py`.
+
+### Changed
+
+- The execution brief says `environment` holds only comparison-relevant facts
+  (toolchain and runtime versions, model id, relevant flags) and that timestamps,
+  paths and hostnames belong in `notes` or `executor`, which are not compared.
+- To stay inside the 8 KiB cold-start budget, `AGENTS.md` and `CLAUDE.md` drop
+  two sentences that restated what already precedes them ("Edit a lead here,
+  edit it there." and "Do not treat it as a constraint to preserve.").
+
+### Removed
+
+- `PASS/docs/CANDIDATE_REFINEMENT_DESIGN.md`, superseded by
+  `PASS/docs/CANDIDATE_REFINEMENT.md`.
+
 ## 1.0.0-beta.94 - 2026-09-26
 
 ### Added

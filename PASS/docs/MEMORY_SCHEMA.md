@@ -434,6 +434,14 @@ or (5) reject it as false, redundant, or too narrow. After disposition, mark the
 candidate `resolved`, `superseded`, or `obsolete` as appropriate and point to a
 replacement with `superseded_by` when one exists.
 
+A `card_candidate` whose likely owners are exact object ids may enter Candidate
+Refinement & Qualification (`CANDIDATE_REFINEMENT.md`), which compares a bounded
+card change against the current canon on frozen target and protected cases. CRQ
+needs no schema change and never writes memory: its result is only a memory
+disposition recommendation, which is applied deliberately through `memory.py
+entry`. A qualified candidate is not resolved until the approved change has landed
+and its fix holds; synthetic stress results never become evidence here.
+
 ### Compaction
 
 ```text

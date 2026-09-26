@@ -23,7 +23,7 @@ Skill descriptions own discovery, so this file does not enumerate domains. Read
 ## Non-negotiable boundaries
 
 Each rule's **bold lead sentence is shared verbatim with `CLAUDE.md`** and a test
-enforces that the two files state the same set. Edit a lead here, edit it there.
+enforces that the two files state the same set.
 The prose after each lead is this file's own.
 
 - **Source authoring runs through `PASS/pass.py`.** Start before source access,
@@ -67,7 +67,7 @@ The prose after each lead is this file's own.
 - **Do not add a global registry, repo-wide index, or new architectural
   convention without explicit authorization.** Nor a permanent root-level tool.
 - **A hardcoded path left by an earlier agent is technical debt, not
-  architecture.** Do not treat it as a constraint to preserve.
+  architecture.**
 - **Front matter may not set a source's subject.** A preface, foreword, or
   introduction is read for orientation only. The subject is what the
   instructional body teaches you to do. A preface addressed to instructors is
@@ -96,6 +96,8 @@ The prose after each lead is this file's own.
   with at most two sub-agents running at once. More runs require approval that
   names the exact additional count, model, maximum concurrency, and stopping
   condition; finish and report each pair before launching another.
+- **Candidate qualification never edits canon automatically.** Only an approved
+  delta changes `library/`.
 - **AI-authored merge and release commits require explanatory notes.** The
   commit body must state what changed, what was intentionally excluded or
   preserved, which validation ran, and any known issue left behind. Do not use

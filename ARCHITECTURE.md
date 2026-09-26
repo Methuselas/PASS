@@ -72,6 +72,14 @@ If no, the runtime does not depend on it.
     counts as performance evidence. Memory does not choose the AP, does not
     substitute for a regression test, and does not carry source, session, or
     workflow state. The contract is `PASS/docs/MEMORY_SCHEMA.md`.
+21. **Candidate Refinement & Qualification is a factory/runtime empirical
+    refinement mechanism, not canon and not a new object type.** Candidate
+    Refinement & Qualification stages bounded card changes outside canon, compares
+    them against a frozen baseline, and may qualify a proposal for deliberate
+    synthesis review. It never promotes memory or edits `library/` automatically.
+    Its workspace is disposable scratch, its strongest outcome is
+    `qualified-for-synthesis-review`, and no aggregate score can hide a protected
+    regression. The contract is `PASS/docs/CANDIDATE_REFINEMENT.md`.
 
 ## Versioning boundary
 

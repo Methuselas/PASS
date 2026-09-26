@@ -35,6 +35,8 @@ from .schemas import (
     DEFAULT_SCOPE_LIMITS,
     digest_bytes,
     digest_file,
+    DISPOSITION_FILE,
+    disposition_template,
     DOMAIN_RE,
     ENTRY_SCRIPT,
     EVALUATION_MODES,
@@ -42,9 +44,11 @@ from .schemas import (
     EVIDENCE_DIR,
     EXECUTION_STATES,
     FREEZE_NAME_RE,
+    MEMORY_ACTIONS,
     NONCANON_DISPOSITIONS,
     now_utc,
     PACKAGE_DIR,
+    PACKET_FILE,
     PLAN_CASE_KEYS,
     plan_template,
     PRIMARY_ATTRIBUTIONS,
@@ -52,6 +56,7 @@ from .schemas import (
     read_json,
     READABLE_SCHEMA_VERSIONS,
     REPO_ROOT,
+    REPORT_FILE,
     RESULT_FILE,
     result_template,
     RUN_FILES,
@@ -60,14 +65,20 @@ from .schemas import (
     SCHEMA_VERSION,
     SCOPE_KEYS,
     SHARED_PACKAGE,
+    SUMMARY_FILE,
+    SYNTHESIS_DECISIONS,
+    SYNTHESIS_INPUT,
+    SYNTHESIS_LEVELS,
     TERMINAL_STATES,
     TRANSITIONS,
     validate_assessment,
     validate_baseline_manifest,
+    validate_disposition,
     validate_intake,
     validate_manifest_template,
     validate_plan,
     validate_run_record,
+    validate_summary,
     VISIBILITIES,
     WORKSPACE_BUCKET,
     write_json_atomic,
@@ -76,14 +87,17 @@ from .schemas import (
 from .evidence import (
     account_candidate,
     admissible_event_ids,
+    attention_items,
     baseline_objects,
     card_index,
     comparison_problems,
     evidence_references,
     exposed_card_ids,
+    leaf_packets,
     load_pass_tool,
     module_manifest_for,
     overlay_problems,
+    parent_packets,
     resolve_memory_candidate,
     resolve_owners,
     support_closure,
@@ -1183,6 +1197,10 @@ def evaluate(run_dir: Path) -> dict[str, Any]:
         path = contained(root, run["files"]["qualification_result"], "qualification result")
         write_json_atomic(path, document)
         record_freeze(root, run, "result", [run["files"]["qualification_result"]])
+        disposition = contained(root, DISPOSITION_FILE, "disposition")
+        if not disposition.exists():
+            write_json_atomic(disposition, disposition_template(run, document["status"]))
+        write_text_atomic(root / "README.md", review_brief(run, document))
 
     return apply_transition(run_dir, "evaluate", update)
 
@@ -1216,8 +1234,11 @@ def execution_brief(run: dict[str, Any], plan: dict[str, Any], cases: dict[str, 
         "  every criterion to pass; a fail names the failing criteria. An arm that could",
         "  not exercise the capability (tooling, fixture, contamination, missing",
         "  context) is invalid with an `invalid_reason`, never a fail.",
-        "- Keep `case_sha256` as written. Both arms declare the same `environment`;",
-        "  a mismatch invalidates the comparison.",
+        "- Keep `case_sha256` as written. `environment` holds only facts that decide",
+        "  the comparison (toolchain and runtime versions, model id, relevant flags), and",
+        "  both arms must declare exactly the same object; any difference invalidates the",
+        "  comparison. Incidental details (timestamps, paths, hostnames) go in `notes` or",
+        "  the `executor` block, which are not compared.",
         "",
         "## Cases",
         "",
@@ -1238,6 +1259,236 @@ def execution_brief(run: dict[str, Any], plan: dict[str, Any], cases: dict[str, 
             lines += ["", "Constraints:", "", *(f"- {item}" for item in case["constraints"])]
         lines.append("")
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------- synthesis
+
+
+def _level_dir(root: Path, level: int) -> Path:
+    return contained(root, f"{SYNTHESIS_LEVELS}/{level}", "synthesis level")
+
+
+def _batch_dir(root: Path, level: int, number: int) -> Path:
+    return contained(root, f"{SYNTHESIS_LEVELS}/{level}/batch-{number:03d}", "synthesis batch")
+
+
+def _write_level(root: Path, level: int, packets: list[dict[str, Any]]) -> None:
+    for number, packet in enumerate(packets, start=1):
+        write_json_atomic(_batch_dir(root, level, number) / PACKET_FILE, packet)
+
+
+def prepare_synthesis(run_dir: Path) -> dict[str, Any]:
+    """Build, check and advance hierarchical evidence packets; never changes state.
+
+    The first call writes level 0: the frozen intake's cited events, each exactly
+    once, six per batch. Each later call re-derives every existing level from the
+    intake and the summaries below it, requires a valid `summary.json` in every
+    batch of the top level, and then either merges four summaries per parent
+    batch into the next level or, when one batch remains, writes
+    `synthesis/input.json` for the assessor. It runs only before the assessment
+    freezes.
+    """
+    root, run = load_run(run_dir)
+    require_current_controller(run)
+    _refuse_terminal(run)
+    if run["state"] != "prepared":
+        raise CandidateQualificationError(
+            f"prepare-synthesis informs the assessment and runs only in prepared, found {run['state']}"
+        )
+    verify_frozen_state(root, run)
+    events = load_intake(root, run)["events"]
+    levels_root = contained(root, SYNTHESIS_LEVELS, "synthesis levels")
+    if not levels_root.exists():
+        packets = leaf_packets(run["run_id"], events)
+        _write_level(root, 0, packets)
+        return {"level": 0, "batches": len(packets), "complete": False}
+
+    found = sorted(int(path.name) for path in levels_root.iterdir() if path.is_dir() and path.name.isdigit())
+    if found != list(range(len(found))):
+        raise CandidateQualificationError(f"synthesis levels must be 0..n without gaps, found {found}")
+    expected = leaf_packets(run["run_id"], events)
+    errors: list[str] = []
+    level_pairs: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    for level in found:
+        if level:
+            expected = parent_packets(run["run_id"], level, level_pairs)
+        present = sorted(path.name for path in _level_dir(root, level).iterdir())
+        wanted = [f"batch-{number:03d}" for number in range(1, len(expected) + 1)]
+        if present != wanted:
+            raise CandidateQualificationError(f"synthesis level {level} must hold exactly {wanted}")
+        level_pairs = []
+        for number, packet in enumerate(expected, start=1):
+            batch = _batch_dir(root, level, number)
+            if read_json(batch / PACKET_FILE) != packet:
+                errors.append(f"{packet['batch_id']}: input.json no longer matches the evidence it was built from")
+                continue
+            summary_path = batch / SUMMARY_FILE
+            if not summary_path.is_file():
+                errors.append(f"{packet['batch_id']}: summary.json is missing")
+                continue
+            summary = read_json(summary_path)
+            children = [child["summary"] for child in packet["children"]]
+            problems = validate_summary(summary, set(packet["event_ids"]), children)
+            errors += [f"{packet['batch_id']}: {problem}" for problem in problems]
+            level_pairs.append((packet, summary))
+    if errors:
+        raise CandidateQualificationError("synthesis cannot advance: " + "; ".join(errors))
+    top = found[-1]
+    if len(level_pairs) == 1:
+        packet, summary = level_pairs[0]
+        write_json_atomic(contained(root, SYNTHESIS_INPUT, "synthesis input"), {
+            "schema_version": SCHEMA_VERSION,
+            "run_id": run["run_id"],
+            "complete": True,
+            "levels": top + 1,
+            "final_batch": packet["batch_id"],
+            "event_ids": [str(event["event_id"]) for event in events],
+            "attention": attention_items(packet["batch_id"], summary),
+            "summary": summary,
+        })
+        return {"level": top, "batches": 1, "complete": True}
+    packets = parent_packets(run["run_id"], top + 1, level_pairs)
+    _write_level(root, top + 1, packets)
+    return {"level": top + 1, "batches": len(packets), "complete": False}
+
+
+def synthesis_report(root: Path, run: dict[str, Any], disposition: dict[str, Any]) -> str:
+    """The human-readable qualification report, generated from frozen material."""
+    result = load_frozen_json(root, run, "result", "qualification_result")
+    assessment = load_frozen_json(root, run, "assessment", "assessment")
+    intake = load_intake(root, run)
+    manifest = read_json(contained(root, run["files"]["candidate_manifest"], "candidate manifest"))
+    entry = intake["memory_entry"]
+    deltas = result["case_deltas"]
+
+    def case_lines(select: Callable[[dict[str, Any]], bool]) -> list[str]:
+        chosen = [d for d in deltas if select(d)]
+        if not chosen:
+            return ["None."]
+        return [
+            f"- {d['case_id']} ({d['origin']}, {'required' if d['required'] else 'diagnostic'}): "
+            f"baseline {d['baseline']}, candidate {d['candidate']}, delta {d['delta']}"
+            + (f"; {'; '.join(d['comparison_problems'])}" if d["comparison_problems"] else "")
+            for d in chosen
+        ]
+
+    lines = [
+        "# Candidate Qualification Report",
+        "",
+        f"Run {run['run_id']} ({run['domain']}). This report changes nothing in `library/` or",
+        "Skillset Memory; an accepted delta still lands through the ordinary repository workflow.",
+        "",
+        "## Candidate",
+        "",
+        *(f"- {c['action']} `{c['object_id']}` (`{c['relative_path']}`): sections {', '.join(c['changed_sections'])}"
+          for c in manifest["changes"]),
+        "",
+        "## Why it was proposed",
+        "",
+        f"Memory candidate {entry.get('id')}: {' '.join(str(entry.get('observation', '')).split())}",
+        "",
+        "## Canon ownership assessment",
+        "",
+        f"- Disposition {assessment['candidate_disposition']}, failure layer {assessment['failure_layer']}, "
+        f"attribution {assessment['primary_attribution']}.",
+        f"- Owners: {', '.join(assessment['owner_object_ids']) or 'none'}.",
+        f"- Rationale: {' '.join(assessment['rationale'].split())}",
+        "",
+        "## Changed cards",
+        "",
+        *(f"- `{c['object_id']}`: {c['accounting']}" for c in result["change_accounting"]),
+        "",
+        "## Target cases",
+        "",
+        *case_lines(lambda d: d["role"] == "target"),
+        "",
+        "## Protected cases",
+        "",
+        *case_lines(lambda d: d["role"] == "protected" and d["origin"] != "synthetic"),
+        "",
+        "## Synthetic stress cases",
+        "",
+        *case_lines(lambda d: d["origin"] == "synthetic"),
+        "",
+        "Synthetic results never count as positive qualification or empirical evidence.",
+        "",
+        "## Baseline vs candidate deltas",
+        "",
+        *(f"- {d['case_id']}: {d['delta']}" for d in deltas),
+        "",
+        "## Regressions",
+        "",
+        *(case_lines(lambda d: d["delta"] == "regressed")),
+        "",
+        "## Invalid or unresolved evidence",
+        "",
+        *(case_lines(lambda d: d["delta"] == "invalid")),
+        *(["", "Confirmed contamination invalidated this batch."] if result["contamination_confirmed"] else []),
+        *(["", f"Protection gap: {result['protected_case_gap']}"] if result["protected_case_gap"] else []),
+        "",
+        "## Qualification status",
+        "",
+        f"{result['status']}: {result['reason']}.",
+        *([f"Blocking cases: {', '.join(result['blocking_cases'])}."] if result["blocking_cases"] else []),
+        "",
+        "## Recommended synthesis disposition",
+        "",
+        f"{disposition['synthesis_decision']}: {' '.join(disposition['reason'].split())}",
+        *(["", disposition["reviewer_notes"].strip()] if disposition["reviewer_notes"].strip() else []),
+        "",
+        "## Memory disposition recommendation",
+        "",
+        f"{disposition['memory_action']} for {disposition['memory_entry_id']}. Apply it deliberately with",
+        "`memory.py entry`; this run never writes Skillset Memory.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def finalize(run_dir: Path) -> dict[str, Any]:
+    """Check the synthesis disposition, write the report, freeze both, and close.
+
+    A finalized run is read-only. Finalizing never writes `library/` or Skillset
+    Memory, and only a qualified candidate may be recorded as accepted.
+    """
+
+    def update(root: Path, run: dict[str, Any]) -> None:
+        result = load_frozen_json(root, run, "result", "qualification_result")
+        path = contained(root, DISPOSITION_FILE, "disposition")
+        if not path.is_file():
+            raise CandidateQualificationError(f"{DISPOSITION_FILE} is missing")
+        disposition = read_json(path)
+        errors = validate_disposition(disposition, run=run, status=result["status"])
+        if errors:
+            raise CandidateQualificationError("run cannot be finalized: " + "; ".join(errors))
+        write_text_atomic(contained(root, REPORT_FILE, "report"), synthesis_report(root, run, disposition))
+        record_freeze(root, run, "synthesis", [DISPOSITION_FILE, REPORT_FILE])
+
+    return apply_transition(run_dir, "finalize", update)
+
+
+def review_brief(run: dict[str, Any], result: dict[str, Any]) -> str:
+    """The brief for deliberate synthesis review, written at evaluation."""
+    return "\n".join([
+        f"# CRQ run {run['run_id']}: synthesis review",
+        "",
+        f"Qualification status: **{result['status']}** ({result['reason']}).",
+        "",
+        "`qualification_result.json` is frozen. Review it, the candidate and the arm",
+        f"evidence, then fill `{DISPOSITION_FILE}` and run `finalize`, which writes",
+        f"`{REPORT_FILE}` and closes the run read-only.",
+        "",
+        f"- `synthesis_decision`: one of {', '.join(SYNTHESIS_DECISIONS)}. Only a",
+        "  qualified candidate may be accepted as a canonical delta, and accepting still",
+        "  changes nothing: the approved edit lands through the ordinary repository",
+        "  workflow with validation, index regeneration, tests and a version bump.",
+        f"- `memory_action`: one of {', '.join(MEMORY_ACTIONS)}. It is a",
+        "  recommendation; apply it deliberately with `memory.py entry`. Mark a",
+        "  candidate resolved only once the fix holds, never because Markdown changed.",
+        "- A different candidate, plan or assessment is a fresh run; nothing frozen is",
+        "  revised in place.",
+        "",
+    ])
 
 
 # -------------------------------------------------------------------- status

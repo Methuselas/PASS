@@ -38,6 +38,11 @@ registry; the C++ pilot keeps taker and grader material separate; the Software
 Engineering release carries the field-test protocol, Drill ceilings, and
 contamination stop contract.
 
+**`test_ap_terminology.py` — AP means Action Protocol.** No card, doc, memory
+entry, changelog or tool text may expand AP as any other "action P-word", and an
+`AP (...)` expansion must read Action Protocol. Quoted text is exempt so a
+changelog can record a repaired wrong form.
+
 **`test_candidate_qualification_*.py` — Candidate Refinement & Qualification
 administration.** A command from the wrong state changes nothing; terminal runs
 stay read-only; state survives an interrupted write and is read back before

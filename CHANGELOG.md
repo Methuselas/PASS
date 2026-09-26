@@ -6,6 +6,20 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.96 - 2026-09-26
+
+### Added
+
+- Added `tests/test_ap_terminology.py`: AP must always expand to Action Protocol.
+  The test scans cards, docs, memory, the changelog and tool text for any other
+  "action P-word" expansion and for an `AP (...)` expansion that is not
+  Action Protocol. Quoted text is exempt so a repair can name the wrong form.
+
+### Fixed
+
+- The beta.84 Unreal editor entry said "Action Procedures"; it now says Action
+  Protocols.
+
 ## 1.0.0-beta.95 - 2026-09-26
 
 ### Added
@@ -330,7 +344,7 @@ skillsets may evolve independently.
 
 - Completed the 20-unit software-engineering study of Roger Mattsson's
   *Extending and Customizing Unreal Engine Editor*. The canonical library now
-  contains 67 cards from the source: 40 Patterns, 15 Action Procedures and 12
+  contains 67 cards from the source: 40 Patterns, 15 Action Protocols and 12
   Drills.
 - Added reusable Unreal guidance for editor previews, Slate browsers, asset and
   Blueprint validation, World Partition migrations, component visualizers,

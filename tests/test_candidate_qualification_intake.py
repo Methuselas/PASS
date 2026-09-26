@@ -35,6 +35,11 @@ def load_controller():
 
 crq = load_controller()
 
+
+def write_text(path: Path, text: str) -> None:
+    """Write exact bytes: no newline translation, so tests match on every platform."""
+    path.write_bytes(text.encode("utf-8"))
+
 DOMAIN = "software-engineering"
 CORE = f"{DOMAIN}/core"
 
@@ -145,7 +150,7 @@ class IntakeFixture(unittest.TestCase):
         for relative, text in [*CARDS.values(), *MODULES.items()]:
             path = self.library / relative
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(text, encoding="utf-8")
+            write_text(path, text)
         self.write_memory(ENTRIES, EVENTS)
 
     def tearDown(self) -> None:
@@ -154,13 +159,12 @@ class IntakeFixture(unittest.TestCase):
     def write_memory(self, entries: list[dict], events: list[dict]) -> None:
         store = self.memory / DOMAIN
         store.mkdir(parents=True, exist_ok=True)
-        (store / "skill_memory.yaml").write_text(yaml.safe_dump({
+        write_text((store / "skill_memory.yaml"), yaml.safe_dump({
             "memory_schema_version": 2, "skillset": DOMAIN, "memory_version": 1,
             "entries": entries,
-        }, sort_keys=False), encoding="utf-8")
-        (store / "training_history.jsonl").write_text(
-            "".join(json.dumps(item) + "\n" for item in events), encoding="utf-8"
-        )
+        }, sort_keys=False))
+        write_text((store / "training_history.jsonl"),
+            "".join(json.dumps(item) + "\n" for item in events))
 
     def canon_bytes(self) -> dict[Path, bytes]:
         return {
@@ -220,7 +224,7 @@ class PrepareTests(IntakeFixture):
             [("PAT_target", "target"), ("PAT_meta_process", "metaskills"),
              ("the boundary handling guidance", "label")],
         )
-        (out / "controller" / "intake.json").write_text("{}\n", encoding="utf-8")
+        write_text((out / "controller" / "intake.json"), "{}\n")
         with self.assertRaisesRegex(crq.CandidateQualificationError, "intake"):
             crq.freeze_assessment(out)
 
@@ -255,7 +259,7 @@ class PrepareTests(IntakeFixture):
     def test_domain_mismatch_and_missing_store_fail(self) -> None:
         store = self.memory / DOMAIN / "skill_memory.yaml"
         data = yaml.safe_load(store.read_text(encoding="utf-8"))
-        store.write_text(yaml.safe_dump(dict(data, skillset="art"), sort_keys=False), encoding="utf-8")
+        write_text(store, yaml.safe_dump(dict(data, skillset="art"), sort_keys=False))
         with self.assertRaisesRegex(crq.CandidateQualificationError, "does not match directory"):
             self.prepare()
         with self.assertRaisesRegex(crq.CandidateQualificationError, "no Skillset Memory store"):
@@ -293,10 +297,10 @@ class PrepareTests(IntakeFixture):
 
     def test_drift_in_support_blocks_but_out_of_closure_change_does_not(self) -> None:
         out, _run = self.prepare()
-        (self.library / CARDS["PAT_far"][0]).write_text(card("PAT_far") + "edited\n", encoding="utf-8")
-        (self.library / CARDS["PAT_unrelated"][0]).write_text(card("PAT_unrelated") + "x\n", encoding="utf-8")
+        write_text((self.library / CARDS["PAT_far"][0]), card("PAT_far") + "edited\n")
+        write_text((self.library / CARDS["PAT_unrelated"][0]), card("PAT_unrelated") + "x\n")
         self.assertEqual(crq.status_report(out)["baseline"]["status"], "clean")
-        (self.library / CARDS["PAT_prereq"][0]).write_text(card("PAT_prereq") + "edited\n", encoding="utf-8")
+        write_text((self.library / CARDS["PAT_prereq"][0]), card("PAT_prereq") + "edited\n")
         with self.assertRaises(crq.BaselineDriftError):
             crq.apply_transition(out, "freeze-assessment")
 

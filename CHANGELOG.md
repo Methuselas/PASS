@@ -6,6 +6,20 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.92 - 2026-09-26
+
+### Fixed
+
+- The CRQ controller reads every card (frontmatter, sections, the evidence
+  scan) through one decoder that treats CRLF and LF alike; the line endings are
+  normalized only for parsing and the whitespace-only comparison, and every card
+  and evidence hash stays byte-exact.
+- The CRQ tests write fixtures as exact bytes, so Windows no longer turns the
+  synthetic library into CRLF and the line-ending cases behave the same on every
+  platform. New tests stage and freeze a CRLF baseline and candidate, refuse a
+  CRLF-to-LF conversion as whitespace-only, and check that both endings parse
+  alike while hashing differently.
+
 ## 1.0.0-beta.91 - 2026-09-26
 
 ### Added

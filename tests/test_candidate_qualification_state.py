@@ -34,6 +34,11 @@ def load_controller(path: Path, name: str):
 
 crq = load_controller(CONTROLLER, "pass_candidate_qualification")
 
+
+def write_text(path: Path, text: str) -> None:
+    """Write exact bytes: no newline translation, so tests match on every platform."""
+    path.write_bytes(text.encode("utf-8"))
+
 TARGET = "software-engineering/core/PAT_example.md"
 SUPPORT = "software-engineering/core/PAT_support.md"
 MODULE = "software-engineering/core/MODULE.yaml"
@@ -60,7 +65,7 @@ class CandidateRunFixture(unittest.TestCase):
         ):
             path = self.library / relative
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(text, encoding="utf-8")
+            write_text(path, text)
         self.workspace = self.base / "workspace" / "candidate-qualification"
 
     def tearDown(self) -> None:
@@ -291,7 +296,7 @@ class PersistenceTests(CandidateRunFixture):
         path = run_dir / "controller" / "run.json"
         run = json.loads(path.read_text(encoding="utf-8"))
         run["schema_version"] = 2
-        path.write_text(json.dumps(run), encoding="utf-8")
+        write_text(path, json.dumps(run))
         before = path.read_bytes()
         with self.assertRaisesRegex(crq.CandidateQualificationError, "does not migrate"):
             crq.apply_transition(run_dir, "freeze-assessment")
@@ -314,7 +319,7 @@ class PersistenceTests(CandidateRunFixture):
         }
         for label, record in cases.items():
             with self.subTest(case=label):
-                path.write_text(json.dumps(record), encoding="utf-8")
+                write_text(path, json.dumps(record))
                 with self.assertRaises(crq.CandidateQualificationError):
                     crq.load_run(run_dir)
 
@@ -363,10 +368,7 @@ class ControllerFingerprintTests(CandidateRunFixture):
 
     def changed_controller(self, name: str = "changed_controller.py"):
         changed = self.base / name
-        changed.write_text(
-            CONTROLLER.read_text(encoding="utf-8") + "\n# administration rules changed\n",
-            encoding="utf-8",
-        )
+        write_text(changed, CONTROLLER.read_text(encoding="utf-8") + "\n# administration rules changed\n")
         return load_controller(changed, f"pass_candidate_qualification_{changed.stem}")
 
     def test_changed_controller_cannot_continue_a_run(self) -> None:
@@ -493,13 +495,13 @@ class DriftTests(CandidateRunFixture):
 
     def test_unrelated_library_change_does_not_block(self) -> None:
         run_dir = self.make_run()
-        (self.library / UNRELATED).write_text(card("PAT_unrelated") + "\nrevised\n", encoding="utf-8")
-        (self.library / "software-engineering" / "core" / "PAT_new.md").write_text(card("PAT_new"), encoding="utf-8")
+        write_text((self.library / UNRELATED), card("PAT_unrelated") + "\nrevised\n")
+        write_text((self.library / "software-engineering" / "core" / "PAT_new.md"), card("PAT_new"))
         self.assertEqual(crq.apply_transition(run_dir, "freeze-assessment")["state"], "assessment-frozen")
 
     def test_edited_baseline_snapshot_blocks_continuation(self) -> None:
         run_dir = self.make_run()
-        (run_dir / "baseline" / "cards" / TARGET).write_text("tampered\n", encoding="utf-8")
+        write_text((run_dir / "baseline" / "cards" / TARGET), "tampered\n")
         self.assert_blocked(run_dir, "snapshot baseline file changed")
 
     def test_edited_baseline_manifest_blocks_continuation(self) -> None:
@@ -507,12 +509,12 @@ class DriftTests(CandidateRunFixture):
         path = run_dir / "controller" / "baseline_manifest.json"
         manifest = json.loads(path.read_text(encoding="utf-8"))
         manifest["entries"] = manifest["entries"][:1]
-        path.write_text(json.dumps(manifest), encoding="utf-8")
+        write_text(path, json.dumps(manifest))
         self.assert_blocked(run_dir, "manifest changed")
 
     def test_drifted_run_can_still_be_invalidated(self) -> None:
         run_dir = self.make_run()
-        (self.library / TARGET).write_text("rewritten\n", encoding="utf-8")
+        write_text((self.library / TARGET), "rewritten\n")
         run = crq.invalidate(run_dir, "baseline drift in canon")
         self.assertEqual(run["state"], "invalidated")
 
@@ -535,7 +537,7 @@ class DriftTests(CandidateRunFixture):
             crq.apply_transition(run_dir, "freeze-plan", refreeze)
 
         original = assessment.read_bytes()
-        assessment.write_text('{"candidate_disposition": "memory-only"}\n', encoding="utf-8")
+        write_text(assessment, '{"candidate_disposition": "memory-only"}\n')
         before = self.run_bytes(run_dir)
         with self.assertRaisesRegex(crq.CandidateQualificationError, "changed after it was frozen"):
             crq.apply_transition(run_dir, "freeze-plan")
@@ -544,7 +546,7 @@ class DriftTests(CandidateRunFixture):
 
         assessment.write_bytes(original)
         record = run_dir / "controller" / "assessment.freeze.json"
-        record.write_text(record.read_text(encoding="utf-8").replace('"files"', '"files" ', 1), encoding="utf-8")
+        write_text(record, record.read_text(encoding="utf-8").replace('"files"', '"files" ', 1))
         with self.assertRaisesRegex(crq.CandidateQualificationError, "freeze record changed"):
             crq.apply_transition(run_dir, "freeze-plan")
 

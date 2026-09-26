@@ -39,6 +39,11 @@ def load_controller():
 
 crq = load_controller()
 
+
+def write_text(path: Path, text: str) -> None:
+    """Write exact bytes: no newline translation, so tests match on every platform."""
+    path.write_bytes(text.encode("utf-8"))
+
 DOMAIN = "software-engineering"
 CORE = f"{DOMAIN}/core"
 TARGET = f"{CORE}/PAT_target.md"
@@ -153,6 +158,13 @@ TASKS = {"TARGET_001": TARGET_TASK, "PROTECT_001": HELD_OUT_TASK, "STRESS_001": 
          "DET_001": "Run the boundary regression test."}
 
 
+def swap_line_endings(raw: bytes) -> bytes:
+    """CRLF to LF, or LF to CRLF: a change of line endings and nothing else."""
+    if b"\r\n" in raw:
+        return raw.replace(b"\r\n", b"\n")
+    return raw.replace(b"\n", b"\r\n")
+
+
 def edited(text: str, marker: str = "- Stop when the owner is gone before the view.\n") -> str:
     return text.replace("## Don't\n", marker + "\n## Don't\n", 1)
 
@@ -167,16 +179,16 @@ class CandidateFixture(unittest.TestCase):
         for relative, (object_id, object_type, foundation, links) in CARDS.items():
             path = self.library / relative
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(valid_card(relative, object_id, object_type, foundation, links), encoding="utf-8")
+            write_text(path, valid_card(relative, object_id, object_type, foundation, links))
         for relative, name in MODULES.items():
-            (self.library / relative).write_text(f"name: {name}\nrequires: []\n", encoding="utf-8")
+            write_text((self.library / relative), f"name: {name}\nrequires: []\n")
         store = self.memory / DOMAIN
         store.mkdir(parents=True)
-        (store / "skill_memory.yaml").write_text(yaml.safe_dump({
+        write_text((store / "skill_memory.yaml"), yaml.safe_dump({
             "memory_schema_version": 2, "skillset": DOMAIN, "memory_version": 1, "entries": [ENTRY],
-        }, sort_keys=False), encoding="utf-8")
-        (store / "training_history.jsonl").write_text(
-            "".join(json.dumps(item) + "\n" for item in EVENTS), encoding="utf-8")
+        }, sort_keys=False))
+        write_text((store / "training_history.jsonl"),
+            "".join(json.dumps(item) + "\n" for item in EVENTS))
         self.overlay_temp = self.base / "tmp"
         self.overlay_temp.mkdir()
         patcher = mock.patch.object(crq.tempfile, "tempdir", str(self.overlay_temp))
@@ -232,7 +244,7 @@ class CandidateFixture(unittest.TestCase):
             if entry["evaluation_mode"] == "deterministic":
                 fixture = case_dir / "fixture" / "test_boundary.py"
                 fixture.parent.mkdir(exist_ok=True)
-                fixture.write_text("assert True\n", encoding="utf-8")
+                write_text(fixture, "assert True\n")
                 fixtures.append({"path": "fixture/test_boundary.py", "sha256": crq.digest_file(fixture)})
             case = {key: entry[key] for key in crq.CASE_METADATA}
             case.update({
@@ -267,7 +279,7 @@ class CandidateFixture(unittest.TestCase):
 
     def author(self, out: Path) -> None:
         path = self.candidate(out)
-        path.write_text(edited(path.read_text(encoding="utf-8")), encoding="utf-8")
+        write_text(path, edited(path.read_text(encoding="utf-8")))
         self.fill_rationale(out)
 
     def state(self, out: Path) -> str:
@@ -308,7 +320,7 @@ class PlanTests(CandidateFixture):
         for number, relative in enumerate(("cases/PROTECT_001/case.json", "cases/DET_001/fixture/test_boundary.py"), 1):
             with self.subTest(file=relative):
                 out = self.planned_run(f"SE_CRQ_{number:04d}")
-                (out / relative).write_text((out / relative).read_text(encoding="utf-8") + " ", encoding="utf-8")
+                write_text((out / relative), (out / relative).read_text(encoding="utf-8") + " ")
                 with self.assertRaisesRegex(crq.CandidateQualificationError, "changed after it was frozen"):
                     crq.stage_candidate(out)
                 self.assertEqual(self.state(out), "plan-frozen")
@@ -418,8 +430,8 @@ class PlanTests(CandidateFixture):
             (lambda out: (out / "cases" / "EXTRA_001").mkdir(), "cases/EXTRA_001 is not a planned case"),
             (lambda out: (out / "cases" / "TARGET_001" / "case.json").unlink(), "case.json is missing"),
             (lambda out: (out / "cases" / "TARGET_001" / "baseline").mkdir(), "unexpected cases/TARGET_001/baseline"),
-            (lambda out: (out / "cases" / "DET_001" / "fixture" / "extra.txt").write_text("x"), "not in fixture_manifest"),
-            (lambda out: (out / "cases" / "DET_001" / "fixture" / "test_boundary.py").write_text("changed"), "does not match its sha256"),
+            (lambda out: write_text((out / "cases" / "DET_001" / "fixture" / "extra.txt"), "x"), "not in fixture_manifest"),
+            (lambda out: write_text((out / "cases" / "DET_001" / "fixture" / "test_boundary.py"), "changed"), "does not match its sha256"),
         )
         for number, (damage, message) in enumerate(cases, start=1):
             with self.subTest(message=message):
@@ -520,8 +532,8 @@ class FreezeCandidateTests(CandidateFixture):
     def test_new_card_is_accounted_and_validated(self) -> None:
         out = self.staged_run(create=True)
         self.author(out)
-        self.candidate(out, NEW_CARD).write_text(
-            valid_card(NEW_CARD, "PAT_new_boundary", links=(("related_to", "PAT_target"),)), encoding="utf-8")
+        write_text(self.candidate(out, NEW_CARD),
+            valid_card(NEW_CARD, "PAT_new_boundary", links=(("related_to", "PAT_target"),)))
         crq.freeze_candidate(out)
         manifest = json.loads((out / "controller" / "candidate_manifest.json").read_text(encoding="utf-8"))
         created = next(c for c in manifest["changes"] if c["action"] == "create")
@@ -532,8 +544,7 @@ class FreezeCandidateTests(CandidateFixture):
         out = self.staged_run()
         self.author(out)
         crq.freeze_candidate(out)
-        self.candidate(out).write_text(edited(self.candidate(out).read_text(encoding="utf-8"), "- Later.\n"),
-                                       encoding="utf-8")
+        write_text(self.candidate(out), edited(self.candidate(out).read_text(encoding="utf-8"), "- Later.\n"))
         with self.assertRaisesRegex(crq.CandidateQualificationError, "changed after it was frozen"):
             crq.apply_transition(out, "open-execution")
 
@@ -543,7 +554,7 @@ class FreezeCandidateTests(CandidateFixture):
 
         def whitespace(out: Path) -> None:
             path = self.candidate(out)
-            path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+            path.write_bytes(swap_line_endings(path.read_bytes()))
             self.fill_rationale(out)
 
         def deleted(out: Path) -> None:
@@ -552,32 +563,31 @@ class FreezeCandidateTests(CandidateFixture):
 
         def renamed(out: Path) -> None:
             path = self.candidate(out)
-            path.write_text(edited(path.read_text(encoding="utf-8")).replace(
-                "object_id: PAT_target", "object_id: PAT_target_renamed"), encoding="utf-8")
+            write_text(path, edited(path.read_text(encoding="utf-8")).replace(
+                "object_id: PAT_target", "object_id: PAT_target_renamed"))
             self.fill_rationale(out)
 
         def retyped(out: Path) -> None:
             path = self.candidate(out)
-            path.write_text(edited(path.read_text(encoding="utf-8")).replace(
-                "object_type: pattern", "object_type: drill"), encoding="utf-8")
+            write_text(path, edited(path.read_text(encoding="utf-8")).replace(
+                "object_type: pattern", "object_type: drill"))
             self.fill_rationale(out)
 
         def unauthorized(out: Path) -> None:
             self.author(out)
             extra = self.candidate(out, f"{CORE}/PAT_extra.md")
-            extra.write_text(valid_card(f"{CORE}/PAT_extra.md", "PAT_extra"), encoding="utf-8")
+            write_text(extra, valid_card(f"{CORE}/PAT_extra.md", "PAT_extra"))
 
         def support_changed(out: Path) -> None:
             self.author(out)
             support = self.candidate(out, f"{CORE}/PAT_foundation.md")
-            support.write_text(edited((self.library / CORE / "PAT_foundation.md").read_text(encoding="utf-8")),
-                               encoding="utf-8")
+            write_text(support, edited((self.library / CORE / "PAT_foundation.md").read_text(encoding="utf-8")))
 
         def moved(out: Path) -> None:
             source = self.candidate(out)
             destination = self.candidate(out, f"{CORE}/moved/PAT_target.md")
             destination.parent.mkdir()
-            destination.write_text(edited(source.read_text(encoding="utf-8")), encoding="utf-8")
+            write_text(destination, edited(source.read_text(encoding="utf-8")))
             source.unlink()
             self.fill_rationale(out)
 
@@ -605,7 +615,7 @@ class FreezeCandidateTests(CandidateFixture):
     def test_manifest_template_is_checked(self) -> None:
         out = self.staged_run()
         path = self.candidate(out)
-        path.write_text(edited(path.read_text(encoding="utf-8")), encoding="utf-8")
+        write_text(path, edited(path.read_text(encoding="utf-8")))
         self.assert_refused(out, "rationale must explain")
         manifest_path = out / "controller" / "candidate_manifest.json"
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -619,8 +629,7 @@ class FreezeCandidateTests(CandidateFixture):
             with self.subTest(token=token):
                 out = self.staged_run(f"SE_CRQ_{number:04d}")
                 path = self.candidate(out)
-                path.write_text(edited(path.read_text(encoding="utf-8"), f"- Learned from {token} evidence.\n"),
-                                encoding="utf-8")
+                write_text(path, edited(path.read_text(encoding="utf-8"), f"- Learned from {token} evidence.\n"))
                 self.fill_rationale(out)
                 self.assert_refused(out, "names run evidence")
 
@@ -646,7 +655,7 @@ class FreezeCandidateTests(CandidateFixture):
             with self.subTest(case=damage.__name__):
                 out = self.staged_run(f"SE_CRQ_{number:04d}")
                 path = self.candidate(out)
-                path.write_text(damage(path.read_text(encoding="utf-8")), encoding="utf-8")
+                write_text(path, damage(path.read_text(encoding="utf-8")))
                 self.fill_rationale(out)
                 self.assert_refused(out, "validate.py --library <overlay> failed(.|\\n)*" + message)
 
@@ -654,15 +663,14 @@ class FreezeCandidateTests(CandidateFixture):
         out = self.staged_run(create=True)
         self.author(out)
         manifest = out / "controller" / "candidate_manifest.json"
-        self.candidate(out, NEW_CARD).write_text(
-            valid_card(NEW_CARD, "PAT_new_boundary").replace("object_id: PAT_new_boundary", "object_id: PAT_art_only"),
-            encoding="utf-8")
+        write_text(self.candidate(out, NEW_CARD),
+            valid_card(NEW_CARD, "PAT_new_boundary").replace("object_id: PAT_new_boundary", "object_id: PAT_art_only"))
         self.assert_refused(out, "renaming is never allowed")
         self.assertTrue(manifest.is_file())
         self.candidate(out, NEW_CARD).unlink()
         run = crq.load_run(out)[1]
-        (self.library / CORE / "PAT_new_boundary.md").write_text("occupied\n", encoding="utf-8")
-        self.candidate(out, NEW_CARD).write_text(valid_card(NEW_CARD, "PAT_new_boundary"), encoding="utf-8")
+        write_text((self.library / CORE / "PAT_new_boundary.md"), "occupied\n")
+        write_text(self.candidate(out, NEW_CARD), valid_card(NEW_CARD, "PAT_new_boundary"))
         self.assert_refused(out, "now exists in the library")
         self.assertEqual(run["state"], "candidate-staged")
 
@@ -670,8 +678,8 @@ class FreezeCandidateTests(CandidateFixture):
         cards = self.base / "cards"
         duplicate = cards / NEW_CARD
         duplicate.parent.mkdir(parents=True)
-        duplicate.write_text(valid_card(NEW_CARD, "PAT_new_boundary").replace(
-            "object_id: PAT_new_boundary", "object_id: PAT_art_only"), encoding="utf-8")
+        write_text(duplicate, valid_card(NEW_CARD, "PAT_new_boundary").replace(
+            "object_id: PAT_new_boundary", "object_id: PAT_art_only"))
         problems = crq.overlay_problems(self.library, cards, [NEW_CARD])
         self.assertTrue(problems and "duplicate object_id PAT_art_only" in problems[0], problems)
         self.assertEqual(crq.overlay_problems(self.library, cards, []), [])
@@ -692,6 +700,49 @@ class FreezeCandidateTests(CandidateFixture):
         self.assertIn("PASS", output)
         self.assertEqual(sys.path, path_before)
         self.assertEqual(tool_modules(), modules_before, "no PASS/tools module leaks under its own name")
+
+
+class LineEndingTests(CandidateFixture):
+    """CRLF and LF cards parse alike; every hash stays byte-exact."""
+
+    INSERT = b"\r\n- Stop when the owner is gone before the view.\r\n\r\n## Don't"
+
+    def setUp(self) -> None:
+        super().setUp()
+        for path in self.library.rglob("*.md"):
+            path.write_bytes(swap_line_endings(path.read_bytes()))
+
+    def test_crlf_baseline_and_candidate_stage_and_freeze(self) -> None:
+        out = self.staged_run()
+        baseline = (out / "baseline" / "cards" / TARGET).read_bytes()
+        self.assertIn(b"\r\n", baseline)
+        self.assertEqual(baseline, (self.library / TARGET).read_bytes(), "the snapshot is byte-exact")
+        self.assertEqual(self.candidate(out).read_bytes(), baseline, "staging is byte-exact")
+        self.assertEqual(crq.card_frontmatter(self.candidate(out))["object_id"], "PAT_target")
+        path = self.candidate(out)
+        path.write_bytes(path.read_bytes().replace(b"\r\n\r\n## Don't", self.INSERT, 1))
+        self.fill_rationale(out)
+        self.assertEqual(crq.freeze_candidate(out)["state"], "candidate-frozen")
+        change = json.loads((out / "controller" / "candidate_manifest.json").read_text(encoding="utf-8"))["changes"][0]
+        self.assertEqual(change["changed_sections"], ["Do"])
+        self.assertEqual(change["baseline_sha256"], crq.digest_bytes(baseline))
+        self.assertEqual(change["candidate_sha256"], crq.digest_bytes(path.read_bytes()))
+
+    def test_converting_crlf_to_lf_alone_is_whitespace_only(self) -> None:
+        out = self.staged_run()
+        path = self.candidate(out)
+        path.write_bytes(swap_line_endings(path.read_bytes()))
+        self.assertNotIn(b"\r\n", path.read_bytes())
+        self.fill_rationale(out)
+        with self.assertRaisesRegex(crq.CandidateQualificationError, "only whitespace or line endings changed"):
+            crq.freeze_candidate(out)
+
+    def test_card_readers_accept_both_line_endings(self) -> None:
+        crlf = (self.library / TARGET).read_bytes()
+        lf = swap_line_endings(crlf)
+        self.assertEqual(crq.card_parts(crlf), crq.card_parts(lf))
+        self.assertEqual(crq.changed_sections(crlf, lf), [])
+        self.assertNotEqual(crq.digest_bytes(crlf), crq.digest_bytes(lf))
 
 
 class CommandLineTests(CandidateFixture):

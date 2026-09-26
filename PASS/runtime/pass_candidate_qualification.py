@@ -960,16 +960,21 @@ MODULE_MANIFEST = "MODULE.yaml"
 OBJECT_TYPES = frozenset({"pattern", "ap", "drill"})
 OBJECT_PREFIXES = {"pattern": "PAT_", "ap": "AP_", "drill": "DRILL_"}
 OBJECT_ID_RE = re.compile(r"(?:PAT|DRILL|AP)_[a-z0-9][a-z0-9_]*\Z")
-FRONTMATTER_RE = re.compile(r"\A---\r?\n(?P<front>.*?)\r?\n---\r?\n", re.DOTALL)
+FRONTMATTER_RE = re.compile(r"\A---\n(?P<front>.*?)\n---\n", re.DOTALL)
 # Relations that make one card a prerequisite of executing another. They are
 # followed transitively; every other outgoing link is followed one hop.
 HARD_INCOMING_RELATIONS = frozenset({"prerequisite_for", "foundation_of"})
 HARD_OUTGOING_RELATIONS = frozenset({"variant_of"})
 
 
+def card_text(raw: bytes) -> str:
+    """A card's text for parsing: CRLF and LF read alike. Hashes use raw bytes."""
+    return raw.decode("utf-8", errors="replace").replace("\r\n", "\n")
+
+
 def card_frontmatter(path: Path) -> dict[str, Any] | None:
     try:
-        match = FRONTMATTER_RE.match(path.read_text(encoding="utf-8"))
+        match = FRONTMATTER_RE.match(card_text(path.read_bytes()))
         data = yaml.safe_load(match.group("front")) if match else None
     except (OSError, UnicodeDecodeError, yaml.YAMLError):
         return None
@@ -2087,7 +2092,7 @@ CARD_TITLE_RE = re.compile(r"(?m)^# ([^\r\n]+?)\s*$")
 
 def card_parts(raw: bytes) -> tuple[dict[str, Any] | None, str | None, dict[str, str]]:
     """Frontmatter, H1 and `##` sections of a card's bytes."""
-    text = raw.decode("utf-8", errors="replace").replace("\r\n", "\n")
+    text = card_text(raw)
     match = re.match(r"\A---\n(?P<front>.*?)\n---\n(?P<body>.*)\Z", text, re.DOTALL)
     if not match:
         return None, None, {}
@@ -2224,9 +2229,7 @@ def evidence_references(
     patterns = [re.compile(r"(?<![A-Za-z0-9_])" + re.escape(token) + r"(?![A-Za-z0-9_])") for token in tokens]
     problems = []
     for relative in files:
-        text = contained(root, f"{CANDIDATE_CARDS}/{relative}", "candidate file").read_text(
-            encoding="utf-8", errors="replace"
-        )
+        text = card_text(contained(root, f"{CANDIDATE_CARDS}/{relative}", "candidate file").read_bytes())
         found = set(EVIDENCE_ID_RE.findall(text))
         found |= {token for token, pattern in zip(tokens, patterns) if pattern.search(text)}
         if PurePosixPath(WORKSPACE_BUCKET).name in text:

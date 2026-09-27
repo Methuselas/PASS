@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.100 - 2026-09-27
+
+### Fixed
+
+- `test_shipped_memory_is_read_only` skips with an explicit reason when the
+  suite runs as root. Root bypasses file permission bits, so `os.access`
+  reports every file writable and the test cannot observe a read-only release.
+  The check itself, and the read-only behavior of built releases, is unchanged
+  and still runs for every non-root user.
+
 ## 1.0.0-beta.99 - 2026-09-27
 
 ### Fixed

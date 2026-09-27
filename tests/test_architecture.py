@@ -994,6 +994,11 @@ class ReleaseMemoryTests(unittest.TestCase):
             self.assertEqual(run("check", out).returncode, 0)
 
     @unittest.skipUnless(ART_STORE.is_file(), "no Art memory store in this checkout")
+    @unittest.skipIf(
+        hasattr(os, "geteuid") and os.geteuid() == 0,
+        "running as root: the OS does not enforce file permission bits for root, so "
+        "os.access reports every file writable and cannot observe a read-only release",
+    )
     def test_shipped_memory_is_read_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"

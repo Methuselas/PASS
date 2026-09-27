@@ -6,6 +6,19 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.98 - 2026-09-27
+
+### Fixed
+
+- The Source Prep table-signal test still expected the pre-beta.87 `warning`
+  status. Since Source Prep schema 5, numbered-table evidence with zero
+  structured tables is an explicit review requirement and the integrity gate
+  reports `review`. The renamed
+  `test_table_signal_requires_review_when_no_structured_tables_detected` now
+  asserts `review`, the table requirement in `review_requirements`, its arrival
+  in the preflight acceptance audit's `source_review`, and the warning that the
+  preflight packet still shows. Source Prep is unchanged.
+
 ## 1.0.0-beta.97 - 2026-09-27
 
 ### Fixed

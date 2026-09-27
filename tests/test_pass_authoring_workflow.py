@@ -580,7 +580,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         text = "As shown in table 5-1 above, the values differ.\n"
         self.assertEqual(pass_source_prep._raw_table_signal_count(text), 0)
 
-    def test_table_signal_warning_when_no_structured_tables_detected(self):
+    def test_table_signal_requires_review_when_no_structured_tables_detected(self):
+        # Source Prep schema 5 (beta.87): numbered-table evidence with zero
+        # structured tables is an explicit review requirement, not only a warning.
         import fitz
         source = self.repo / "Tables Book.pdf"
         doc = fitz.open()
@@ -595,7 +597,8 @@ class AuthoringWorkflowTests(unittest.TestCase):
         pass_source_prep.finalize(run)
         manifest = pass_source_prep.verify(run)
         gate = manifest["integrity_gate"]
-        self.assertEqual(gate["status"], "warning")
+        self.assertEqual(gate["status"], "review")
+        self.assertTrue(any("table sanity check" in item["requirement"] for item in gate["review_requirements"]))
         self.assertTrue(any("table sanity check" in warning["warning"] for warning in gate["warnings"]))
         record = run.template()
         record.update(title="Tables Book", author="Fixture Author", extent="1 page", text_quality="readable",
@@ -604,6 +607,10 @@ class AuthoringWorkflowTests(unittest.TestCase):
                                  source_pages={"start": 1, "end": 1}, printed_pages=None,
                                  overlap_object_ids=[], card_potential="low")]
         run.submit("preflight", record)
+        audit = run.preflight_quality_audit()
+        self.assertEqual(audit["source_integrity"], "review")
+        self.assertTrue(any("table sanity check" in item["requirement"] for item in audit["source_review"]),
+                        "the table requirement reaches the unattended-acceptance gate")
         packet = run.present()
         self.assertIn("SOURCE PREP INTEGRITY WARNINGS", packet)
         self.assertIn("table sanity check", packet)

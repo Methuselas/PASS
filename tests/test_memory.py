@@ -698,6 +698,50 @@ class EntryCommands(MemoryStoreFixture):
         before = self.store()
         self.assert_refused(self.entry_tool("add", "--json", self.new_entry(confidence="certain")), before, "closed vocabulary")
 
+    def test_long_literal_json_is_parsed_not_probed_as_a_path(self) -> None:
+        # Regression: a literal JSON argument longer than a filename may be was
+        # stat()ed as a path first, which raises ENAMETOOLONG on Linux.
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        long_entry = json.dumps(dict(json.loads(self.new_entry()),
+                                     observation="A long, self-contained lesson. " * 40))
+        self.assertGreater(len(long_entry.encode("utf-8")), 1024)
+        result = self.entry_tool("add", "--json", long_entry)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        event = dict(VALID_EVENT, event_id="TST_EV_0099", notes="A long note about the sitting. " * 40)
+        result = run_tool("append", "--domain", "art", "--json", json.dumps(event), memory=self.tmp)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.validate().returncode, 0)
+
+    def test_json_argument_may_still_name_a_file(self) -> None:
+        self.write([VALID_ENTRY], [VALID_EVENT])
+        path = self.tmp / "entry.json"
+        path.write_bytes(self.new_entry().encode("utf-8"))
+        result = self.entry_tool("add", "--json", str(path))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        missing = self.entry_tool("add", "--json", str(self.tmp / "missing.json"))
+        self.assertEqual(missing.returncode, 1)
+        self.assertIn("literal JSON object or a readable JSON file", missing.stderr)
+        scalar = run_tool("append", "--domain", "art", "--json", "[1, 2]", memory=self.tmp)
+        self.assertEqual(scalar.returncode, 1)
+        self.assertIn("must be a JSON object", scalar.stderr)
+
+    def test_literal_json_never_touches_the_filesystem(self) -> None:
+        sys.path.insert(0, str(ROOT / "PASS/tools"))
+        self.addCleanup(sys.path.remove, str(ROOT / "PASS/tools"))
+        import memory as memory_tool
+        from unittest import mock
+
+        def refuse(*_args: object, **_kwargs: object) -> None:
+            raise AssertionError("a literal JSON argument was treated as a path")
+
+        with mock.patch.object(Path, "is_file", refuse), mock.patch.object(Path, "read_text", refuse), \
+                mock.patch.object(Path, "stat", refuse):
+            self.assertEqual(memory_tool.read_json_argument('{"a": 1}'), {"a": 1})
+            self.assertEqual(memory_tool.read_json_argument('  \n [1, 2]'), [1, 2])
+            self.assertEqual(memory_tool.read_json_argument("{" + '"k": "' + "x" * 5000 + '"}'), {"k": "x" * 5000})
+            with self.assertRaisesRegex(memory_tool.MemoryError_, "not valid JSON"):
+                memory_tool.read_json_argument("{not json")
+
     def test_an_entry_citing_an_invalid_run_is_refused(self) -> None:
         self.write([VALID_ENTRY], [VALID_EVENT, INVALID_EVENT])
         before = self.store()

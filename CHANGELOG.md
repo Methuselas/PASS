@@ -6,6 +6,21 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.99 - 2026-09-27
+
+### Fixed
+
+- `memory.py` no longer treats a literal JSON argument as a file path. `entry
+  add|update|supersede --json` and `append --json` parse a value whose first
+  non-space character is `{` or `[` directly, without probing the filesystem;
+  any other value must be a readable JSON file. Before, the argument was
+  stat()ed first, which raised ENAMETOOLONG on Linux for JSON longer than a
+  filename and could have read an unrelated file whose name matched the text.
+  `append` now refuses a non-object `--json` cleanly instead of crashing.
+- Added regression tests: long literal JSON through `entry add` and `append`,
+  a JSON file path, a missing file, a non-object event, and a unit test that
+  literal JSON never touches the filesystem.
+
 ## 1.0.0-beta.98 - 2026-09-27
 
 ### Fixed

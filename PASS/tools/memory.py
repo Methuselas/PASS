@@ -1227,7 +1227,10 @@ def cmd_append(args: argparse.Namespace) -> int:
         return 1
     domain_dir = dirs[0]
     if args.json:
-        event = json.loads(Path(args.json).read_text(encoding="utf-8")) if Path(args.json).is_file() else json.loads(args.json)
+        event = read_json_argument(args.json)
+        if not isinstance(event, dict):
+            print("FAIL: --json must be a JSON object describing one event", file=sys.stderr)
+            return 1
     else:
         event = {"task": args.task, "validity": args.validity, "date": args.date or date.today().isoformat()}
         if args.invalid_reason:
@@ -1285,11 +1288,26 @@ def cmd_compact(args: argparse.Namespace) -> int:
 
 
 def read_json_argument(value: str | None) -> Any:
+    """Parse `--json`: a literal JSON object or array, or a path to a JSON file.
+
+    A value whose first non-space character is `{` or `[` is literal JSON and is
+    never treated as a path. Probing it as one fails on long input (a filename
+    over the platform limit raises ENAMETOOLONG on Linux) and could silently read
+    an unrelated file whose name happens to match the text.
+    """
     if value is None:
         return None
-    path = Path(value)
+    if value.lstrip().startswith(("{", "[")):
+        text = value
+    else:
+        try:
+            text = Path(value).read_text(encoding="utf-8")
+        except OSError as exc:
+            raise MemoryError_(
+                f"--json must be a literal JSON object or a readable JSON file: {exc}"
+            ) from exc
     try:
-        return json.loads(path.read_text(encoding="utf-8") if path.is_file() else value)
+        return json.loads(text)
     except json.JSONDecodeError as exc:
         raise MemoryError_(f"--json is not valid JSON: {exc}") from exc
 

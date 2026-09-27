@@ -517,9 +517,13 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.prep()
         manifest = {"source_kind": "pdf", "segments": list(range(1, 21))}
         with patch.object(pass_source_prep, "verify", return_value=manifest):
-            def parsed(unit, schema_version=2):
+            def parsed(unit, schema_version=workflow.preflight.SCHEMA_VERSION):
                 record = self.run.template()
                 record["schema_version"] = schema_version
+                if schema_version < 3:
+                    # A genuine schema-1/2 record never carried the schema-3
+                    # language_policy key; each schema has an exact key set.
+                    del record["language_policy"]
                 record.update(title="Original Book", author="Fixture Author", extent="20 pages",
                              text_quality="readable", subject="Revise prose for an observable reader effect.",
                              mode="unit ingestion", no_extract=[])
@@ -529,6 +533,11 @@ class AuthoringWorkflowTests(unittest.TestCase):
                         source_pages={"start": 1, "end": 10}, printed_pages="1-10",
                         overlap_object_ids=[], card_potential="medium")
             self.run.validate_preflight_source_coordinates(parsed(base))
+            self.run.validate_preflight_source_coordinates(parsed(base, schema_version=2))
+            hybrid = self.run.template()
+            hybrid["schema_version"] = 2
+            with self.assertRaisesRegex(workflow.preflight.PreflightError, "unexpected language_policy"):
+                workflow.preflight.parse_preflight(hybrid)
             missing = dict(base, source_pages=None)
             with self.assertRaisesRegex(workflow.RunError, "source_pages"):
                 self.run.validate_preflight_source_coordinates(parsed(missing))

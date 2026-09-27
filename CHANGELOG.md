@@ -6,6 +6,17 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.97 - 2026-09-27
+
+### Fixed
+
+- `test_prepared_pdf_preflight_requires_machine_readable_coordinates` built its
+  schema-2 and schema-1 records from the current schema-3 template without
+  removing the schema-3-only `language_policy` key, so the parser correctly
+  refused them. The test now builds genuine legacy shapes, also covers the
+  current schema, and asserts that a schema-2 record carrying `language_policy`
+  is still refused. The preflight parser is unchanged.
+
 ## 1.0.0-beta.96 - 2026-09-26
 
 ### Added

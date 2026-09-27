@@ -1,0 +1,3 @@
+name: software-engineering/ai-systems
+requires:
+- software-engineering/core

@@ -48,6 +48,7 @@ class DrillInventoryTests(unittest.TestCase):
         self.assertEqual(
             {item["module"] for item in payload},
             {
+                "software-engineering/ai-systems",
                 "software-engineering/core",
                 "software-engineering/languages/cpp",
                 "software-engineering/unreal-engine",

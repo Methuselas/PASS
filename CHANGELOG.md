@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.101 - 2026-09-27
+
+### Added
+
+- Added the 76-card `software-engineering/ai-systems` module for engineering AI
+  and agent systems, covering context engineering and cross-session memory,
+  deterministic orchestration, multi-agent design, evaluation, inference and
+  runtime operations, observability, security, tool use, and task-scoped
+  isolation.
+
 ## 1.0.0-beta.100 - 2026-09-27
 
 ### Fixed

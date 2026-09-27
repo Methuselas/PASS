@@ -8,6 +8,7 @@ __pycache__/
 # material, drill runs, mentor studies, and other local work stay on the
 # machine that owns them.
 workspace/*
+workspace/skill-staging/
 !workspace/tools/
 !workspace/release-recipes/
 

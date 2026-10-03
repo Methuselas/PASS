@@ -6,6 +6,17 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.102 - 2026-10-03
+
+### Added
+
+- Added the 89-card `software-engineering/languages/rust` module, covering Rust
+  project tooling, ownership, types, collections, error handling, traits,
+  concurrency, testing, macros, packages, and executable practice.
+- Added the language-agnostic CLI stream-routing Pattern to
+  `software-engineering/core/error-handling` and included the Rust module in the
+  canonical SkillForge Software Engineering release recipe.
+
 ## 1.0.0-beta.101 - 2026-09-27
 
 ### Added

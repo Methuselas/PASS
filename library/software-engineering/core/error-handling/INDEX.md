@@ -38,6 +38,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Refactor Error-Hiding Code to Signal the Error](DRILL_refactor_error_hiding_code_to_signal.md) - drill; 3 rough. Tags: avoid_surprises, error_handling, refactoring, robustness.
 - [Return a Result Type to Convey the Error's Cause](PAT_return_result_type_to_convey_error_cause.md) - pattern; 2 block. Tags: api_design, error_handling, factory_function, result_type.
 - [Return an Outcome and Enforce That Callers Check It](PAT_return_outcome_and_enforce_return_check.md) - pattern; 2 block. Tags: api_design, compiler_enforcement, error_handling, outcome_type.
+- [Route CLI Results and Diagnostics to Separate Streams](PAT_route_cli_results_and_diagnostics_to_separate_streams.md) - pattern; 0 design. Tags: cli, composition, diagnostics, stderr, stdout.
 - [Signal Absent Values With Null Safety or Optionals](PAT_prefer_null_safety_or_optionals.md) - pattern; 2 block. Tags: error_prevention, null_safety, optionals, types.
 - [Signal One Error Several Ways and Compare the Tradeoffs](DRILL_signal_one_error_multiple_ways.md) - drill; 2 block. Tags: api_design, checked_exceptions, error_handling, result_type.
 - [Treat Compiler Warnings as Potential Bugs](PAT_treat_compiler_warnings_as_potential_bugs.md) - pattern; 3 rough. Tags: code_review, compiler_warnings, error_prevention, static_analysis.

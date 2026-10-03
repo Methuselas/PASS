@@ -2,6 +2,8 @@
 
 This demonstrates how to use the PASS (Portable Authoring Skill) system to create source studies.
 
+Current version `1.0.0-beta.102`.
+
 ## How to Use
 
 1. Create a preflight JSON record describing your source material

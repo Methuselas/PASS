@@ -51,6 +51,7 @@ class DrillInventoryTests(unittest.TestCase):
                 "software-engineering/ai-systems",
                 "software-engineering/core",
                 "software-engineering/languages/cpp",
+                "software-engineering/languages/rust",
                 "software-engineering/unreal-engine",
             },
         )

@@ -6,6 +6,25 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.103 - 2026-10-03
+
+### Added
+
+- Added the 131-card `software-engineering/languages/python` module, covering
+  Python syntax, control flow, functions, classes, collections, exceptions,
+  decorators, metaclasses, files and I/O, imports and packages, iteration,
+  numbers, debugging, performance, and documentation.
+- Added an execution-engine note to the "Make the Benchmarked Work Observable"
+  pattern, clarifying that the discarded-call trap applies to optimizing and
+  JIT engines, not to a plain bytecode interpreter such as CPython.
+
+### Changed
+
+- Added the Python module to the canonical SkillForge Software Engineering
+  release recipe, which now lists all six software-engineering modules.
+- Moved the Rust-book run scratch files (plan, preflight record, processing
+  script) from the repository root into `workspace/scratch/`.
+
 ## 1.0.0-beta.102 - 2026-10-03
 
 ### Added

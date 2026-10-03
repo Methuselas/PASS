@@ -73,6 +73,8 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
   - then: Prefer Composition Over Class Inheritance
 - **Confirm a Branch Is Mispredicted Before Optimizing It** — read first
   - then: Trade a Branch for Unconditional Work
+- **Control Print's Separator, Ending, and Destination with Keyword Arguments** — read first
+  - then: Redirect Print Output Through a Write Interface
 - **Count the Dependency Chain, Not the Operations** — read first
   - then: Trade a Branch for Unconditional Work
 - **Decompose a Problem Into Clean Layers of Abstraction** — read first
@@ -270,6 +272,8 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
   - then: Publish Shared Data Through One Atomic Handle
   - then: Put the Thread-Safety Guarantee at the Transaction Boundary
   - then: Take a Consistent View by Collecting Twice
+- **Unpack or Swap Values with Sequence Assignment** — read first
+  - then: Split a Sequence by Position with Starred Unpacking
 - **Wait on a Predicate, Not on a Notification** — read first
   - then: Choose Between a Semaphore, a Latch, and a Barrier
   - then: Stop a Thread by Asking It, Rather Than Killing It
@@ -277,6 +281,9 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
   - then: Divide a Long Change Into Places You Could Walk Away From
 - **Work the Input Classes From a Fixed List, Not From Imagination** — read first
   - then: Choose Test Cases Systematically
+- **Write a Compound Statement as Header, Colon, and Indented Block** — read first
+  - then: Continue a Long Statement with Brackets, Not a Backslash
+  - then: Keep One Simple Statement per Line
 - **Write Code That Reads Like a Well-Structured Recipe** — read first
   - then: Adopt a Language Feature Only When It Is the Best Tool
   - then: Comment the Why, Not the What
@@ -293,5 +300,5 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 - [Ai Systems](ai-systems/INDEX.md) - 76 object(s).
 - [Foundations](core/INDEX.md) - 455 object(s).
-- [Languages](languages/INDEX.md) - 291 object(s).
+- [Languages](languages/INDEX.md) - 422 object(s).
 - [Unreal Engine](unreal-engine/INDEX.md) - 291 object(s).

@@ -11,6 +11,8 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
   - then: Make Shared-Pointer Atomicity a Property of the Type
 - **Choose Compile-Time or Runtime Variation** — read first
   - then: Lift Each Varying Design Decision to a Parameter
+- **Control Print's Separator, Ending, and Destination with Keyword Arguments** — read first
+  - then: Redirect Print Output Through a Write Interface
 - **Don't Call Unknown Code While Holding a Lock** — read first
   - then: Restructure a Class That Locks Every Member Function
 - **Know When Two Accesses Are a Data Race** — read first
@@ -38,11 +40,17 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - **Take the Simplest Lock Type That Does the Job** — read first
   - then: Don't Call Unknown Code While Holding a Lock
   - then: Wait on a Predicate, Not on a Notification
+- **Unpack or Swap Values with Sequence Assignment** — read first
+  - then: Split a Sequence by Position with Starred Unpacking
 - **Wait on a Predicate, Not on a Notification** — read first
   - then: Choose Between a Semaphore, a Latch, and a Barrier
   - then: Stop a Thread by Asking It, Rather Than Killing It
+- **Write a Compound Statement as Header, Colon, and Indented Block** — read first
+  - then: Continue a Long Statement with Brackets, Not a Backslash
+  - then: Keep One Simple Statement per Line
 
 ## Topics
 
 - [Cpp](cpp/INDEX.md) - 202 object(s).
+- [Python](python/INDEX.md) - 131 object(s).
 - [Rust](rust/INDEX.md) - 89 object(s).

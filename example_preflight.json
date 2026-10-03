@@ -1,0 +1,45 @@
+{
+  "schema_version": 3,
+  "phase": "preflight",
+  "title": "Example Source Study",
+  "author": "Example Author",
+  "domain": "software-engineering",
+  "extent": "Chapter 1-3 of Example Textbook",
+  "text_quality": "High",
+  "subject": "Understanding basic programming concepts and syntax",
+  "mode": "unit ingestion",
+  "units": [
+    {
+      "unit_id": "u01",
+      "material": "Variables and Data Types",
+      "locator": "Chapter 1, Sections 1.1-1.3",
+      "source_pages": {
+        "start": 1,
+        "end": 25
+      },
+      "printed_pages": null,
+      "overlap_object_ids": [],
+      "card_potential": "high"
+    },
+    {
+      "unit_id": "u02",
+      "material": "Control Structures",
+      "locator": "Chapter 2, Sections 2.1-2.4",
+      "source_pages": {
+        "start": 26,
+        "end": 50
+      },
+      "printed_pages": null,
+      "overlap_object_ids": [],
+      "card_potential": "high"
+    }
+  ],
+  "no_extract": [],
+  "language_policy": {
+    "classification": "programming-language",
+    "language": "python",
+    "target_version": "3.8",
+    "target_basis": "standard library",
+    "modernization_required": true
+  }
+}

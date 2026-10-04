@@ -221,6 +221,24 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaises(workflow.RunError):
             workflow.start(self.repo, self.other_source("Third Book.txt", "Third.\n"), "writing", self.root.name)
 
+    def test_genre_subfolder_run_is_loaded_and_discovered(self):
+        domain_dir = self.root.parent  # already resolved by start
+        genre = domain_dir / "prose"
+        genre.mkdir(parents=True, exist_ok=True)
+        moved = genre / self.root.name
+        shutil.move(str(self.root), str(moved))
+        self.assertEqual(workflow.Run(self.repo, moved).domain, "writing")
+        found = [p.relative_to(self.repo / "workspace/skill-staging").as_posix()
+                 for p in workflow.open_runs(self.repo, "writing")]
+        self.assertIn("writing/prose/" + self.root.name, found)
+        self.assertNotIn("writing/" + self.root.name, found)
+
+    def test_run_root_rejects_unsupported_depths(self):
+        with self.subTest(depth="shallow"), self.assertRaises(workflow.RunError):
+            workflow.run_root(self.repo, self.repo / "workspace/skill-staging/stray-book")
+        with self.subTest(depth="deep"), self.assertRaises(workflow.RunError):
+            workflow.run_root(self.repo, self.repo / "workspace/skill-staging/writing/a/b/original-book-run-one")
+
     def test_start_refuses_a_second_run_of_the_same_source(self):
         self.begin()
         copy = self.repo / "moved/Renamed Copy.txt"

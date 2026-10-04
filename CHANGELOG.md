@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.105 - 2026-10-04
+
+### Changed
+
+- Source runs may now live one genre subfolder below their domain
+  (`workspace/skill-staging/<domain>/<genre>/<book-run>`) as well as directly
+  under the domain. `resume`, domain-based run discovery, and duplicate-source
+  detection all follow runs into that subfolder, and closing a run prunes the
+  genre folder once it is empty.
+
 ## 1.0.0-beta.104 - 2026-10-03
 
 ### Changed

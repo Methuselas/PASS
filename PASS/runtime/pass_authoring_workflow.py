@@ -161,16 +161,30 @@ def select_domain(repo: Path, domain: str | None) -> str:
     return domain
 
 
+def _run_dirs(base: Path) -> list[Path]:
+    """Run directories directly under ``base`` and one genre subfolder below it."""
+    runs = []
+    for child in base.iterdir():
+        if (child / "controller/run.json").is_file():
+            runs.append(child)
+        elif child.is_dir():
+            for nested in child.iterdir():
+                if (nested / "controller/run.json").is_file():
+                    runs.append(nested)
+    return sorted(runs, key=lambda p: p.relative_to(base).as_posix())
+
+
 def open_runs(repo: Path, domain: str) -> list[Path]:
-    """Every unfinished run of one domain. An unreadable run counts as unfinished."""
+    """Every unfinished run of one domain. An unreadable run counts as unfinished.
+
+    Runs may live directly under the domain or one genre subfolder below it.
+    """
     base = inside(repo, f"workspace/skill-staging/{domain}")
     found = []
     if not base.is_dir():
         return found
-    for root in sorted(base.iterdir()):
+    for root in _run_dirs(base):
         state_path = root / "controller/run.json"
-        if not state_path.is_file():
-            continue
         try:
             phase = json.loads(state_path.read_text(encoding="utf-8")).get("phase")
         except (OSError, ValueError, AttributeError):
@@ -266,8 +280,11 @@ def run_root(repo: Path, root: Path) -> Path:
         path = root.relative_to(repo / "workspace/skill-staging")
     except ValueError as exc:
         raise RunError("run must belong to this project's workspace/skill-staging/<domain>/<book-run>") from exc
-    if len(path.parts) != 2:
-        raise RunError("run must have exactly a domain and book/run directory")
+    if len(path.parts) not in (2, 3):
+        raise RunError(
+            "run must be workspace/skill-staging/<domain>/<book-run> or "
+            "<domain>/<genre>/<book-run>"
+        )
     inside(repo, root.relative_to(repo).as_posix())
     return root
 
@@ -369,7 +386,8 @@ class Run:
             raise RunError("unsupported run state version")
         if self.state["stop_after"] not in STOP_AFTER or type(self.state["stop_reached"]) is not bool:
             raise RunError("invalid stop target state")
-        if self.state["domain"] != self.root.parent.name or self.state["domain"] not in authorable_domains(self.repo):
+        domain_from_path = self.root.relative_to(self.repo / "workspace/skill-staging").parts[0]
+        if self.state["domain"] != domain_from_path or self.state["domain"] not in authorable_domains(self.repo):
             raise RunError("run domain no longer matches its authorized workspace/package")
         if not isinstance(self.state["phase"], str) or self.state["phase"] not in PHASES or type(self.state["unit_index"]) is not int or self.state["unit_index"] < 0:
             raise RunError("invalid run phase or unit index")
@@ -3090,6 +3108,11 @@ def main(argv: Iterable[str] | None = None) -> int:
                     directory.rmdir()
             if not any(run.root.iterdir()):
                 run.root.rmdir()
+            # If the run lived in a genre subfolder, drop that folder too once it
+            # is empty. Never touch the domain directory itself.
+            genre = run.root.parent
+            if genre.name != run.domain and not any(genre.iterdir()):
+                genre.rmdir()
             print("RUN CLOSED: generated state discarded; original inputs and nonempty retained work preserved")
         else:
             print(json.dumps(run.brief(), indent=2))

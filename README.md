@@ -1,35 +1,758 @@
-# PASS Authoring System Demonstration
+# PASS — Durable skillsets built from studied knowledge
 
-This demonstrates how to use the PASS (Portable Authoring Skill) system to create source studies.
+PASS (Pattern Analysis Skill System) is an authoring, validation, and packaging
+system for AI skills. It turns books, courses, documents, code, visual material,
+and formal human teaching into small, reusable knowledge cards that still work
+after the original source is gone.
 
-Current version `1.0.0-beta.104`.
+PASS is not a document search system and it is not a folder of prompts. It is a
+factory for building skillsets with explicit decisions, procedures, practice,
+dependencies, runtime routing, validation, memory, project workspaces, and
+self-contained releases.
 
-## How to Use
+**Project status:** public beta, version `1.0.0-beta.101`. The complete authoring,
+validation, project-snapshot, and release workflows are available for public
+use. Beta releases may still make documented compatibility corrections before
+the stable `1.0.0` contract.
 
-1. Create a preflight JSON record describing your source material
-2. Validate it using the preflight gate
-3. Start an authoring run with `PASS/pass.py start`
-4. Follow through the phases: load, source_prep, preflight, pass1, pass2, pass3, land
+Finished, installable skillsets are published separately in
+[SkillForge](https://github.com/Methuselas/The_Skill_Forge). PASS is the authoring
+factory; SkillForge is the distribution repository.
 
-## Example Process
-
-### Step 1: Create a preflight record
-I've created `example_preflight.json` which describes:
-- A software engineering source study
-- Two units covering variables and control structures
-- Python language requirements with modernization needed
-
-### Step 2: Validate the preflight
-```bash
-python PASS/runtime/pass_authoring_run.py preflight gate --input example_preflight.json
+```text
+SOURCE OR HUMAN TEACHING
+        ↓ study one coherent instructional unit
+PATTERNS + APs + DRILLS
+        ↓ validate, relate, and mature
+DOMAIN LIBRARY + SKILLSET MEMORY
+        ↓ assemble for the job
+PROJECT FOLDER / PROJECT ZIP / INSTALLABLE RELEASE
 ```
 
-This validates the structure and checks for any existing card overlaps.
+The central rule is simple: **a finished card must remain valid and executable
+after its source is gone.** Cards do not depend on source paths, page numbers,
+receipts, hashes, chat transcripts, or the repository that produced them.
 
-## Key Principles from AGENTS.md
+## What PASS can do
 
-- Source authoring runs through `PASS/pass.py`
-- Cards must be valid and executable after source is gone
-- Author in one domain per run
-- Cards may reference their own package plus `metaskills`
-- Every release ships `metaskills` and its complete prerequisite closure
+- **Author durable knowledge.** Convert studied instruction into Patterns
+  (reusable decisions), APs (Action Protocols: ordered, gated applications of
+  Patterns), and Drills (deliberate
+  practice with feedback and stopping criteria).
+- **Support autonomous and taught authoring.** Source-sufficient domains can be
+  authored autonomously; interpretation-heavy domains can incorporate formal
+  human teaching and correction before knowledge becomes canonical.
+- **Keep domains independent.** Each domain owns its cards and may depend only
+  on itself plus the universal `metaskills` baseline.
+- **Retrieve a small working set.** Rank relevant cards for a task without
+  loading a whole domain or maintaining a global registry.
+- **Separate learned principles from observed results.** Skillset Memory keeps
+  durable transferable lessons distinct from empirical training outcomes, tracks
+  demonstrated subcategory transfer with `specialization_profile`, and incubates
+  possible canon lessons with `card_candidate`; `training_history.jsonl` preserves
+  their event-level evidence. Neither replaces canonical cards.
+- **Validate the library.** Check card schemas, IDs, relationships,
+  prerequisites, assets, visual references, generated indexes, memory, and
+  release portability.
+- **Read bounded PDF units.** Extract selected PDF pages as disposable text and
+  flag pages that still need visual inspection or OCR.
+- **Create project workspaces.** Build a pruned domain-specific folder for local
+  work or a ZIP for a Project/chat environment, optionally with extracted source
+  text, tests, and canonical release recipes.
+- **Import a returned project archive safely.** Preview, validate, and then add
+  or update approved files without blindly unpacking over the repository.
+- **Build self-contained skill releases.** Resolve `metaskills` and the complete
+  prerequisite closure, then enforce schema, asset, reference, and portability
+  gates before packaging.
+- **Guide productive work at runtime.** Released domain skills route tasks to
+  applicable APs, Patterns, variants, teaching lanes, execution modes, and risk
+  checks while leaving native judgment responsible for the actual work.
+
+The current full repository contains Agent Kit, Art, Game Design, Software
+Engineering, and Writing. These are discovered from `library/`; the architecture
+is not hardcoded to those domains.
+
+## The five things people often confuse
+
+| Artifact | Purpose | Durable? | Ships in a skill release? |
+| --- | --- | --- | --- |
+| Source material | Evidence used while learning | No PASS dependency | No |
+| Card | Canonical reusable knowledge | Yes | Yes, when selected |
+| Skillset Memory | Evidence about real attempts | Yes, but not canon | Yes, for a selected domain |
+| Project snapshot | A bounded PASS workspace for a Python-capable chat LLM | Temporary/workable | No |
+| Release | A self-contained skill product | Yes | It is the product |
+
+**PASS is the factory. [SkillForge](https://github.com/Methuselas/The_Skill_Forge) is
+the distribution repository for finished skillsets.** Project snapshots are
+working copies of part of the factory; releases are the portable products made
+by it.
+
+## Repository map
+
+- `PASS/` — portable authoring method, contracts, templates, runtime, and tools
+- `library/` — canonical cards organized into independent domain packages
+- `library/metaskills/` — universal process knowledge included in every release
+- `memory/` — per-domain learned and calibrated state plus empirical training history, separate from canon
+- `docs/` — human-facing repository and skill-author guides
+- `workspace/tools/` — PDF/video/VFX capture, extraction, and project snapshot utilities
+- `workspace/release-recipes/` — named release products; canonical recipes start
+  with `SkillForge_`
+- `workspace/handoffs/` — domain-prefixed project continuity and trainer-entry
+  documents; included only with matching project domains, never in releases
+- `tests/` — architecture, runtime, tool, and release checks
+- `.agents/skills/`, `.claude/skills/` — repository discovery wrappers; these do
+  not become release dependencies
+- `archive/` — retired material; active files may not depend on it
+
+## Quick start
+
+PASS tools require Python. PyYAML is the only package dependency.
+
+```bash
+python -m pip install -r PASS/requirements.txt
+python PASS/tools/validate.py
+python PASS/tools/verify_references.py
+python PASS/tools/build_index.py --check
+python PASS/tools/memory.py validate
+python -m unittest discover -s tests -p "test_*.py"
+```
+
+Validate one domain while maintaining it:
+
+```bash
+python PASS/tools/validate.py --package art
+```
+
+### Analyze an existing Unreal Niagara effect
+
+`PASS/vfx.py` is the asset-analysis lane for existing Niagara systems. It is
+separate from ordinary source authoring: a UE inventory defines the system and
+its emitters, the run generates a whole-system plus isolated-emitter capture
+plan, `workspace/tools/extract_vfx_stills.py` turns those recordings into
+uniform temporal evidence, and the controller gates classification, recipe/AP
+extraction, and visual validation. Candidate cards stage inside the run rather
+than writing directly to `library/`.
+
+```bash
+python PASS/vfx.py start --inventory inventory.json --task boss-spawn
+python workspace/tools/extract_vfx_stills.py captures.json -o evidence --interval 0.5
+python PASS/vfx.py register-captures --run workspace/vfx-authoring/boss-spawn --manifest evidence/vfx-stills-manifest.json
+```
+
+Niagara Recipes live under
+`library/software-engineering/unreal-engine/vfx/niagara/recipes/`, organized by
+effect family. Pattern cards are Recipes, APs are Composite Recipes, and Drills
+provide repeatable practice/qualification. See `PASS/docs/UNREAL_VFX_PASS.md`.
+
+Retrieve a bounded set of relevant knowledge instead of opening a whole index:
+
+```bash
+python PASS/tools/find_relevant.py --package metaskills --cues "plan verify revise" --limit 5
+python PASS/tools/find_relevant.py --package art --cues "foreshortened hand gripping" --limit 8
+```
+
+## Run PASS inside a Python-capable chat
+
+A **project snapshot** is an uploadable working environment made specifically
+for a chat LLM that can unpack files, read and write a project directory,
+execute Python, and return a ZIP. It lets that LLM perform real PASS authoring
+runs inside the chat window without cloning this repository, using Git, or
+accessing the maintainer's machine.
+
+A project snapshot is not an installable skill and is not published through
+SkillForge. It is a temporary copy of the part of the PASS factory needed to
+study sources, create or revise cards, update Skillset Memory when appropriate,
+regenerate indexes, and run the actual validators. The returned work is reviewed
+and imported into the canonical PASS repository; a SkillForge release can be
+built later from accepted work.
+
+The project builder automatically includes:
+
+- the portable `PASS/` authoring skill, documentation, templates, and tools;
+- `library/metaskills/` and the selected domain library;
+- the selected domain's Skillset Memory;
+- matching host-discovery skills and root instructions;
+- reusable utilities from `workspace/tools/`; and
+- domain-prefixed project handoffs and canonical release recipes; and
+- optional tests and bounded text source inputs when requested.
+
+It deliberately leaves out unrelated domains, `.git`, retired archives, source
+PDFs, nested ZIPs, release outputs, caches, and workspace scratch. The result is
+small enough to hand to a chat while remaining capable of validating its own
+PASS work.
+
+### The project-snapshot round trip
+
+1. Build a domain-scoped project ZIP locally.
+2. Upload it to a chat or Project environment that provides file access and
+   Python execution. Attach the raw source separately, include a bounded text
+   input, or continue from a snapshot that already carries a verified prepared
+   source package.
+3. Tell the LLM to unpack the archive, work inside its single
+   `PASS-project-*` root, begin with `AGENTS.md` and `PASS/SKILL.md`, and resume
+   before starting another run. A new run enters LOAD, then deterministic Source
+   Prep, then one source-wide preflight. Source Prep preserves code indentation,
+   produces semantic Markdown plus structured tables/on-demand visual assets,
+   fails closed on strong code-page decode corruption, retains rendered fallback
+   pages for repair, and marks unstructured table evidence for explicit review.
+   Prepared-PDF preflight also checks unit-boundary coherence against extracted
+   headings. The package remains reusable and checkpointed; a verified package is not regenerated merely because the model/provider
+   changed. `start --stop-after source_prep` supports preparation-only work, and
+   `start --stop-after preflight` supports preparation + preflight while stopping
+   before any unit PASS 1 ingestion. After a deliberate stop, `continue-run`
+   resumes the same transaction history.
+4. During substantive PASS, every unit completes PASS 1, PASS 2 and PASS 3. The
+   reviewed unit is accepted into the run's cumulative `workspace/skill-staging/`
+   delta, not directly into canonical `library/`. Later units reconcile against
+   the live canonical library plus that accepted source delta. After the final
+   unit, complete source closure (AP synthesis, DRILL synthesis, cross-library
+   reconciliation and metadata classification), closure PASS 3 and closure
+   approval. Only successful source closure canonicalizes the complete staged
+   delta into `library/`.
+5. `HANDOFF.md` and the verified hard checkpoint are the restart authority. If
+   `resume` reports an interrupted committed operation, run `recover`; if only
+   unaccepted working files drifted, use `rollback`. A continuation project ZIP
+   carries the selected domain's active skill-staging state so another capable
+   model can resume without chat memory.
+6. Back in the canonical repository, preview the returned archive with the
+   importer. Apply it only after the proposed changes pass review.
+
+A suitable instruction to the chat is:
+
+> Unpack this PASS project snapshot and work only inside its `PASS-project-*`
+> root. Read `AGENTS.md` and `PASS/SKILL.md`, then run `PASS/pass.py resume`
+> before starting or continuing the selected source. Follow the controller's one
+> next action. Do not repeat verified Source Prep or accepted preflight after a
+> model/provider switch. During unit PASS work, accept reviewed unit deltas into
+> skill-staging; do not treat them as canonical until the mandatory source-close
+> gate succeeds. If `resume` requests `recover`, restore the last verified
+> checkpoint before doing anything else. If I explicitly authorize unattended
+> completion, use `PASS/source.py authorize` and the state-driven dispatcher.
+> Regenerate indexes, run the bundled validation tools, and return an updated
+> project ZIP with the original single root preserved.
+
+Python gates ordinary source-authoring progression and validates its actual
+staged edits; the human-readable method remains in `PASS/docs/PASS_RUN.md`.
+See [the executable authoring contract](PASS/docs/AUTHORING_RUNTIME.md) for commands
+and recovery. The host also needs permission to read and write uploaded files. A chat
+that cannot execute Python or return files can discuss PASS, but it cannot use a
+project snapshot for the intended validated round trip.
+
+### Build a project snapshot
+
+Create a new local project folder:
+
+```bash
+python workspace/tools/build_project_snapshot.py workspace/projects/PASS-project-art --domain art
+```
+
+Create the equivalent uploadable ZIP:
+
+Project archives go directly in `workspace/project-releases/PASS-project-<domain>.zip`
+under the current PASS repository root, without version subfolders unless
+explicitly requested. Refresh the matching ZIP with `--force`; verify the new
+archive before removing superseded copies. Finished skill ZIPs go in the
+SkillForge repository's `releases/` directory. The maintainer destination rules
+are in [`MODULE_RELEASES.md`](PASS/docs/MODULE_RELEASES.md#maintainer-destinations).
+
+```bash
+python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-art.zip --domain art
+```
+
+Inside the unpacked chat project, install the one runtime dependency if the host
+does not already provide it:
+
+```bash
+python -m pip install -r PASS/requirements.txt
+```
+
+Before returning the project, regenerate navigation and run the bundled checks:
+
+```bash
+python PASS/tools/build_index.py
+python PASS/tools/validate.py --package art
+python PASS/tools/verify_references.py
+python PASS/tools/memory.py validate
+```
+
+Add a bounded source extract at the visible top-level `SOURCE_INPUT/` folder:
+
+```bash
+python workspace/tools/extract_pdf_text.py book.pdf workspace/skill-staging/book-unit.txt --pages 20-48
+python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-writing.zip --domain writing --source-text workspace/skill-staging/book-unit.txt
+```
+
+Useful options:
+
+- Repeat `--domain` to create a multi-domain project.
+- Add `--include-tests` when the project will maintain repository code.
+- Add `--exclude-recipes` only when a deliberately reduced project should omit
+  canonical `SkillForge_*.yaml` recipes.
+- Add `--force` to replace an existing ZIP. Existing project directories are
+  never replaced; choose a new folder name so no working copy is destroyed.
+
+To start a domain that does not exist here yet, bootstrap its project instead of
+creating folders in this repository:
+
+```bash
+python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-agent-kit.zip --new-domain agent-kit
+```
+
+The project carries PASS, `metaskills`, a minimal module, placeholder discovery
+wrappers and recipe, and a handoff explaining what to fill in. It is imported
+back with `--create-domain` (below).
+
+A source passed with `--source-text` is copied into the project only; it is never
+added to this repository automatically. Source material remains evidence for the
+run and is never a dependency of a finished card.
+
+## Import an updated project archive
+
+Export the updated project as a ZIP that preserves its single
+`PASS-project-*` root, then run the importer once without `--apply`:
+
+```bash
+python workspace/tools/import_project_snapshot.py path/to/PASS-project-art.zip
+```
+
+That is a dry run. It inspects the ZIP boundary, validates the archived cards,
+visual references, generated indexes, and memory with the repository's trusted
+tools, then prints every proposed addition or update.
+
+If the plan is correct, apply it:
+
+```bash
+python workspace/tools/import_project_snapshot.py path/to/PASS-project-art.zip --apply
+```
+
+By default, only `library/<domain>/`, `memory/<domain>/`, domain-prefixed
+`workspace/handoffs/*.md` files, and the selected domain's canonical recipe are
+eligible. If the project intentionally changed shared PASS documentation, tools,
+tests, matching host skills, `metaskills`, or other domains' canonical recipes,
+preview that larger scope and then apply it explicitly:
+
+```bash
+python workspace/tools/import_project_snapshot.py path/to/PASS-project-art.zip --all-project-files
+python workspace/tools/import_project_snapshot.py path/to/PASS-project-art.zip --all-project-files --apply
+```
+
+The importer never imports `SOURCE_INPUT`, unrelated domains or their handoffs,
+or legacy recipes, and never deletes a repository file because it is absent from
+the archive. It rejects traversal paths, links, duplicate/case-colliding names,
+unknown domains, oversized payloads, invalid cards, broken references, stale
+indexes, invalid memory, and card IDs that duplicate another domain's before
+writing. Each changed file is replaced atomically, with rollback copies prepared
+for the complete plan.
+
+A project that grew a new domain is refused until you authorize that one domain
+by name. The archive cannot authorize itself:
+
+```bash
+python workspace/tools/import_project_snapshot.py path/to/PASS-project-agent-kit.zip --create-domain agent-kit
+python workspace/tools/import_project_snapshot.py path/to/PASS-project-agent-kit.zip --create-domain agent-kit --apply
+```
+
+The new domain must bring at least one module, both discovery wrappers and its
+canonical recipe, with the bootstrap's placeholder descriptions replaced; those
+wrappers are imported with it. Any other unknown domain is still refused.
+
+If a project adds or changes cards, regenerate its indexes before exporting the
+return archive:
+
+```bash
+python PASS/tools/build_index.py
+```
+
+A deliberate removal or rename needs a separate reviewed repository edit. The
+importer cannot safely infer deletion merely from absence in an archive.
+
+## Author knowledge from a source
+
+Read [the PASS user guide](docs/PASS_USER_GUIDE.md) for the human workflow and
+[`PASS/docs/PASS_RUN.md`](PASS/docs/PASS_RUN.md) for the complete authoring
+procedure. In compact form:
+
+1. Determine the source's actual instructional subject.
+2. Divide it into coherent units defined by instruction—not page count or chat
+   length.
+3. Read one unit deeply before naming cards.
+4. Resolve genuine ambiguity with a teacher when the domain requires it.
+5. Re-read the same unit and extract only durable, reusable knowledge.
+6. Place each candidate as a new card, variant, replacement, or rejection inside
+   one domain.
+7. Regenerate indexes, validate, and present the canonical delta.
+
+The object contracts are closed. Never widen the schema to accommodate a card,
+and never put source provenance or practice history into canon. See
+[`PASS/docs/PASS_SCHEMA.md`](PASS/docs/PASS_SCHEMA.md) and
+[`PASS/docs/PASS_DOCTRINE.md`](PASS/docs/PASS_DOCTRINE.md).
+
+## Testing software cards against real code
+
+Software card field tests apply one card to one bounded slice of human-written
+software. They freeze a source-first reconstruction of the human design before
+opening the card, reproduce the relevant decision, implement a PASS-guided
+alternative, and exercise both under equivalent checks. The conclusion states
+whether PASS improved a named engineering property, the human design remains
+preferable, the choices serve different constraints, or they are equivalent.
+They are distinct from Drills and comparative treatment/control studies. See
+[`PASS/docs/SOFTWARE_CARD_FIELD_TESTS.md`](PASS/docs/SOFTWARE_CARD_FIELD_TESTS.md).
+
+The optional
+[`PASS/runtime/skillforge_code_study.py`](PASS/runtime/skillforge_code_study.py)
+controller enforces that sequence without editing cards or Skillset Memory.
+Software Engineering releases include the same portable helper under
+`scripts/skillforge_code_study.py`. Its structured evidence audit binds deciding
+facts to frozen source lines, dispositions unresolved context, maps those facts
+into the fixture, requires a property-sensitive comparison even for equivalent
+outcomes, and separates project metadata from the actual fixture toolchain. Only
+held-out validation exports a candidate history event; motivating examples are
+regression evidence rather than independent validation.
+
+Each review records why its subject was chosen: from a neutral external pool,
+for relevance to an active project, or from personal interest. These are all
+useful field evidence, but they support different claims. PASS ships a blank
+local-context template rather than embedding any maintainer's source choices in
+the public protocol.
+
+The template is maintained by the model, not filled out by the user. Code plus a
+plain-language goal is enough to start. A catalog is optional and is needed only
+when the user wants the model to select a neutral external project; the user can
+paste a link, name a preferred list, or ask the model to offer one.
+
+The full protocol is for maintainers qualifying cards. Ordinary users can simply
+ask PASS to review, fix, or build their software; they are not required to run a
+study first. Qualification begins with the authored language module. Evidence
+that a core card works in one language supports that language only, and finding a
+real defect in the human code is useful evidence rather than a failed review.
+
+Verified coverage does not determine ownership. A cross-language decision lives
+in one shared core even if it was learned from a C++ book or has only been tested
+in C++ so far. Language modules contain the language's realization, idioms,
+constraints, and exceptions. Releases ship that shared core once rather than
+duplicating a private core folder for every language.
+
+## What Drills are for
+
+Patterns hold reusable decisions, APs coordinate those decisions into complete
+actions, and **Drills build or test the capability to apply them**. A Drill is
+not another explanation card and it is not decorative homework. It creates a
+repeatable attempt with a defined task, setup, required output, success check,
+and plausible failure modes.
+
+### Training and evaluating AI today
+
+PASS currently uses Drills primarily for deliberate AI practice and capability
+evaluation. A Drill can strengthen a weak behavior, test whether a skill
+transfers to a fresh problem, or expose a failure that fluent prose would hide.
+The taker must produce the requested artifact, action, or observation—describing
+what would happen is not a completed attempt.
+
+For a meaningful evaluation, administer the Drill blind. Hide either the
+Instructions or the Success Check, depending on whether the sitting measures
+unprompted capability or execution after instruction. Freeze the produced answer
+before revealing the grading criteria, and use a separate grader when possible.
+Several Drills may share one artifact when the goal is to expose interactions
+between capabilities rather than score one in isolation.
+
+Results from real attempts belong in Skillset Memory. They do not automatically
+rewrite a Drill, Pattern, or AP, and an invalid run never counts as evidence of a
+craft weakness.
+
+### Software-engineering Drills
+
+Software Drills distinguish portability probes, blind sittings, deterministic
+regressions, and comparative studies before work begins. Most use one taker and
+an independent compiler or test runner; only an explicitly approved comparative
+study receives a treatment/control pair. A negative case is required when the
+claimed capability is enforcement, because a successful build alone does not
+show that misuse is caught.
+
+Assertion, guard, comment, attribute, file, and line counts are diagnostics, not
+quality verdicts. Suspected contamination pauses a batch; confirmed contamination
+terminates its active and queued arms without an automatic retry. The exact
+packet separation, evidence rules, and sub-agent ceilings are in
+[`PASS/docs/PASS_CONSUMPTION.md`](PASS/docs/PASS_CONSUMPTION.md#software-engineering-drill-runs).
+Repository maintainers can generate the current inventory with
+[`PASS/tools/drill_inventory.py`](PASS/tools/drill_inventory.py) and inspect the
+small C++ administration pilot under
+[`tests/fixtures/software_engineering_drills/`](tests/fixtures/software_engineering_drills/).
+
+For an actual blind sitting, the optional
+[`PASS/runtime/skillforge_drill.py`](PASS/runtime/skillforge_drill.py) helper
+implements the shared prepare → produce → freeze → reveal → grade → finalize
+lifecycle. It is learner-neutral: the same packet can train or evaluate a human
+or any AI model, while adapters own provider- or person-specific delivery. Only
+`student/` is exposed before freeze;
+`controller/` stays private, every canonical Success Check bullet must receive a
+grader disposition, and finalization exports a candidate history event without
+editing Skillset Memory. Qualification is key-blind and skillcard-present: the
+runner packages the exact linked Pattern/AP cards and hides the Success Check and
+Common Failures until the answer is frozen. A linked practice may teach through
+the Drill's own Instructions, an exact Pattern/AP bundle copied into the packet,
+external material, or a declared combination. Releases that contain Drill cards
+receive the same helper automatically under `scripts/skillforge_drill.py`. See
+[`PASS/docs/PASS_CONSUMPTION.md`](PASS/docs/PASS_CONSUMPTION.md#optional-model-neutral-drill-runner)
+for the command sequence.
+
+### Teaching humans and AI
+
+Drills train through guided practice, whether the taker is a person or a model.
+The learner profile states `human` or `ai`; it does not force human work into
+model metadata. Pattern/AP cards and the Drill Instructions are explicit teaching
+components, while the hidden Success Check remains assessment material.
+
+The same evidence also improves the skillset. Grading routes each non-pass to a
+provisional cause—application, Drill, exposed skillcard, scenario,
+runtime/tool, or unresolved. Application and card failures retain a transferable
+mistake/correction/prevention lesson rather than a named learner's weakness.
+Genuine card failures enter repair and fresh-case requalification.
+
+Card qualification is binary: every required criterion must pass, any failed
+criterion fails the card or bundle, and a prevented judgment is invalid. There
+is no partial qualification.
+
+While PASS is being stabilized, these runs have the fixed purpose
+`skillset-improvement`: they qualify and repair cards and create or update
+Skillset Memory. A model may benefit from the practice, but PASS does not treat
+that as a persistent model-memory or weight update. A local memory system owned
+by models is a later, separate project.
+
+Drills are training scaffolds with a deliberate half-life. Guided practice makes
+the action executable at first; later isolation and transfer remove that
+guidance. Once performance holds, ordinary work should depend on the smaller
+Patterns and Action Protocols, returning to Drills for refresh, qualification,
+or regression after the skillset changes.
+
+PASS does not yet claim a complete adaptive human-tutoring interface. Human-facing
+pacing, hint policy, accessibility, safety, and automatic progression still need
+design and testing. The portable practice and evidence contract is shared now;
+the adapter supplies that interaction. See
+[`PASS/docs/PASS_CONSUMPTION.md`](PASS/docs/PASS_CONSUMPTION.md) for current
+administration rules and [`PASS/docs/PASS_SCHEMA.md`](PASS/docs/PASS_SCHEMA.md)
+for the closed Drill contract.
+
+## Use Skillset Memory
+
+Skill Memory keeps durable learned principles separate from empirical training
+results, records specialization-specific transfer without assuming that general
+competence propagates automatically, and gives provisional card hypotheses a
+place to accumulate evidence. `training_history.jsonl` records the underlying
+attempts and evaluations. None of these rewrite canonical knowledge automatically;
+card candidates always require deliberate synthesis before canon changes.
+
+```bash
+python PASS/tools/memory.py query --domain art --cues "hand,grip" --limit 5
+python PASS/tools/memory.py append --domain art --task "Draw a gripping hand" --note "..."
+python PASS/tools/memory.py review --domain art
+python PASS/tools/memory.py validate
+```
+
+Invalid runs are recorded as tool, controller, package, or interface failures;
+they never count as evidence of a craft weakness. The full contract is in
+[`PASS/docs/MEMORY_SCHEMA.md`](PASS/docs/MEMORY_SCHEMA.md).
+
+## Refine a candidate card from empirical evidence
+
+When a Skillset Memory `card_candidate` has valid evidence that a card may be
+wrong, Candidate Refinement & Qualification (CRQ) tests one bounded change against
+the current canon before anyone edits `library/`. It stages the change outside
+canon, runs the same target and protected cases on the frozen baseline and on the
+candidate, and refuses to qualify a candidate that breaks any protected case,
+however many targets it fixed. It never edits cards or memory; its strongest
+outcome is `qualified-for-synthesis-review`.
+
+```bash
+CRQ="python PASS/runtime/pass_candidate_qualification.py"
+$CRQ prepare --domain software-engineering --memory-entry SE_MEM_0042
+RUN=workspace/candidate-qualification/software-engineering/SE_CRQ_0001
+$CRQ prepare-synthesis --run $RUN      # optional, for large evidence sets
+$CRQ freeze-assessment --run $RUN      # after filling controller/assessment.json
+$CRQ freeze-plan --run $RUN            # after writing the plan and cases/
+$CRQ stage-candidate --run $RUN        # then edit candidate/cards/
+$CRQ freeze-candidate --run $RUN       # ordinary validators run on an overlay
+$CRQ open-execution --run $RUN         # run both arms of every case
+$CRQ freeze-execution --run $RUN
+$CRQ evaluate --run $RUN               # per-case deltas and the no-regression gate
+$CRQ finalize --run $RUN               # after filling synthesis/disposition.json
+$CRQ status --run $RUN
+```
+
+Each step writes a brief to the run's `README.md`. An accepted candidate still
+lands through the ordinary repository workflow. The method is in
+[`PASS/docs/CANDIDATE_REFINEMENT.md`](PASS/docs/CANDIDATE_REFINEMENT.md).
+
+## Build an installable release
+
+Named releases select a product intent. PASS resolves the complete dependency
+closure, always adds `metaskills`, materializes the release, and validates the
+files that actually ship.
+
+The builder does not contain a machine-specific destination. The recipe and
+output paths are arguments supplied by whoever runs it:
+
+```bash
+python PASS/tools/build_release.py build <recipe> <release-directory> --zip <distribution-zip>
+python PASS/tools/build_release.py check <release-directory>
+```
+
+Both outputs must be outside the PASS checkout. The release directory is the
+validated, unpacked product; the optional ZIP is the same product prepared for
+upload or distribution. Existing destinations are never replaced unless the
+maintainer deliberately adds `--replace` after checking the paths.
+
+### Publishing PASS releases to SkillForge
+
+The intended maintainer layout is two independent checkouts plus any external
+build directory:
+
+```text
+<workspace>/
+├── PASS/
+├── SkillForge/
+│   └── releases/
+└── release-builds/
+```
+
+With that layout, a build from the PASS checkout can write its validated working
+directory to `<workspace>/release-builds/` and its distributable ZIP directly to
+the sibling SkillForge checkout. For example:
+
+```bash
+python PASS/tools/build_release.py build workspace/release-recipes/SkillForge_Art.yaml ../release-builds/SkillForge_Art --zip ../SkillForge/releases/skills/art/SkillForge-Art.zip
+python PASS/tools/build_release.py check ../release-builds/SkillForge_Art
+```
+
+The same relationship works wherever the repositories were cloned. On one
+Windows machine `<workspace>` might be `D:\Repos`; on another machine it could
+be `C:\work`, `/home/alex/code`, or any other location. No absolute path is
+written into the release, and consumers do not need either repository after
+downloading the ZIP.
+
+Each canonical PASS recipe maps to its own SkillForge release folder, which
+holds the ZIP beside a README describing it:
+
+| PASS recipe | SkillForge release |
+| --- | --- |
+| `SkillForge_Agent_Kit.yaml` | `SkillForge/releases/skills/agent-kit/SkillForge-Agent-Kit.zip` |
+| `SkillForge_Art.yaml` | `SkillForge/releases/skills/art/SkillForge-Art.zip` |
+| `SkillForge_Game_Design.yaml` | `SkillForge/releases/skills/game-design/SkillForge-Game-Design.zip` |
+| `SkillForge_Software_Engineering.yaml` | `SkillForge/releases/skills/software-engineering/SkillForge-Software-Engineering.zip` |
+| `SkillForge_Writing.yaml` | `SkillForge/releases/skills/writing/SkillForge-Writing.zip` |
+
+When a ZIP is replaced, update its folder README and the table in
+`SkillForge/releases/README.md` (PASS build, size, SHA-256) in the same commit.
+
+Every result is self-contained: it needs no source material, PASS checkout,
+SkillForge checkout, Git history, authoring memory, or external card path at
+runtime. The published packages are available from the
+[SkillForge repository](https://github.com/Methuselas/The_Skill_Forge). See
+[`PASS/docs/MODULE_RELEASES.md`](PASS/docs/MODULE_RELEASES.md) and
+[`PASS/docs/RELEASE_INSTALL.md`](PASS/docs/RELEASE_INSTALL.md).
+
+## Add a domain
+
+Bootstrap a project with `build_project_snapshot.py --new-domain <domain>`, grow
+the domain there, and import it with `import_project_snapshot.py --create-domain
+<domain>` (see the project snapshot sections above). A domain is `library/<domain>/`
+plus matching discovery skills under `.agents/skills/` and `.claude/skills/` and
+its canonical recipe. Optional empirical history belongs in `memory/<domain>/`.
+A module that needs executable helpers at use time ships them as a declared
+module runtime; see `PASS/docs/MODULE_RELEASES.md` §Module runtime. Keep authoring in one domain per run, use only that domain
+plus `metaskills`, and let discovery tools find the new package automatically.
+
+Do not add a global registry, repo-wide hand-authored index, new root-level tool,
+or cross-domain card dependency. Detailed module and release guidance is in
+[`docs/SKILL_AUTHOR_GUIDE.md`](docs/SKILL_AUTHOR_GUIDE.md).
+
+## Versioning and beta status
+
+PASS follows [Semantic Versioning 2.0.0](https://semver.org/). The current
+version is recorded in [`VERSION`](VERSION), and generated SkillForge manifests
+record it as `pass_version`.
+
+The PASS public compatibility surface is the documented card and module schema,
+runtime and memory contracts, command-line interfaces, project snapshot/import
+boundary, release recipe format, and release manifest. Version changes mean:
+
+- **MAJOR** — an incompatible change to that public compatibility surface;
+- **MINOR** — backward-compatible functionality or an explicitly optional
+  extension; and
+- **PATCH** — a backward-compatible correction that adds no public capability.
+
+`1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
+contract; the current version is `1.0.0-beta.101`. Every PASS commit advances the
+Semantic Version and records the matching release entry in the changelog. During
+the public beta, commits increment the prerelease number and may contain clearly
+documented corrections that are incompatible with an earlier beta. Stable
+`1.0.0` means the public surface is defined and future incompatible changes
+require a new major version.
+
+This is the version of the PASS factory, not a claim that every knowledge domain
+changes in lockstep. SkillForge skillsets may eventually carry their own product
+versions; `pass_version` records which factory contract produced a release. Once
+a version is published, its contents are never silently replaced. Changes receive
+a new version and an entry in [`CHANGELOG.md`](CHANGELOG.md). Tests compare the
+working version with `HEAD`, and committed versions with their first parent, so a
+commit cannot silently reuse its predecessor's release identity.
+
+## Contributing
+
+Contributions are welcome, including corrections, additional knowledge, tooling
+improvements, and independent new skillsets. Start with
+[`CONTRIBUTING.md`](CONTRIBUTING.md), which explains domain boundaries,
+validation, release expectations, and how contributed work remains open.
+
+## License and project identity
+
+PASS uses split open, share-alike licensing:
+
+- executable tools and runtime code are licensed under
+  `AGPL-3.0-or-later`; and
+- knowledge cards, Agent Skill instructions, documentation, declarative
+  profiles, recipes, and original assets are licensed under `CC-BY-SA-4.0`.
+
+This permits personal, educational, community, and commercial use while
+requiring covered redistributions and adaptations to preserve attribution and
+the applicable open terms. The official releases remain freely available from
+[SkillForge](https://github.com/Methuselas/The_Skill_Forge).
+
+See [`LICENSE.md`](LICENSE.md) for scope, [`NOTICE.md`](NOTICE.md) for required
+attribution, and [`TRADEMARKS.md`](TRADEMARKS.md) for use of the PASS and
+SkillForge names.
+
+## Acknowledgments
+
+PASS builds on the Agent Skills format introduced and openly documented by
+Anthropic. Anthropic's published skills and specification established the
+portable `SKILL.md` convention that made this project possible. PASS and
+SkillForge are independent community projects and are not affiliated with or
+endorsed by Anthropic.
+
+- [Anthropic Agent Skills](https://github.com/anthropics/skills)
+- [Agent Skills specification](https://agentskills.io)
+
+## Support PASS
+
+If PASS or a SkillForge release helps you, the best ways to support the project
+are to star and share [PASS](https://github.com/Methuselas/PASS), share the free
+[SkillForge releases](https://github.com/Methuselas/The_Skill_Forge), report concrete
+problems, improve an existing skillset, or contribute a new one. If you would
+also like to support its continued development financially, you can
+[buy Methuselas a coffee](https://buymeacoffee.com/methuselas). Supporting the
+project never changes the licensing or access to PASS or its SkillForge
+releases.
+
+## Non-negotiable boundaries
+
+- Cards survive their sources.
+- Domains do not depend on other domains.
+- Indexes are generated, never hand-edited.
+- Skillset Memory separates learned principles, empirical results, specialization transfer, and provisional card candidates; it is never canon.
+- `archive/` is retired and cannot support active behavior.
+- `.agents/` and `.claude/` are discovery only, never release dependencies.
+- Every release includes `metaskills` and the full prerequisite closure.
+- Project snapshots are workspaces; release ZIPs are products.
+
+For repository agents, `AGENTS.md` and `CLAUDE.md` are the authoritative routing
+and safety entrypoints.

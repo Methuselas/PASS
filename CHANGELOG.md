@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.104 - 2026-10-03
+
+### Changed
+
+- Project snapshots no longer carry `workspace/skill-staging/` authoring state
+  for any domain (the selected-domain inclusion, and the older art allowance,
+  are removed). Skill-staging exists to keep the library clean while PASS runs
+  author new cards, and it never travels in an archive; runs resume from the
+  verified checkpoint in the repository's workspace.
+
 ## 1.0.0-beta.103 - 2026-10-03
 
 ### Added

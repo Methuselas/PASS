@@ -410,8 +410,7 @@ process that left either lease or a controller/checkpoint mismatch.
 After successful source closure, `close-run` removes generated controller state,
 prepared source, accepted staging and its task note, prunes empty task directories
 and preserves nonempty retained work. Preserve original inputs, other tasks and
-explicit failure-evidence holds. Continuation **project snapshots may carry active
-`skill-staging/` state for their selected domain** so another model/provider can
-resume from HANDOFF/checkpoint. Published SkillForge releases never carry that
-authoring state. Deleting closed scratch never invalidates canonical library
-knowledge.
+explicit failure-evidence holds. Project snapshots and published SkillForge
+releases never carry `skill-staging/` authoring state; a resumed run stays
+where it lives, in the repository's workspace. Deleting closed scratch never
+invalidates canonical library knowledge.

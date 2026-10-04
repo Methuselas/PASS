@@ -234,11 +234,8 @@ def snapshot_roots(
         roots.append(repo / "tests")
     if include_recipes:
         roots.extend(canonical_recipe_files(repo, domains))
-    # Continuation snapshots carry only the selected domain's active staging
-    # state. This makes archive + HANDOFF sufficient for provider/model switch
-    # recovery without leaking other domains' in-flight work.
-    for domain in domains:
-        roots.append(repo / "workspace" / "skill-staging" / domain)
+    # skill-staging is authoring state: PASS runs stage cards there to keep
+    # the library clean, and it never travels in a project snapshot.
     return roots
 
 
@@ -329,9 +326,9 @@ def main() -> int:
         epilog=(
             "PASS, metaskills, selected domain cards, domain memory, and matching "
             "host skills, matching project handoffs, reusable workspace tools, "
-            "and the selected domain's canonical release recipe are included. Active "
-            "skill-staging state for selected domains is included for recovery. Source PDFs, "
-            "nested ZIPs, .git, archive, and workspace scratch are excluded. "
+            "and the selected domain's canonical release recipe are included. "
+            "Source PDFs, skill-staging authoring state, nested ZIPs, .git, "
+            "archive, and workspace scratch are excluded. "
             "Explicit text inputs are transient."
         ),
     )

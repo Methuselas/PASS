@@ -161,11 +161,10 @@ stage the domain's existing canonical recipe alongside a module change. The book
 name never becomes a library category by itself. Prepared-source metadata and
 run/checkpoint state remain authoring-only and never enter cards.
 
-A continuation project snapshot may carry the selected domain's active
-`skill-staging/` directory so another capable model can resume from the verified
-checkpoint without chat memory. Published SkillForge releases never carry this
-authoring state. Project snapshots include only the canonical release recipe for
-the selected domain(s).
+Project snapshots and published SkillForge releases never carry `skill-staging/`
+authoring state: runs resume from the verified checkpoint in the repository's
+workspace, not from an archive. Project snapshots include only the canonical
+release recipe for the selected domain(s).
 
 Unit landing validates the complete working overlay and accepts the reviewed
 delta into `accepted/`; it does **not** mutate canonical `library/`. Subsequent

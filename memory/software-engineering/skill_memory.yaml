@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 43
+memory_version: 46
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -2014,4 +2014,95 @@ entries:
   - stream deadline
   - channel fixture
   runtime_scope: Rust/Windows semantic runtime and backend integration
+  last_verified: 2026-10-12
+- id: SE_MEM_033
+  scope_type: topic
+  scope_id: regression_setup_must_preserve_the_failure_precondition
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: A regression setup can silently consume the state that would trigger the bug,
+    so a successful test can prove only the easy path. Shared-counter snapshots can lose the
+    same precondition to concurrent callers. Isolating the decision behind explicit inputs
+    and asserting the selected candidate and exhaustion made the stale-directory proof exercise
+    the skip rather than merely succeed.
+  confidence: provisional
+  status: active
+  boundary: Observed in a Rust PID/counter SQLite fixture on Windows. The corrected proof
+    directly exercised a filesystem resolver with its own base, start and bound; the rejected
+    helper designs were diagnosed before execution. Other allocators and concurrent processes
+    require their own evidence.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0114
+  evidence_origin:
+  - runtime_self_audit
+  likely_owners:
+  - PAT_use_shared_test_setup_carefully
+  - PAT_test_behaviors_not_functions
+  retrieval_cues:
+  - vacuous regression
+  - failure precondition
+  - fixture counter
+  - deterministic skip
+  - shared test state
+  runtime_scope: Rust/Windows durable SQLite history and shared test fixtures
+  last_verified: 2026-10-12
+- id: SE_MEM_034
+  scope_type: topic
+  scope_id: transaction_rollback_proofs_cover_insert_and_commit
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: A preflight rejection does not exercise rollback after authority-bearing state
+    changes. Faults placed after sequence allocation and separately at deferred commit tested
+    whether counter allocation, exact row insertion and publication were one transaction.
+    Both failure paths preserved the old authoritative state and allowed a later legal operation.
+  confidence: provisional
+  status: active
+  boundary: Verified with rusqlite 0.40.2 bundled SQLite using a BEFORE INSERT abort and deferred
+    foreign-key commit failure, plus explicit counter/row assertions. This does not establish
+    power-loss durability, disk-corruption recovery, or behavior of another database engine.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0114
+  evidence_origin:
+  - runtime_self_audit
+  likely_owners:
+  - PAT_test_behaviors_not_functions
+  retrieval_cues:
+  - transaction rollback
+  - sequence allocation
+  - deferred commit
+  - phantom row
+  - fault injection
+  runtime_scope: Rust/Windows durable SQLite history and shared test fixtures
+  last_verified: 2026-10-12
+- id: SE_MEM_035
+  scope_type: topic
+  scope_id: append_only_storage_covers_conflict_resolution_writes
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: Append-only method names do not establish stored-row immutability against other
+    SQL write forms. UPDATE, DELETE and replacement-on-insert are distinct paths to check.
+    An explicit insert-collision guard accompanied the mutation guards, and the raw INSERT
+    OR REPLACE regression verified that the old exact entry survived unchanged.
+  confidence: provisional
+  status: active
+  boundary: Verified for the exact-entry schema with rusqlite 0.40.2 bundled SQLite and a
+    default raw test connection. The replacement path matters because SQLite replacement deletion
+    need not invoke ordinary DELETE triggers. This is not protection against a privileged
+    actor dropping guards or rewriting the database file.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0114
+  evidence_origin:
+  - runtime_self_audit
+  likely_owners:
+  - PAT_test_behaviors_not_functions
+  retrieval_cues:
+  - append only
+  - SQLite REPLACE
+  - immutability trigger
+  - insert collision
+  - exact history
+  runtime_scope: Rust/Windows durable SQLite history and shared test fixtures
   last_verified: 2026-10-12

@@ -6,6 +6,16 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.107 - 2026-10-12
+
+### Added
+
+- Retained three provisional software engineering memory lessons from accepted
+  Rust SQLite work: nonvacuous regression setup, rollback evidence at insert and
+  commit, and append-only guards covering replacement-on-insert.
+- Preserved the supporting ordinary-project observations with explicit limits;
+  no canonical card changes or retention/transfer claims.
+
 ## 1.0.0-beta.106 - 2026-10-12
 
 ### Added

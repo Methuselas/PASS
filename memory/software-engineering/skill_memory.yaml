@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 37
+memory_version: 43
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -1854,3 +1854,164 @@ entries:
   - measuring a mechanism
   - what question is this asking
   last_verified: '2026-09-12'
+- id: SE_MEM_027
+  scope_type: topic
+  scope_id: authority_scoped_request_identity
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: Request identity includes its issuing authority and incarnation, not only a
+    local number. Two registries can contain numerically equal requests, so validating the
+    issuing token before fencing prevents a valid operation from acting on the wrong request.
+  confidence: provisional
+  status: active
+  boundary: Verified in one Rust Device adapter with a two-registry collision regression.
+    Cross-process identity and other authority implementations were not exercised.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0113
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - registry
+  - request identity
+  - incarnation
+  - crossed authority
+  - fencing
+  runtime_scope: Rust/Windows semantic runtime and backend integration
+  last_verified: 2026-10-12
+- id: SE_MEM_028
+  scope_type: topic
+  scope_id: admission_before_backend_activation
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: 'A usable backend lease is the final publication of a successful transaction:
+    qualify, acquire real resource authority, activate, then publish. Admission failure must
+    cause zero backend activation, and activation failure must release the admitted authority;
+    a descriptor or estimated budget cannot replace actual admission.'
+  confidence: provisional
+  status: active
+  boundary: Verified in a Rust adapter using an existing Exec resource handle, deterministic
+    capacity denial and fake-server activation failures. No physical GPU admission or process
+    crash recovery was exercised.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0113
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - resource admission
+  - activation ordering
+  - rollback
+  - half-active lease
+  runtime_scope: Rust/Windows semantic runtime and backend integration
+  last_verified: 2026-10-12
+- id: SE_MEM_029
+  scope_type: topic
+  scope_id: generation_safe_reader_visible_residency_commit
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: Residency replacement must preserve the exact identity, generation and layout
+    captured by live readers. Validate lease/content/safe-point generations, layout, slot
+    state and reader constraints before any visible mutation; inactive staging alone must
+    neither change active content nor grant readability.
+  confidence: provisional
+  status: active
+  boundary: Verified as a Rust metadata state machine with deterministic reader/staging/commit
+    tests. Physical allocation, DMA, H2D and an expert-residency engine were outside the tested
+    contract.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0113
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - safe point
+  - content generation
+  - live reader
+  - slot commit
+  - inactive staging
+  runtime_scope: Rust/Windows semantic runtime and backend integration
+  last_verified: 2026-10-12
+- id: SE_MEM_030
+  scope_type: topic
+  scope_id: fencing_is_distinct_from_physical_cancellation_and_retry_safety
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: Request fencing decides whether a late result may become authoritative; it
+    does not demonstrate that physical backend work stopped. Unsupported cancellation or pause
+    must remain explicit, and ambiguous generation failure must not trigger a hidden retry
+    without a proven idempotency contract.
+  confidence: provisional
+  status: active
+  boundary: Verified with a source-proven Rust inference adapter, channel-controlled late
+    replies and disconnect fixtures. No supported physical cancellation protocol or idempotent
+    retry implementation was tested.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0113
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - physical cancel
+  - late reply
+  - abort
+  - pause
+  - generation retry
+  - idempotency
+  runtime_scope: Rust/Windows semantic runtime and backend integration
+  last_verified: 2026-10-12
+- id: SE_MEM_031
+  scope_type: topic
+  scope_id: capability_and_telemetry_evidence_do_not_grant_authority
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: Capability advertisements need evidence for the selected backend contract,
+    while telemetry needs explicit absence and provenance. Unreported measurements stay unknown;
+    derived totals remain identified as derived, and neither provider usage nor warm-residency
+    evidence grants capacity or physical placement authority.
+  confidence: provisional
+  status: active
+  boundary: Verified in one Rust model/adapter integration through donor-source comparison,
+    backend-managed capability rejection, absent usage and provenance round-trip tests. Live
+    quota telemetry and broader backend capability equivalence remain untested.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0113
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - capability advertisement
+  - telemetry
+  - provenance
+  - unknown usage
+  - backend managed
+  runtime_scope: Rust/Windows semantic runtime and backend integration
+  last_verified: 2026-10-12
+- id: SE_MEM_032
+  scope_type: topic
+  scope_id: failure_fixtures_cover_protocol_phases_and_error_wrappers
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: A timeout test before response headers does not cover a stalled response body,
+    and an error's source chain can conceal its immediate wrapper. Deliberately hold each
+    protocol phase with channels, inspect the actual error representation, and assert the
+    typed outcome; a successful connection is insufficient evidence for bounded streaming.
+  confidence: provisional
+  status: active
+  boundary: Observed and corrected with Rust io::Error and reqwest0.12.28 on Windows, including
+    get_ref inspection and a post-header body-stall regression. Other error wrappers and HTTP
+    library versions need their own verification.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0113
+  evidence_origin:
+  - runtime_self_audit
+  - regression_failure
+  retrieval_cues:
+  - body timeout
+  - wrapped error
+  - get_ref
+  - stream deadline
+  - channel fixture
+  runtime_scope: Rust/Windows semantic runtime and backend integration
+  last_verified: 2026-10-12

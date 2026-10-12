@@ -6,6 +6,18 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.106 - 2026-10-12
+
+### Added
+
+- Added six provisional software engineering memory principles from tested Rust
+  runtime and backend integration: authority-scoped request identity,
+  admission-before-activation rollback, generation-safe reader-visible residency
+  commits, fencing versus physical cancellation and retry safety, capability and
+  telemetry evidence boundaries, and protocol-phase timeout/error-wrapper tests.
+- Preserved the supporting ordinary-project observations in training history,
+  with explicit verification limits and no retention or transfer claims.
+
 ## 1.0.0-beta.105 - 2026-10-04
 
 ### Changed

@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 46
+memory_version: 48
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -2105,4 +2105,64 @@ entries:
   - insert collision
   - exact history
   runtime_scope: Rust/Windows durable SQLite history and shared test fixtures
+- id: SE_MEM_036
+  scope_type: topic
+  scope_id: scarcity_admission_follows_selection_priority_order
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: When admission control consumes a scarce capacity, charge it in the same deterministic
+    priority order that final selection uses. Charging in arrival order lets an early low-priority
+    arrival exhaust the budget and wrongly reject higher-priority work, and the loss looks
+    like an ordinary capacity rejection. Build the overflow proof with arrival order deliberately
+    inverted so it fails against arrival-ordered admission, and give every non-consumption
+    a typed, inspectable reason so starvation is observable instead of a silently dropped
+    candidate.
+  confidence: provisional
+  status: active
+  boundary: Observed in design review of one deterministic single-process Rust planner with
+    synthetic candidates on Windows; multi-writer or parallel admission, non-deterministic
+    provider latency and multi-class contention were not exercised.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0115
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - budget
+  - admission control
+  - priority ordering
+  - determinism
+  - typed rejection
+  - starvation
+  runtime_scope: Rust/Windows deterministic context planner
+  last_verified: 2026-10-12
+- id: SE_MEM_037
+  scope_type: topic
+  scope_id: proving_absence_at_a_boundary_by_stripped_source_scan
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: A negative structural claim about a crate (no clock, no hidden dependency,
+    no foreign vocabulary at a boundary) is best proved by scanning production source with
+    documentation lines stripped, because doc-comment examples and doctests legitimately mention
+    the banned names and would otherwise mask the finding. Pair the scan with a behavioral
+    probe that fails if the banned capability were reachable, and keep the token list exact
+    so the scan cannot pass vacuously.
+  confidence: provisional
+  status: active
+  boundary: Verified on one hand-written src tree where doctests live in doc comments of the
+    same files; not validated on generated code, macros expanding from external crates, or
+    multi-crate re-export shims where banned tokens can enter through non-source artifacts.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0115
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - source scan
+  - negative proof
+  - structural evidence
+  - boundary
+  - doctest masking
+  - absence claim
+  runtime_scope: Rust/Windows crate source evidence
   last_verified: 2026-10-12

@@ -16,6 +16,18 @@ skillsets may evolve independently.
 - Preserved the supporting ordinary-project observations with explicit limits;
   no canonical card changes or retention/transfer claims.
 
+## 1.0.0-beta.108 - 2026-10-12
+
+### Added
+
+- Retained two provisional software engineering memory lessons from accepted
+  Rust context-planning work: scarce-capacity admission must be charged in the
+  same priority order as final selection, with typed non-consumption reasons;
+  and absence claims at a boundary are proved by doc-stripped production source
+  scans paired with behavioral probes.
+- Preserved the supporting ordinary-project observations with explicit limits;
+  no canonical card changes or retention/transfer claims.
+
 ## 1.0.0-beta.106 - 2026-10-12
 
 ### Added

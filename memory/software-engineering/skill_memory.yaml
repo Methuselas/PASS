@@ -1,6 +1,6 @@
 memory_schema_version: 1
 skillset: software-engineering
-memory_version: 48
+memory_version: 61
 entries:
 - id: SE_MEM_001
   scope_type: topic
@@ -2166,3 +2166,333 @@ entries:
   - absence claim
   runtime_scope: Rust/Windows crate source evidence
   last_verified: 2026-10-12
+- id: SE_MEM_038
+  scope_type: topic
+  scope_id: scoped_source_revalidation_before_derivative_hits
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: A warm derivative is not source freshness or access evidence. Check the registered
+    source scope before reads, then revalidate the full pinned source revision before returning
+    cached exact content or a summary. Compact content hints and matching cache keys alone
+    cannot establish that the authoritative source still matches.
+  confidence: provisional
+  status: active
+  boundary: Verified in a Rust read-only history adapter with real SQLite reopen fixtures,
+    explicit authorization/spoofed-scope zero-read probes, and replacement-source fakes behind
+    warm exact and summary caches. The replacement fakes do not grant a mutation API to the
+    append-only store. Source rereads were intentional; no physical I/O reduction or speedup
+    was measured.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0116
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - source cache
+  - warm derivative
+  - scope before read
+  - full content identity
+  - stale summary
+  runtime_scope: Rust/Windows semantic context and exact-history integration
+  last_verified: 2026-10-12
+- id: SE_MEM_039
+  scope_type: topic
+  scope_id: indivisible_extent_recovery_checks_neighbor_boundaries
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: A sizing maximum does not authorize splitting an indivisible semantic group.
+    Preserve the complete group and expose oversize evidence. Recovery must check the neighboring
+    group boundaries as well as covered range, count and full content revision; a hash of
+    a partial group can be internally consistent while describing an illegal extent.
+  confidence: provisional
+  status: active
+  boundary: Verified with explicit contiguous group membership, oversized bundles, partial-range
+    rejection, illegal closed-group extension and a 260-entry extent spanning bounded SQLite
+    pages. Group membership was supplied by the source contract; no future domain-specific
+    grouping, compression or destructive compaction was implemented.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0116
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - atomic group
+  - indivisible extent
+  - neighbor boundary
+  - partial range
+  - oversize bundle
+  runtime_scope: Rust/Windows semantic context and exact-history integration
+  last_verified: 2026-10-12
+- id: SE_MEM_040
+  scope_type: topic
+  scope_id: observe_only_after_final_request_projection
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: Freeze the final model-facing request before producing observer metadata, and
+    derive that metadata from the same value forwarded by the host. A forwarding proof must
+    use a non-identity projection so a provisional-request observer cannot pass accidentally.
+    Pair the full input/options content identity with typed request and destination identity
+    checks rather than serializing ephemeral addresses.
+  confidence: provisional
+  status: active
+  boundary: Verified in one Rust text projector with selected source material, an intentionally
+    different provisional placeholder, metadata-only observer and deterministic T6 protocol
+    backend. The fixture proved observer-before-forward ordering and exact DTO equality; it
+    did not exercise a live model or transport, and no backend invocation occurs in Context
+    production code.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0117
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - final projection
+  - prompt observer
+  - provisional request
+  - nonidentity proof
+  - typed correlation
+  runtime_scope: Rust/Windows semantic context and exact-history integration
+  last_verified: 2026-10-12
+- id: SE_MEM_041
+  scope_type: topic
+  scope_id: append_only_projection_compares_unchanged_entry_frames
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: Use stable per-entry rendering units for append-only history and reuse persisted
+    timestamps exactly. Keep aggregate range/revision/count and current observation metadata
+    out of unchanged prior-turn frames. Preserve admitted selection order when separating
+    a contiguous stable prefix from the dynamic tail; moving later stable-class material ahead
+    would change the accepted order.
+  confidence: provisional
+  status: active
+  boundary: Verified with real temporary SQLite history, explicit positive/negative timestamps,
+    repeated projection and an N-to-N+1 append fixture whose old frames and full text prefix
+    stayed identical. The supported format was UTF-8 text plus bound exact-history objects;
+    unknown modalities and non-UTF-8 history failed typed without lossy conversion. No KV
+    manipulation or universal backend-format claim was made.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0117
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - append only projection
+  - stable prefix
+  - persisted timestamp
+  - prior turn frame
+  - dynamic tail
+  runtime_scope: Rust/Windows semantic context and exact-history integration
+  last_verified: 2026-10-12
+- id: SE_MEM_042
+  scope_type: topic
+  scope_id: adversarial_test_assertions_must_anchor_to_an_accepted_contract
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: 'In a tests-only adversarial closure slice (twenty-six family tests against
+    accepted production), review caught three assertion shapes that ratcheted more than the
+    accepted contract. An observability-equivalence matrix asserted that a failing observer
+    is non-fatal as if it were settled policy; the fix was to name the system''s actual observability
+    knobs (absent/recording/failing/panicking observer crossed with telemetry absent/present,
+    because the donor''s Off/Summary/Verbose level does not exist in this system) and to cite
+    the one accepted test that explicitly established the non-fatal contract. A score-equality
+    assertion would have frozen ranking internals unless cited to the doc''d public pair that
+    makes the equality the contract (a reason field documented as the candidate''s ranking
+    score, and a ranking struct whose single field is that score). A source-identifier blacklist
+    over production files was the primary proof for a budget law and was brittle to any rename;
+    it was replaced by behavioral admission control, leaving only a narrow doc-contract scan.
+    The durable shape: behavioral proof is primary, source scans survive only as narrow structural
+    ratchets that cite documented contracts, and every equality assertion names the accepted
+    test or doc that establishes it - an uncited policy assertion invents contract that does
+    not exist.'
+  confidence: provisional
+  status: active
+  boundary: One tests-only closure circuit on a Rust workspace under Windows, and all three
+    fixes were caught by review before integration, so this is a single circuit's self-audit,
+    not a measured failure rate. It assumes an accepted-proofs corpus exists whose test and
+    doc names can be cited; slices without prior accepted proofs cannot apply the cite-the-contract
+    half. Not yet checked against suites written without review, nor for assertions whose
+    contract lives in prose outside the repository.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0118
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - adversarial test
+  - assertion contract
+  - test ratchet
+  - observability equivalence
+  - source scan brittle
+  - invent policy
+  runtime_scope: Rust/Windows tests-only closure slice; behavioral-first proofs with narrow
+    structural ratchets
+  last_verified: 2026-10-12
+- id: SE_MEM_043
+  scope_type: topic
+  scope_id: fixture_identity_must_route_through_the_path_under_test
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: 'A fixture helper that hardcoded provider id 9 built a candidate for a test
+    whose provider was id 8, so production correctly rejected it as a provider-key mismatch
+    before reaching the unauthorized-scope rejection the test meant to assert; the failing
+    assertion pointed at accepted production while the fixture''s identity wiring was the
+    defect, and the typed rejection reason in the failure message is what identified it. The
+    same circuit already showed the forward form: mixing synthetic and history-backed providers
+    requires distinct ids, or first-match routing silently delivers calls to the wrong provider.
+    The discipline: when an adversarial assertion fails, dump the actual typed rejection or
+    error and verify the fixture''s identity keys (provider ids, scopes, generations) route
+    through the intended path before suspecting production - a wrong typed reason usually
+    means the fixture entered a different branch, not that the accepted branch is broken.'
+  confidence: provisional
+  status: active
+  boundary: Observed once, in a Rust ContextRuntime planning fixture on Windows, diagnosed
+    from the typed ProviderMismatch reason printed in the failure output; related to but distinct
+    from the shared-counter precondition entry in this store (that one loses the trigger state,
+    this one steers control flow into a different typed path). Not yet exercised on other
+    identity keys (scopes, generations, content hashes), other fixture styles, or by other
+    writers.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0118
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - fixture identity
+  - provider mismatch
+  - typed rejection
+  - assertion failed
+  - wrong branch
+  - routing fixture
+  runtime_scope: Rust/Windows ContextRuntime fixtures with provider-keyed candidates and first-match
+    provider routing
+  last_verified: 2026-10-12
+- id: SE_MEM_044
+  scope_type: topic
+  scope_id: claimed_state_effects_must_be_reread_from_the_owning_artifact
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: 'A report of a stateful side effect (store write, file mutation) remains a claim until the owning
+    artifact is reread after the write has completed. In the T7 closure circuit, CW''s first independent
+    read happened before MiMo''s write had landed and therefore saw the old v52/41/117 state; a later
+    read saw the completed v56/43/118 state. MiMo''s verbatim memory.py provenance then established that
+    he had not reported a store-version figure and had not described the write as disk-verified. The
+    apparent discrepancy came from comparing a pre-write observation to a post-write report and then
+    over-quoting that report. Establish a completion/synchronization point first, then reread the owning
+    artifact field by field, and keep observed values distinct from inferred or quoted ones.'
+  confidence: provisional
+  status: active
+  boundary: 'Observed once in one Rust/Windows multi-agent closure circuit with a single owning
+    memory.py-validated YAML/JSONL store. This establishes a verification-order failure and the need for
+    a post-completion owning-artifact reread; it does not establish worker misreporting. The user
+    observed CW enter a hail-Mary/recovery state during the write window, but causality is unproven and
+    is not part of the learned claim. Not validated on distributed stores, multi-artifact transactions,
+    writers without an observable completion point, or systems where the reviewer cannot read the owning
+    artifact.'
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0120
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - worker report
+  - stateful side effect
+  - owning artifact
+  - completion point
+  - synchronization before verification
+  - independent re-read
+  - pre-write read
+  - claimed vs observed
+  - writeback timing
+  - verification ordering
+  runtime_scope: multi-agent integration/acceptance circuit with a single owning artifact
+    (Rust/Windows workspace closure)
+  last_verified: 2026-10-12
+- id: SE_MEM_045
+  scope_type: topic
+  scope_id: metadata_references_need_owner_supplied_enforcement_seams
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: A catalog's schema identities and permission requirements describe obligations;
+    they do not supply schema content, validators, or current grants. When the public contract
+    exposes only that metadata, treating the identifiers as executable meaning invents an
+    authority the source does not provide. Explicit borrowed host validation and fresh caller
+    grants can enforce the obligations while keeping catalog truth singular. Unknown schema
+    content must fail closed, and a projected contract remains a correlation claim to check
+    against current resolution rather than permission to execute.
+  confidence: provisional
+  status: active
+  diagnosis:
+    failure_layer: interface
+    hypothesis: A requirement to validate or reauthorize can appear implementable because
+      the relevant fields exist, even when those fields are only references or required-permission
+      labels. Reading the full public signatures exposes the missing enforcement input before
+      an implementation silently assigns it to the wrong owner.
+  boundary: Observed in one accepted Rust immediate-invocation boundary over a catalog with
+    opaque byte payloads and metadata-only schema/permission fields. A host validation trait
+    and per-call borrowed grants were explicitly authorized after the missing seam was reported.
+    Deterministic fixtures proved unknown/unavailable input schema rejection before provider
+    calls, invalid/unavailable output as typed failure after the call, revoked grants with
+    zero calls, metadata tampering rejection, and availability revalidation after input validation.
+    No live provider, generic schema engine, asynchronous completion, concurrent grant-revocation
+    guarantee, retention exercise, cross-project transfer, or causal benefit comparison was
+    tested. The single circuit supports a provisional design lesson; its deterministic behavior
+    is enforced by regression tests, not by retrieving this memory.
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0121
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - opaque schema
+  - schema reference
+  - permission metadata
+  - host validation seam
+  - current grants
+  - missing public seam
+  - discovery authority
+  last_verified: 2026-10-13
+- id: SE_MEM_046
+  scope_type: topic
+  scope_id: adversarial_test_observables_require_source_verified_seams
+  type: learned_principle
+  evidence_class: deterministic_contract
+  observation: 'Dispatch packets that specify adversarial-test observables without first reading
+    the accepted seam sources produce internally contradictory requirements: an emitted exact
+    name can be simultaneously required to succeed and to be rejected under exact lookup;
+    a typed rejection can be structurally unreachable under the accepted resolution ordering;
+    registry-level retention can be conflated with lease lifetime that accepted custody semantics
+    retain until an observed provider terminal; and an exhaustive import allowlist can omit
+    an existing production dependency the same packet''s own wiring requirements demand. Pre-mutation
+    source review of the accepted seams caught every conflict; a fail-closed stop with bounded
+    proposals plus a ruling that amends the packet in place preserved the no-guessing discipline
+    without reinterpreting, reordering, or narrowing any assertion.'
+  confidence: provisional
+  status: active
+  diagnosis:
+    failure_layer: interface
+    hypothesis: An observable can appear precise while contradicting the accepted seam it
+      names, because the packet is written from memory of the contract rather than from the
+      committed source; reading the exact lookup, the resolution ordering, the custody transfer,
+      and the manifest lines exposes the conflict before any worktree exists.
+  boundary: 'Observed in one accepted Rust adversarial-closure slice (T8.5 tool library):
+    four of seven dispatched adversarial observables conflicted with accepted T8.3/T8.4 seams
+    and were amended by ruling before implementation; the amended tests passed on first run
+    under the pinned five-command gate (1090/1090, zero skipped) with a focused repeat of
+    3x58/58 and no production defect exposed. The lesson covers specification discipline for
+    adversarial tests, not the correctness of the underlying contracts, and no cross-project
+    transfer is claimed.'
+  evidence_count: 1
+  evidence_events:
+  - SE_EV_0124
+  evidence_origin:
+  - runtime_self_audit
+  retrieval_cues:
+  - adversarial observable
+  - packet conflict
+  - source verification before dispatch
+  - prefix-pair names
+  - cross-route ordering
+  - custody retention
+  - import allowlist
+  - pre-implementation stop
+  last_verified: 2026-10-13

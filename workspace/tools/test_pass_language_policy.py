@@ -107,6 +107,7 @@ class WorkflowPolicyTests(unittest.TestCase):
         audit = pass2["language_modernization"]
         self.assertEqual(audit["target_version"], "3.14.7")
         pass2["full_reread"] = True
+        pass2["omission_sweep"]["complete"] = True
         audit["all_version_sensitive_material_reviewed"] = True
         audit["resolutions"][0].update(
             disposition="modernized",

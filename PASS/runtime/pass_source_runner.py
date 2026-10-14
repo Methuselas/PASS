@@ -18,7 +18,7 @@ import sys
 from typing import Any, Iterable
 
 from . import pass_authoring_run as preflight
-from .pass_authoring_workflow import Run, RunError, atomic_write, digest, exact, inside, string
+from .pass_authoring_workflow import (CheckpointPromotionError, Run, RunError, atomic_write, digest, exact, inside, string, enforce_experimental_controller_target)
 
 
 AUTH_SCHEMA = 1
@@ -44,7 +44,7 @@ def action_instruction(run: Run) -> str:
     if phase == "checkpoint":
         return "Resolve every checkpoint question only from source/library evidence. If any answer requires practitioner judgment, stop and report the human-required question instead of guessing; otherwise submit phase=checkpoint through PASS/pass.py."
     if phase == "pass2":
-        return f"Cold-reread the complete bounded unit {run.unit()['unit_id']}, adjudicate the exact delta/taxonomy, stage all declared changes, then submit phase=pass2 through PASS/pass.py."
+        return f"Re-engage the complete bounded unit {run.unit()['unit_id']}: resolve every PASS 1 flag, re-ground each changed card's material/source-sensitive claims, sweep for omissions, then reconcile owners/adjudicate the exact delta and submit phase=pass2 through PASS/pass.py."
     if phase == "pass3":
         return f"Close the source/reading notes, perform card-only PASS 3 for {run.unit()['unit_id']}, repair/rescan until clean, then submit phase=pass3 with hashes through PASS/pass.py."
     if phase == "closure_pass2":
@@ -110,7 +110,7 @@ def progress_report(run: Run) -> dict[str, Any]:
     else:
         prefix = f"{closed}/{count} units accepted"
         statement = prefix + (f"; current={active}/{run.state['phase']}; source not complete." if active else f"; phase={run.state['phase']}; source not complete.")
-    return {
+    result = {
         "schema_version": REPORT_SCHEMA,
         "authoritative": True,
         "source_sha256": identity["sha256"] if identity else None,
@@ -123,6 +123,14 @@ def progress_report(run: Run) -> dict[str, Any]:
         "final_validation_recorded": completion is not None,
         "statement": statement,
     }
+    from .pass_authoring_workflow import sandbox_manifest
+    sandbox = sandbox_manifest(run.repo)
+    if sandbox is not None:
+        result["sandbox"] = sandbox
+    transition = run.latest_transition_report()
+    if transition is not None:
+        result["last_transition_report"] = transition
+    return result
 
 
 def drive(run: Run) -> dict[str, Any]:
@@ -275,7 +283,7 @@ def next_action(run: Run, authorized: bool, source_ok: bool) -> str:
             "otherwise submit all checkpoint answers through pass.py."
         )
     if phase == "pass2":
-        return "Host performs the full cold PASS 2 reread, records owner reconciliation and metadata classification for every changed card, and submits the exact delta through pass.py."
+        return "Host performs PASS 2 as a distinct attention task: resolve PASS 1 flags, re-ground changed cards' material/source-sensitive claims, sweep the unit for omissions, then record dispositions, owner reconciliation and metadata classification before submitting the exact delta."
     if phase == "closure_pass2":
         return "Host performs the mandatory source-closure AP/DRILL synthesis, cross-library reconciliation, and metadata audits, stages any justified closure changes, and submits closure_pass2 through pass.py."
     if phase in {"pass3", "closure_pass3"}:
@@ -438,6 +446,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     args = build_parser().parse_args(list(argv) if argv is not None else None)
     try:
         repo = args.repo_root.resolve() if args.repo_root else preflight.find_repo_root(Path.cwd())
+        enforce_experimental_controller_target(repo)
         run = Run(repo, args.run)
         if args.command == "status":
             print(json.dumps(status(run), indent=2))
@@ -445,7 +454,7 @@ def main(argv: Iterable[str] | None = None) -> int:
         if args.command == "report":
             print(json.dumps(progress_report(run), indent=2))
             return 0
-        with run.locked():
+        with run.locked(action=f"source {args.command}"):
             if args.command == "authorize":
                 result: Any = authorize(run, args.reason)
             elif args.command == "revoke":
@@ -464,6 +473,9 @@ def main(argv: Iterable[str] | None = None) -> int:
         else:
             print(json.dumps(result, indent=2))
         return 0
+    except CheckpointPromotionError as exc:
+        print("PASS SOURCE CHECKPOINT DEGRADED: " + json.dumps(exc.as_record(), sort_keys=True), file=sys.stderr)
+        return 2
     except (OSError, preflight.PreflightError, preflight.yaml.YAMLError) as exc:
         print(f"PASS SOURCE RUN BLOCKED: {exc}", file=sys.stderr)
         return 1

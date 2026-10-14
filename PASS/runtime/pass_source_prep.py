@@ -29,7 +29,7 @@ from statistics import median
 from typing import Iterable, Any
 
 from . import pass_authoring_run as preflight
-from .pass_authoring_workflow import Run, RunError, atomic_write, digest, inside
+from .pass_authoring_workflow import CheckpointPromotionError, Run, RunError, atomic_write, digest, inside
 
 PREP_SCHEMA = 5
 SUPPORTED_PREP_SCHEMAS = {3, 4, 5}
@@ -1531,7 +1531,8 @@ def main(argv: Iterable[str] | None = None) -> int:
         if args.command == "verify":
             print(json.dumps(verify(run), indent=2))
             return 0
-        with run.locked():
+        prep_outcome: str | None = None
+        with run.locked(action=f"source prepare {args.command}"):
             if args.command == "prepare":
                 result = prepare(run, args.min_text_chars, args.force, args.legacy_backfill)
                 # Preparation itself is a recoverable accepted transaction even
@@ -1546,10 +1547,17 @@ def main(argv: Iterable[str] | None = None) -> int:
                     "compatibility_baseline": result.get("compatibility_baseline", []),
                 }
                 run.save()
-                print(json.dumps(run.state["source_prep"], indent=2))
+                prep_outcome = json.dumps(run.state["source_prep"], indent=2)
             elif args.command == "finalize":
-                print(finalize(run, args.legacy_backfill))
+                prep_outcome = finalize(run, args.legacy_backfill)
+        # Results are released only after checkpoint promotion succeeds, so a
+        # degraded checkpoint can never be paired with a success-looking print.
+        if prep_outcome is not None:
+            print(prep_outcome)
         return 0
+    except CheckpointPromotionError as exc:
+        print("SOURCE PREP CHECKPOINT DEGRADED: " + json.dumps(exc.as_record(), sort_keys=True), file=sys.stderr)
+        return 2
     except (OSError, RunError, preflight.PreflightError) as exc:
         print(f"SOURCE PREP BLOCKED: {exc}", file=sys.stderr)
         return 1

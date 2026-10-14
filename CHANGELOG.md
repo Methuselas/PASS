@@ -31,16 +31,6 @@ skillsets may evolve independently.
   sweep gates, and the genre-subfolder discovery test to the legacy run
   layout, so the suite stays green under both lineages.
 
-## 1.0.0-beta.107 - 2026-10-12
-
-### Added
-
-- Retained three provisional software engineering memory lessons from accepted
-  Rust SQLite work: nonvacuous regression setup, rollback evidence at insert and
-  commit, and append-only guards covering replacement-on-insert.
-- Preserved the supporting ordinary-project observations with explicit limits;
-  no canonical card changes or retention/transfer claims.
-
 ## 1.0.0-beta.108 - 2026-10-12
 
 ### Added
@@ -50,6 +40,16 @@ skillsets may evolve independently.
   same priority order as final selection, with typed non-consumption reasons;
   and absence claims at a boundary are proved by doc-stripped production source
   scans paired with behavioral probes.
+- Preserved the supporting ordinary-project observations with explicit limits;
+  no canonical card changes or retention/transfer claims.
+
+## 1.0.0-beta.107 - 2026-10-12
+
+### Added
+
+- Retained three provisional software engineering memory lessons from accepted
+  Rust SQLite work: nonvacuous regression setup, rollback evidence at insert and
+  commit, and append-only guards covering replacement-on-insert.
 - Preserved the supporting ordinary-project observations with explicit limits;
   no canonical card changes or retention/transfer claims.
 

@@ -74,7 +74,7 @@ lesson extraction.
 **Preflight is source-scoped and occurs exactly once for the run.** Only accepted
 preflight releases the first unit for substantive reading. Each unit completes
 PASS 1, any consequential-question checkpoint, the full cold PASS 2, the card-only
-PASS 3, and verified acceptance into the cumulative run-local accepted delta before the next
+PASS 3, and verified acceptance into cumulative skill-staging before the next
 becomes active. Later units reconcile against canonical knowledge plus that
 accepted source delta. After the final unit, the controller enters a separate
 mandatory source-closure audit for AP synthesis, DRILL synthesis, cross-library
@@ -144,41 +144,27 @@ not modified unless that work is explicitly opened.
 
 ### Workspace lifecycle
 
-Before creating work files, use the controller-owned short run store for ordinary
-source authoring. Other workflows still choose a task-named directory under their
-existing purpose bucket: `builds/`, `code-studies/`,
+Before creating work files, choose one task-named directory under the existing
+purpose bucket: `workspace/skill-staging/`, `builds/`, `code-studies/`,
 `drill-runs/`, `candidate-qualification/` or `handoffs/`. Put reusable tools, release recipes, inputs and
 deliverables in their existing `tools/`, `release-recipes/`, `sources/` and
 `project-releases/` buckets. Disposable process-local files belong under
 `workspace/tmp/`, not a root-level `tmp/`. Do not drop loose generated files or
 new ad-hoc buckets in the workspace root.
 
-The executable entrypoint owns `workspace/runs/r_<8-hex>/`. `run_id` is durable
-identity; the path is intentionally short. `RUN_MANIFEST.json` carries domain,
-genre, source identity, display label, and current phase/unit/status, while
-`workspace/runs/catalog.json` provides navigation/filtering. Domain and genre are
-metadata used for classification and routing, not directory authority. The
-controller still recognizes legacy `workspace/skill-staging/<domain>/<book-run>`
-and `<domain>/<genre>/<book-run>` roots so existing work can be resumed/exported
-instead of stranded, and `runs migrate --from <legacy-dir>` copies such a run
-into the short-ID store without modifying the source directory.
-
-Inside a short run, `controller/` contains progression state and hard checkpoints;
-`prepared-source/` contains verified model-facing input when Source Prep has run;
+The executable entrypoint owns `workspace/skill-staging/<domain>/<book-run>/`.
+`controller/` contains progression state and hard checkpoints; `prepared-source/`
+contains verified model-facing input when Source Prep has run;
 `drafts/<canonical-category>/` contains the active unit's provisional changes;
 `accepted/` contains the cumulative reviewed source delta; and `recipes/` may
 stage the domain's existing canonical recipe alongside a module change. The book
 name never becomes a library category by itself. Prepared-source metadata and
 run/checkpoint state remain authoring-only and never enter cards.
 
-A continuation package may carry an exported run ZIP or the selected
-`workspace/runs/r_<id>/` directory so another capable model can resume from the
-verified checkpoint without chat memory. Project snapshots and published
-SkillForge releases never carry `skill-staging/` authoring state; a resumed run
-stays where it lives, in the repository's workspace. Import/export validates
-the self-describing manifest and exact hashes and refuses identity collisions
-unless an explicit new-ID fork is requested. Project snapshots include only
-the canonical release recipe for the selected domain(s).
+Project snapshots and published SkillForge releases never carry `skill-staging/`
+authoring state: runs resume from the verified checkpoint in the repository's
+workspace, not from an archive. Project snapshots include only the canonical
+release recipe for the selected domain(s).
 
 Unit landing validates the complete working overlay and accepts the reviewed
 delta into `accepted/`; it does **not** mutate canonical `library/`. Subsequent
@@ -186,10 +172,8 @@ units see canonical knowledge plus this accepted source delta. The source-close
 transaction validates the complete overlay, serializes canonical integration with
 the domain landing lease, writes/verifies canonical bytes, checkpoints the result,
 and only then retires its commit journal. If the process dies before the new
-checkpoint becomes durable, `repair-checkpoint` rebuilds a verified checkpoint
-from the current state (non-destructive), while `recover` restores the prior
-verified controller and canonical state and refuses to silently discard newer
-authoritative state without `--rollback-authoritative`.
+checkpoint becomes durable, `recover` restores the prior verified controller and
+canonical state.
 
 `PASS/runtime/pass_candidate_qualification.py` owns
 `workspace/candidate-qualification/<domain>/<run-id>/`, one Candidate Refinement
@@ -583,37 +567,16 @@ noticed is worse than either answer.
 may say "this appears inconsistent with owner X." It may not yet say "replace
 owner X." That conclusion has to survive the second read and the duplicate guard.
 
-### 2.3 Second read — pick up, intensify, sweep, then reconcile
+### 2.3 Second read — full coverage, then extract
 
 Re-read the scope **in full, from scratch**. Coverage is not negotiable; **depth
 is adaptive.**
 
 Known material resolves rapidly against existing knowledge — that is recognition
-working, not permission to skip re-engagement. Unresolved residue gets slower,
-fuller attention. In a saturated region most of the text resolves on contact and
-the pass moves quickly, but the budget *concentrates on the residue*; it does not
-shrink. This is never a scan for headings or candidate keywords.
-
-For an Agent, PASS 2 is not repetition and it is not forced skepticism. It is an
-explicitly different attention task with four jobs:
-
-1. **Pick up.** Resolve every PASS 1 secondary-subject flag. Each flag ends as
-   `collected`, `rejected`, or `deferred`, with a reason. `deferred` must name an
-   explicit destination or closure condition in `deferred_to`; non-deferred outcomes
-   leave `deferred_to` empty. A flag is never silently carried.
-2. **Intensify.** Re-ground the material, source-sensitive claims and concrete
-   examples in every new or changed card against the source on this pass. Record
-   the card text being checked, the source locator, and the supporting source
-   excerpt in the run record. These are authoring receipts only; they never enter
-   the durable card. Do not waste receipts on connective prose or facts whose
-   truth does not affect what the card teaches.
-3. **Sweep.** Account for material in the complete unit that the first read did not
-   turn into a card, a flag, or a reasoned rejection. Record any newly found
-   subject as collected or rejected with a reason. An empty sweep is valid only
-   after the full unit has actually been reconsidered.
-4. **Reconcile.** With the source re-engagement complete, decide owners, exclusive
-   dispositions, taxonomy, metadata, and the exact staged delta. Reconciliation is
-   valid PASS work, but it must not substitute for the other three jobs.
+working, not attention lapsing. Unresolved residue gets slower, fuller attention.
+In a saturated region most of the text resolves on contact and the pass moves
+quickly, but the budget *concentrates on the residue*; it does not shrink. This
+is never a scan for headings or candidate keywords.
 
 Extraction happens **here**, with the staged information, the answers, and the
 neighbouring cards all in hand. PASS 2 must explicitly resolve every PASS 1
@@ -687,16 +650,6 @@ PASS delta includes a reason: what the source confirms or adds, why the current
 owner does or does not change, and (for replacement) why the old owner can no
 longer remain authoritative. This explanation is part of the audit trail, not
 optional commentary.
-
-**REINFORCE has an evidence bar, not just a no-write mechanic.** Use it only when
-the source materially strengthens the existing owner's **core decision**. Merely
-mentioning an adjacent fact, sharing vocabulary, or supporting a broader sentence
-inside the owner is background evidence, not reinforcement of the owner's
-distinguishing claim. If the source never exercises the condition that makes the
-owner special, do not report that condition as confirmed. Record the exact owner
-claim and the source evidence used to support the disposition; the controller can
-check that the evidence is registered, while the Agent remains responsible for
-whether it actually supports the claim.
 
 **Refinement** covers the common case where a source sharpens an owner without
 supplying an alternate method and without superseding it: a better boundary, a
@@ -775,13 +728,6 @@ For a programming-language source, the card-only PASS 3 checklist adds two hard
 questions: **did every changed Core card remain language-agnostic, and did every
 current language-specific claim reflect the accepted target version rather than
 the source era?** Both must pass before landing.
-
-PASS 3 also performs an explicit **Instructions ↔ Success Check contract** review
-for every changed Drill: for each Success Check bullet, identify the Practice Task
-or Instruction that required the graded artifact or behavior. If a Success Check
-grades something the learner was never told to produce or do, the Drill fails this
-pass even when its prose is otherwise plausible. This is a card-internal check:
-PASS 3 stays source-closed. Source re-grounding belongs to PASS 2.
 
 **Scope is the delta, not the library.** Every card the run created or changed: a
 refinement counts, a replacement's migrated links count, and so do the cards on

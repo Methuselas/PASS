@@ -6,30 +6,15 @@ skillsets may evolve independently.
 
 ## Unreleased
 
-## 1.0.0-beta.109 - 2026-10-13
+## 1.0.0-beta.107 - 2026-10-12
 
 ### Added
 
-- Integrated the accepted EXP-003.1 hardened authoring runtime: a short-ID
-  run store with self-describing run manifests and catalog, run
-  export/import with hash verification and collision policy, run
-  listing/migration commands, checkpoint repair and rollback gates,
-  residue and close gates, amendment-baseline materialization, and
-  Windows path budget checks.
-- Added the EXP-003 transaction and recovery regression suite
-  (`tests/test_pass_authoring_exp003.py`, 19 tests) and a duplicate-member
-  gate for import/snapshot manifests.
-
-### Changed
-
-- Authoring workflow, source runner, and their documentation now carry the
-  EXP-001/EXP-002 gates (claim re-grounding, omission sweep, unattended
-  action leases, source identity rebinding) merged with the beta.103-108
-  work, including genre-subfolder run discovery. Legacy skill-staging runs
-  remain resumable and migratable beside the short-ID store.
-- Adapted two legacy PASS 2 fixtures to the claim re-grounding and omission
-  sweep gates, and the genre-subfolder discovery test to the legacy run
-  layout, so the suite stays green under both lineages.
+- Retained three provisional software engineering memory lessons from accepted
+  Rust SQLite work: nonvacuous regression setup, rollback evidence at insert and
+  commit, and append-only guards covering replacement-on-insert.
+- Preserved the supporting ordinary-project observations with explicit limits;
+  no canonical card changes or retention/transfer claims.
 
 ## 1.0.0-beta.108 - 2026-10-12
 
@@ -40,16 +25,6 @@ skillsets may evolve independently.
   same priority order as final selection, with typed non-consumption reasons;
   and absence claims at a boundary are proved by doc-stripped production source
   scans paired with behavioral probes.
-- Preserved the supporting ordinary-project observations with explicit limits;
-  no canonical card changes or retention/transfer claims.
-
-## 1.0.0-beta.107 - 2026-10-12
-
-### Added
-
-- Retained three provisional software engineering memory lessons from accepted
-  Rust SQLite work: nonvacuous regression setup, rollback evidence at insert and
-  commit, and append-only guards covering replacement-on-insert.
 - Preserved the supporting ordinary-project observations with explicit limits;
   no canonical card changes or retention/transfer claims.
 

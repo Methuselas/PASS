@@ -207,10 +207,7 @@ def _language_policy(value: Any, domain: str, schema_version: int) -> LanguagePo
         )
         if required is not True:
             raise PreflightError(
-                "preflight.language_policy.modernization_required: programming-language sources must set true; "
-                "modernization is an accepted-study obligation, not an optional flag — PASS 1 records "
-                "version_sensitive_flags for outdated guidance and PASS 3 confirms every language-specific card "
-                "reflects the declared target version before landing"
+                "preflight.language_policy.modernization_required: programming-language sources must set true"
             )
         return LanguagePolicy(
             classification=classification,

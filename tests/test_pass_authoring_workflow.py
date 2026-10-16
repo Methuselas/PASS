@@ -107,46 +107,11 @@ class AuthoringWorkflowTests(unittest.TestCase):
             record["secondary_subject_flags"] = [{"flag_id": "secondary", "subject": "Revisit a possible embedded revision rule."}]
         self.run.submit("pass1", record)
 
-    def complete_pass2_attention(self, record):
-        record["omission_sweep"]["complete"] = True
-        for flag in record["flag_resolutions"]:
-            flag["outcome"] = flag.get("outcome") or "rejected"
-            flag["reason"] = flag.get("reason") or "Instruction does not justify another reusable owner."
-            flag["deferred_to"] = flag.get("deferred_to") or ""
-        reviews = []
-        for name in record["changes"]:
-            staged = self.run.root / name
-            if staged.suffix != ".md":
-                continue
-            fm = workflow.preflight._frontmatter(staged)
-            reviews.append({
-                "object_id": fm["object_id"],
-                "claims": [{
-                    "card_quote": "**IF** a revision changes the reader's understanding",
-                    "source_locator": "fixture source unit",
-                    "source_quote": "Original user input remains untouched.",
-                }],
-                "summary": "Re-grounded the staged rule against the bounded fixture source for this test.",
-            })
-        record["claim_regrounding"] = reviews
-        record["reinforcement_evidence"] = []
-        for item in record["buckets"]["REINFORCE"]:
-            record["reinforcement_evidence"].append({
-                "object_id": item["object_id"],
-                "owner_claim": "**IF** a revision changes the reader's understanding",
-                "source_locator": "fixture source unit",
-                "source_quote": "Original user input remains untouched.",
-                "scope": "reinforces_core",
-            })
-        return record
-
     def second(self, *, refine=False, approval=False):
         record = self.run.template()
         record.update(full_reread=True, approval_required=approval)
         for flag in record["flag_resolutions"]:
-            flag["outcome"] = "rejected"
             flag["reason"] = "Instruction does not justify another reusable owner."
-            flag["deferred_to"] = ""
         if refine:
             name = "drafts/craft/" + self.live.name
             card(self.run.root / name, self.live.stem, note="Test the change against the declared reader effect before acceptance.")
@@ -166,7 +131,6 @@ class AuthoringWorkflowTests(unittest.TestCase):
             }]
         else:
             record["buckets"]["REINFORCE"] = [{"object_id": self.live.stem, "reason": "The existing owner covers the unit completely."}]
-        self.complete_pass2_attention(record)
         self.run.submit("pass2", record)
         return record
 
@@ -222,18 +186,6 @@ class AuthoringWorkflowTests(unittest.TestCase):
                     presentation_sha256=hashlib.sha256(packet.encode("utf-8")).hexdigest(),
                     reason="The complete reviewed delta is settled by the source and schema.")
 
-    def test_experimental_sandbox_marker_can_forbid_a_canonical_repo_root(self):
-        marker = self.repo / "PASS_SANDBOX.json"
-        marker.write_text(json.dumps({
-            "mode": "experimental-sandbox",
-            "forbidden_repo_paths": [str(self.repo.resolve())],
-        }), encoding="utf-8")
-        try:
-            with self.assertRaisesRegex(workflow.RunError, "experimental PASS sandbox refuses"):
-                workflow.enforce_sandbox_boundary(self.repo)
-        finally:
-            marker.unlink(missing_ok=True)
-
     def test_start_never_infers_or_creates_a_domain(self):
         self.module("art/foundations")
         (self.repo / "library/apa-style").mkdir()
@@ -270,11 +222,8 @@ class AuthoringWorkflowTests(unittest.TestCase):
             workflow.start(self.repo, self.other_source("Third Book.txt", "Third.\n"), "writing", self.root.name)
 
     def test_genre_subfolder_run_is_loaded_and_discovered(self):
-        # beta.105's invariant under the short-ID store: genre is manifest
-        # metadata there, so the genre-subfolder path shape is exercised on a
-        # legacy skill-staging run, which the runtime keeps resumable.
-        legacy_domain = self.repo / "workspace/skill-staging/writing"
-        genre = legacy_domain / "prose"
+        domain_dir = self.root.parent  # already resolved by start
+        genre = domain_dir / "prose"
         genre.mkdir(parents=True, exist_ok=True)
         moved = genre / self.root.name
         shutil.move(str(self.root), str(moved))
@@ -298,7 +247,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         for source in (self.source, copy):
             with self.subTest(source=source.name), self.assertRaisesRegex(workflow.RunError, "existing incomplete PASS run"):
                 workflow.start(self.repo, source, "writing", None)
-        self.assertEqual([item["run_id"] for item in workflow.list_registered_runs(self.repo, domain="writing")], [self.root.name])
+        self.assertEqual(sorted(p.name for p in (self.repo / "workspace/skill-staging/writing").iterdir()), [self.root.name])
 
     def test_same_source_may_start_in_another_domain_or_after_finishing(self):
         self.module("art/foundations")
@@ -769,11 +718,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertEqual(self.run.state["phase"], "closure_pass2")
         self.assertFalse(staged.exists())
         # The accepted delta is staged in skill-staging; the live canon is
-        # untouched until the source close transaction. Storage is
-        # content-addressed (EXP-003), so read through the logical-name API.
-        self.assertEqual(
-            self.run.read_accepted(f"library/writing/craft/{self.live.name}"), expected
-        )
+        # untouched until the source close transaction.
+        accepted = self.root / "accepted/files/library/writing/craft" / self.live.name
+        self.assertEqual(accepted.read_bytes(), expected)
         self.assertNotEqual(self.live.read_bytes(), expected)
         self.close_source()
         self.assertEqual(self.live.read_bytes(), expected)
@@ -840,76 +787,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.run.rewind("pass2")
         self.assertEqual(self.run.state["phase"], "pass2")
 
-    def test_pass2_requires_intensification_and_omission_sweep(self):
-        self.begin()
-        self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        record["buckets"]["REINFORCE"] = [{"object_id": self.live.stem, "reason": "Existing owner remains sufficient."}]
-        with self.assertRaisesRegex(workflow.RunError, "omission_sweep"):
-            self.run.submit("pass2", record)
-        record["omission_sweep"]["complete"] = True
-        self.complete_pass2_attention(record)
-        self.run.submit("pass2", record)
-
-    def test_reinforce_requires_registered_source_to_owner_evidence(self):
-        self.begin()
-        self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        record["omission_sweep"]["complete"] = True
-        record["buckets"]["REINFORCE"] = [{"object_id": self.live.stem, "reason": "The owner remains sufficient."}]
-        with self.assertRaisesRegex(workflow.RunError, "source-to-owner evidence"):
-            self.run.submit("pass2", record)
-        self.complete_pass2_attention(record)
-        record["reinforcement_evidence"][0]["owner_claim"] = "claim that does not exist in the owner"
-        with self.assertRaisesRegex(workflow.RunError, "owner_claim"):
-            self.run.submit("pass2", record)
-
-    def test_changed_card_requires_literal_claim_re_grounding(self):
-        self.begin()
-        self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        name = "drafts/craft/" + self.live.name
-        card(self.run.root / name, self.live.stem, note="Re-ground this change.")
-        record["changes"] = [name]
-        record["buckets"]["REFINE"] = [{"object_id": self.live.stem, "reason": "Clarify the owner."}]
-        self.audit_changed(record, self.live.stem, name, [self.live.stem])
-        record["omission_sweep"]["complete"] = True
-        with self.assertRaisesRegex(workflow.RunError, "claim re-grounding"):
-            self.run.submit("pass2", record)
-        self.complete_pass2_attention(record)
-        record["claim_regrounding"][0]["claims"][0]["card_quote"] = "not present in the card"
-        with self.assertRaisesRegex(workflow.RunError, "card_quote"):
-            self.run.submit("pass2", record)
-
-    def test_accepted_unit_history_is_checkpointed_for_recovery(self):
-        self.ready(count=2, refine=True)
-        self.run.checkpoint()
-        decision = self.decision()
-        with self.run.locked():
-            self.run.land(decision)
-        manifest = self.run.checkpoint_manifest()
-        self.assertIn("controller/unit-history/u01/r001/pass3.json", manifest["files"])
-        self.assertIn("controller/unit-history/u01/r001/land.json", manifest["files"])
-
-    def test_reopen_last_unit_restores_pass2_without_rewriting_accepted_baseline(self):
-        self.ready(count=2, refine=True)
-        self.run.land(self.decision())
-        accepted_name = f"library/writing/craft/{self.live.name}"
-        before = self.run.read_accepted(accepted_name)
-        self.assertEqual(self.run.state["phase"], "pass1")
-        message = self.run.reopen_last_unit("Independent review found a source-fidelity defect.")
-        self.assertIn("UNIT REOPENED", message)
-        self.assertEqual(self.run.state["unit_index"], 0)
-        self.assertEqual(self.run.state["phase"], "pass2")
-        self.assertEqual(self.run.read_accepted(accepted_name), before)
-        self.assertTrue((self.root / "controller/unit-history/u01/r002/reopen.json").is_file())
-
     def test_domain_landing_lease_prevents_overlapping_integrations(self):
         self.ready()
-        lease = self.repo / f"{workflow.RUN_STORE}/.landing-{self.run.domain}.lock"
+        lease = self.root.parent / ".landing.lock"
         lease.write_text("", encoding="utf-8")
         with self.assertRaisesRegex(workflow.RunError, "another book"):
             self.run.land(self.decision())
@@ -922,9 +802,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         failed = False
         def fail_once(path, content):
             nonlocal failed
-            # Accepted storage is content-addressed (EXP-003); the accepted
-            # manifest write is the deterministic mid-landing seam.
-            if path.name == "manifest.json" and path.parent.name.startswith("accepted") and not failed:
+            if path.name == "INDEX.md" and not failed:
                 failed = True
                 raise OSError("injected landing write failure")
             real_write(path, content)
@@ -934,7 +812,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertEqual(workflow.tree_hashes(self.repo / "library"), before)
         self.assertEqual(workflow.Run(self.repo, self.root).state["phase"], "land")
         self.assertTrue((self.root / self.run.state["pass2"]["changes"][0]).is_file())
-        self.assertFalse((self.repo / f"{workflow.RUN_STORE}/.landing-{self.run.domain}.lock").exists())
+        self.assertFalse((self.root.parent / ".landing.lock").exists())
 
     def test_landing_advances_only_one_unit(self):
         self.ready(count=2)
@@ -943,24 +821,6 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertEqual(self.run.brief()["unit_id"], "u02")
         with self.assertRaises(workflow.RunError):
             self.run.close()
-
-    def test_unit_audit_history_survives_until_close_run_then_is_discarded(self):
-        self.ready(refine=True)
-        self.assertTrue((self.root / "controller/audit/preflight.md").is_file())
-        self.run.land(self.decision())
-        self.assertTrue((self.root / "controller/audit/u01-landing.md").is_file())
-        self.assertTrue((self.root / "controller/audit/u01-state-report.json").is_file())
-        self.assertTrue((self.root / "controller/unit-history/u01/r001/pass3.json").is_file())
-        self.assertTrue((self.root / "controller/unit-history/u01/r001/land.json").is_file())
-        self.close_source()
-        self.assertTrue((self.root / "controller/unit-history").is_dir())
-        hold = self.root / "controller/audit/HOLD.txt"
-        hold.write_text("retain for diagnosis\n", encoding="utf-8")
-        self.run.close()
-        self.assertTrue(hold.is_file())
-        self.assertFalse((self.root / "controller/audit/preflight.md").exists())
-        self.assertFalse((self.root / "controller/audit/u01-state-report.json").exists())
-        self.assertFalse((self.root / "controller/unit-history").exists())
 
     def test_generated_state_can_be_closed_without_deleting_original_inputs(self):
         self.ready()
@@ -1020,7 +880,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         staged.parent.mkdir()
         staged.write_text("modules: [writing/missing]\n", encoding="utf-8")
         record["changes"] = [name]
-        self.run.submit("pass2", self.complete_pass2_attention(record))
+        self.run.submit("pass2", record)
         with self.assertRaisesRegex(workflow.RunError, "missing module"):
             self.third()
 
@@ -1061,7 +921,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         record["changes"] = [name]
         record["buckets"]["NEW_PATTERNS"] = [dict(object_id=oid, reason="Different reusable decision.")]
         self.audit_changed(record, oid, name, [self.live.stem])
-        self.run.submit("pass2", self.complete_pass2_attention(record))
+        self.run.submit("pass2", record)
         self.third()
         with self.assertRaisesRegex(workflow.RunError, "validate.py failed"):
             self.run.land(self.decision())
@@ -1114,7 +974,6 @@ class AuthoringWorkflowTests(unittest.TestCase):
         record["taxonomy"]["MOVE"] = [dict(path="craft/new-topic", reason="This category owns the decision.")]
         record["taxonomy"]["NEW_SUBCATEGORY"] = [dict(path="craft/new-topic", reason="Give the reusable decision its own topic.")]
         self.audit_changed(record, self.live.stem, name, [self.live.stem])
-        self.complete_pass2_attention(record)
         self.run.submit("pass2", record)
         self.third()
         self.run.land(self.decision())
@@ -1143,7 +1002,6 @@ class AuthoringWorkflowTests(unittest.TestCase):
         staged.parent.mkdir(parents=True)
         staged.write_bytes(b"image fixture, not yet referenced")
         record["changes"] = [name]
-        self.complete_pass2_attention(record)
         self.run.submit("pass2", record)
         self.assertEqual(self.run.state["phase"], "pass3")
 
@@ -1158,198 +1016,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         staged.parent.mkdir()
         staged.write_text("modules: [writing/craft]\n", encoding="utf-8")
         record["changes"] = [name]
-        self.complete_pass2_attention(record)
         self.run.submit("pass2", record)
         with self.assertRaisesRegex(workflow.RunError, "every active-domain module"):
             self.third()
-
-
-    def test_exp002_start_uses_short_id_manifest_and_catalog(self):
-        self.assertEqual(self.root.parent, self.repo / workflow.RUN_STORE)
-        self.assertRegex(self.root.name, r"^r_[0-9a-f]{8}$")
-        manifest = workflow.read_run_manifest(self.root, required=True)
-        self.assertEqual(manifest["run_id"], self.root.name)
-        self.assertEqual(manifest["domain"], "writing")
-        self.assertEqual(manifest["genre"], "unclassified")
-        self.assertEqual(manifest["display_label"], "original-book-run-one")
-        self.assertEqual(manifest["current"]["phase"], "load")
-        catalog = json.loads((self.repo / workflow.RUN_CATALOG).read_text(encoding="utf-8"))
-        self.assertEqual(catalog["entries"][0]["path"], f"{workflow.RUN_STORE}/{self.root.name}")
-
-    def test_exp002_genre_is_metadata_not_directory_authority(self):
-        root = workflow.start(self.repo, self.other_source(), "writing", "genre-test", genre="python")
-        manifest = workflow.read_run_manifest(root, required=True)
-        self.assertEqual(manifest["genre"], "python")
-        self.assertEqual(root.parent, self.repo / workflow.RUN_STORE)
-        self.assertNotIn("python", root.parts)
-        listed = workflow.list_registered_runs(self.repo, genre="python")
-        self.assertEqual([item["run_id"] for item in listed], [root.name])
-
-    def test_exp002_start_over_marks_prior_short_run_abandoned(self):
-        old_root = self.root
-        old_run_id = old_root.name
-        result = workflow.start_over(self.repo, old_root, "Restart fixture from scratch.")
-        self.assertEqual(result["outcome"], "started_over")
-        self.assertNotEqual(Path(result["new_run"]).name, old_run_id)
-        manifest = workflow.read_run_manifest(old_root, required=True)
-        self.assertEqual(manifest["current"]["status"], "abandoned")
-        self.assertTrue((old_root / workflow.ABANDONED).is_file())
-        self.assertNotIn(old_root, workflow.open_runs(self.repo, "writing"))
-
-    def test_exp002_legacy_genre_level_run_root_remains_compatible(self):
-        legacy = self.repo / "workspace/skill-staging/writing/python/legacy-book-run"
-        (legacy / "controller").mkdir(parents=True)
-        (legacy / "drafts").mkdir()
-        shutil.copy2(self.root / "controller/run.json", legacy / "controller/run.json")
-        run = workflow.Run(self.repo, legacy)
-        self.assertEqual(run.domain, "writing")
-        self.assertEqual(run.root, legacy.resolve())
-
-    def test_exp002_template_cli_prints_its_phase(self):
-        result = subprocess.run(
-            [sys.executable, str(ROOT / "PASS/pass.py"), "--repo-root", str(self.repo), "template", "--run", str(self.root)],
-            capture_output=True, text=True, encoding="utf-8",
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        payload = json.loads(result.stdout)
-        self.assertEqual(payload["phase"], "load")
-        self.assertIn("template", payload)
-
-    def test_exp002_portable_controller_forbids_configured_canonical_target(self):
-        marker = workflow.sandbox_manifest(workflow.controller_project_root())
-        if marker is None:
-            # Outside the experimental portable the controller checkout carries
-            # no sandbox marker; exercise the guard with a synthetic controller
-            # manifest instead of requiring repository state that must not ship.
-            synthetic = {"mode": "experimental-sandbox",
-                         "forbidden_repo_paths": [str(self.repo.resolve())]}
-            with patch.object(workflow, "sandbox_manifest", return_value=synthetic):
-                with self.assertRaisesRegex(workflow.RunError, "refuses canonical repo root"):
-                    workflow.enforce_experimental_controller_target(self.repo)
-            return
-        forbidden = marker.get("forbidden_repo_paths") or []
-        self.assertTrue(forbidden)
-        with self.assertRaisesRegex(workflow.RunError, "refuses canonical repo root"):
-            workflow.enforce_experimental_controller_target(Path(forbidden[0]))
-
-    def test_exp002_run_export_import_hashes_and_collision_policy(self):
-        archive = Path(self.temporary.name) / "run-export.zip"
-        exported = workflow.export_run(self.repo, self.root, archive)
-        self.assertTrue(exported.is_file())
-        with self.assertRaisesRegex(workflow.RunError, "run_id collision"):
-            workflow.import_run(self.repo, exported)
-        imported = workflow.import_run(self.repo, exported, collision="new-id")
-        self.assertNotEqual(imported.name, self.root.name)
-        imported_manifest = workflow.read_run_manifest(imported, required=True)
-        self.assertEqual(imported_manifest["domain"], "writing")
-        self.assertEqual(workflow.Run(self.repo, imported).state["phase"], "load")
-
-    def test_exp002_path_budget_rejects_windows_incompatible_paths(self):
-        too_long = Path("C:/") / ("a" * 201) / ("b" * 60)
-        with self.assertRaisesRegex(workflow.RunError, "Windows path budget|path component"):
-            workflow.validate_windows_path_budget(too_long, "fixture path")
-
-    def test_exp002_flag_error_prints_valid_pattern(self):
-        self.begin()
-        record = self.run.template()
-        record["full_read"] = True
-        record["secondary_subject_flags"] = [{"flag_id": "Bad-ID", "subject": "Invalid identifier fixture."}]
-        with self.assertRaisesRegex(workflow.RunError, r"expected \^\[a-z\]"):
-            self.run.submit("pass1", record)
-
-    def test_exp002_deferred_flag_requires_destination_or_closure_condition(self):
-        self.begin()
-        self.first(flags=True)
-        record = self.run.template()
-        record["full_reread"] = True
-        record["omission_sweep"]["complete"] = True
-        flag = record["flag_resolutions"][0]
-        flag.update(outcome="deferred", reason="Needs a later bounded evidence check.", deferred_to="")
-        with self.assertRaisesRegex(workflow.RunError, "deferred_to"):
-            self.run.submit("pass2", record)
-        flag["deferred_to"] = "Resolve during U02 when the named API contract is in scope."
-        self.complete_pass2_attention(record)
-        self.run.submit("pass2", record)
-        self.assertEqual(self.run.state["pass2"]["flag_resolutions"][0]["outcome"], "deferred")
-
-    def test_exp002_reinforce_requires_reinforces_core_scope(self):
-        self.begin()
-        self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        record["omission_sweep"]["complete"] = True
-        record["buckets"]["REINFORCE"] = [{"object_id": self.live.stem, "reason": "The owner remains sufficient."}]
-        self.complete_pass2_attention(record)
-        record["reinforcement_evidence"][0]["scope"] = "related_background"
-        with self.assertRaisesRegex(workflow.RunError, "reinforces_core"):
-            self.run.submit("pass2", record)
-        record["reinforcement_evidence"][0]["scope"] = "reinforces_core"
-        self.run.submit("pass2", record)
-
-    def test_exp002_amendment_preserves_superseded_packet_and_revision(self):
-        self.ready(count=2, refine=True)
-        decision = self.decision()
-        original_packet_sha = decision["presentation_sha256"]
-        self.run.land(decision)
-        first_land = self.root / "controller/unit-history/u01/r001/land.json"
-        first_before = first_land.read_bytes()
-        first_record = json.loads(first_before)
-        first_fingerprint = first_record["accepted_delta_fingerprint"]
-
-        self.run.reopen_last_unit("Independent review found a source-fidelity defect.")
-        amendment = json.loads((self.root / "controller/unit-history/u01/r002/amendment.json").read_text(encoding="utf-8"))
-        self.assertEqual(amendment["from_revision"], "r001")
-        self.assertEqual(amendment["superseded_landing_packet_sha256"], original_packet_sha)
-        self.assertEqual(amendment["superseded_accepted_delta_fingerprint"], first_fingerprint)
-        self.assertEqual(amendment["required_rechecks"], ["pass2", "pass3", "land"])
-
-        self.second(refine=False)
-        self.third()
-        self.run.land(self.decision())
-        second_record = json.loads((self.root / "controller/unit-history/u01/r002/land.json").read_text(encoding="utf-8"))
-        self.assertEqual(second_record["supersedes_revision"], "r001")
-        self.assertEqual(first_land.read_bytes(), first_before, "amendment must not rewrite accepted history")
-
-    def test_exp002_checkpoint_failure_reports_persisted_state_and_recovers_previous_checkpoint(self):
-        self.run.checkpoint()
-        old_manifest = self.run.checkpoint_manifest()
-        self.assertEqual(old_manifest["phase"], "load")
-        self.run.state["stop_after"] = "source_prep"
-        self.run.save()
-        persisted_sha = workflow.digest(self.run.state_path)
-        real_rename = Path.rename
-
-        def fail_fresh(path, target):
-            if Path(path).name == "checkpoint.new":
-                raise PermissionError(13, "Access is denied", str(path))
-            return real_rename(path, target)
-
-        with patch.object(Path, "rename", new=fail_fresh):
-            with self.assertRaises(workflow.CheckpointPromotionError) as caught:
-                self.run.checkpoint()
-        self.assertEqual(caught.exception.state_sha256, persisted_sha)
-        self.assertTrue(caught.exception.previous_checkpoint_restored)
-        diagnostic = json.loads((self.root / "controller/checkpoint-failure.json").read_text(encoding="utf-8"))
-        self.assertEqual(diagnostic["outcome"], "authoritative_state_persisted_checkpoint_not_advanced")
-        self.assertEqual(workflow.digest(self.run.state_path), persisted_sha)
-        self.assertEqual(self.run.checkpoint_manifest()["state_sha256"], old_manifest["state_sha256"])
-
-        message = self.run.recover(rollback_authoritative=True)
-        self.assertIn("RECOVERED", message)
-        self.assertEqual(self.run.state["stop_after"], "complete")
-        self.assertFalse((self.root / "controller/checkpoint-failure.json").exists())
-        self.assertFalse((self.root / "controller/checkpoint.new").exists())
-
-    def test_exp002_recover_refuses_silent_rewind_without_explicit_intent(self):
-        self.run.checkpoint()
-        self.run.state["stop_after"] = "source_prep"
-        self.run.save()
-        with self.assertRaisesRegex(workflow.RunError, "refusing destructive recovery"):
-            self.run.recover()
-        self.assertEqual(self.run.state["stop_after"], "source_prep", "refusal must not mutate authoritative state")
-        message = self.run.recover(rollback_authoritative=True)
-        self.assertIn("RECOVERED", message)
-        self.assertEqual(self.run.state["stop_after"], "complete")
 
 
 if __name__ == "__main__":

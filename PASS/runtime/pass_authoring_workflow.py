@@ -22,8 +22,6 @@ import sys
 import tempfile
 from typing import Any, Iterable
 import uuid
-import zipfile
-import zlib
 
 from . import pass_authoring_run as preflight
 
@@ -54,112 +52,16 @@ SEMANTIC_CHECKS = (
     "identity_and_placement", "relations_and_variant_parentage",
     "contradictions_and_field_meaning", "source_independence",
     "examples_and_overreach", "pattern_ap_drill_ownership",
-    "standalone_executability", "instruction_success_contract",
-    "cross_library_reconciliation", "metadata_classification",
+    "standalone_executability", "cross_library_reconciliation", "metadata_classification",
 )
 LANGUAGE_SEMANTIC_CHECKS = ("core_language_agnosticism", "language_modernization")
 MODERNIZATION_DISPOSITIONS = {"current", "modernized", "historical", "rejected"}
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 FLAG_RE = re.compile(r"^[a-z][a-z0-9_]*$")
-GENRE_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-RUN_ID_RE = re.compile(r"^r_[0-9a-f]{8}$")
-RUN_STORE = "workspace/runs"
-RUN_CATALOG = "workspace/runs/catalog.json"
-RUN_MANIFEST = "RUN_MANIFEST.json"
-RUN_EXPORT_MANIFEST = "PASS_RUN_EXPORT.json"
-WINDOWS_PATH_BUDGET = 240
-WINDOWS_COMPONENT_BUDGET = 200
 
 
 class RunError(preflight.PreflightError):
     """The current operation cannot be accepted by the authoring workflow."""
-
-
-class CheckpointPromotionError(RunError):
-    """Authoritative state persisted, but checkpoint promotion did not complete.
-
-    Carries the complete transaction truth so the CLI can emit exactly one
-    top-level outcome: whether authoritative state persisted, whether the
-    checkpoint advanced, which residue remains, why promotion failed, and which
-    recovery action is safe. A failure here must never be reported as a clean
-    success, and the operation's own result must never print alongside a
-    contradictory BLOCKED line.
-    """
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        reason: str,
-        state_sha256: str,
-        authoritative: dict[str, Any],
-        checkpoint: dict[str, Any] | None,
-        residue: dict[str, bool],
-        previous_checkpoint_restored: bool,
-        fresh_checkpoint_retained: bool,
-        safe_to_continue: str,
-    ):
-        super().__init__(message)
-        self.reason = reason
-        self.state_sha256 = state_sha256
-        self.authoritative = authoritative
-        self.checkpoint = checkpoint
-        self.residue = residue
-        self.previous_checkpoint_restored = previous_checkpoint_restored
-        self.fresh_checkpoint_retained = fresh_checkpoint_retained
-        self.safe_to_continue = safe_to_continue
-
-    def as_record(self) -> dict[str, Any]:
-        if self.checkpoint is None:
-            newer = "authoritative"
-        elif self.checkpoint.get("state_sha256") != self.state_sha256:
-            newer = "authoritative"
-        else:
-            newer = "equal"
-        return {
-            "outcome": "authoritative_state_persisted_checkpoint_not_advanced",
-            "authoritative_state_persisted": True,
-            "checkpoint_advanced": False,
-            "authoritative": self.authoritative,
-            "checkpoint": self.checkpoint,
-            "newer": newer,
-            "residue": self.residue,
-            "reason": self.reason,
-            "previous_checkpoint_restored": self.previous_checkpoint_restored,
-            "fresh_checkpoint_retained": self.fresh_checkpoint_retained,
-            "safe_to_continue": self.safe_to_continue,
-            "recovery": (
-                "run repair-checkpoint to establish a verified checkpoint from the current authoritative state "
-                "(non-destructive); recover --rollback-authoritative is the explicit destructive alternative"
-            ),
-            "message": str(self),
-        }
-
-
-class ResidueBlockedError(RunError):
-    """A mutating command refused to run because checkpoint residue is unresolved.
-
-    Raised before any command side effect, so the printed record truthfully
-    declares side_effects: false.
-    """
-
-    def __init__(self, action: str, residue: dict[str, bool]):
-        self.action = action
-        self.residue = residue
-        super().__init__(
-            f"checkpoint residue blocks {action}: {json.dumps(residue, sort_keys=True)}; no side effects were "
-            f"taken — inspect {CHECKPOINT_FAILURE}, then run repair-checkpoint (non-destructive; keeps the "
-            "current authoritative state) or recover --rollback-authoritative (explicit destructive rollback)"
-        )
-
-    def as_record(self) -> dict[str, Any]:
-        return {
-            "outcome": "blocked_checkpoint_residue",
-            "action": self.action,
-            "residue": self.residue,
-            "side_effects": False,
-            "message": str(self),
-        }
 
 
 def exact(data: Any, keys: Iterable[str], label: str) -> None:
@@ -226,411 +128,6 @@ def atomic_write(path: Path, content: bytes) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def sandbox_manifest(repo: Path) -> dict | None:
-    """Return the experimental portable marker when this checkout is a sandbox."""
-    path = repo / "PASS_SANDBOX.json"
-    if not path.is_file():
-        return None
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {"mode": "sandbox", "marker": "unreadable"}
-    if not isinstance(data, dict):
-        return {"mode": "sandbox", "marker": "invalid"}
-    return data
-
-
-def enforce_sandbox_boundary(repo: Path) -> None:
-    """Refuse experimental-portable authoring when copied onto a forbidden canonical root."""
-    manifest = sandbox_manifest(repo)
-    if manifest is None:
-        return
-    forbidden = manifest.get("forbidden_repo_paths", [])
-    if not isinstance(forbidden, list):
-        raise RunError("PASS_SANDBOX.json forbidden_repo_paths must be a list")
-    current = os.path.normcase(str(repo.resolve()).rstrip("\\/"))
-    for raw in forbidden:
-        if not isinstance(raw, str) or not raw.strip():
-            raise RunError("PASS_SANDBOX.json contains an invalid forbidden repo path")
-        target = os.path.normcase(str(Path(raw).resolve()).rstrip("\\/"))
-        if current == target:
-            raise RunError(
-                f"experimental PASS sandbox refuses to run from canonical repo path {repo}; "
-                "extract the portable into a separate directory"
-            )
-
-
-def controller_project_root() -> Path:
-    return Path(__file__).resolve().parents[2]
-
-
-def enforce_experimental_controller_target(repo: Path) -> None:
-    """Honor the portable's forbidden canonical roots even when --repo-root points elsewhere.
-
-    EXP-001's guard looked only for PASS_SANDBOX.json in the target repo, which
-    allowed portable code to be aimed at a configured canonical PASS root. EXP-002 consults the
-    controller portable's own marker as well. Test/scratch repos remain usable;
-    explicitly forbidden canonical roots do not.
-    """
-    controller_root = controller_project_root().resolve()
-    manifest = sandbox_manifest(controller_root)
-    if not manifest or manifest.get("mode") != "experimental-sandbox":
-        return
-    forbidden = manifest.get("forbidden_repo_paths", [])
-    if not isinstance(forbidden, list):
-        raise RunError("controller PASS_SANDBOX.json forbidden_repo_paths must be a list")
-    target = os.path.normcase(str(repo.resolve()).rstrip("\\/"))
-    for raw in forbidden:
-        if not isinstance(raw, str) or not raw.strip():
-            raise RunError("controller PASS_SANDBOX.json contains an invalid forbidden repo path")
-        blocked = os.path.normcase(str(Path(raw).resolve()).rstrip("\\/"))
-        if target == blocked:
-            raise RunError(
-                f"experimental PASS controller refuses canonical repo root {repo.resolve()}; "
-                "use the portable's own library/workspace copy for EXP-002 drill work"
-            )
-
-
-def validate_windows_path_budget(path: Path, label: str = "path") -> None:
-    """Fail deterministically before a path reaches common Windows compatibility cliffs."""
-    rendered = str(path.absolute()).replace("/", "\\")
-    if len(rendered) > WINDOWS_PATH_BUDGET:
-        raise RunError(
-            f"{label} exceeds conservative Windows path budget ({len(rendered)} > {WINDOWS_PATH_BUDGET}): {rendered}"
-        )
-    for component in path.parts:
-        if len(component) > WINDOWS_COMPONENT_BUDGET:
-            raise RunError(
-                f"{label} has a path component longer than {WINDOWS_COMPONENT_BUDGET} characters: {component[:60]}..."
-            )
-
-
-def run_store(repo: Path) -> Path:
-    return inside(repo, RUN_STORE)
-
-
-def catalog_path(repo: Path) -> Path:
-    return inside(repo, RUN_CATALOG)
-
-
-def run_manifest_path(root: Path) -> Path:
-    return inside(root, RUN_MANIFEST)
-
-
-def read_run_manifest(root: Path, required: bool = False) -> dict | None:
-    path = run_manifest_path(root)
-    if not path.is_file():
-        if required:
-            raise RunError(f"short-ID run is missing {RUN_MANIFEST}: {root}")
-        return None
-    data = preflight._read_json(str(path))
-    exact(
-        data,
-        {"schema_version", "run_id", "domain", "genre", "display_label", "source", "current", "created_at", "updated_at"},
-        "run manifest",
-    )
-    if data["schema_version"] != 1 or not RUN_ID_RE.fullmatch(string(data["run_id"], "run manifest run_id")):
-        raise RunError("unsupported or invalid run manifest identity")
-    if not GENRE_RE.fullmatch(string(data["genre"], "run manifest genre")):
-        raise RunError("run manifest genre must be a lowercase metadata slug")
-    if not isinstance(data["source"], dict) or not isinstance(data["current"], dict):
-        raise RunError("run manifest source/current must be objects")
-    return data
-
-
-def _catalog_entries(repo: Path) -> list[dict]:
-    path = catalog_path(repo)
-    if not path.is_file():
-        return []
-    data = preflight._read_json(str(path))
-    if set(data) != {"schema_version", "entries"} or data["schema_version"] != 1 or not isinstance(data["entries"], list):
-        raise RunError("workspace/runs/catalog.json is malformed")
-    return data["entries"]
-
-
-def register_run(repo: Path, root: Path, manifest: dict) -> None:
-    store = run_store(repo)
-    store.mkdir(parents=True, exist_ok=True)
-    relative_root = root.relative_to(repo).as_posix()
-    entry = {
-        "run_id": manifest["run_id"],
-        "path": relative_root,
-        "domain": manifest["domain"],
-        "genre": manifest["genre"],
-        "display_label": manifest["display_label"],
-        "phase": manifest["current"].get("phase"),
-        "status": manifest["current"].get("status"),
-    }
-    entries = [e for e in _catalog_entries(repo) if isinstance(e, dict) and e.get("run_id") != manifest["run_id"]]
-    entries.append(entry)
-    entries.sort(key=lambda e: e.get("run_id", ""))
-    atomic_write(catalog_path(repo), (json.dumps({"schema_version": 1, "entries": entries}, indent=2) + "\n").encode("utf-8"))
-
-
-def _new_run_id(repo: Path) -> str:
-    store = run_store(repo)
-    for _ in range(100):
-        run_id = f"r_{uuid.uuid4().hex[:8]}"
-        if not (store / run_id).exists():
-            return run_id
-    raise RunError("could not allocate a unique short run_id")
-
-
-def _manifest_current(state: dict) -> dict:
-    phase = state.get("phase")
-    unit_id = None
-    plan = state.get("plan")
-    index = state.get("unit_index", 0)
-    if isinstance(plan, dict) and isinstance(plan.get("units"), list) and isinstance(index, int) and 0 <= index < len(plan["units"]):
-        unit_id = plan["units"][index].get("unit_id")
-    return {"phase": phase, "unit": unit_id, "status": "finished" if phase == "finished" else "active"}
-
-
-def sync_run_manifest(repo: Path, root: Path, state: dict) -> None:
-    manifest = read_run_manifest(root, required=False)
-    if manifest is None:
-        return
-    manifest["current"] = _manifest_current(state)
-    prep_identity = root / "controller" / "source-identity.json"
-    if prep_identity.is_file():
-        identity = preflight._read_json(str(prep_identity))
-        manifest["source"]["sha256"] = identity.get("sha256")
-        manifest["source"]["size"] = identity.get("size")
-    plan = state.get("plan")
-    if isinstance(plan, dict):
-        manifest["source"]["title"] = plan.get("title") or manifest["source"].get("title")
-        manifest["source"]["author"] = plan.get("author") or manifest["source"].get("author")
-        manifest["source"]["edition"] = plan.get("edition") or manifest["source"].get("edition")
-    manifest["updated_at"] = now()
-    atomic_write(run_manifest_path(root), (json.dumps(manifest, indent=2) + "\n").encode("utf-8"))
-    register_run(repo, root, manifest)
-
-
-def list_registered_runs(repo: Path, *, domain: str | None = None, genre: str | None = None) -> list[dict]:
-    result = []
-    store = run_store(repo)
-    if not store.is_dir():
-        return result
-    for root in sorted(store.glob("r_*")):
-        if not root.is_dir() or not RUN_ID_RE.fullmatch(root.name):
-            continue
-        manifest = read_run_manifest(root, required=True)
-        if manifest["run_id"] != root.name:
-            raise RunError(f"run manifest identity/path mismatch: {root}")
-        if domain is not None and manifest["domain"] != domain:
-            continue
-        if genre is not None and manifest["genre"] != genre:
-            continue
-        result.append({**manifest, "path": str(root)})
-    return result
-
-
-def export_run(repo: Path, root: Path, output: Path) -> Path:
-    root = run_root(repo, root)
-    manifest = read_run_manifest(root, required=True)
-    files = tree_hashes(root)
-    if "controller/operation.lock" in files:
-        raise RunError("cannot export a run while an operation.lock is present")
-    export_record = {
-        "schema_version": 1,
-        "run_id": manifest["run_id"],
-        "run_manifest_sha256": digest(run_manifest_path(root)),
-        "files": files,
-    }
-    output = output.absolute()
-    if output.suffix.lower() != ".zip":
-        output = output.with_suffix(".zip")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr(RUN_EXPORT_MANIFEST, json.dumps(export_record, indent=2) + "\n")
-        for name in sorted(files):
-            archive.write(inside(root, name), f"run/{name}")
-    return output
-
-
-def import_run(repo: Path, source: Path, *, collision: str = "error") -> Path:
-    """Import a run archive under typed failure (EXP-003 Target F).
-
-    Corrupt, truncated, or structurally unexpected archives surface as a RunError
-    that says so and confirms no run was registered; raw KeyError/ValueError/
-    BadZipFile tracebacks never reach the CLI. Registration happens only after
-    every member hash and manifest check has passed.
-    """
-    try:
-        return _import_run(repo, source, collision=collision)
-    except RunError:
-        raise
-    except (zipfile.BadZipFile, zipfile.LargeZipFile, zlib.error, EOFError, RuntimeError, ValueError, KeyError, TypeError) as exc:
-        raise RunError(
-            f"run import archive is corrupt or truncated ({type(exc).__name__}: {exc}); no run was registered"
-        ) from exc
-
-
-def _import_run(repo: Path, source: Path, *, collision: str = "error") -> Path:
-    if collision not in {"error", "new-id"}:
-        raise RunError("run import collision policy must be error or new-id")
-    source = source.absolute()
-    if not source.is_file():
-        raise RunError(f"run import archive does not exist: {source}")
-    with zipfile.ZipFile(source) as archive:
-        names = archive.namelist()
-        if RUN_EXPORT_MANIFEST not in names:
-            raise RunError(f"run import archive is missing {RUN_EXPORT_MANIFEST}")
-        for name in names:
-            posix = PurePosixPath(name)
-            if posix.is_absolute() or any(part in {"", ".", ".."} for part in posix.parts):
-                raise RunError(f"unsafe run import member: {name}")
-        if len(names) != len(set(names)):
-            raise RunError("run import archive contains duplicate members")
-        export_record = json.loads(archive.read(RUN_EXPORT_MANIFEST))
-        exact(export_record, {"schema_version", "run_id", "run_manifest_sha256", "files"}, "run export manifest")
-        if export_record["schema_version"] != 1 or not RUN_ID_RE.fullmatch(string(export_record["run_id"], "export run_id")):
-            raise RunError("unsupported run export identity")
-        files = export_record["files"]
-        if not isinstance(files, dict):
-            raise RunError("run export files must be an object")
-        expected_members = {RUN_EXPORT_MANIFEST, *(f"run/{name}" for name in files)}
-        if set(names) != expected_members:
-            raise RunError("run import archive members do not exactly match its file manifest")
-        for name, sha in files.items():
-            relative(name)
-            payload = archive.read(f"run/{name}")
-            if hashlib.sha256(payload).hexdigest() != sha:
-                raise RunError(f"run import hash mismatch: {name}")
-        raw_manifest = archive.read(f"run/{RUN_MANIFEST}")
-        if hashlib.sha256(raw_manifest).hexdigest() != export_record["run_manifest_sha256"]:
-            raise RunError("run import RUN_MANIFEST hash mismatch")
-        manifest = json.loads(raw_manifest)
-        if manifest.get("run_id") != export_record["run_id"]:
-            raise RunError("run import identity mismatch between export and run manifest")
-        if manifest.get("domain") not in authorable_domains(repo):
-            raise RunError(f"run import domain is not authorable in this portable: {manifest.get('domain')}")
-        if not isinstance(manifest.get("genre"), str) or not GENRE_RE.fullmatch(manifest["genre"]):
-            raise RunError("run import manifest has invalid genre metadata")
-        run_id = manifest["run_id"]
-        target = run_store(repo) / run_id
-        if target.exists():
-            if collision == "error":
-                raise RunError(f"run_id collision: {run_id}; use --collision new-id only when a distinct imported identity is intended")
-            run_id = _new_run_id(repo)
-            target = run_store(repo) / run_id
-        validate_windows_path_budget(target, "imported run root")
-        target.mkdir(parents=True, exist_ok=False)
-        try:
-            for name in sorted(files):
-                out = inside(target, name)
-                validate_windows_path_budget(out, f"imported run member {name}")
-                out.parent.mkdir(parents=True, exist_ok=True)
-                atomic_write(out, archive.read(f"run/{name}"))
-            if run_id != manifest["run_id"]:
-                manifest["run_id"] = run_id
-                manifest["updated_at"] = now()
-                atomic_write(run_manifest_path(target), (json.dumps(manifest, indent=2) + "\n").encode("utf-8"))
-            checked = read_run_manifest(target, required=True)
-            if checked["run_id"] != run_id:
-                raise RunError("imported run manifest failed identity verification")
-            register_run(repo, target, checked)
-        except BaseException:
-            shutil.rmtree(target, ignore_errors=True)
-            raise
-    return target
-
-
-def migrate_run(repo: Path, source: Path, *, genre: str | None = None) -> Path:
-    """Copy a legacy-layout prepped run into the short-ID store (EXP-003 §5.3).
-
-    The legacy directory is the preserved original: it is copied byte-for-byte
-    into workspace/runs/<new short-id>, a short-ID RUN_MANIFEST is built from
-    its controller state (genre from the parent directory name or --genre),
-    every member is verified against the source, then the copy is registered.
-    The source is never modified, and any failure removes the incomplete target
-    before re-raising so nothing is half-registered.
-    """
-    repo = repo.resolve()
-    enforce_sandbox_boundary(repo)
-    source = source.absolute()
-    if not source.is_dir():
-        raise RunError(f"legacy run directory does not exist: {source}")
-    if read_run_manifest(source, required=False) is not None:
-        raise RunError(f"source already carries a short-ID {RUN_MANIFEST}; use runs import for it")
-    if inside(source, "controller/operation.lock").exists():
-        raise RunError("legacy run holds an operation.lock; its owning operation must finish before migration")
-    for residue in ("controller/checkpoint.new", "controller/checkpoint.old", "controller/checkpoint-failure.json"):
-        if inside(source, residue).exists():
-            raise RunError(f"legacy run holds checkpoint residue ({residue}); resolve it before migration")
-    state_path = inside(source, "controller/run.json")
-    if not state_path.is_file():
-        raise RunError("legacy run is missing controller/run.json")
-    state = preflight._read_json(str(state_path))
-    domain = state.get("domain")
-    if domain not in authorable_domains(repo):
-        raise RunError(f"legacy run domain is not authorable in this portable: {domain}")
-    if genre is None:
-        candidate = source.parent.name.lower().replace("_", "-")
-        genre = candidate if GENRE_RE.fullmatch(candidate) else None
-    if genre is None or not GENRE_RE.fullmatch(genre):
-        raise RunError(
-            "could not derive a genre slug from the legacy directory name; pass --genre as a lowercase metadata slug"
-        )
-    display_label = source.name
-    note = inside(source, "RUN_NOTE.md")
-    if note.is_file():
-        lines = note.read_text(encoding="utf-8", errors="replace").splitlines()
-        if lines and lines[0].startswith("# PASS authoring task: "):
-            display_label = lines[0][len("# PASS authoring task: "):].strip() or display_label
-    identity_path = inside(source, "controller/source-identity.json")
-    identity = preflight._read_json(str(identity_path)) if identity_path.is_file() else {}
-    plan = state.get("plan") if isinstance(state.get("plan"), dict) else {}
-    run_id = _new_run_id(repo)
-    target = inside(repo, f"{RUN_STORE}/{run_id}")
-    validate_windows_path_budget(target, "migrated run root")
-    created = now()
-    manifest = {
-        "schema_version": 1,
-        "run_id": run_id,
-        "domain": domain,
-        "genre": genre,
-        "display_label": display_label,
-        "source": {
-            "name": str(state.get("source") or "").replace("\\", "/").rsplit("/", 1)[-1] or f"{run_id}.pdf",
-            "path": state.get("source"),
-            "title": plan.get("title"),
-            "author": plan.get("author"),
-            "edition": plan.get("edition"),
-            "sha256": identity.get("sha256"),
-            "size": identity.get("size"),
-        },
-        "current": _manifest_current(state),
-        "created_at": created,
-        "updated_at": created,
-    }
-    try:
-        target.mkdir(parents=True, exist_ok=False)
-        for path in sorted(source.rglob("*")):
-            rel = path.relative_to(source).as_posix()
-            out = inside(target, rel)
-            if path.is_dir():
-                out.mkdir(parents=True, exist_ok=True)
-                continue
-            validate_windows_path_budget(out, f"migrated run member {rel}")
-            out.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(path, out)
-        for path in sorted(source.rglob("*")):
-            if path.is_file():
-                rel = path.relative_to(source).as_posix()
-                if digest(inside(target, rel)) != digest(path):
-                    raise RunError(f"migration copy verification failed: {rel}")
-        atomic_write(run_manifest_path(target), (json.dumps(manifest, indent=2) + "\n").encode("utf-8"))
-        checked = read_run_manifest(target, required=True)
-        if checked["run_id"] != run_id:
-            raise RunError("migrated run manifest failed identity verification")
-        register_run(repo, target, checked)
-    except BaseException:
-        shutil.rmtree(target, ignore_errors=True)
-        raise
-    return target
-
-
 def authorable_domains(repo: Path) -> list[str]:
     return sorted(
         p.name for p in (repo / "library").iterdir()
@@ -664,56 +161,37 @@ def select_domain(repo: Path, domain: str | None) -> str:
     return domain
 
 
-def open_runs(repo: Path, domain: str) -> list[Path]:
-    """Every unfinished run of one domain across the short store and legacy layouts."""
-    found: list[Path] = []
+def _run_dirs(base: Path) -> list[Path]:
+    """Run directories directly under ``base`` and one genre subfolder below it."""
+    runs = []
+    for child in base.iterdir():
+        if (child / "controller/run.json").is_file():
+            runs.append(child)
+        elif child.is_dir():
+            for nested in child.iterdir():
+                if (nested / "controller/run.json").is_file():
+                    runs.append(nested)
+    return sorted(runs, key=lambda p: p.relative_to(base).as_posix())
 
-    # EXP-002 short-ID store. Domain/genre are manifest metadata rather than path authority.
-    for item in list_registered_runs(repo, domain=domain):
-        root = Path(item["path"])
+
+def open_runs(repo: Path, domain: str) -> list[Path]:
+    """Every unfinished run of one domain. An unreadable run counts as unfinished.
+
+    Runs may live directly under the domain or one genre subfolder below it.
+    """
+    base = inside(repo, f"workspace/skill-staging/{domain}")
+    found = []
+    if not base.is_dir():
+        return found
+    for root in _run_dirs(base):
         state_path = root / "controller/run.json"
-        if (root / ABANDONED).is_file() or (item.get("current") or {}).get("status") in {"finished", "abandoned"}:
-            continue
-        if not state_path.is_file():
-            # Missing state without a terminal manifest status fails closed.
-            found.append(root)
-            continue
         try:
             phase = json.loads(state_path.read_text(encoding="utf-8")).get("phase")
         except (OSError, ValueError, AttributeError):
             phase = None
         if phase != "finished":
             found.append(root)
-
-    # Compatibility: old 2-part <domain>/<run> and observed 3-part
-    # <domain>/<genre>/<run> skill-staging roots remain resumable/importable.
-    legacy = inside(repo, f"workspace/skill-staging/{domain}")
-    if legacy.is_dir():
-        candidates = list(legacy.iterdir())
-        for child in list(legacy.iterdir()):
-            if child.is_dir():
-                candidates.extend(child.iterdir())
-        for root in sorted(set(candidates)):
-            if not root.is_dir():
-                continue
-            try:
-                rel = root.relative_to(legacy)
-            except ValueError:
-                continue
-            if len(rel.parts) not in {1, 2}:
-                continue
-            state_path = root / "controller/run.json"
-            if not state_path.is_file():
-                continue
-            try:
-                state = json.loads(state_path.read_text(encoding="utf-8"))
-                phase = state.get("phase")
-                state_domain = state.get("domain")
-            except (OSError, ValueError, AttributeError):
-                phase, state_domain = None, domain
-            if state_domain == domain and phase != "finished":
-                found.append(root)
-    return sorted(set(found), key=lambda path: str(path))
+    return found
 
 
 def matching_runs(repo: Path, domain: str, source: Path) -> list[Path]:
@@ -752,16 +230,8 @@ def matching_runs(repo: Path, domain: str, source: Path) -> list[Path]:
     return found
 
 
-def start(
-    repo: Path,
-    source: Path,
-    domain: str | None,
-    task: str | None,
-    stop_after: str = "complete",
-    genre: str | None = None,
-) -> Path:
+def start(repo: Path, source: Path, domain: str | None, task: str | None, stop_after: str = "complete") -> Path:
     repo = repo.resolve()
-    enforce_sandbox_boundary(repo)
     domain = select_domain(repo, domain)
     required_documents(repo)
     source = source.resolve()
@@ -781,15 +251,9 @@ def start(
         task = f"{stem}-{uuid.uuid4().hex[:8]}"
     if not SLUG_RE.fullmatch(task):
         raise RunError("task must be a lowercase book/run slug")
-    genre = genre or "unclassified"
-    if not GENRE_RE.fullmatch(genre):
-        raise RunError("genre must be a lowercase metadata slug such as python or game-development")
-
-    run_id = _new_run_id(repo)
-    root = inside(repo, f"{RUN_STORE}/{run_id}")
-    validate_windows_path_budget(root, "short-ID run root")
+    root = inside(repo, f"workspace/skill-staging/{domain}/{task}")
     if root.exists():
-        raise RunError(f"run_id collision: {run_id}")
+        raise RunError(f"run already exists; resume it with `python PASS/pass.py resume --run {root}`")
     (root / "controller").mkdir(parents=True)
     (root / "drafts").mkdir()
     state = {
@@ -799,33 +263,11 @@ def start(
         "source_prep": None, "stop_after": stop_after, "stop_reached": False,
     }
     atomic_write(root / "controller/run.json", (json.dumps(state, indent=2) + "\n").encode())
-    created = now()
-    manifest = {
-        "schema_version": 1,
-        "run_id": run_id,
-        "domain": domain,
-        "genre": genre,
-        "display_label": task,
-        "source": {
-            "name": source.name,
-            "path": str(source),
-            "title": source.stem,
-            "author": None,
-            "edition": None,
-            "sha256": None,
-            "size": source.stat().st_size,
-        },
-        "current": _manifest_current(state),
-        "created_at": created,
-        "updated_at": created,
-    }
-    atomic_write(run_manifest_path(root), (json.dumps(manifest, indent=2) + "\n").encode("utf-8"))
-    register_run(repo, root, manifest)
     (root / "RUN_NOTE.md").write_text(
-        f"# PASS authoring task: {task}\n\nRun ID: `{run_id}`. Domain: `{domain}`. Genre metadata: `{genre}`.\n\n"
-        f"Owner: ordinary PASS controller.\nPurpose: {domain} authoring from {source.name}; cards are staged by canonical category.\n"
-        "Physical run location is intentionally short; domain/genre/source identity belong to RUN_MANIFEST.json, not the directory hierarchy.\n"
-        "Cleanup: accepted unit deltas remain run-local until source close canonicalizes them; close-run removes generated controller state.\n"
+        f"# PASS authoring task: {task}\n\nOwner: ordinary PASS controller.\n"
+        f"Purpose: {domain} authoring from {source.name}; cards are staged by canonical category.\n"
+        "Cleanup: accepted unit deltas remain in skill-staging until source close canonicalizes them; "
+        "close-run removes generated controller state.\n"
         "Preserve original source inputs, other tasks and explicit failure-evidence holds.\n"
         "This directory is disposable and is not card canon or Skillset Memory.\n", encoding="utf-8"
     )
@@ -833,41 +275,15 @@ def start(
 
 
 def run_root(repo: Path, root: Path) -> Path:
-    repo = repo.resolve(strict=False)
-    raw = str(root)
-    if RUN_ID_RE.fullmatch(raw):
-        root = run_store(repo) / raw
-    else:
-        root = root.absolute()
-    root = root.resolve(strict=False)
-
-    short_base = run_store(repo).resolve(strict=False)
+    root = root.absolute()
     try:
-        short_rel = root.relative_to(short_base)
-    except ValueError:
-        short_rel = None
-    if short_rel is not None:
-        if len(short_rel.parts) != 1 or not RUN_ID_RE.fullmatch(short_rel.parts[0]):
-            raise RunError("short-ID run must be workspace/runs/r_<8-hex>")
-        inside(repo, root.relative_to(repo).as_posix())
-        if root.exists():
-            manifest = read_run_manifest(root, required=True)
-            if manifest["run_id"] != root.name:
-                raise RunError("run_id is identity; RUN_MANIFEST.json does not match the physical short-ID directory")
-        return root
-
-    legacy_base = (repo / "workspace/skill-staging").resolve(strict=False)
-    try:
-        legacy_rel = root.relative_to(legacy_base)
+        path = root.relative_to(repo / "workspace/skill-staging")
     except ValueError as exc:
+        raise RunError("run must belong to this project's workspace/skill-staging/<domain>/<book-run>") from exc
+    if len(path.parts) not in (2, 3):
         raise RunError(
-            "run must be a short-ID workspace/runs/r_<8-hex> root or a legacy "
-            "workspace/skill-staging/<domain>/<book-run> / <domain>/<genre>/<book-run> root"
-        ) from exc
-    if len(legacy_rel.parts) not in {2, 3}:
-        raise RunError(
-            "legacy run must have domain/book-run or domain/genre/book-run shape; "
-            "genre is classification metadata, not durable path identity"
+            "run must be workspace/skill-staging/<domain>/<book-run> or "
+            "<domain>/<genre>/<book-run>"
         )
     inside(repo, root.relative_to(repo).as_posix())
     return root
@@ -901,22 +317,7 @@ def now() -> str:
 ABANDONED = "controller/abandoned-run.json"
 RESET_INTENT = "controller/reset-intent.json"
 CHECKPOINT = "controller/checkpoint"
-CHECKPOINT_FAILURE = "controller/checkpoint-failure.json"
-CHECKPOINT_SCHEMA = 3
 HANDOFF_MARK = "<!-- Generated by PASS/pass.py after every accepted step; rewritten each time. Do not edit. -->"
-
-
-def checkpoint_residue(root: Path) -> dict[str, bool]:
-    """Read-only facts about unfinished checkpoint-promotion state."""
-    return {
-        "checkpoint_new": inside(root, f"{CHECKPOINT}.new").exists(),
-        "checkpoint_old": inside(root, f"{CHECKPOINT}.old").exists(),
-        "failure_record": inside(root, CHECKPOINT_FAILURE).is_file(),
-    }
-
-
-def residue_present(root: Path) -> bool:
-    return any(checkpoint_residue(root).values())
 
 
 def abandon(repo: Path, root: Path, reason: str) -> str:
@@ -942,14 +343,6 @@ def abandon(repo: Path, root: Path, reason: str) -> str:
             raise RunError("a finished run is closed with close-run, not abandoned")
         record = {"schema_version": 1, "abandoned_at": now(), "reason": reason, "state": state}
         atomic_write(inside(root, ABANDONED), (json.dumps(record, indent=2) + "\n").encode("utf-8"))
-        manifest = read_run_manifest(root, required=False)
-        if manifest is not None:
-            current = _manifest_current(state) if isinstance(state, dict) else {"phase": None, "unit": None, "status": "abandoned"}
-            current["status"] = "abandoned"
-            manifest["current"] = current
-            manifest["updated_at"] = record["abandoned_at"]
-            atomic_write(run_manifest_path(root), (json.dumps(manifest, indent=2) + "\n").encode("utf-8"))
-            register_run(repo, root, manifest)
         inside(root, "controller/next-action.json").unlink(missing_ok=True)
         state_path.unlink()
         note = inside(root, "RUN_NOTE.md")
@@ -962,7 +355,6 @@ def abandon(repo: Path, root: Path, reason: str) -> str:
 class Run:
     def __init__(self, repo: Path, root: Path):
         self.repo = repo.resolve()
-        enforce_sandbox_boundary(self.repo)
         self.root = run_root(self.repo, root)
         reset_intent = inside(self.root, RESET_INTENT)
         if reset_intent.is_file():
@@ -989,39 +381,14 @@ class Run:
             self.state.setdefault("stop_after", "complete")
             self.state.setdefault("stop_reached", False)
             self.state["schema_version"] = RUN_SCHEMA
-        # EXP-002 normalizes the final EXP-001 drill vocabulary without inventing
-        # semantic evidence. Unscoped legacy REINFORCE evidence remains visibly
-        # unscoped until PASS 2 is rerun; it is never auto-upgraded to
-        # ``scope: reinforces_core``.
-        pass2 = self.state.get("pass2")
-        if isinstance(pass2, dict):
-            if "intensified_claims" in pass2 and "claim_regrounding" not in pass2:
-                pass2["claim_regrounding"] = pass2.pop("intensified_claims")
-            for resolution in pass2.get("flag_resolutions", []):
-                if isinstance(resolution, dict):
-                    if resolution.get("outcome") == "captured":
-                        resolution["outcome"] = "collected"
-                    resolution.setdefault("deferred_to", "")
-            sweep = pass2.get("omission_sweep")
-            if isinstance(sweep, dict):
-                for finding in sweep.get("findings", []):
-                    if isinstance(finding, dict) and finding.get("disposition") == "captured":
-                        finding["disposition"] = "collected"
         exact(self.state, {"schema_version", "domain", "source", "phase", "unit_index", "plan", "pass1", "pass2", "reviewed_sha256", "live_hashes", "source_prep", "stop_after", "stop_reached"}, "run state")
         if type(self.state["schema_version"]) is not int or self.state["schema_version"] != RUN_SCHEMA:
             raise RunError("unsupported run state version")
         if self.state["stop_after"] not in STOP_AFTER or type(self.state["stop_reached"]) is not bool:
             raise RunError("invalid stop target state")
-        manifest = read_run_manifest(self.root, required=False)
-        if manifest is not None:
-            if manifest["domain"] != self.state["domain"]:
-                raise RunError("run manifest domain no longer matches controller state")
-        else:
-            legacy = self.root.relative_to(self.repo / "workspace/skill-staging")
-            if legacy.parts[0] != self.state["domain"]:
-                raise RunError("legacy run domain no longer matches its authorized workspace/package")
-        if self.state["domain"] not in authorable_domains(self.repo):
-            raise RunError("run domain no longer names an authorable package")
+        domain_from_path = self.root.relative_to(self.repo / "workspace/skill-staging").parts[0]
+        if self.state["domain"] != domain_from_path or self.state["domain"] not in authorable_domains(self.repo):
+            raise RunError("run domain no longer matches its authorized workspace/package")
         if not isinstance(self.state["phase"], str) or self.state["phase"] not in PHASES or type(self.state["unit_index"]) is not int or self.state["unit_index"] < 0:
             raise RunError("invalid run phase or unit index")
         if self.state["plan"] is not None:
@@ -1039,24 +406,11 @@ class Run:
             raise RunError("saved phase requires a unit plan")
 
     @contextmanager
-    def locked(self, *, require_resolved: bool = True, action: str = "this operation"):
-        """Exclusive mutation scope with one shared residue policy.
-
-        Mutating commands enter through here: unresolved checkpoint residue is
-        rejected BEFORE any side effect (present included), so a blocked command
-        is provably side-effect-free. Recovery/repair paths pass
-        require_resolved=False because they are the sanctioned resolvers.
-        Every successful operation ends at a hard checkpoint before its result
-        is released to the caller.
-        """
+    def locked(self):
         with operation_lock(self.root):
             # A competing caller may have loaded state before the preceding
             # operation finished. The lease owns the latest persisted state.
             self.reload()
-            if require_resolved:
-                residue = checkpoint_residue(self.root)
-                if any(residue.values()):
-                    raise ResidueBlockedError(action, residue)
             yield
             # Every successful operation ends at a hard checkpoint.
             if self.state_path.is_file():
@@ -1067,14 +421,14 @@ class Run:
     def staged_tree(self) -> dict[str, str]:
         """Every recoverable run artifact, by run-relative path.
 
-        Prepared source, accepted source deltas, and accepted-unit history needed
-        by the bounded correction path are first-class continuation state: a project
-        archive must be sufficient to resume without chat memory or the original
-        provider. Controller scratch that is cheaply reproducible (locks, audit
-        renderings, raw deterministic extraction) is intentionally excluded.
+        Prepared source and accepted source deltas are first-class continuation
+        state: a project archive must be sufficient to resume without chat memory
+        or the original provider. Controller scratch that is cheaply reproducible
+        (locks, audit renderings, raw deterministic extraction) is intentionally
+        excluded.
         """
         files = {}
-        for top in ("drafts", "recipes", "accepted", "prepared-source", "controller/unit-history"):
+        for top in ("drafts", "recipes", "accepted", "prepared-source"):
             base = self.root / top
             if base.is_dir():
                 for path in sorted(base.rglob("*")):
@@ -1089,177 +443,55 @@ class Run:
     def checkpoint(self) -> None:
         """Create and verify the complete last-known-good transaction.
 
-        Authoritative controller state is saved before checkpoint promotion, so
-        every promotion failure is reported as one typed degraded outcome:
-        authoritative persisted, checkpoint not advanced, residue named, reason
-        recorded durably in controller/checkpoint-failure.json, safe-continue
-        verdict stated (EXP-003 Target A). The payload is stored as
-        content-addressed blobs so a long card name can never reproduce the
-        EXP-002 duplicated-nesting path blowout (Target D); the deterministic
-        path-budget validation stays as the regression guard. Promotion is a
-        rename transaction with postcondition judging, never a blind retry.
+        The checkpoint owns both controller/run.json and every recoverable staged
+        artifact. HANDOFF advances only after the fresh checkpoint verifies and
+        is atomically promoted. If the process dies after run.json changes but
+        before this finishes, ``recover`` can restore the previous checkpoint.
         """
         state_sha = digest(self.state_path)
         files = self.staged_tree()
         manifest = self.checkpoint_manifest()
-        authoritative = {
-            "state_sha256": state_sha,
-            "phase": self.state.get("phase"),
-            "unit_index": self.state.get("unit_index"),
-            "last_accepted": self.last_accepted(),
-        }
-        previous: dict[str, Any] | None = None
-        if manifest is not None:
-            previous = {
-                "state_sha256": manifest.get("state_sha256"),
-                "phase": manifest.get("phase"),
-                "schema_version": manifest.get("schema_version"),
-            }
-        if (
-            manifest is None
-            or manifest.get("schema_version") != CHECKPOINT_SCHEMA
-            or manifest.get("state_sha256") != state_sha
-            or manifest.get("files") != files
-        ):
+        if manifest is None or manifest.get("state_sha256") != state_sha or manifest.get("files") != files:
             folder = inside(self.root, CHECKPOINT)
             fresh = inside(self.root, f"{CHECKPOINT}.new")
             retired = inside(self.root, f"{CHECKPOINT}.old")
-            failure_record = inside(self.root, CHECKPOINT_FAILURE)
-
-            def write_failure(reason: str, *, error_type: str, restored: bool) -> None:
-                atomic_write(failure_record, (json.dumps({
-                    "schema_version": 2,
-                    "outcome": "authoritative_state_persisted_checkpoint_not_advanced",
-                    "recorded_at": now(),
-                    "error_type": error_type,
-                    "reason": reason,
-                    "authoritative": authoritative,
-                    "checkpoint": previous,
-                    "residue": {**checkpoint_residue(self.root), "failure_record": True},
-                    "previous_checkpoint_restored": restored,
-                    "fresh_checkpoint_retained": fresh.exists(),
-                    "checkpoint_present": folder.exists(),
-                    "retired_checkpoint_present": retired.exists(),
-                }, indent=2) + "\n").encode("utf-8"))
-
-            def degraded(reason: str, *, error_type: str, restored: bool) -> CheckpointPromotionError:
-                return CheckpointPromotionError(
-                    "authoritative run state was persisted, but verified checkpoint promotion did not complete; "
-                    "the command must not be reported as a clean success",
-                    reason=reason,
-                    state_sha256=state_sha,
-                    authoritative=authoritative,
-                    checkpoint=previous,
-                    residue=checkpoint_residue(self.root),
-                    previous_checkpoint_restored=restored,
-                    fresh_checkpoint_retained=fresh.exists(),
-                    safe_to_continue=(
-                        "run repair-checkpoint to promote a verified checkpoint from the persisted authoritative "
-                        "state; the authoritative run state itself is intact"
-                    ),
-                )
-
-            if fresh.exists() or retired.exists():
-                # locked() should have rejected this before any side effect;
-                # reaching here means residue appeared inside this scope (for
-                # example an interrupted promotion earlier in the same command).
-                reason = (
-                    "promotion residue from an interrupted transaction exists "
-                    f"({json.dumps(checkpoint_residue(self.root), sort_keys=True)})"
-                )
-                if not failure_record.is_file():
-                    write_failure(reason, error_type="ResiduePresent", restored=folder.exists())
-                raise degraded(reason, error_type="ResiduePresent", restored=folder.exists())
-
-            # 1. Pre-validate every destination before creating any residue, so
-            #    a deterministic budget failure leaves zero scratch directories.
-            try:
-                validate_windows_path_budget(fresh / "controller" / "run.json", "checkpoint controller state")
-                for sha in sorted(set(files.values())):
-                    validate_windows_path_budget(fresh / "blobs" / sha, "checkpoint blob")
-                for name in files:
-                    if not inside(self.root, name).is_file():
-                        raise RunError(f"staged file vanished before checkpoint: {name}")
-            except RunError as exc:
-                write_failure(str(exc), error_type=type(exc).__name__, restored=folder.exists())
-                raise degraded(str(exc), error_type=type(exc).__name__, restored=folder.exists()) from exc
-
-            # 2. Build the fresh checkpoint beside the live one.
-            record: dict[str, Any] | None = None
-            written: set[str] = set()
-            old_moved = False
-            try:
-                fresh.mkdir(parents=True, exist_ok=True)
-                state_copy = fresh / "controller" / "run.json"
-                state_copy.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(self.state_path, state_copy)
-                for name in sorted(files):
-                    sha = files[name]
-                    if sha in written:
-                        continue
-                    blob = fresh / "blobs" / sha
-                    blob.parent.mkdir(parents=True, exist_ok=True)
-                    shutil.copy2(inside(self.root, name), blob)
-                    written.add(sha)
-                record = {
-                    "schema_version": CHECKPOINT_SCHEMA,
-                    "layout": "content-addressed-blobs",
-                    "created_at": now(),
-                    "state_sha256": state_sha,
-                    "phase": self.state["phase"],
-                    "unit_index": self.state["unit_index"],
-                    "last_accepted": self.last_accepted(),
-                    "files": files,
-                }
-                atomic_write(fresh / "manifest.json", (json.dumps(record, indent=2) + "\n").encode("utf-8"))
-                if digest(state_copy) != state_sha:
-                    raise RunError("fresh checkpoint controller state failed verification")
-                for sha in written:
-                    if digest(fresh / "blobs" / sha) != sha:
-                        raise RunError(f"fresh checkpoint blob failed verification: {sha[:12]}")
-                if preflight._read_json(str(fresh / "manifest.json")) != record:
-                    raise RunError("fresh checkpoint manifest failed verification")
-
-                # 3. Promote by rename. Windows may report Access Denied even
-                #    when the apparent operation completed; judge postconditions.
-                if folder.exists():
-                    folder.rename(retired)
-                    old_moved = True
-                fresh.rename(folder)
-            except (OSError, RunError) as exc:
-                committed = False
-                try:
-                    read_back = preflight._read_json(str(folder / "manifest.json")) if (folder / "manifest.json").is_file() else None
-                    committed = bool(
-                        record is not None
-                        and read_back == record
-                        and (folder / "controller/run.json").is_file()
-                        and digest(folder / "controller/run.json") == state_sha
-                        and all(
-                            (folder / "blobs" / sha).is_file() and digest(folder / "blobs" / sha) == sha
-                            for sha in set(files.values())
-                        )
-                    )
-                except (OSError, ValueError, KeyError, TypeError):
-                    committed = False
-                if not committed:
-                    restored = False
-                    if old_moved and retired.exists() and not folder.exists():
-                        try:
-                            retired.rename(folder)
-                            restored = True
-                        except OSError:
-                            restored = False
-                    reason = str(exc)
-                    write_failure(reason, error_type=type(exc).__name__, restored=restored)
-                    raise degraded(reason, error_type=type(exc).__name__, restored=restored) from exc
+            for leftover in (fresh, retired):
+                if leftover.exists():
+                    shutil.rmtree(leftover)
+            fresh.mkdir(parents=True, exist_ok=True)
+            state_copy = fresh / "controller" / "run.json"
+            state_copy.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(self.state_path, state_copy)
+            for name in files:
+                target = fresh / "files" / name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(inside(self.root, name), target)
+            record = {
+                "schema_version": 2, "created_at": now(), "state_sha256": state_sha,
+                "phase": self.state["phase"], "unit_index": self.state["unit_index"],
+                "last_accepted": self.last_accepted(), "files": files,
+            }
+            atomic_write(fresh / "manifest.json", (json.dumps(record, indent=2) + "\n").encode("utf-8"))
+            # Verify the complete checkpoint before it is allowed to become the
+            # restart point advertised by HANDOFF.
+            if digest(state_copy) != state_sha:
+                raise RunError("fresh checkpoint controller state failed verification")
+            for name, sha in files.items():
+                if digest(fresh / "files" / name) != sha:
+                    raise RunError(f"fresh checkpoint file failed verification: {name}")
+            check = preflight._read_json(str(fresh / "manifest.json"))
+            if check != record:
+                raise RunError("fresh checkpoint manifest failed verification")
+            if folder.exists():
+                folder.rename(retired)
+            fresh.rename(folder)
             if retired.exists():
                 shutil.rmtree(retired)
-            failure_record.unlink(missing_ok=True)
         self.write_handoff()
+        # A canonical-close journal is retained until the resulting controller
+        # state has itself become the verified restart point.
         journal = inside(self.root, "controller/canonical-commit")
-        current_manifest = self.checkpoint_manifest()
-        if journal.is_dir() and current_manifest and current_manifest.get("state_sha256") == digest(self.state_path):
+        if journal.is_dir() and self.checkpoint_manifest().get("state_sha256") == digest(self.state_path):
             shutil.rmtree(journal)
 
     def checkpoint_state_path(self) -> Path:
@@ -1270,27 +502,8 @@ class Run:
         state = self.checkpoint_state_path()
         return bool(manifest and state.is_file() and digest(state) == manifest.get("state_sha256"))
 
-    def recover(self, rollback_authoritative: bool = False) -> str:
-        """Roll back to the last verified checkpoint, refusing silent rewinds.
-
-        Recover is the destructive path (EXP-003 Target C). Authoritative run
-        state that differs from the verified checkpoint was persisted after that
-        checkpoint was built, so restoring would discard it; that now requires
-        the explicit --rollback-authoritative intent and leaves an audit record.
-        repair-checkpoint is the supported non-destructive alternative. Canonical
-        commit journal repair keeps its existing semantics.
-        """
-        folder = inside(self.root, CHECKPOINT)
-        retired = inside(self.root, f"{CHECKPOINT}.old")
-        if not folder.exists() and retired.is_dir():
-            candidate = retired / "manifest.json"
-            state = retired / "controller/run.json"
-            if not candidate.is_file() or not state.is_file():
-                raise RunError("retired checkpoint residue is incomplete; refusing automatic recovery")
-            record = preflight._read_json(str(candidate))
-            if digest(state) != record.get("state_sha256"):
-                raise RunError("retired checkpoint residue failed state verification")
-            retired.rename(folder)
+    def recover(self) -> str:
+        """Restore the last verified transaction after a hard interruption."""
         manifest = self.checkpoint_manifest()
         if manifest is None or not self.checkpoint_state_valid():
             raise RunError("no complete recoverable checkpoint exists for this run")
@@ -1316,7 +529,7 @@ class Run:
             lock.unlink(missing_ok=True)
             # A hard kill inside land() can also leave the domain integration
             # lease behind. The owning per-run process is already proven dead.
-            inside(self.repo, f"{RUN_STORE}/.landing-{self.domain}.lock").unlink(missing_ok=True)
+            inside(self.repo, f"workspace/skill-staging/{self.domain}/.landing.lock").unlink(missing_ok=True)
 
         # A journal plus a checkpoint mismatch means canonicalization began but
         # the new controller transaction never became durable: restore before-
@@ -1330,40 +543,15 @@ class Run:
             else:
                 self.rollback_canonical_journal()
 
-        # Non-destructive guard: authoritative state that differs from the
-        # verified checkpoint was persisted AFTER that checkpoint, so the
-        # restore below would silently rewind it (EXP-003 Target C).
-        authoritative_sha = digest(self.state_path)
-        if authoritative_sha != manifest["state_sha256"]:
-            if not rollback_authoritative:
-                raise RunError(
-                    "refusing destructive recovery: authoritative run state "
-                    f"(phase {self.state.get('phase')}, state sha256 {authoritative_sha[:12]}) was persisted after the "
-                    f"last verified checkpoint (phase {manifest.get('phase')}, state sha256 {str(manifest.get('state_sha256'))[:12]}) "
-                    "and a restore would silently discard it; run repair-checkpoint to keep the current state "
-                    "(non-destructive), or re-run recover with --rollback-authoritative to discard it explicitly"
-                )
-            evidence = inside(self.root, f"controller/action-history/rollback-authoritative-{uuid.uuid4().hex[:8]}.json")
-            evidence.parent.mkdir(parents=True, exist_ok=True)
-            atomic_write(evidence, (json.dumps({
-                "schema_version": 1,
-                "recorded_at": now(),
-                "intent": "explicit recover --rollback-authoritative",
-                "discarded_authoritative_sha256": authoritative_sha,
-                "discarded_authoritative_phase": self.state.get("phase"),
-                "restored_checkpoint_sha256": manifest.get("state_sha256"),
-                "restored_checkpoint_phase": manifest.get("phase"),
-            }, indent=2) + "\n").encode("utf-8"))
-
         saved = manifest["files"]
-        for top in ("drafts", "recipes", "accepted", "prepared-source", "controller/unit-history"):
+        for top in ("drafts", "recipes", "accepted", "prepared-source"):
             base = self.root / top
             if base.exists():
                 shutil.rmtree(base)
         for name, sha in saved.items():
-            source = inside(self.root, f"{CHECKPOINT}/blobs/{sha}")
+            source = inside(self.root, f"{CHECKPOINT}/files/{name}")
             if not source.is_file() or digest(source) != sha:
-                raise RunError(f"checkpoint blob is damaged: {name} ({sha[:12]})")
+                raise RunError(f"checkpoint copy is damaged: {name}")
             target = inside(self.root, name)
             target.parent.mkdir(parents=True, exist_ok=True)
             atomic_write(target, source.read_bytes())
@@ -1373,49 +561,7 @@ class Run:
         if self.staged_tree() != saved or digest(self.state_path) != manifest["state_sha256"]:
             raise RunError("recovery verification failed")
         self.write_handoff()
-        fresh = inside(self.root, f"{CHECKPOINT}.new")
-        if fresh.exists():
-            shutil.rmtree(fresh)
-        retired = inside(self.root, f"{CHECKPOINT}.old")
-        if retired.exists():
-            shutil.rmtree(retired)
-        inside(self.root, "controller/checkpoint-failure.json").unlink(missing_ok=True)
         return f"RECOVERED: restored verified checkpoint at {manifest['last_accepted'] or 'run start'}; resume from {self.state['phase']}"
-
-    def repair_checkpoint(self) -> str:
-        """Establish a verified checkpoint from the current authoritative state.
-
-        Non-destructive (EXP-003 Target C): never rolls back the authoritative
-        run state, drafts, or accepted tree — it only clears unresolved promotion
-        residue (.new/.old scratch plus the failure record) and rebuilds the
-        checkpoint from what is authoritative right now. Canonical commit
-        journals are recover's domain and are refused here.
-        """
-        if self.canonical_journal_path().is_dir():
-            raise RunError(
-                "a canonical commit journal is present; run recover (which verifies the after-state or rolls it "
-                "back) before repair-checkpoint"
-            )
-        fresh = inside(self.root, f"{CHECKPOINT}.new")
-        retired = inside(self.root, f"{CHECKPOINT}.old")
-        if fresh.exists():
-            shutil.rmtree(fresh)
-        if retired.exists():
-            shutil.rmtree(retired)
-        # Evidence is dropped only after residue is cleared; checkpoint() below
-        # records fresh failure evidence immediately if the rebuild fails.
-        inside(self.root, CHECKPOINT_FAILURE).unlink(missing_ok=True)
-        self.checkpoint()
-        residue_after = checkpoint_residue(self.root)
-        if any(residue_after.values()):
-            raise RunError(
-                f"checkpoint repair failed; residue remains: {json.dumps(residue_after, sort_keys=True)}"
-            )
-        return (
-            "REPAIRED: verified checkpoint rebuilt from authoritative state "
-            f"(state sha256 {digest(self.state_path)[:12]}, phase {self.state.get('phase')}); "
-            "no data was rolled back"
-        )
 
     def checkpoint_drift(self) -> list[str] | None:
         """Draft paths that differ from the checkpoint, or None when there is no current checkpoint."""
@@ -1442,9 +588,9 @@ class Run:
         for name in removed:
             inside(self.root, name).unlink()
         for name in restored:
-            source = inside(self.root, f"{CHECKPOINT}/blobs/{saved[name]}")
-            if not source.is_file() or digest(source) != saved[name]:
-                raise RunError(f"checkpoint blob is damaged: {name}")
+            source = inside(self.root, f"{CHECKPOINT}/files/{name}")
+            if digest(source) != saved[name]:
+                raise RunError(f"checkpoint copy is damaged: {name}")
             target = inside(self.root, name)
             target.parent.mkdir(parents=True, exist_ok=True)
             atomic_write(target, source.read_bytes())
@@ -1478,7 +624,7 @@ class Run:
         manifest = self.checkpoint_manifest() or {"files": {}}
         try:
             action = self.brief().get("authorized_action", "")
-        except (RunError, KeyError) as exc:
+        except RunError as exc:
             action = f"(controller could not render the brief: {exc})"
         lines = [
             f"# PASS handoff: {plan['title'] if plan else Path(self.state['source']).name}",
@@ -1556,7 +702,6 @@ class Run:
                 "run has an authoritative start-over intent; refusing to resurrect prior controller state"
             )
         atomic_write(self.state_path, (json.dumps(self.state, indent=2) + "\n").encode())
-        sync_run_manifest(self.repo, self.root, self.state)
 
     def source_identity_path(self) -> Path:
         return inside(self.root, "controller/source-identity.json")
@@ -2086,17 +1231,6 @@ class Run:
             "phase": phase,
             "stage_contract": self.stage_contract(),
         }
-        manifest = read_run_manifest(self.root, required=False)
-        if manifest is not None:
-            result["run_id"] = manifest["run_id"]
-            result["genre"] = manifest["genre"]
-            result["display_label"] = manifest["display_label"]
-        sandbox = sandbox_manifest(self.repo)
-        if sandbox is not None:
-            result["sandbox"] = sandbox
-        transition = self.latest_transition_report()
-        if transition is not None:
-            result["last_transition_report"] = transition
         prep_state = self.state.get("source_prep")
         if isinstance(prep_state, dict):
             result["source_prep_integrity"] = prep_state.get("integrity")
@@ -2168,10 +1302,9 @@ class Run:
             elif phase == "pass2":
                 result["secondary_subject_flags"] = self.state["pass1"]["secondary_subject_flags"]
                 result["authorized_action"] = (
-                    "SOURCE PREFLIGHT IS COMPLETE; do not preflight this unit. Re-engage the entire unit with three explicit source-reengagement jobs: "
-                    "resolve every deferred PASS 1 flag, re-ground each changed card's material/source-sensitive claims against the source, "
-                    "and sweep the complete unit for omissions. Then reconcile and declare exclusive dispositions, taxonomy and the exact staged change set. "
-                    "For every changed card, record nearest-owner reconciliation and explicit stage/lane/confidence classification."
+                    "SOURCE PREFLIGHT IS COMPLETE; do not preflight this unit. Reread this entire unit from scratch; resolve every "
+                    "flag; declare exclusive dispositions, taxonomy and the exact staged change set. For every changed card, record "
+                    "nearest-owner reconciliation and explicit stage/lane/confidence classification."
                 )
                 if self.language_modernization_required():
                     result["version_sensitive_flags"] = self.state["pass1"].get("version_sensitive_flags", [])
@@ -2197,11 +1330,8 @@ class Run:
                         " Confirm Core rules remain language-agnostic and all current language-specific guidance reflects the accepted target version."
                     )
             elif phase in {"land", "closure_land"}:
-                delta_keys = ("flag_resolutions", "claim_regrounding", "omission_sweep", "reinforcement_evidence", "buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification")
-                # The closure PASS 2 record replaces the unit delta; it carries
-                # no unit-only keys, so render only the keys actually present
-                # (the unit LAND path still renders the full delta).
-                result["delta"] = {key: self.state["pass2"][key] for key in delta_keys if key in self.state["pass2"]}
+                delta_keys = ("buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification")
+                result["delta"] = {key: self.state["pass2"][key] for key in delta_keys}
                 if "closure_audits" in self.state["pass2"]:
                     result["delta"]["closure_audits"] = self.state["pass2"]["closure_audits"]
                 result["reviewed_sha256"] = self.state["reviewed_sha256"]
@@ -2223,110 +1353,7 @@ class Run:
                         "Run present and reproduce its complete landing packet verbatim. Then land this unit only under the applicable "
                         "user-approval or evidence decision; no next-unit reading and no new preflight."
                     )
-        # EXP-003 Target H: surface unresolved checkpoint residue in the pickup
-        # so the next authorized action is recovery, never a blocked mutation.
-        residue = checkpoint_residue(self.root)
-        if any(residue.values()):
-            result["checkpoint_residue"] = residue
-            result["authorized_action"] = (
-                "UNRESOLVED CHECKPOINT RESIDUE blocks every mutating command: "
-                f"{json.dumps(residue, sort_keys=True)}. Inspect controller/checkpoint-failure.json, then run "
-                "repair-checkpoint (non-destructive; keeps the current authoritative state) or recover "
-                "--rollback-authoritative (explicit destructive rollback) before continuing."
-            )
         return result
-
-    def audit_dir_path(self) -> Path:
-        path = inside(self.root, "controller/audit")
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
-    def archive_presentation(self, name: str, packet: str, sha256: str) -> None:
-        directory = self.audit_dir_path()
-        atomic_write(inside(directory, f"{name}.md"), packet.encode("utf-8"))
-        marker = {"schema_version": 1, "sha256": sha256, "bytes": len(packet.encode("utf-8"))}
-        atomic_write(inside(directory, f"{name}.json"), (json.dumps(marker, indent=2) + "\n").encode("utf-8"))
-
-    def unit_history_root(self, unit_id: str | None = None) -> Path:
-        base = inside(self.root, "controller/unit-history")
-        if unit_id is None:
-            return base
-        return inside(base, unit_id.lower())
-
-    def history_revision_dir(self, unit_id: str, create: bool = False) -> Path:
-        base = self.unit_history_root(unit_id)
-        if base.is_dir():
-            revisions = sorted(
-                (path for path in base.iterdir() if path.is_dir() and re.fullmatch(r"r\d{3}", path.name)),
-                key=lambda path: path.name,
-            )
-        else:
-            revisions = []
-        if revisions and not (revisions[-1] / "land.json").is_file():
-            return revisions[-1]
-        if not create:
-            return revisions[-1] if revisions else inside(base, "r001")
-        number = int(revisions[-1].name[1:]) + 1 if revisions else 1
-        target = inside(base, f"r{number:03d}")
-        target.mkdir(parents=True, exist_ok=False)
-        return target
-
-    def archive_pass3_record(self, unit_id: str, record: dict) -> Path:
-        revision = self.history_revision_dir(unit_id, create=True)
-        path = inside(revision, "pass3.json")
-        atomic_write(path, (json.dumps(record, indent=2) + "\n").encode("utf-8"))
-        return path
-
-    def archive_land_record(self, unit_id: str, old_state: dict, decision: dict, writes: int, removals: int, is_closure: bool) -> Path:
-        revision = self.history_revision_dir(unit_id, create=True)
-        amendment_path = inside(revision, "amendment.json")
-        amendment = preflight._read_json(str(amendment_path)) if amendment_path.is_file() else None
-        record = {
-            "schema_version": 2,
-            "unit_id": unit_id,
-            "pass1": old_state.get("pass1"),
-            "pass2": old_state.get("pass2"),
-            "pass3": preflight._read_json(str(inside(revision, "pass3.json"))) if inside(revision, "pass3.json").is_file() else None,
-            "landing_decision": decision,
-            "accepted_writes": writes,
-            "accepted_removals": removals,
-            "accepted_delta_fingerprint": self.accepted_fingerprint(),
-            "canonical_library_mutated": bool(is_closure),
-            "supersedes_revision": amendment.get("from_revision") if isinstance(amendment, dict) else None,
-            "next_phase": self.state["phase"],
-            "next_unit_index": self.state["unit_index"],
-        }
-        path = inside(revision, "land.json")
-        atomic_write(path, (json.dumps(record, indent=2) + "\n").encode("utf-8"))
-        return path
-
-    def write_transition_report(self, unit_id: str, writes: int, removals: int, is_closure: bool) -> Path:
-        # Reported as logical accepted paths even though storage is
-        # content-addressed; the report documents which cards moved.
-        accepted_files = sorted(f"accepted/files/{name}" for name in self.accepted_file_hashes())
-        report = {
-            "schema_version": 1,
-            "unit_id": unit_id,
-            "accepted_writes": writes,
-            "accepted_removals": removals,
-            "canonical_library_mutated": bool(is_closure),
-            "phase": self.state["phase"],
-            "unit_index": self.state["unit_index"],
-            "accepted_files": accepted_files,
-            "next_action": self.brief()["authorized_action"],
-        }
-        path = inside(self.audit_dir_path(), f"{unit_id.lower()}-state-report.json")
-        atomic_write(path, (json.dumps(report, indent=2) + "\n").encode("utf-8"))
-        return path
-
-    def latest_transition_report(self) -> dict | None:
-        directory = inside(self.root, "controller/audit")
-        if not directory.is_dir():
-            return None
-        reports = sorted(directory.glob("*-state-report.json"), key=lambda path: path.stat().st_mtime_ns)
-        if not reports:
-            return None
-        return preflight._read_json(str(reports[-1]))
 
     def preflight_presentation_path(self) -> Path:
         return inside(self.root, "controller/preflight-presentation.json")
@@ -2422,7 +1449,6 @@ class Run:
                 "sha256": hashlib.sha256(packet.encode("utf-8")).hexdigest(),
             }
             atomic_write(self.preflight_presentation_path(), (json.dumps(marker, indent=2) + "\n").encode())
-            self.archive_presentation("preflight", packet, marker["sha256"])
             return packet
         packet = self.render_land_packet()
         marker = {
@@ -2431,7 +1457,6 @@ class Run:
             "sha256": hashlib.sha256(packet.encode("utf-8")).hexdigest(),
         }
         atomic_write(self.presentation_path(), (json.dumps(marker, indent=2) + "\n").encode())
-        self.archive_presentation(f"{self.unit()['unit_id'].lower()}-landing", packet, marker["sha256"])
         return packet
 
     def render_land_packet(self) -> str:
@@ -2471,33 +1496,6 @@ class Run:
             lines.append("")
             for name, passed in delta["closure_audits"].items():
                 lines.append(f"- `{name}` — {'pass' if passed else 'FAIL'}")
-            lines.append("")
-        if "claim_regrounding" in delta:
-            lines.append("## PASS 2 CLAIM RE-GROUNDING")
-            if delta["claim_regrounding"]:
-                for item in delta["claim_regrounding"]:
-                    lines.append(f"- `{item['object_id']}` — {item['summary']} ({len(item['claims'])} material claim(s) re-grounded)")
-            else:
-                lines.append("- no changed cards required claim re-grounding")
-            lines.append("")
-            lines.append("## PASS 2 OMISSION SWEEP")
-            sweep = delta["omission_sweep"]
-            lines.append(f"- complete: {'yes' if sweep['complete'] else 'NO'}")
-            for finding in sweep["findings"]:
-                lines.append(f"- {finding['subject']} — {finding['disposition']} — {finding['reason']}")
-            if not sweep["findings"]:
-                lines.append("- findings: none")
-            lines.append("")
-            lines.append("## REINFORCEMENT EVIDENCE")
-            evidence = delta["reinforcement_evidence"]
-            if evidence:
-                for item in evidence:
-                    lines.append(
-                        f"- `{item['object_id']}` — scope: {item.get('scope', 'legacy_unscoped')} — owner claim: {item['owner_claim']} — "
-                        f"source: {item['source_locator']} — {item['source_quote']}"
-                    )
-            else:
-                lines.append("- none")
             lines.append("")
         lines.append("## OWNER RECONCILIATION")
         if delta.get("owner_reconciliation"):
@@ -2564,15 +1562,9 @@ class Run:
             elif phase == "checkpoint":
                 result["answers"] = [{"question_id": q["question_id"], "resolution": ""} for q in self.state["pass1"]["questions"]]
             elif phase == "pass2":
-                result.update(
-                    full_reread=False,
-                    flag_resolutions=[{"flag_id": f["flag_id"], "outcome": "", "reason": "", "deferred_to": ""} for f in self.state["pass1"]["secondary_subject_flags"]],
-                    claim_regrounding=[],
-                    omission_sweep={"complete": False, "findings": []},
-                    reinforcement_evidence=[],
-                    buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False,
-                    owner_reconciliation=[], metadata_classification=[]
-                )
+                result.update(full_reread=False, flag_resolutions=[{"flag_id": f["flag_id"], "reason": ""} for f in self.state["pass1"]["secondary_subject_flags"]],
+                              buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False,
+                              owner_reconciliation=[], metadata_classification=[])
                 if self.language_modernization_required():
                     policy = self.language_policy()
                     result["language_modernization"] = {
@@ -2689,24 +1681,6 @@ class Run:
                 raise RunError("removals must name canonical cards, modules or assets; indexes are generated")
         return f"library/{self.domain}/{path.as_posix()}"
 
-    def baseline_staged_path(self, canon: str) -> str | None:
-        """Run-relative staged path for a canonical accepted file, or None when
-        it must not be restaged (generated indexes, foreign paths)."""
-        if canon.startswith(f"library/{self.domain}/"):
-            rel = canon[len(f"library/{self.domain}/"):]
-            if PurePosixPath(rel).name == "INDEX.md":
-                return None
-            staged = f"drafts/{rel}"
-            if self.target(staged) != canon:
-                raise RunError(f"accepted file does not round-trip to its staged baseline path: {canon}")
-            return staged
-        if canon.startswith("workspace/release-recipes/") and re.fullmatch(r"SkillForge_[A-Za-z_]+\.yaml", PurePosixPath(canon).name):
-            staged = f"recipes/{PurePosixPath(canon).name}"
-            if self.target(staged) != canon:
-                raise RunError(f"accepted recipe does not round-trip to its staged baseline path: {canon}")
-            return staged
-        return None
-
     def staged_hashes(self) -> dict[str, str]:
         return {name: digest(inside(self.root, name)) for name in self.state["pass2"]["changes"]}
 
@@ -2764,7 +1738,7 @@ class Run:
                     exact(entry, {key, text}, field)
                     value = string(entry[key], key)
                     if not FLAG_RE.fullmatch(value) or value in seen:
-                        raise RunError(f"invalid or duplicate {key} (expected {FLAG_RE.pattern}; lowercase letters/digits/underscore only, beginning with a letter)")
+                        raise RunError(f"invalid or duplicate {key}")
                     seen.add(value)
                     string(entry[text], text)
             if self.language_modernization_required():
@@ -2773,7 +1747,7 @@ class Run:
                     exact(entry, {"flag_id", "source_claim", "reason"}, "version-sensitive flag")
                     value = string(entry["flag_id"], "version-sensitive flag_id")
                     if not FLAG_RE.fullmatch(value) or value in seen:
-                        raise RunError(f"invalid or duplicate version-sensitive flag_id (expected {FLAG_RE.pattern})")
+                        raise RunError("invalid or duplicate version-sensitive flag_id")
                     seen.add(value)
                     string(entry["source_claim"], "version-sensitive source claim")
                     string(entry["reason"], "version-sensitive reason")
@@ -2823,13 +1797,11 @@ class Run:
         else:
             raise RunError("use land or close-run for this phase")
         self.save()
-        if phase in {"pass3", "closure_pass3"}:
-            self.archive_pass3_record(self.unit()["unit_id"], data)
         self.consume_unattended_action(phase, previous_unit_index)
         return message
 
     def accept_pass2(self, data: dict) -> None:
-        keys = {"full_reread", "flag_resolutions", "claim_regrounding", "omission_sweep", "reinforcement_evidence", "buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification"}
+        keys = {"full_reread", "flag_resolutions", "buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification"}
         if self.language_modernization_required():
             keys.add("language_modernization")
         self.header(data, keys)
@@ -2837,23 +1809,12 @@ class Run:
             raise RunError("PASS 2 requires a full cold reread and explicit approval_required Boolean")
         resolved = set()
         for item in array(data["flag_resolutions"], "flag_resolutions"):
-            exact(item, {"flag_id", "outcome", "reason", "deferred_to"}, "flag resolution")
+            exact(item, {"flag_id", "reason"}, "flag resolution")
             key = string(item["flag_id"], "flag_id")
             if key in resolved:
                 raise RunError("duplicate flag resolution")
             resolved.add(key)
-            outcome = string(item["outcome"], "flag resolution outcome").lower()
-            if outcome not in {"collected", "rejected", "deferred"}:
-                raise RunError("flag resolution outcome must be collected, rejected, or deferred")
             string(item["reason"], "flag resolution reason")
-            deferred_to = item["deferred_to"]
-            if type(deferred_to) is not str:
-                raise RunError("flag resolution deferred_to must be a string")
-            if outcome == "deferred":
-                if not deferred_to.strip():
-                    raise RunError("deferred flag resolution requires deferred_to naming its destination or closure condition")
-            elif deferred_to.strip():
-                raise RunError("deferred_to is allowed only when flag resolution outcome is deferred")
         if resolved != {f["flag_id"] for f in self.state["pass1"]["secondary_subject_flags"]}:
             raise RunError("every PASS 1 secondary-subject flag must be explicitly resolved")
         exact(data["buckets"], BUCKETS, "delta buckets")
@@ -2881,85 +1842,10 @@ class Run:
                 relative(item["path"])
                 string(item["reason"], f"{action} reason")
         self.check_change_set(data)
-        self.validate_pass2_intensification(data)
-        self.validate_reinforcement_evidence(data)
         self.validate_reconciliation_and_metadata(data)
         if self.language_modernization_required():
             self.validate_language_modernization(data)
         self.state.update(pass2=data, live_hashes=self.live_snapshot(), reviewed_sha256=None, phase="pass3")
-
-    def validate_pass2_intensification(self, data: dict) -> None:
-        """Make the second source pass observable without automating semantic truth."""
-        changed_cards: dict[str, Path] = {}
-        for name in data["changes"]:
-            source = inside(self.root, name)
-            if source.suffix == ".md":
-                fm = preflight._frontmatter(source)
-                oid = fm.get("object_id")
-                if isinstance(oid, str):
-                    changed_cards[oid] = source
-
-        seen: set[str] = set()
-        for entry in array(data["claim_regrounding"], "claim_regrounding"):
-            exact(entry, {"object_id", "claims", "summary"}, "intensified claim review")
-            oid = string(entry["object_id"], "intensified claim object_id")
-            if oid in seen or oid not in changed_cards:
-                raise RunError("claim_regrounding must name each changed card exactly once")
-            seen.add(oid)
-            claims = array(entry["claims"], "intensified material claims")
-            if not claims:
-                raise RunError(f"changed card {oid} requires at least one re-grounded material/source-sensitive claim")
-            card_text = changed_cards[oid].read_text(encoding="utf-8")
-            for claim in claims:
-                exact(claim, {"card_quote", "source_locator", "source_quote"}, "intensified claim")
-                card_quote = string(claim["card_quote"], "card_quote")
-                if card_quote not in card_text:
-                    raise RunError(f"intensified card_quote is not present in the staged card: {oid}")
-                string(claim["source_locator"], "source_locator")
-                string(claim["source_quote"], "source_quote")
-            string(entry["summary"], "intensified claim summary")
-        if seen != set(changed_cards):
-            missing = sorted(set(changed_cards) - seen)
-            raise RunError("every changed card requires PASS 2 claim re-grounding" + (": " + ", ".join(missing) if missing else ""))
-
-        sweep = data["omission_sweep"]
-        exact(sweep, {"complete", "findings"}, "omission sweep")
-        if sweep["complete"] is not True:
-            raise RunError("PASS 2 omission_sweep.complete must be true after sweeping the complete unit for missed durable material")
-        for finding in array(sweep["findings"], "omission sweep findings"):
-            exact(finding, {"subject", "disposition", "reason"}, "omission sweep finding")
-            string(finding["subject"], "omission sweep subject")
-            disposition = string(finding["disposition"], "omission sweep disposition").lower()
-            if disposition not in {"collected", "rejected"}:
-                raise RunError("omission sweep disposition must be collected or rejected")
-            string(finding["reason"], "omission sweep reason")
-
-    def validate_reinforcement_evidence(self, data: dict) -> None:
-        """Require inspectable source-to-owner evidence for every REINFORCE disposition."""
-        reinforce_ids = {item["object_id"] for item in data["buckets"]["REINFORCE"]}
-        seen: set[str] = set()
-        with self.accepted_overlay() as tree:
-            cards = preflight.load_domain_cards(tree, self.domain)
-            for entry in array(data["reinforcement_evidence"], "reinforcement_evidence"):
-                exact(entry, {"object_id", "owner_claim", "source_locator", "source_quote", "scope"}, "reinforcement evidence")
-                oid = string(entry["object_id"], "reinforcement evidence object_id")
-                if oid in seen or oid not in reinforce_ids:
-                    raise RunError("reinforcement_evidence must name each REINFORCE owner exactly once")
-                seen.add(oid)
-                owner = cards.get(oid)
-                if owner is None:
-                    raise RunError(f"reinforcement evidence names no active owner: {oid}")
-                claim = string(entry["owner_claim"], "reinforcement owner_claim")
-                scope = string(entry["scope"], "reinforcement scope")
-                if scope != "reinforces_core":
-                    raise RunError("reinforcement evidence scope must be exactly reinforces_core")
-                if claim not in owner.path.read_text(encoding="utf-8"):
-                    raise RunError(f"reinforcement owner_claim is not present in the active owner: {oid}")
-                string(entry["source_locator"], "reinforcement source_locator")
-                string(entry["source_quote"], "reinforcement source_quote")
-        if seen != reinforce_ids:
-            missing = sorted(reinforce_ids - seen)
-            raise RunError("every REINFORCE disposition requires source-to-owner evidence" + (": " + ", ".join(missing) if missing else ""))
 
     def validate_language_modernization(self, data: dict) -> None:
         """Fail closed until source-era language claims are explicitly modernized."""
@@ -3086,33 +1972,10 @@ class Run:
             owner_seen.add(oid)
             compared = array(entry["compared_owner_ids"], "compared_owner_ids")
             if len(set(compared)) != len(compared) or any(not isinstance(x, str) or x not in cards for x in compared):
-                bad = [x for x in compared if isinstance(x, str) and x not in cards]
-                staged_new = [x for x in bad if x in changed]
-                hint = ""
-                if staged_new:
-                    hint = (
-                        f" ({', '.join(sorted(staged_new))} "
-                        f"{'is' if len(staged_new) == 1 else 'are'} a staged-new card: its sibling file lives in drafts/ and "
-                        "does not exist in live canon until landing, so it cannot appear in compared_owner_ids — reconcile "
-                        "against live cards only, and give the new card itself an entry with empty compared_owner_ids)"
-                    )
-                raise RunError(
-                    "owner reconciliation may name only unique live active-domain object IDs" + hint
-                )
+                raise RunError("owner reconciliation may name only unique live active-domain object IDs")
             string(entry["reason"], "owner reconciliation reason")
         if owner_seen != set(changed):
-            missing = sorted(set(changed) - owner_seen)
-            extra = sorted(owner_seen - set(changed))
-            parts = []
-            if missing:
-                parts.append(f"missing entries for {', '.join(missing)} (newly staged cards need one too: "
-                             "empty compared_owner_ids and a reason noting no live predecessor)")
-            if extra:
-                parts.append(f"entries for unchanged cards {', '.join(extra)}")
-            raise RunError(
-                "every changed card requires exactly one owner reconciliation entry"
-                + (" — " + "; ".join(parts) if parts else "")
-            )
+            raise RunError("every changed card requires exactly one owner reconciliation entry")
 
         meta_entries = array(data["metadata_classification"], "metadata_classification")
         meta_seen = set()
@@ -3196,7 +2059,7 @@ class Run:
                 if category and not inside(working, f"library/{self.domain}/{category}").exists():
                     declared = [e["path"] for e in data["taxonomy"]["NEW_SUBCATEGORY"]]
                     if not any(category == p or category.startswith(p + "/") for p in declared):
-                        raise RunError(f"new library category requires NEW_SUBCATEGORY: {category}; staged card paths are drafts/<category-relative-to-library/{self.domain}>/<card>.md, not drafts/library/{self.domain}/...")
+                        raise RunError(f"new library category requires NEW_SUBCATEGORY: {category}")
             for oid, bucket in dispositions.items():
                 if bucket not in {"REINFORCE", "REJECT"} and oid not in changed_ids | removed_ids:
                     raise RunError(f"changing disposition has no staged change/removal: {oid}")
@@ -3221,50 +2084,9 @@ class Run:
             relative(name)
         return list(data["paths"])
 
-    def accepted_manifest(self) -> dict[str, Any] | None:
-        path = inside(self.root, "accepted/manifest.json")
-        return preflight._read_json(str(path)) if path.is_file() else None
-
     def accepted_file_hashes(self) -> dict[str, str]:
-        manifest = self.accepted_manifest()
-        if manifest is None:
-            base = inside(self.root, "accepted/files")
-            return tree_hashes(base) if base.is_dir() else {}
-        if (
-            manifest.get("schema_version") != 2
-            or manifest.get("layout") != "content-addressed-blobs"
-            or not isinstance(manifest.get("files"), dict)
-        ):
-            raise RunError("accepted manifest is malformed")
-        files: dict[str, str] = {}
-        for name, sha in manifest["files"].items():
-            relative(name)
-            if not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{64}", sha):
-                raise RunError(f"accepted manifest entry is malformed: {name}")
-            files[name] = sha
-        return files
-
-    def read_accepted(self, name: str) -> bytes:
-        """Bytes of one accepted file under either store layout (legacy fallback)."""
-        manifest = self.accepted_manifest()
-        if manifest is not None:
-            sha = self.accepted_file_hashes().get(name)
-            if sha is None:
-                raise RunError(f"accepted file is not in the manifest: {name}")
-            blob = inside(self.root, f"accepted/blobs/{sha}")
-            if not blob.is_file():
-                raise RunError(f"accepted blob is missing: {name} ({sha[:12]})")
-            data = blob.read_bytes()
-            if hashlib.sha256(data).hexdigest() != sha:
-                raise RunError(f"accepted blob is damaged: {name} ({sha[:12]})")
-            return data
-        path = inside(self.root, f"accepted/files/{name}")
-        if not path.is_file():
-            raise RunError(f"accepted file is missing: {name}")
-        return path.read_bytes()
-
-    def accepted_content(self) -> dict[str, bytes]:
-        return {name: self.read_accepted(name) for name in sorted(self.accepted_file_hashes())}
+        base = inside(self.root, "accepted/files")
+        return tree_hashes(base) if base.is_dir() else {}
 
     def accepted_fingerprint(self) -> str:
         payload = {"files": self.accepted_file_hashes(), "removals": self.accepted_removals()}
@@ -3273,10 +2095,14 @@ class Run:
     def apply_accepted(self, tree: Path) -> None:
         for name in self.accepted_removals():
             inside(tree, name).unlink(missing_ok=True)
-        for name in sorted(self.accepted_file_hashes()):
-            target = inside(tree, name)
-            target.parent.mkdir(parents=True, exist_ok=True)
-            atomic_write(target, self.read_accepted(name))
+        base = inside(self.root, "accepted/files")
+        if base.is_dir():
+            for source in sorted(base.rglob("*")):
+                if source.is_file():
+                    name = source.relative_to(base).as_posix()
+                    target = inside(tree, name)
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy2(source, target)
 
     def copy_working_base(self, tree: Path, integration: bool = False) -> None:
         domains = [p.name for p in (self.repo / "library").iterdir() if p.is_dir()] if integration else [self.domain, "metaskills"]
@@ -3341,28 +2167,15 @@ class Run:
             if path.exists():
                 shutil.rmtree(path)
         fresh.mkdir(parents=True)
-        file_shas: dict[str, str] = {}
         for name, content in sorted(files.items()):
-            sha = hashlib.sha256(content).hexdigest()
-            file_shas[name] = sha
-            blob = fresh / "blobs" / sha
-            validate_windows_path_budget(blob, f"accepted blob {sha}")
-            blob.parent.mkdir(parents=True, exist_ok=True)
-            atomic_write(blob, content)
-        manifest_record = {
-            "schema_version": 2,
-            "layout": "content-addressed-blobs",
-            "files": file_shas,
-        }
-        atomic_write(fresh / "manifest.json", (json.dumps(manifest_record, indent=2) + "\n").encode("utf-8"))
+            target = fresh / "files" / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write(target, content)
         atomic_write(fresh / "removals.json", (json.dumps({"schema_version": 1, "paths": sorted(set(removals))}, indent=2) + "\n").encode("utf-8"))
         # Verify before promotion.
         for name, content in files.items():
-            blob = fresh / "blobs" / file_shas[name]
-            if not blob.is_file() or blob.read_bytes() != content:
+            if (fresh / "files" / name).read_bytes() != content:
                 raise RunError(f"accepted delta verification failed: {name}")
-        if preflight._read_json(str(fresh / "manifest.json")) != manifest_record:
-            raise RunError("accepted delta manifest verification failed")
         if current.exists():
             current.rename(retired)
         fresh.rename(current)
@@ -3596,7 +2409,7 @@ for name in recipes:
     def land(self, decision: dict) -> str:
         # Independent books may stage in parallel, but only one unit in a domain
         # may integrate at a time. This lease contains no research/run state.
-        lease = inside(self.repo, f"{RUN_STORE}/.landing-{self.domain}.lock")
+        lease = inside(self.repo, f"workspace/skill-staging/{self.domain}/.landing.lock")
         try:
             descriptor = os.open(lease, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
         except FileExistsError as exc:
@@ -3685,7 +2498,12 @@ for name in recipes:
         shutil.rmtree(journal)
 
     def commit_accepted_to_canon(self) -> tuple[int, int]:
-        writes: dict[str, bytes] = self.accepted_content()
+        base = inside(self.root, "accepted/files")
+        writes: dict[str, bytes] = {}
+        if base.is_dir():
+            for path in sorted(base.rglob("*")):
+                if path.is_file():
+                    writes[path.relative_to(base).as_posix()] = path.read_bytes()
         removals = self.accepted_removals()
         self.begin_canonical_journal(writes, removals)
         try:
@@ -3752,8 +2570,6 @@ for name in recipes:
                 self.state.update(unit_index=self.state["unit_index"] + 1, pass1=None, pass2=None, reviewed_sha256=None, live_hashes=None)
                 self.state["phase"] = "closure_pass2" if self.state["unit_index"] == len(self.state["plan"]["units"]) else "pass1"
             self.save()
-            history_path = self.archive_land_record(unit, old_state, decision, writes, removals, is_closure)
-            report_path = self.write_transition_report(unit, writes, removals, is_closure)
             self.clear_presentation()
         except BaseException:
             self.state = old_state
@@ -3767,98 +2583,9 @@ for name in recipes:
             except OSError:
                 cleanup.append(name)
         suffix = f"; retained scratch needs cleanup: {', '.join(cleanup)}" if cleanup else ""
-        evidence = f"; audit={history_path.relative_to(self.root).as_posix()}; state_report={report_path.relative_to(self.root).as_posix()}"
         if is_closure:
-            return f"SOURCE CLOSED: staged source delta canonicalized ({writes} writes, {removals} removals; no Git commit created){suffix}{evidence}"
-        return f"UNIT ACCEPTED TO SKILL-STAGING: {unit.upper()} ({writes} staged writes, {removals} staged removals){suffix}{evidence}"
-
-    def reopen_last_unit(self, reason: str) -> str:
-        """Reopen the immediately previous accepted unit for a bounded correction pass."""
-        string(reason, "reopen reason")
-        if self.state["unit_index"] <= 0:
-            raise RunError("no previously accepted unit exists to reopen")
-        if self.state["phase"] not in {"pass1", "closure_pass2"}:
-            raise RunError("reopen-last-unit is allowed only before the next unit has accepted PASS 1 or before closure work begins")
-        if self.state.get("pass1") is not None or self.state.get("pass2") is not None:
-            raise RunError("current unit already has accepted work; finish or explicitly reset it before reopening the prior unit")
-        if any(path.is_file() for path in (self.root / "drafts").rglob("*")):
-            raise RunError("unaccepted drafts exist for the current unit; preserve or remove them explicitly before reopening the prior unit")
-        previous_index = self.state["unit_index"] - 1
-        unit_id = self.state["plan"]["units"][previous_index]["unit_id"]
-        base = self.unit_history_root(unit_id)
-        revisions = sorted((path for path in base.iterdir() if path.is_dir() and re.fullmatch(r"r\d{3}", path.name)), key=lambda path: path.name) if base.is_dir() else []
-        landed = [path for path in revisions if (path / "land.json").is_file()]
-        if not landed:
-            raise RunError(f"no preserved accepted history exists for {unit_id}; this run predates the supported correction path")
-        last = preflight._read_json(str(landed[-1] / "land.json"))
-        if not isinstance(last.get("pass1"), dict):
-            raise RunError("accepted unit history has no reusable PASS 1 record")
-        self.clear_presentation()
-        self.unattended_action_path().unlink(missing_ok=True)
-        self.state.update(
-            unit_index=previous_index,
-            pass1=last["pass1"],
-            pass2=None,
-            reviewed_sha256=None,
-            live_hashes=None,
-            phase="pass2",
-        )
-        revision = self.history_revision_dir(unit_id, create=True)
-        superseded_packet_sha = None
-        if isinstance(last.get("landing_decision"), dict):
-            superseded_packet_sha = last["landing_decision"].get("presentation_sha256")
-        audit_packet = inside(self.root, f"controller/audit/{unit_id.lower()}-landing.md")
-        if audit_packet.is_file():
-            actual_packet_sha = digest(audit_packet)
-            if superseded_packet_sha and actual_packet_sha != superseded_packet_sha:
-                raise RunError("preserved landing packet no longer matches the accepted landing decision hash")
-            superseded_packet_sha = actual_packet_sha
-        record = {
-            "schema_version": 2,
-            "unit_id": unit_id,
-            "reason": reason,
-            "opened_at": now(),
-            "from_revision": landed[-1].name,
-            "superseded_landing_packet_sha256": superseded_packet_sha,
-            "superseded_accepted_delta_fingerprint": last.get("accepted_delta_fingerprint") or self.accepted_fingerprint(),
-            "required_rechecks": ["pass2", "pass3", "land"],
-        }
-        # EXP-003 Target E: materialize the accepted source delta into drafts so
-        # the correction pass starts from the run's own current card versions
-        # instead of requiring manual restaging. Baseline hashes are recorded so
-        # close-run can discard untouched copies while retaining user edits.
-        baseline: dict[str, str] = {}
-        for canon in sorted(self.accepted_file_hashes()):
-            staged = self.baseline_staged_path(canon)
-            if staged is None:
-                continue
-            content = self.read_accepted(canon)
-            target = inside(self.root, staged)
-            if target.is_file():
-                raise RunError(f"cannot materialize amendment baseline; drafts already hold {staged}")
-            validate_windows_path_budget(target, f"amendment baseline {staged}")
-            target.parent.mkdir(parents=True, exist_ok=True)
-            atomic_write(target, content)
-            baseline[staged] = hashlib.sha256(content).hexdigest()
-        record["materialized_baseline"] = baseline
-        atomic_write(inside(revision, "amendment.json"), (json.dumps(record, indent=2) + "\n").encode("utf-8"))
-        if baseline:
-            atomic_write(inside(self.root, "controller/amendment-baseline.json"), (json.dumps({
-                "schema_version": 1,
-                "unit_id": unit_id,
-                "revision": landed[-1].name,
-                "files": baseline,
-            }, indent=2) + "\n").encode("utf-8"))
-        # Keep the EXP-001 filename as an explicit compatibility breadcrumb.
-        atomic_write(inside(revision, "reopen.json"), (json.dumps({
-            "schema_version": 1, "unit_id": unit_id, "reason": reason,
-            "reopened_at": record["opened_at"], "from_revision": landed[-1].name
-        }, indent=2) + "\n").encode("utf-8"))
-        self.save()
-        materialized = f"; {len(baseline)} baseline card(s) materialized into drafts from the accepted source delta" if baseline else ""
-        return (f"UNIT REOPENED / AMENDMENT OPENED: {unit_id.upper()} — original landing hash/fingerprint preserved; "
-                "PASS 2, PASS 3, and land must run again against the accepted staging baseline"
-                + materialized)
+            return f"SOURCE CLOSED: staged source delta canonicalized ({writes} writes, {removals} removals; no Git commit created){suffix}"
+        return f"UNIT ACCEPTED TO SKILL-STAGING: {unit.upper()} ({writes} staged writes, {removals} staged removals){suffix}"
 
     def rewind(self, phase: str) -> None:
         if phase not in {"pass1", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
@@ -3908,27 +2635,6 @@ for name in recipes:
     def close(self) -> None:
         if self.state["phase"] != "finished":
             raise RunError("cannot close the source run while any unit remains unfinished")
-        # Defense in depth behind locked()'s uniform residue gate: close never
-        # silently sweeps unresolved checkpoint-promotion state.
-        residue = checkpoint_residue(self.root)
-        if any(residue.values()):
-            raise RunError(
-                "checkpoint residue must be resolved before close-run "
-                f"({json.dumps(residue, sort_keys=True)}); run repair-checkpoint first"
-            )
-        # Amendment-baseline drafts: untouched controller-copied scratch is
-        # disposable; anything the user edited is retained work (EXP-003 Target G).
-        baseline_path = inside(self.root, "controller/amendment-baseline.json")
-        if baseline_path.is_file():
-            baseline = preflight._read_json(str(baseline_path))
-            entries = baseline.get("files") if isinstance(baseline, dict) else None
-            if isinstance(entries, dict):
-                for staged, sha in entries.items():
-                    relative(staged)
-                    path = inside(self.root, staged)
-                    if path.is_file() and isinstance(sha, str) and digest(path) == sha:
-                        path.unlink()
-            baseline_path.unlink(missing_ok=True)
         # Remove only controller-owned generated state. Unknown files are retained
         # so an explicit diagnosis/evidence hold cannot be swept accidentally.
         for name in (
@@ -3950,22 +2656,13 @@ for name in recipes:
                 history.rmdir()
         audit = inside(self.root, "controller/audit")
         if audit.is_dir():
-            # Remove only controller-owned audit artifacts. Unknown files may be
-            # explicit evidence holds and must survive close-run.
-            owned = [
-                "events.jsonl", "preflight.md", "preflight.json",
-                "final-validate.txt", "final-verify-references.txt",
-            ]
-            owned.extend(path.name for path in audit.glob("*-landing.md"))
-            owned.extend(path.name for path in audit.glob("*-landing.json"))
-            owned.extend(path.name for path in audit.glob("*-state-report.json"))
+            owned = ["events.jsonl", "preflight.md", "preflight.json", "final-validate.txt", "final-verify-references.txt"]
+            owned.extend(p.name for p in audit.glob("*-landing.md"))
+            owned.extend(p.name for p in audit.glob("*-landing.json"))
             for name in sorted(set(owned)):
                 inside(audit, name).unlink(missing_ok=True)
             if not any(audit.iterdir()):
                 audit.rmdir()
-        unit_history = inside(self.root, "controller/unit-history")
-        if unit_history.is_dir():
-            shutil.rmtree(unit_history)
         inside(self.root, "RUN_NOTE.md").unlink(missing_ok=True)
         for generated_dir in ("accepted", "prepared-source", "controller/source-prep-raw", "controller/canonical-commit"):
             path = inside(self.root, generated_dir)
@@ -4004,7 +2701,7 @@ def _load_start_over_state(root: Path) -> dict:
             intent,
             {
                 "schema_version", "requested_at", "reason", "restart_from",
-                "carry_notes", "new_task", "replacement_run", "domain", "source", "state",
+                "carry_notes", "new_task", "domain", "source", "state",
             },
             "start-over intent",
         )
@@ -4021,7 +2718,6 @@ def _load_start_over_state(root: Path) -> dict:
             "restart_from": None,
             "carry_notes": None,
             "new_task": None,
-            "replacement_run": None,
             "domain": state.get("domain"),
             "source": state.get("source"),
             "state": state,
@@ -4039,7 +2735,6 @@ def _load_start_over_state(root: Path) -> dict:
                 "restart_from": reset.get("restart_from"),
                 "carry_notes": reset.get("carry_notes"),
                 "new_task": reset.get("new_task"),
-                "replacement_run": reset.get("replacement_run"),
                 "domain": state.get("domain"),
                 "source": state.get("source"),
                 "state": state,
@@ -4071,8 +2766,6 @@ def start_over(
 
     seed = _load_start_over_state(root)
     state = seed["state"]
-    prior_manifest = read_run_manifest(root, required=False)
-    prior_genre = prior_manifest["genre"] if prior_manifest is not None else None
     domain = state.get("domain")
     source_text = state.get("source")
     if not isinstance(domain, str) or domain not in authorable_domains(repo):
@@ -4127,11 +2820,9 @@ def start_over(
                     "legacy Software Engineering preflight lacks the schema-3 language policy; restart from source_prep so the new preflight can classify and modernize programming-language material"
                 )
 
-    new_root = None
-    if not existing_intent.is_file():
-        # Replacement identity is newly minted; the human-readable task is metadata.
-        # Collision checks are therefore performed after start() returns the short-ID root.
-        pass
+    new_root = inside(repo, f"workspace/skill-staging/{domain}/{task}")
+    if not existing_intent.is_file() and new_root.exists():
+        raise RunError(f"start-over target already exists: {new_root}")
 
     # An actually-live old PASS process must be stopped first. A dead process's
     # stale lease is evidence, not authority over an explicit user reset.
@@ -4149,7 +2840,6 @@ def start_over(
             "restart_from": restart_from,
             "carry_notes": bool(carry_notes),
             "new_task": task,
-            "replacement_run": None,
             "domain": domain,
             "source": str(source),
             "state": state,
@@ -4184,26 +2874,13 @@ def start_over(
             },
         }
         atomic_write(abandoned_path, (json.dumps(record, indent=2) + "\n").encode("utf-8"))
-    old_manifest = read_run_manifest(root, required=False)
-    if old_manifest is not None:
-        current = _manifest_current(state)
-        current["status"] = "abandoned"
-        old_manifest["current"] = current
-        old_manifest["updated_at"] = now()
-        atomic_write(run_manifest_path(root), (json.dumps(old_manifest, indent=2) + "\n").encode("utf-8"))
-        register_run(repo, root, old_manifest)
     inside(root, "controller/run.json").unlink(missing_ok=True)
 
     # Create or resume creation of the replacement run named in the reset intent.
-    replacement = (seed.get("replacement_run") if isinstance(seed, dict) else None)
-    if replacement:
-        new_root = run_root(repo, Path(replacement))
-    else:
-        new_root = start(repo, source, domain, task, "complete", prior_genre)
-        # Persist the minted short-ID root into reset intent so an interrupted
-        # start-over transaction resumes the same replacement identity.
-        seed["replacement_run"] = str(new_root)
-        atomic_write(existing_intent, (json.dumps(seed, indent=2) + "\n").encode("utf-8"))
+    if not new_root.exists():
+        created = start(repo, source, domain, task, "complete")
+        if created != new_root:
+            raise RunError("start-over replacement path mismatch")
     new_run = Run(repo, new_root)
     if new_run.domain != domain or Path(new_run.state["source"]).resolve() != source:
         raise RunError("start-over replacement run exists but belongs to a different source/domain")
@@ -4325,8 +3002,7 @@ def build_parser() -> argparse.ArgumentParser:
     start_parser = sub.add_parser("start", help="authorize a domain-local book/run workspace; no source reading")
     start_parser.add_argument("--source", type=Path, required=True)
     start_parser.add_argument("--domain", help="must be authorized by the user/project; never infer from source topic")
-    start_parser.add_argument("--task", help="optional unique lowercase display/task slug")
-    start_parser.add_argument("--genre", help="classification metadata slug; does not control the physical run path")
+    start_parser.add_argument("--task", help="optional unique lowercase book/run slug")
     start_parser.add_argument("--stop-after", choices=("source_prep", "preflight", "complete"), default="complete",
                               help="optional resumable stop target; preflight stops before PASS 1 unit ingestion")
     resume_parser = sub.add_parser("resume", help="find and verify an unfinished run, then name its one next action; read-only")
@@ -4351,23 +3027,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     start_over_parser.add_argument("--carry-notes", action="store_true", help="copy NOTES.md into the replacement run")
     start_over_parser.add_argument("--task", help="optional replacement run slug; default is a unique restart slug")
-    runs_parser = sub.add_parser("runs", help="inspect/import/export the short-ID run store")
-    runs_sub = runs_parser.add_subparsers(dest="runs_command", required=True)
-    runs_list = runs_sub.add_parser("list", help="list self-describing short-ID runs")
-    runs_list.add_argument("--domain")
-    runs_list.add_argument("--genre")
-    runs_export = runs_sub.add_parser("export", help="export one run as a hash-verified portable ZIP")
-    runs_export.add_argument("run", type=Path, help="run_id or run path")
-    runs_export.add_argument("--output", type=Path, required=True)
-    runs_import = runs_sub.add_parser("import", help="validate and import a portable run ZIP")
-    runs_import.add_argument("archive", type=Path)
-    runs_import.add_argument("--collision", choices=("error", "new-id"), default="error")
-    runs_open = runs_sub.add_parser("open", help="resolve a run_id to its physical short path")
-    runs_open.add_argument("run", type=Path, help="run_id or run path")
-    runs_migrate = runs_sub.add_parser("migrate", help="copy a legacy-layout prepped run into the short-ID store")
-    runs_migrate.add_argument("--from", dest="source", type=Path, required=True, help="legacy run directory; copied, never modified")
-    runs_migrate.add_argument("--genre", default=None, help="lowercase genre slug; derived from the parent directory name when omitted")
-    for command in ("status", "template", "present", "submit", "accept-preflight", "revise-preflight", "rewind", "reopen-last-unit", "amend-last-unit", "rollback", "recover", "repair-checkpoint", "continue-run", "replan", "land", "close-run"):
+    for command in ("status", "template", "present", "submit", "accept-preflight", "revise-preflight", "rewind", "rollback", "recover", "continue-run", "replan", "land", "close-run"):
         command_parser = sub.add_parser(command)
         command_parser.add_argument("--run", type=Path, required=True)
         if command == "submit":
@@ -4381,14 +3041,6 @@ def build_parser() -> argparse.ArgumentParser:
             command_parser.add_argument("--input", required=True, help="replacement preflight JSON path or '-' for stdin")
         elif command == "rewind":
             command_parser.add_argument("--phase", choices=("pass1", "pass2", "pass3", "closure_pass2", "closure_pass3"), required=True)
-        elif command in {"reopen-last-unit", "amend-last-unit"}:
-            command_parser.add_argument("--reason", required=True, help="why the immediately previous accepted unit must be corrected")
-        elif command == "recover":
-            command_parser.add_argument(
-                "--rollback-authoritative",
-                action="store_true",
-                help="explicitly discard authoritative state persisted after the last verified checkpoint (destructive; audit-recorded)",
-            )
         elif command == "replan":
             command_parser.add_argument("--input", required=True, help="JSON boundary amendment path or '-' for stdin")
     return parser
@@ -4396,37 +3048,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Iterable[str] | None = None) -> int:
     args = build_parser().parse_args(list(argv) if argv is not None else None)
-    # Captured for the degraded-checkpoint record: which operation was in flight
-    # and, when present produced a packet, the hash of the packet it built.
-    operation_context: dict[str, Any] = {"command": args.command}
     try:
         repo = args.repo_root.resolve() if args.repo_root else preflight.find_repo_root(Path.cwd())
-        enforce_experimental_controller_target(repo)
-        if args.command == "runs":
-            if args.runs_command == "list":
-                if args.genre is not None and not GENRE_RE.fullmatch(args.genre):
-                    raise RunError("--genre must be a lowercase metadata slug")
-                print(json.dumps({"schema_version": 1, "runs": list_registered_runs(repo, domain=args.domain, genre=args.genre)}, indent=2))
-                return 0
-            if args.runs_command == "export":
-                output = export_run(repo, args.run, args.output)
-                print(json.dumps({"outcome": "exported", "archive": str(output)}, indent=2))
-                return 0
-            if args.runs_command == "import":
-                imported = import_run(repo, args.archive, collision=args.collision)
-                print(json.dumps({"outcome": "imported", "run": str(imported), "manifest": read_run_manifest(imported, required=True)}, indent=2))
-                return 0
-            if args.runs_command == "open":
-                resolved = run_root(repo, args.run)
-                print(json.dumps({"run": str(resolved), "manifest": read_run_manifest(resolved, required=True)}, indent=2))
-                return 0
-            if args.runs_command == "migrate":
-                migrated = migrate_run(repo, args.source, genre=args.genre)
-                print(json.dumps({"outcome": "migrated", "run": str(migrated), "manifest": read_run_manifest(migrated, required=True)}, indent=2))
-                return 0
-            raise RunError(f"unsupported runs command: {args.runs_command}")
         if args.command == "start":
-            run = Run(repo, start(repo, args.source, args.domain, args.task, args.stop_after, args.genre))
+            run = Run(repo, start(repo, args.source, args.domain, args.task, args.stop_after))
             print(json.dumps(run.brief(), indent=2))
             return 0
         if args.command == "resume":
@@ -4441,58 +3066,41 @@ def main(argv: Iterable[str] | None = None) -> int:
             return 0
         run = Run(repo, args.run)
         if args.command == "recover":
-            print(run.recover(rollback_authoritative=getattr(args, "rollback_authoritative", False)))
+            print(run.recover())
             print(json.dumps(run.brief(), indent=2))
             return 0
-        if args.command == "repair-checkpoint":
-            with run.locked(require_resolved=False, action="repair-checkpoint"):
-                outcome = run.repair_checkpoint()
-            print(outcome)
-            return 0
         if args.command in {"status", "template"}:
-            payload = run.brief() if args.command == "status" else {"phase": run.state["phase"], "template": run.template()}
-            print(json.dumps(payload, indent=2))
+            print(json.dumps(run.brief() if args.command == "status" else run.template(), indent=2))
             return 0
-        # Operation results are captured inside the lock and released only after
-        # checkpoint promotion succeeds, so a degraded checkpoint can never be
-        # paired with a contradictory success print (EXP-003 Target A).
-        outcomes: list[str] = []
         if args.command == "present":
-            with run.locked(action="present"):
+            with run.locked():
                 packet = run.present()
-                operation_context["presented_packet_sha256"] = hashlib.sha256(packet.encode("utf-8")).hexdigest()
             print(packet)
             return 0
-        with run.locked(action=args.command):
+        with run.locked():
             if args.command == "continue-run":
                 if not run.state.get("stop_reached"):
                     raise RunError("run is not paused at a stop target")
                 run.state["stop_reached"] = False
                 run.state["stop_after"] = "complete"
                 run.save()
-                outcomes.append("RUN CONTINUED: stop target cleared")
+                print("RUN CONTINUED: stop target cleared")
             elif args.command == "submit":
-                outcomes.append(run.submit(args.phase, preflight._read_json(args.input)))
+                print(run.submit(args.phase, preflight._read_json(args.input)))
             elif args.command == "accept-preflight":
-                outcomes.append(run.accept_preflight(preflight._read_json(args.decision)))
+                print(run.accept_preflight(preflight._read_json(args.decision)))
             elif args.command == "revise-preflight":
-                outcomes.append(run.revise_preflight(preflight._read_json(args.input)))
+                print(run.revise_preflight(preflight._read_json(args.input)))
             elif args.command == "land":
-                outcomes.append(run.land(preflight._read_json(args.decision)))
+                print(run.land(preflight._read_json(args.decision)))
             elif args.command == "rewind":
                 run.rewind(args.phase)
-            elif args.command in {"reopen-last-unit", "amend-last-unit"}:
-                outcomes.append(run.reopen_last_unit(args.reason))
             elif args.command == "rollback":
-                outcomes.append(run.rollback())
+                print(run.rollback())
             elif args.command == "replan":
                 run.replan(preflight._read_json(args.input))
             elif args.command == "close-run":
                 run.close()
-            else:
-                raise RunError(f"unsupported command: {args.command}")
-        for line in outcomes:
-            print(line)
         if args.command == "close-run":
             for directory in sorted(run.root.rglob("*"), key=lambda p: len(p.parts), reverse=True):
                 inside(run.root, directory.relative_to(run.root).as_posix())
@@ -4500,27 +3108,15 @@ def main(argv: Iterable[str] | None = None) -> int:
                     directory.rmdir()
             if not any(run.root.iterdir()):
                 run.root.rmdir()
-            # If a legacy run lived in a genre subfolder, drop that folder too
-            # once it is empty. Never touch the domain directory itself, and
-            # never treat the short-ID run store as a genre folder.
-            try:
-                genre = run.root.relative_to(run.repo / "workspace/skill-staging").parent
-            except ValueError:
-                genre = None
-            if genre is not None and genre.name != run.domain and not any(genre.iterdir()):
+            # If the run lived in a genre subfolder, drop that folder too once it
+            # is empty. Never touch the domain directory itself.
+            genre = run.root.parent
+            if genre.name != run.domain and not any(genre.iterdir()):
                 genre.rmdir()
             print("RUN CLOSED: generated state discarded; original inputs and nonempty retained work preserved")
         else:
             print(json.dumps(run.brief(), indent=2))
         return 0
-    except ResidueBlockedError as exc:
-        print("PASS RUN BLOCKED: " + json.dumps(exc.as_record(), sort_keys=True), file=sys.stderr)
-        return 1
-    except CheckpointPromotionError as exc:
-        record = exc.as_record()
-        record["operation_context"] = dict(operation_context)
-        print("PASS RUN CHECKPOINT DEGRADED: " + json.dumps(record, sort_keys=True), file=sys.stderr)
-        return 2
     except (OSError, preflight.PreflightError, preflight.yaml.YAMLError) as exc:
         print(f"PASS RUN BLOCKED: {exc}", file=sys.stderr)
         return 1

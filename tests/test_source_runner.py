@@ -101,9 +101,6 @@ class SourceRunnerTests(unittest.TestCase):
             "approval_required": approval_required,
             "owner_reconciliation": [],
             "metadata_classification": [],
-            "claim_regrounding": [],
-            "omission_sweep": {"complete": True, "findings": []},
-            "reinforcement_evidence": [],
         })
         issued = drive(run)
         self.assertEqual(issued["action"]["phase"], "pass3")

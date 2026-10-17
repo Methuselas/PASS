@@ -285,7 +285,7 @@ def next_action(run: Run, authorized: bool, source_ok: bool) -> str:
             return "Interactive landing presentation and decision are required."
         if run.state["pass2"]["approval_required"]:
             return "Run source.py advance to archive the packet; it will stop for practitioner approval."
-        return "Run source.py advance to archive and accept the routine delta into skill-staging."
+        return "Run source.py advance to archive and accept the routine delta into the run's staging."
     if phase == "finished":
         return "Run source.py advance once more to execute final source verification and record completion."
     raise RunError(f"unknown phase: {phase}")
@@ -405,7 +405,7 @@ def advance(run: Run) -> dict[str, Any]:
             "unit_id": unit,
             "presentation_sha256": marker["sha256"],
             "basis": "unattended authorization",
-            "reason": "Routine delta accepted into skill-staging under the user's source-scoped unattended authorization after complete packet render and audit capture.",
+            "reason": "Routine delta accepted into run staging under the user's source-scoped unattended authorization after complete packet render and audit capture.",
         }
         message = run.land(decision)
         append_event(run, {"event": "unit_auto_accepted", "unit_id": unit, "sha256": marker["sha256"], "basis": "unattended authorization"})

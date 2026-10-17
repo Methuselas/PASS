@@ -61,6 +61,14 @@ Start the run:
 python PASS/vfx.py start --inventory inventory.json --task boss-spawn
 ```
 
+The run is created under the one canonical run root at its library ownership
+path, `Pass-runs/software-engineering/unreal-engine/vfx/<run-id>/`, with a short
+opaque run id. `--task` is the run's descriptive label, recorded in run state;
+it is never a path segment.
+
+```bash
+```
+
 The generated `capture-plan.json` requires a whole-system recording plus one isolated recording for every enabled emitter. Future UE automation can satisfy that directly. Today, recordings can be supplied manually.
 
 A recording manifest for `workspace/tools/extract_vfx_stills.py` looks like:
@@ -84,7 +92,7 @@ python workspace/tools/extract_vfx_stills.py captures.json -o evidence --interva
 The adapter uses the existing PASS Video Stills engine with its `vfx` preset and keeps every planned temporal sample. The resulting `vfx-stills-manifest.json` can then be registered:
 
 ```bash
-python PASS/vfx.py register-captures --run workspace/vfx-authoring/boss-spawn \
+python PASS/vfx.py register-captures --run Pass-runs/software-engineering/unreal-engine/vfx/r_a1b2c3d4 \
   --manifest evidence/vfx-stills-manifest.json
 ```
 

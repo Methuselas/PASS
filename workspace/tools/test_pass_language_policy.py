@@ -74,7 +74,7 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.source = self.tempdir / "source.txt"
         self.source.write_text("synthetic source", encoding="utf-8")
         self.task = "language-policy-" + uuid.uuid4().hex[:10]
-        self.root = start(REPO, self.source, "software-engineering", self.task, "complete")
+        self.root = start(REPO, self.source, "software-engineering", None, "complete")
         self.run = Run(REPO, self.root)
         # Source Prep is independently tested. Put this synthetic controller run
         # directly at preflight so this file exercises only the policy gates.

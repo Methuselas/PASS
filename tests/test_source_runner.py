@@ -42,7 +42,7 @@ class SourceRunnerTests(unittest.TestCase):
         self.temp.cleanup()
 
     def make_run(self, task="runner-test"):
-        root = start(self.repo, self.source, "writing", task)
+        root = start(self.repo, self.source, "writing")
         run = Run(self.repo, root)
         run.submit("load", {"schema_version": 1, "documents_read": required_documents(self.repo)})
         pass_source_prep.prepare(run)
@@ -131,7 +131,7 @@ class SourceRunnerTests(unittest.TestCase):
         self.assertEqual(run.state["phase"], "closure_land")
 
     def test_source_identity_is_captured_only_after_load(self):
-        root = start(self.repo, self.source, "writing", "identity-after-load")
+        root = start(self.repo, self.source, "writing")
         run = Run(self.repo, root)
         self.assertFalse(run.source_identity_path().exists())
         run.submit("load", {"schema_version": 1, "documents_read": required_documents(self.repo)})
@@ -183,7 +183,7 @@ class SourceRunnerTests(unittest.TestCase):
         self.assertTrue(hold.is_file())
 
     def test_authorized_preflight_requires_drive_lease(self):
-        root = start(self.repo, self.source, "writing", "preflight-lease")
+        root = start(self.repo, self.source, "writing")
         run = Run(self.repo, root)
         run.submit("load", {"schema_version": 1, "documents_read": required_documents(self.repo)})
         pass_source_prep.prepare(run)

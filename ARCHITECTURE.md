@@ -216,7 +216,11 @@ Retired 2026-08-15.
 
 **Executable authoring uses recoverable, per-source transactional staging.**
 `PASS/pass.py` gates ordinary authoring in
-`workspace/skill-staging/<domain>/<book-run>/`. Deterministic Source Prep may keep
+`Pass-runs/<domain>[/<module-path>...]/<run-id>/`: one run root whose hierarchy
+mirrors canonical library ownership, with short opaque run ids so no generated
+path depends on a descriptive source title. Descriptive run information is
+metadata in `controller/run.json`, never a path segment, which is what keeps
+staged card paths inside the Windows path limit. Deterministic Source Prep may keep
 a verified model-facing source package inside that active run; it is disposable
 authoring input, not card provenance, a shared source registry, or finished-skill
 state. The controller keeps a complete verified checkpoint and generated
@@ -251,7 +255,9 @@ and a release carries it exactly like any other module file.
 `PASS/vfx.py` is not a second source-authoring system: it stages analysis of an
 existing Niagara asset through inventory, whole-system/isolated temporal capture,
 classification, candidate card extraction and visual validation under
-`workspace/vfx-authoring/<task>/`. The Unreal project/plugin owns asset inspection
+`Pass-runs/software-engineering/unreal-engine/vfx/<run-id>/`: it shares the one
+canonical run root and its library ownership path rather than keeping a run
+layout of its own. The Unreal project/plugin owns asset inspection
 and recording; PASS owns only the temporary evidence contract and staged cards.
 No capture path, emitter receipt, project asset identity or run state becomes a
 finished card field or release dependency. `workspace/tools/extract_vfx_stills.py`

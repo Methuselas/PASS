@@ -26,7 +26,7 @@ import uuid
 from . import pass_authoring_run as preflight
 
 
-RUN_SCHEMA = 2
+RUN_SCHEMA = 3
 PHASES = {"load", "source_prep", "preflight", "preflight_accept", "pass1", "checkpoint", "pass2", "pass3", "land",
           "closure_pass2", "closure_pass3", "closure_land", "finished"}
 STOP_AFTER = {"source_prep", "preflight", "complete"}
@@ -58,6 +58,35 @@ LANGUAGE_SEMANTIC_CHECKS = ("core_language_agnosticism", "language_modernization
 MODERNIZATION_DISPOSITIONS = {"current", "modernized", "historical", "rejected"}
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 FLAG_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+# ----------------------------------------------------------------- run layout
+# Runs live in one root whose hierarchy mirrors canonical library ownership:
+#
+#     Pass-runs/<domain>[/<module-segment>...]/<run-id>/
+#     Pass-runs/software-engineering/languages/python/r_a1b2c3d4/
+#
+# The run id is short, opaque and non-semantic. Every descriptive string --
+# source title, book name, unit title -- belongs in controller/run.json, never
+# in a path segment, because a descriptive segment is what pushed real runs past
+# the Windows MAX_PATH limit.
+RUNS_ROOT = "Pass-runs"
+RUN_ID_RE = re.compile(r"^r_[0-9a-f]{8}$")
+OWNER_MAX_PARTS = 3
+OWNER_MAX_CHARS = 40
+LABEL_MAX_CHARS = 80
+
+# Windows refuses paths at or beyond 260 characters unless the machine opts into
+# long paths, which PASS must not require. The deepest artifact a run writes is
+# accepted/files/<repo-relative card path>; the longest card path in the library
+# is roughly 160 characters, so the run root itself has to stay small.
+# RUN_ROOT_BUDGET is the binding check: the whole run root must leave room for
+# accepted/files/<repo-relative card path>. Measured against the real library the
+# deepest case is software-engineering at 246 absolute characters from a 14-char
+# repo prefix, and the deepest run root any domain actually needs is 60.
+# tests/test_architecture.py::RunPathBudgetTests holds both numbers to account.
+WINDOWS_MAX_PATH = 260
+SAFE_ABSOLUTE_PATH = 250
+RUN_ROOT_BUDGET = 72
 
 
 class RunError(preflight.PreflightError):
@@ -100,6 +129,68 @@ def inside(root: Path, name: str | PurePosixPath) -> Path:
             raise RunError(f"linked authoring path is not supported: {cursor}")
         cursor = cursor.parent
     return path
+
+
+def check_path_budget(path: Path, what: str) -> Path:
+    """Fail loudly before Windows fails obscurely.
+
+    A path over the limit surfaces as WinError 3/206 from somewhere deep inside a
+    copy, which reads as data loss rather than as a naming problem. Naming the
+    offending path converts it into a fixable one.
+    """
+    length = len(str(path.absolute()))
+    if length >= SAFE_ABSOLUTE_PATH:
+        raise RunError(
+            f"{what} would be {length} characters, past the {SAFE_ABSOLUTE_PATH}-character "
+            f"safe bound under the Windows {WINDOWS_MAX_PATH} limit: {path}"
+        )
+    return path
+
+
+def runs_root(repo: Path) -> Path:
+    return inside(repo, RUNS_ROOT)
+
+
+def parse_owner(owner: str | None) -> tuple[str, ...]:
+    """The library module path a run authors into, below its domain.
+
+    Runs mirror library ownership rather than inventing a second taxonomy, so a
+    Python run is owned by ``languages/python`` -- the path its cards land in --
+    and never by a parallel label such as ``Python``. The location need not exist
+    yet: a run may target an intended canonical home.
+    """
+    if owner is None:
+        return ()
+    text = owner.strip().strip("/")
+    if text in {"", "."}:
+        return ()
+    if "\\" in text:
+        raise RunError("owner must use forward slashes")
+    parts = tuple(text.split("/"))
+    if not all(parts):
+        raise RunError(f"owner has an empty path segment: {owner}")
+    if len(parts) > OWNER_MAX_PARTS:
+        raise RunError(f"owner may name at most {OWNER_MAX_PARTS} module segments below the domain: {owner}")
+    for part in parts:
+        if not SLUG_RE.fullmatch(part):
+            raise RunError(f"owner segment must be a lowercase library slug: {part}")
+    if len("/".join(parts)) > OWNER_MAX_CHARS:
+        raise RunError(f"owner path exceeds {OWNER_MAX_CHARS} characters: {owner}")
+    return parts
+
+
+def new_run_id(base: Path) -> str:
+    for _ in range(64):
+        candidate = f"r_{uuid.uuid4().hex[:8]}"
+        if not (base / candidate).exists():
+            return candidate
+    raise RunError("could not allocate an unused run id")
+
+
+def source_label(source: Path) -> str:
+    """A human-readable name for a run, carried in state and never in a path."""
+    text = re.sub(r"\s+", " ", source.stem).strip()
+    return (text[:LABEL_MAX_CHARS].rstrip() or "source")
 
 
 def digest(path: Path) -> str:
@@ -162,16 +253,16 @@ def select_domain(repo: Path, domain: str | None) -> str:
 
 
 def _run_dirs(base: Path) -> list[Path]:
-    """Run directories directly under ``base`` and one genre subfolder below it."""
+    """Every run directory at or below ``base``, at any owner depth.
+
+    A run is identified by its id-shaped directory name, so an owner segment can
+    never be mistaken for a run and the search does not depend on nesting depth.
+    """
     runs = []
-    for child in base.iterdir():
-        if (child / "controller/run.json").is_file():
+    for child in base.rglob("r_*"):
+        if RUN_ID_RE.fullmatch(child.name) and (child / "controller/run.json").is_file():
             runs.append(child)
-        elif child.is_dir():
-            for nested in child.iterdir():
-                if (nested / "controller/run.json").is_file():
-                    runs.append(nested)
-    return sorted(runs, key=lambda p: p.relative_to(base).as_posix())
+    return sorted(runs, key=lambda path: path.relative_to(base).as_posix())
 
 
 def open_runs(repo: Path, domain: str) -> list[Path]:
@@ -179,7 +270,7 @@ def open_runs(repo: Path, domain: str) -> list[Path]:
 
     Runs may live directly under the domain or one genre subfolder below it.
     """
-    base = inside(repo, f"workspace/skill-staging/{domain}")
+    base = inside(repo, f"{RUNS_ROOT}/{domain}")
     found = []
     if not base.is_dir():
         return found
@@ -230,7 +321,8 @@ def matching_runs(repo: Path, domain: str, source: Path) -> list[Path]:
     return found
 
 
-def start(repo: Path, source: Path, domain: str | None, task: str | None, stop_after: str = "complete") -> Path:
+def start(repo: Path, source: Path, domain: str | None, owner: str | None = None,
+          stop_after: str = "complete", run_id: str | None = None) -> Path:
     repo = repo.resolve()
     domain = select_domain(repo, domain)
     required_documents(repo)
@@ -246,27 +338,38 @@ def start(repo: Path, source: Path, domain: str | None, task: str | None, stop_a
         )
     if stop_after not in STOP_AFTER:
         raise RunError("stop_after must be source_prep, preflight, or complete")
-    if task is None:
-        stem = re.sub(r"[^a-z0-9]+", "-", source.stem.lower()).strip("-") or "book"
-        task = f"{stem}-{uuid.uuid4().hex[:8]}"
-    if not SLUG_RE.fullmatch(task):
-        raise RunError("task must be a lowercase book/run slug")
-    root = inside(repo, f"workspace/skill-staging/{domain}/{task}")
+    parts = parse_owner(owner)
+    base = inside(repo, "/".join((RUNS_ROOT, domain, *parts)))
+    base.mkdir(parents=True, exist_ok=True)
+    if run_id is None:
+        run_id = new_run_id(base)
+    if not RUN_ID_RE.fullmatch(run_id):
+        raise RunError(f"run id must match {RUN_ID_RE.pattern}: {run_id}")
+    root = inside(base, run_id)
     if root.exists():
         raise RunError(f"run already exists; resume it with `python PASS/pass.py resume --run {root}`")
+    relative_root = root.relative_to(repo).as_posix()
+    if len(relative_root) > RUN_ROOT_BUDGET:
+        raise RunError(
+            f"run root {relative_root} is {len(relative_root)} characters, past the "
+            f"{RUN_ROOT_BUDGET}-character budget that keeps staged card paths Windows-safe"
+        )
+    check_path_budget(root, "run root")
     (root / "controller").mkdir(parents=True)
     (root / "drafts").mkdir()
     state = {
-        "schema_version": RUN_SCHEMA, "domain": domain, "source": str(source),
+        "schema_version": RUN_SCHEMA, "run_id": run_id, "owner": "/".join(parts),
+        "label": source_label(source), "domain": domain, "source": str(source),
         "phase": "load", "unit_index": 0, "plan": None, "pass1": None,
         "pass2": None, "reviewed_sha256": None, "live_hashes": None,
         "source_prep": None, "stop_after": stop_after, "stop_reached": False,
     }
     atomic_write(root / "controller/run.json", (json.dumps(state, indent=2) + "\n").encode())
     (root / "RUN_NOTE.md").write_text(
-        f"# PASS authoring task: {task}\n\nOwner: ordinary PASS controller.\n"
+        f"# PASS authoring run: {run_id}\n\nOwner: ordinary PASS controller.\n"
+        f"Label: {state['label']}\nLibrary owner: {'/'.join((domain, *parts))}\n"
         f"Purpose: {domain} authoring from {source.name}; cards are staged by canonical category.\n"
-        "Cleanup: accepted unit deltas remain in skill-staging until source close canonicalizes them; "
+        "Cleanup: accepted unit deltas remain staged in this run until source close canonicalizes them; "
         "close-run removes generated controller state.\n"
         "Preserve original source inputs, other tasks and explicit failure-evidence holds.\n"
         "This directory is disposable and is not card canon or Skillset Memory.\n", encoding="utf-8"
@@ -275,16 +378,24 @@ def start(repo: Path, source: Path, domain: str | None, task: str | None, stop_a
 
 
 def run_root(repo: Path, root: Path) -> Path:
+    """Validate that ``root`` is a run in this project's one canonical run root."""
     root = root.absolute()
     try:
-        path = root.relative_to(repo / "workspace/skill-staging")
+        path = root.relative_to(repo / RUNS_ROOT)
     except ValueError as exc:
-        raise RunError("run must belong to this project's workspace/skill-staging/<domain>/<book-run>") from exc
-    if len(path.parts) not in (2, 3):
         raise RunError(
-            "run must be workspace/skill-staging/<domain>/<book-run> or "
-            "<domain>/<genre>/<book-run>"
+            f"run must belong to this project's {RUNS_ROOT}/<domain>[/<module>...]/<run-id>"
+        ) from exc
+    if len(path.parts) < 2 or len(path.parts) > 2 + OWNER_MAX_PARTS:
+        raise RunError(
+            f"run must be {RUNS_ROOT}/<domain>[/<module>...]/<run-id> with at most "
+            f"{OWNER_MAX_PARTS} module segments"
         )
+    if not RUN_ID_RE.fullmatch(path.parts[-1]):
+        raise RunError(
+            f"run directory must be a short opaque run id matching {RUN_ID_RE.pattern}: {path.parts[-1]}"
+        )
+    parse_owner("/".join(path.parts[1:-1]))
     inside(repo, root.relative_to(repo).as_posix())
     return root
 
@@ -317,6 +428,12 @@ def now() -> str:
 ABANDONED = "controller/abandoned-run.json"
 RESET_INTENT = "controller/reset-intent.json"
 CHECKPOINT = "controller/checkpoint"
+# Staged artifacts are checkpointed as flat content-addressed blobs rather than
+# as a second copy of the staged tree. Mirroring the tree nested a full
+# library-relative card path under controller/checkpoint/files/, which is what
+# pushed real runs past the Windows path limit; a blob name is a constant 64
+# characters no matter how deep the artifact it preserves.
+CHECKPOINT_BLOBS = f"{CHECKPOINT}/blobs"
 HANDOFF_MARK = "<!-- Generated by PASS/pass.py after every accepted step; rewritten each time. Do not edit. -->"
 
 
@@ -380,15 +497,28 @@ class Run:
             self.state.setdefault("source_prep", None)
             self.state.setdefault("stop_after", "complete")
             self.state.setdefault("stop_reached", False)
+            self.state["schema_version"] = 2
+        # Schema 3 moved every descriptive string out of the path and into state.
+        # A schema-2 run that has been moved into the canonical run root is
+        # upgraded in memory from its own location; the next accepted write
+        # persists it, so relocating a run is a plain directory move.
+        if self.state.get("schema_version") == 2:
+            relative = self.root.relative_to(self.repo / RUNS_ROOT)
+            self.state["run_id"] = self.root.name
+            self.state["owner"] = "/".join(relative.parts[1:-1])
+            self.state["label"] = source_label(Path(self.state.get("source") or "source"))
             self.state["schema_version"] = RUN_SCHEMA
-        exact(self.state, {"schema_version", "domain", "source", "phase", "unit_index", "plan", "pass1", "pass2", "reviewed_sha256", "live_hashes", "source_prep", "stop_after", "stop_reached"}, "run state")
+        exact(self.state, {"schema_version", "run_id", "owner", "label", "domain", "source", "phase", "unit_index", "plan", "pass1", "pass2", "reviewed_sha256", "live_hashes", "source_prep", "stop_after", "stop_reached"}, "run state")
         if type(self.state["schema_version"]) is not int or self.state["schema_version"] != RUN_SCHEMA:
             raise RunError("unsupported run state version")
         if self.state["stop_after"] not in STOP_AFTER or type(self.state["stop_reached"]) is not bool:
             raise RunError("invalid stop target state")
-        domain_from_path = self.root.relative_to(self.repo / "workspace/skill-staging").parts[0]
-        if self.state["domain"] != domain_from_path or self.state["domain"] not in authorable_domains(self.repo):
-            raise RunError("run domain no longer matches its authorized workspace/package")
+        placement = self.root.relative_to(self.repo / RUNS_ROOT)
+        if self.state["domain"] != placement.parts[0] or self.state["domain"] not in authorable_domains(self.repo):
+            raise RunError("run domain no longer matches its authorized run root/package")
+        if self.state["run_id"] != self.root.name or self.state["owner"] != "/".join(placement.parts[1:-1]):
+            raise RunError("run id/owner in state no longer matches the run's location")
+        string(self.state["label"], "run label")
         if not isinstance(self.state["phase"], str) or self.state["phase"] not in PHASES or type(self.state["unit_index"]) is not int or self.state["unit_index"] < 0:
             raise RunError("invalid run phase or unit index")
         if self.state["plan"] is not None:
@@ -436,6 +566,12 @@ class Run:
                         files[path.relative_to(self.root).as_posix()] = digest(path)
         return files
 
+    def checkpoint_blob(self, sha: str) -> Path:
+        """The checkpointed content for one staged file, addressed by its digest."""
+        if not re.fullmatch(r"[0-9a-f]{64}", str(sha)):
+            raise RunError(f"checkpoint blob name is not a sha256 digest: {sha}")
+        return inside(self.root, f"{CHECKPOINT_BLOBS}/{sha}")
+
     def checkpoint_manifest(self) -> dict | None:
         path = inside(self.root, f"{CHECKPOINT}/manifest.json")
         return preflight._read_json(str(path)) if path.is_file() else None
@@ -462,10 +598,12 @@ class Run:
             state_copy = fresh / "controller" / "run.json"
             state_copy.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(self.state_path, state_copy)
-            for name in files:
-                target = fresh / "files" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(inside(self.root, name), target)
+            blobs = fresh / "blobs"
+            blobs.mkdir(parents=True, exist_ok=True)
+            for name, sha in files.items():
+                target = blobs / sha
+                if not target.is_file():
+                    shutil.copy2(inside(self.root, name), target)
             record = {
                 "schema_version": 2, "created_at": now(), "state_sha256": state_sha,
                 "phase": self.state["phase"], "unit_index": self.state["unit_index"],
@@ -477,7 +615,8 @@ class Run:
             if digest(state_copy) != state_sha:
                 raise RunError("fresh checkpoint controller state failed verification")
             for name, sha in files.items():
-                if digest(fresh / "files" / name) != sha:
+                blob = fresh / "blobs" / sha
+                if not blob.is_file() or digest(blob) != sha:
                     raise RunError(f"fresh checkpoint file failed verification: {name}")
             check = preflight._read_json(str(fresh / "manifest.json"))
             if check != record:
@@ -529,7 +668,7 @@ class Run:
             lock.unlink(missing_ok=True)
             # A hard kill inside land() can also leave the domain integration
             # lease behind. The owning per-run process is already proven dead.
-            inside(self.repo, f"workspace/skill-staging/{self.domain}/.landing.lock").unlink(missing_ok=True)
+            inside(self.repo, f"{RUNS_ROOT}/{self.domain}/.landing.lock").unlink(missing_ok=True)
 
         # A journal plus a checkpoint mismatch means canonicalization began but
         # the new controller transaction never became durable: restore before-
@@ -549,7 +688,7 @@ class Run:
             if base.exists():
                 shutil.rmtree(base)
         for name, sha in saved.items():
-            source = inside(self.root, f"{CHECKPOINT}/files/{name}")
+            source = self.checkpoint_blob(sha)
             if not source.is_file() or digest(source) != sha:
                 raise RunError(f"checkpoint copy is damaged: {name}")
             target = inside(self.root, name)
@@ -588,8 +727,8 @@ class Run:
         for name in removed:
             inside(self.root, name).unlink()
         for name in restored:
-            source = inside(self.root, f"{CHECKPOINT}/files/{name}")
-            if digest(source) != saved[name]:
+            source = self.checkpoint_blob(saved[name])
+            if not source.is_file() or digest(source) != saved[name]:
                 raise RunError(f"checkpoint copy is damaged: {name}")
             target = inside(self.root, name)
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -2409,7 +2548,7 @@ for name in recipes:
     def land(self, decision: dict) -> str:
         # Independent books may stage in parallel, but only one unit in a domain
         # may integrate at a time. This lease contains no research/run state.
-        lease = inside(self.repo, f"workspace/skill-staging/{self.domain}/.landing.lock")
+        lease = inside(self.repo, f"{RUNS_ROOT}/{self.domain}/.landing.lock")
         try:
             descriptor = os.open(lease, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
         except FileExistsError as exc:
@@ -2701,7 +2840,7 @@ def _load_start_over_state(root: Path) -> dict:
             intent,
             {
                 "schema_version", "requested_at", "reason", "restart_from",
-                "carry_notes", "new_task", "domain", "source", "state",
+                "carry_notes", "new_run_id", "domain", "source", "state",
             },
             "start-over intent",
         )
@@ -2717,7 +2856,7 @@ def _load_start_over_state(root: Path) -> dict:
             "reason": None,
             "restart_from": None,
             "carry_notes": None,
-            "new_task": None,
+            "new_run_id": None,
             "domain": state.get("domain"),
             "source": state.get("source"),
             "state": state,
@@ -2734,7 +2873,7 @@ def _load_start_over_state(root: Path) -> dict:
                 "reason": record.get("reason"),
                 "restart_from": reset.get("restart_from"),
                 "carry_notes": reset.get("carry_notes"),
-                "new_task": reset.get("new_task"),
+                "new_run_id": reset.get("new_run_id"),
                 "domain": state.get("domain"),
                 "source": state.get("source"),
                 "state": state,
@@ -2748,7 +2887,6 @@ def start_over(
     reason: str,
     restart_from: str = "scratch",
     carry_notes: bool = False,
-    task: str | None = None,
 ) -> dict:
     """Authoritatively abandon one run and create a fresh run from an explicit boundary.
 
@@ -2777,6 +2915,9 @@ def start_over(
         raise RunError("start-over requires the original bound source bytes to still exist")
     if state.get("phase") == "finished":
         raise RunError("a finished run is closed with close-run, not started over")
+    # The replacement run keeps the old run's library ownership: a reset changes
+    # the run, never where its cards are destined to land.
+    owner_parts = parse_owner(state.get("owner") or "/".join(root.relative_to(repo / RUNS_ROOT).parts[1:-1]))
 
     existing_intent = inside(root, RESET_INTENT)
     if existing_intent.is_file():
@@ -2786,18 +2927,15 @@ def start_over(
             seed["reason"] != reason
             or seed["restart_from"] != restart_from
             or bool(seed["carry_notes"]) != bool(carry_notes)
-            or (task is not None and seed["new_task"] != task)
         ):
             raise RunError(
                 "a different start-over transaction is already pending; rerun the original start-over command or inspect reset-intent.json"
             )
-        task = seed["new_task"]
+        replacement_id = seed["new_run_id"]
+        if not RUN_ID_RE.fullmatch(str(replacement_id)):
+            raise RunError("pending start-over intent does not name a valid replacement run id")
     else:
-        if task is None:
-            stem = re.sub(r"[^a-z0-9]+", "-", source.stem.lower()).strip("-") or "book"
-            task = f"{stem}-restart-{uuid.uuid4().hex[:8]}"
-        if not SLUG_RE.fullmatch(task):
-            raise RunError("start-over task must be a lowercase book/run slug")
+        replacement_id = new_run_id(inside(repo, "/".join((RUNS_ROOT, domain, *owner_parts))))
 
     # Validate carry boundaries before making the old run ineligible.
     old_run = None
@@ -2820,7 +2958,7 @@ def start_over(
                     "legacy Software Engineering preflight lacks the schema-3 language policy; restart from source_prep so the new preflight can classify and modernize programming-language material"
                 )
 
-    new_root = inside(repo, f"workspace/skill-staging/{domain}/{task}")
+    new_root = inside(repo, "/".join((RUNS_ROOT, domain, *owner_parts, replacement_id)))
     if not existing_intent.is_file() and new_root.exists():
         raise RunError(f"start-over target already exists: {new_root}")
 
@@ -2839,7 +2977,7 @@ def start_over(
             "reason": reason,
             "restart_from": restart_from,
             "carry_notes": bool(carry_notes),
-            "new_task": task,
+            "new_run_id": replacement_id,
             "domain": domain,
             "source": str(source),
             "state": state,
@@ -2869,7 +3007,7 @@ def start_over(
                 "requested_at": seed["requested_at"],
                 "restart_from": restart_from,
                 "carry_notes": bool(carry_notes),
-                "new_task": task,
+                "new_run_id": replacement_id,
                 "replacement_run": None,
             },
         }
@@ -2878,7 +3016,7 @@ def start_over(
 
     # Create or resume creation of the replacement run named in the reset intent.
     if not new_root.exists():
-        created = start(repo, source, domain, task, "complete")
+        created = start(repo, source, domain, "/".join(owner_parts), "complete", replacement_id)
         if created != new_root:
             raise RunError("start-over replacement path mismatch")
     new_run = Run(repo, new_root)
@@ -2999,10 +3137,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, help="auto-detected from the current project by default")
     sub = parser.add_subparsers(dest="command", required=True)
-    start_parser = sub.add_parser("start", help="authorize a domain-local book/run workspace; no source reading")
+    start_parser = sub.add_parser("start", help="authorize a domain-local run workspace; no source reading")
     start_parser.add_argument("--source", type=Path, required=True)
     start_parser.add_argument("--domain", help="must be authorized by the user/project; never infer from source topic")
-    start_parser.add_argument("--task", help="optional unique lowercase book/run slug")
+    start_parser.add_argument("--owner", help="library module path below the domain this run authors into, "
+                              "e.g. languages/python; the run id itself is always short and opaque")
     start_parser.add_argument("--stop-after", choices=("source_prep", "preflight", "complete"), default="complete",
                               help="optional resumable stop target; preflight stops before PASS 1 unit ingestion")
     resume_parser = sub.add_parser("resume", help="find and verify an unfinished run, then name its one next action; read-only")
@@ -3026,7 +3165,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="only these explicitly named prior artifacts may seed the replacement run",
     )
     start_over_parser.add_argument("--carry-notes", action="store_true", help="copy NOTES.md into the replacement run")
-    start_over_parser.add_argument("--task", help="optional replacement run slug; default is a unique restart slug")
     for command in ("status", "template", "present", "submit", "accept-preflight", "revise-preflight", "rewind", "rollback", "recover", "continue-run", "replan", "land", "close-run"):
         command_parser = sub.add_parser(command)
         command_parser.add_argument("--run", type=Path, required=True)
@@ -3051,7 +3189,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     try:
         repo = args.repo_root.resolve() if args.repo_root else preflight.find_repo_root(Path.cwd())
         if args.command == "start":
-            run = Run(repo, start(repo, args.source, args.domain, args.task, args.stop_after))
+            run = Run(repo, start(repo, args.source, args.domain, args.owner, args.stop_after))
             print(json.dumps(run.brief(), indent=2))
             return 0
         if args.command == "resume":
@@ -3062,7 +3200,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             print(abandon(repo, args.run, args.reason))
             return 0
         if args.command == "start-over":
-            print(json.dumps(start_over(repo, args.run, args.reason, args.restart_from, args.carry_notes, args.task), indent=2))
+            print(json.dumps(start_over(repo, args.run, args.reason, args.restart_from, args.carry_notes), indent=2))
             return 0
         run = Run(repo, args.run)
         if args.command == "recover":

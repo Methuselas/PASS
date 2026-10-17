@@ -19,6 +19,9 @@ from pathlib import Path
 
 import yaml
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "PASS"))
+from runtime import pass_authoring_workflow as workflow  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / "library"
 MEMORY = ROOT / "memory"
@@ -175,6 +178,74 @@ def write_authority_manifest(
         + "\n",
         encoding="utf-8",
     )
+
+
+class RunPathBudgetTests(unittest.TestCase):
+    """PASS runs must stay inside the Windows path limit without long-path opt-in.
+
+    This is measured against the real library because the binding constraint is
+    the longest card path that a run can stage, not anything the controller
+    chooses. A descriptive run directory used to add 80+ characters on top of
+    that and pushed live runs past the limit mid-copy.
+    """
+
+    def domain_worst_cases(self):
+        """Per domain: its deepest run root and the longest card a run can stage.
+
+        The worst module path and the worst card path live in different domains,
+        so multiplying the two global maxima together describes a case that cannot
+        occur. Only the per-domain pairing is a real constraint.
+        """
+        for base in sorted(p for p in LIBRARY.iterdir() if p.is_dir()):
+            modules = [m.parent.relative_to(base).as_posix()
+                       for m in base.rglob("MODULE.yaml") if m.parent != base]
+            owner = max(modules, key=len, default="")
+            card = max((c.relative_to(ROOT).as_posix() for c in base.rglob("*.md")),
+                       key=len, default="")
+            run_root = "/".join(part for part in
+                                (workflow.RUNS_ROOT, base.name, owner, "r_a1b2c3d4") if part)
+            yield base.name, owner, run_root, f"accepted/files/{card}", card
+
+    def test_deepest_staged_card_path_fits_under_the_windows_limit(self) -> None:
+        for domain, _owner, run_root, suffix, card in self.domain_worst_cases():
+            total = len(str(ROOT)) + 1 + len(run_root) + 1 + len(suffix)
+            with self.subTest(domain=domain):
+                self.assertLess(
+                    total, workflow.WINDOWS_MAX_PATH,
+                    f"{domain}: deepest staged path would be {total} chars via {card}",
+                )
+
+    def test_every_real_module_is_a_legal_owner_within_the_run_root_budget(self) -> None:
+        for domain, owner, run_root, _suffix, _card in self.domain_worst_cases():
+            with self.subTest(domain=domain, owner=owner):
+                # A run must be able to target any real library module.
+                self.assertEqual(workflow.parse_owner(owner),
+                                 tuple(part for part in owner.split("/") if part))
+                self.assertLessEqual(
+                    len(run_root), workflow.RUN_ROOT_BUDGET,
+                    f"{domain}/{owner} needs a run root of {len(run_root)} chars",
+                )
+
+    def test_no_run_path_segment_can_carry_a_source_description(self) -> None:
+        # A run id is opaque and fixed width, so a long source title cannot
+        # lengthen any generated path.
+        self.assertTrue(workflow.RUN_ID_RE.fullmatch("r_a1b2c3d4"))
+        for descriptive in ("automate-the-boring-stuff", "Python", "mark-lutz-2010", "r_TOOLONG1"):
+            self.assertIsNone(workflow.RUN_ID_RE.fullmatch(descriptive), descriptive)
+
+    def test_one_canonical_run_root_is_the_only_one_in_tracked_code(self) -> None:
+        retired = ("workspace/skill-staging", "workspace/vfx-authoring", "workspace/runs")
+        tracked = subprocess.run(
+            ["git", "grep", "-l", "-F", "-e", retired[0], "-e", retired[1], "-e", retired[2], "--", "."],
+            cwd=ROOT, capture_output=True, text=True, check=False,
+        ).stdout.split()
+        allowed = {"CHANGELOG.md", "tests/test_architecture.py",
+                   "tests/test_pass_authoring_workflow.py"}
+        offenders = [path for path in tracked if path not in allowed]
+        self.assertEqual(
+            offenders, [],
+            "tracked code/docs still reference a retired run root; Pass-runs/ is the only one",
+        )
 
 
 class SourceAndStateIndependenceTests(unittest.TestCase):

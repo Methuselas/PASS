@@ -45,7 +45,7 @@ class StartOverTests(unittest.TestCase):
 
     def new_run(self, prefix: str) -> Run:
         task = f"{prefix}-{uuid.uuid4().hex[:8]}"
-        root = start(REPO, self.source, "software-engineering", task, "complete")
+        root = start(REPO, self.source, "software-engineering", None, "complete")
         self.created.append(root)
         return Run(REPO, root)
 
@@ -151,7 +151,7 @@ class StartOverTests(unittest.TestCase):
             "reason": "start over",
             "restart_from": "scratch",
             "carry_notes": False,
-            "new_task": "synthetic-restart",
+            "new_run_id": "r_0123abcd",
             "domain": "software-engineering",
             "source": str(self.source.resolve()),
             "state": old.state,

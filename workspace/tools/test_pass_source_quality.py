@@ -63,7 +63,7 @@ class SourceQualityWorkflowTests(unittest.TestCase):
         self.source = self.tempdir / "source.txt"
         self.source.write_text("synthetic source\n", encoding="utf-8")
         self.task = "quality-" + uuid.uuid4().hex[:10]
-        self.root = start(REPO, self.source, "software-engineering", self.task, "complete")
+        self.root = start(REPO, self.source, "software-engineering", None, "complete")
         self.run = Run(REPO, self.root)
         self.run.submit("load", {"schema_version": 1, "documents_read": required_documents(REPO)})
         source_prep.prepare(self.run)

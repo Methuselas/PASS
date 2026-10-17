@@ -53,7 +53,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
-        self.repo = Path(self.temporary.name)
+        self.repo = Path(self.temporary.name).resolve()
         shutil.copytree(ROOT / "PASS/tools", self.repo / "PASS/tools", ignore=shutil.ignore_patterns("__pycache__"))
         for name in workflow.required_documents(ROOT):
             target = self.repo / name
@@ -67,7 +67,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         (self.repo / "workspace/release-recipes/SkillForge_Writing.yaml").write_text("modules: [writing/craft]\n", encoding="utf-8")
         self.source = self.repo / "Original Book.txt"
         self.source.write_text("Original user input remains untouched.\n", encoding="utf-8")
-        self.root = workflow.start(self.repo, self.source, "writing", "original-book-run-one")
+        self.root = workflow.start(self.repo, self.source, "writing")
         self.run = workflow.Run(self.repo, self.root)
 
     def module(self, name):
@@ -191,9 +191,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         (self.repo / "library/apa-style").mkdir()
         for domain in (None, "apa-style", "../writing", "missing"):
             with self.subTest(domain=domain), self.assertRaises(workflow.RunError):
-                workflow.start(self.repo, self.source, domain, "another-run")
+                workflow.start(self.repo, self.source, domain)
         self.assertFalse((self.repo / "library/missing").exists())
-        self.assertFalse((self.repo / "workspace/skill-staging/apa-style").exists())
+        self.assertFalse((self.repo / workflow.RUNS_ROOT / "apa-style").exists())
 
     def other_source(self, name="Second Book.txt", text="A different book with different bytes entirely.\n"):
         path = self.repo / name
@@ -212,32 +212,68 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_single_domain_project_defaults_without_reading_source(self):
         second = self.other_source()
         with patch.object(Path, "read_bytes", side_effect=AssertionError("source content must not be read")):
-            root = workflow.start(self.repo, second, None, "single-domain-run")
+            root = workflow.start(self.repo, second, None)
         self.assertEqual(workflow.Run(self.repo, root).domain, "writing")
 
     def test_staging_is_separate_for_each_book_run(self):
-        other = workflow.start(self.repo, self.other_source(), "writing", "original-book-run-two")
+        other = workflow.start(self.repo, self.other_source(), "writing")
         self.assertNotEqual(other, self.root)
         with self.assertRaises(workflow.RunError):
-            workflow.start(self.repo, self.other_source("Third Book.txt", "Third.\n"), "writing", self.root.name)
+            workflow.start(self.repo, self.other_source("Third Book.txt", "Third.\n"),
+                           "writing", None, "complete", self.root.name)
 
-    def test_genre_subfolder_run_is_loaded_and_discovered(self):
-        domain_dir = self.root.parent  # already resolved by start
-        genre = domain_dir / "prose"
-        genre.mkdir(parents=True, exist_ok=True)
-        moved = genre / self.root.name
-        shutil.move(str(self.root), str(moved))
-        self.assertEqual(workflow.Run(self.repo, moved).domain, "writing")
-        found = [p.relative_to(self.repo / "workspace/skill-staging").as_posix()
+    def test_run_id_is_short_opaque_and_carries_no_source_description(self):
+        self.assertTrue(workflow.RUN_ID_RE.fullmatch(self.root.name))
+        self.assertEqual(len(self.root.name), 10)
+        self.assertNotIn("original", self.root.as_posix().lower())
+        self.assertEqual(self.run.state["label"], "Original Book")
+        self.assertEqual(self.run.state["run_id"], self.root.name)
+        self.assertEqual(self.run.state["owner"], "")
+
+    def test_a_long_source_title_does_not_lengthen_the_run_path(self):
+        source = self.repo / (
+            "Automate The Boring Stuff With Python Practical Programming For "
+            "Total Beginners Second Edition Fully Revised And Expanded.txt"
+        )
+        source.write_text("A long title must not become a long path.\n", encoding="utf-8")
+        root = workflow.start(self.repo, source, "writing", "fiction/dialogue")
+        relative = root.relative_to(self.repo).as_posix()
+        self.assertTrue(workflow.RUN_ID_RE.fullmatch(root.name))
+        self.assertNotIn("automate", relative.lower())
+        self.assertLessEqual(len(relative), workflow.RUN_ROOT_BUDGET)
+        self.assertTrue(workflow.Run(self.repo, root).state["label"].startswith("Automate"))
+
+    def test_run_is_placed_at_its_library_owner_and_discovered_there(self):
+        owned = workflow.start(self.repo, self.other_source(), "writing", "fiction/dialogue")
+        placement = owned.relative_to(self.repo / workflow.RUNS_ROOT)
+        self.assertEqual(placement.parts[:3], ("writing", "fiction", "dialogue"))
+        loaded = workflow.Run(self.repo, owned)
+        self.assertEqual(loaded.domain, "writing")
+        self.assertEqual(loaded.state["owner"], "fiction/dialogue")
+        found = [p.relative_to(self.repo / workflow.RUNS_ROOT).as_posix()
                  for p in workflow.open_runs(self.repo, "writing")]
-        self.assertIn("writing/prose/" + self.root.name, found)
-        self.assertNotIn("writing/" + self.root.name, found)
+        self.assertIn("writing/fiction/dialogue/" + owned.name, found)
+        self.assertIn("writing/" + self.root.name, found)
 
-    def test_run_root_rejects_unsupported_depths(self):
-        with self.subTest(depth="shallow"), self.assertRaises(workflow.RunError):
-            workflow.run_root(self.repo, self.repo / "workspace/skill-staging/stray-book")
-        with self.subTest(depth="deep"), self.assertRaises(workflow.RunError):
-            workflow.run_root(self.repo, self.repo / "workspace/skill-staging/writing/a/b/original-book-run-one")
+    def test_owner_must_be_a_bounded_lowercase_library_path(self):
+        for owner in ("Python", "fiction/Dialogue", "a/b/c/d", "../writing", "fiction//x"):
+            with self.subTest(owner=owner), self.assertRaises(workflow.RunError):
+                workflow.start(self.repo, self.other_source(), "writing", owner)
+
+    def test_run_root_rejects_anything_but_one_canonical_run_path(self):
+        base = self.repo / workflow.RUNS_ROOT
+        rejected = (
+            "writing",                                    # no run id at all
+            "writing/fiction",                            # an owner segment, not a run
+            "writing/original-book-run-one",              # descriptive, not an opaque id
+            "writing/a/b/c/d/" + self.root.name,          # past the owner depth bound
+        )
+        for bad in rejected:
+            with self.subTest(path=bad), self.assertRaises(workflow.RunError):
+                workflow.run_root(self.repo, base / bad)
+        with self.subTest(path="retired root"), self.assertRaises(workflow.RunError):
+            workflow.run_root(self.repo, self.repo / "workspace/skill-staging/writing" / self.root.name)
+        self.assertEqual(workflow.run_root(self.repo, self.root), self.root)
 
     def test_start_refuses_a_second_run_of_the_same_source(self):
         self.begin()
@@ -247,15 +283,15 @@ class AuthoringWorkflowTests(unittest.TestCase):
         for source in (self.source, copy):
             with self.subTest(source=source.name), self.assertRaisesRegex(workflow.RunError, "existing incomplete PASS run"):
                 workflow.start(self.repo, source, "writing", None)
-        self.assertEqual(sorted(p.name for p in (self.repo / "workspace/skill-staging/writing").iterdir()), [self.root.name])
+        self.assertEqual(sorted(p.name for p in (self.repo / workflow.RUNS_ROOT / "writing").iterdir()), [self.root.name])
 
     def test_same_source_may_start_in_another_domain_or_after_finishing(self):
         self.module("art/foundations")
-        self.assertTrue(workflow.start(self.repo, self.source, "art", "art-reading").is_dir())
+        self.assertTrue(workflow.start(self.repo, self.source, "art").is_dir())
         self.ready()
         self.run.land(self.decision())
         self.close_source()
-        self.assertTrue(workflow.start(self.repo, self.source, "writing", "second-reading").is_dir())
+        self.assertTrue(workflow.start(self.repo, self.source, "writing").is_dir())
 
     def test_abandon_retires_the_run_keeps_its_drafts_and_unblocks_start(self):
         self.begin()
@@ -273,7 +309,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaisesRegex(workflow.RunError, "abandoned"):
             workflow.Run(self.repo, self.root)
         self.assertEqual(self.resumed(domain="writing")["outcome"], "no_incomplete_run")
-        self.assertTrue(workflow.start(self.repo, self.source, "writing", "restarted").is_dir())
+        self.assertTrue(workflow.start(self.repo, self.source, "writing").is_dir())
 
     def test_finished_run_is_closed_not_abandoned(self):
         self.ready()
@@ -366,7 +402,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
     def test_resume_asks_when_several_runs_are_open(self):
         second = self.other_source()
-        other = workflow.start(self.repo, second, "writing", "second-book")
+        other = workflow.start(self.repo, second, "writing")
         self.assertEqual(self.resumed(domain="writing")["outcome"], "choose_run")
         self.assertEqual(self.resumed(domain="writing", source=second)["run"], str(other))
 
@@ -382,6 +418,33 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertIn(workflow.HANDOFF_MARK, handoff)
         self.assertIn("Last safe endpoint: **LOAD**", handoff)
         self.assertIn("pass.py resume --run", handoff)
+
+    def test_recover_restores_state_and_staged_files_from_checkpoint_blobs(self):
+        self.ready(refine=True)
+        self.locked(self.run.land, self.decision())
+        manifest = self.run.checkpoint_manifest()
+        staged = dict(manifest["files"])
+        self.assertTrue(staged, "the accepted delta must be checkpointed")
+        # Staged artifacts are preserved as flat content-addressed blobs, not as
+        # a second nested copy of the staged tree.
+        blobs = self.root / workflow.CHECKPOINT_BLOBS
+        self.assertTrue(all((blobs / sha).is_file() for sha in staged.values()))
+        self.assertFalse((self.root / workflow.CHECKPOINT / "files").exists())
+
+        # Simulate a hard interruption after run.json changed but before the
+        # next checkpoint: controller state drifts and a staged file is lost.
+        victim = self.root / sorted(staged)[0]
+        victim.unlink()
+        state = json.loads(self.run.state_path.read_text(encoding="utf-8"))
+        state["stop_reached"] = not state["stop_reached"]
+        workflow.atomic_write(self.run.state_path, (json.dumps(state, indent=2) + "\n").encode("utf-8"))
+        self.run.reload()
+        self.assertIn("recover", self.run.pickup()["next_action"])
+
+        self.assertIn("RECOVERED", self.run.recover())
+        self.assertEqual(self.run.staged_tree(), staged)
+        self.assertEqual(workflow.digest(self.run.state_path), manifest["state_sha256"])
+        self.assertTrue(victim.is_file())
 
     def test_interrupted_pass3_rolls_back_to_the_end_of_pass2(self):
         self.begin()
@@ -608,7 +671,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         page.insert_text((72, 100), "Table 1-1. First table\n\nTable 1-2. Second table\n\nTable 1-3. Third table\n\nSome prose around the tables.\n")
         doc.save(source)
         doc.close()
-        root = workflow.start(self.repo, source, "writing", "tables-book-run")
+        root = workflow.start(self.repo, source, "writing")
         run = workflow.Run(self.repo, root)
         run.submit("load", run.template())
         pass_source_prep.prepare(run)
@@ -717,7 +780,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.run.land(self.decision())
         self.assertEqual(self.run.state["phase"], "closure_pass2")
         self.assertFalse(staged.exists())
-        # The accepted delta is staged in skill-staging; the live canon is
+        # The accepted delta is staged inside the run; the live canon is
         # untouched until the source close transaction.
         accepted = self.root / "accepted/files/library/writing/craft" / self.live.name
         self.assertEqual(accepted.read_bytes(), expected)
@@ -773,7 +836,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
     def test_another_books_landing_invalidates_the_older_review(self):
         self.ready(refine=True)
-        other_root = workflow.start(self.repo, self.other_source(), "writing", "book-two")
+        other_root = workflow.start(self.repo, self.other_source(), "writing")
         older = self.run
         self.run = workflow.Run(self.repo, other_root)
         self.ready(refine=True)
@@ -977,7 +1040,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.run.submit("pass2", record)
         self.third()
         self.run.land(self.decision())
-        # The move is staged in skill-staging; the live canon is untouched until close.
+        # The move is staged inside the run; the live canon is untouched until close.
         self.assertTrue(self.live.exists())
         self.close_source()
         self.assertFalse(self.live.exists())

@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.108`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.110`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -136,7 +136,7 @@ than writing directly to `library/`.
 ```bash
 python PASS/vfx.py start --inventory inventory.json --task boss-spawn
 python workspace/tools/extract_vfx_stills.py captures.json -o evidence --interval 0.5
-python PASS/vfx.py register-captures --run workspace/vfx-authoring/boss-spawn --manifest evidence/vfx-stills-manifest.json
+python PASS/vfx.py register-captures --run Pass-runs/software-engineering/unreal-engine/vfx/r_a1b2c3d4 --manifest evidence/vfx-stills-manifest.json
 ```
 
 Niagara Recipes live under
@@ -202,7 +202,7 @@ PASS work.
    before any unit PASS 1 ingestion. After a deliberate stop, `continue-run`
    resumes the same transaction history.
 4. During substantive PASS, every unit completes PASS 1, PASS 2 and PASS 3. The
-   reviewed unit is accepted into the run's cumulative `workspace/skill-staging/`
+   reviewed unit is accepted into the run's cumulative `Pass-runs/` staging
    delta, not directly into canonical `library/`. Later units reconcile against
    the live canonical library plus that accepted source delta. After the final
    unit, complete source closure (AP synthesis, DRILL synthesis, cross-library
@@ -212,7 +212,7 @@ PASS work.
 5. `HANDOFF.md` and the verified hard checkpoint are the restart authority. If
    `resume` reports an interrupted committed operation, run `recover`; if only
    unaccepted working files drifted, use `rollback`. A continuation project ZIP
-   carries the selected domain's active skill-staging state so another capable
+   carries the selected domain's active run state so another capable
    model can resume without chat memory.
 6. Back in the canonical repository, preview the returned archive with the
    importer. Apply it only after the proposed changes pass review.
@@ -224,7 +224,7 @@ A suitable instruction to the chat is:
 > before starting or continuing the selected source. Follow the controller's one
 > next action. Do not repeat verified Source Prep or accepted preflight after a
 > model/provider switch. During unit PASS work, accept reviewed unit deltas into
-> skill-staging; do not treat them as canonical until the mandatory source-close
+> run staging; do not treat them as canonical until the mandatory source-close
 > gate succeeds. If `resume` requests `recover`, restore the last verified
 > checkpoint before doing anything else. If I explicitly authorize unattended
 > completion, use `PASS/source.py authorize` and the state-driven dispatcher.
@@ -278,8 +278,8 @@ python PASS/tools/memory.py validate
 Add a bounded source extract at the visible top-level `SOURCE_INPUT/` folder:
 
 ```bash
-python workspace/tools/extract_pdf_text.py book.pdf workspace/skill-staging/book-unit.txt --pages 20-48
-python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-writing.zip --domain writing --source-text workspace/skill-staging/book-unit.txt
+python workspace/tools/extract_pdf_text.py book.pdf workspace/tmp/book-unit.txt --pages 20-48
+python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-writing.zip --domain writing --source-text workspace/tmp/book-unit.txt
 ```
 
 Useful options:

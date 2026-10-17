@@ -32,6 +32,12 @@ STYLE_VALUES = {"realistic", "stylized", "hybrid", "style_agnostic"}
 CONFIDENCE_VALUES = {"low", "medium", "high"}
 OBJECT_TYPES = {"pattern", "drill", "ap"}
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
+# VFX runs share the one canonical run root, placed at the library ownership path
+# their recipe cards land in. The descriptive task name is state, not a path
+# segment, so the run directory stays short and opaque like every other run.
+RUNS_ROOT = "Pass-runs"
+VFX_OWNER = ("software-engineering", "unreal-engine", "vfx")
+RUN_ID_RE = re.compile(r"^r_[0-9a-f]{8}$")
 LIBRARY_SEGMENT_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 
 
@@ -180,7 +186,15 @@ def start(repo: Path, inventory_path: Path, task: str) -> Path:
         raise VFXRunError("task must be a lowercase slug using letters, digits, _ or -")
     inventory_path = inventory_path.resolve()
     inventory = parse_inventory(_read_json(inventory_path))
-    root = repo / "workspace" / "vfx-authoring" / task
+    base = repo.joinpath(RUNS_ROOT, *VFX_OWNER)
+    base.mkdir(parents=True, exist_ok=True)
+    run_id = next(
+        (c for c in (f"r_{uuid.uuid4().hex[:8]}" for _ in range(64)) if not (base / c).exists()),
+        None,
+    )
+    if run_id is None:
+        raise VFXRunError("could not allocate an unused run id")
+    root = base / run_id
     if root.exists() and any(root.iterdir()):
         raise VFXRunError(f"run already exists and is non-empty: {root}")
     root.mkdir(parents=True, exist_ok=True)
@@ -472,7 +486,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = p.add_subparsers(dest="command", required=True)
     s = sub.add_parser("start", help="create a VFX PASS workspace from a UE-exported inventory")
     s.add_argument("--inventory", type=Path, required=True)
-    s.add_argument("--task", required=True)
+    s.add_argument("--task", required=True, help="descriptive label for the run; recorded in state, never in the path")
     s = sub.add_parser("status", help="show durable run state")
     s.add_argument("--run", type=Path, required=True)
     s = sub.add_parser("register-captures", help="bind whole-system and isolated still bundles")

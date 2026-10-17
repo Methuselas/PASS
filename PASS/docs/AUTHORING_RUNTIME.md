@@ -192,12 +192,13 @@ process is stopped. This prevents a still-running old process from racing the
 replacement while also ensuring a crashed process cannot make reset impossible.
 
 ```text
-workspace/skill-staging/<domain>/<book-run>/
+Pass-runs/<domain>[/<module-path>...]/<run-id>/
   RUN_NOTE.md
   HANDOFF.md
   controller/run.json
   controller/checkpoint/controller/run.json
   controller/checkpoint/manifest.json
+  controller/checkpoint/blobs/<sha256>
   prepared-source/INDEX.md
   prepared-source/source.json
   prepared-source/...
@@ -209,9 +210,34 @@ workspace/skill-staging/<domain>/<book-run>/
   recipes/<existing-owned-SkillForge-recipe>.yaml
 ```
 
+### Run placement and naming
+
+`Pass-runs/` is the one run root for every PASS run. Inside it, a run is filed at
+the canonical library ownership path its cards are destined for, so a Python run
+lives at `Pass-runs/software-engineering/languages/python/<run-id>/` and never
+under an invented parallel label such as `Python/`. Runs do not get a second
+domain taxonomy of their own. `--owner` names the module path below the domain
+and may target a library location that does not exist yet.
+
+A run id is short, opaque, stable and non-semantic: `r_` followed by eight hex
+characters, as in `r_a1b2c3d4`. No path segment carries a source title, book
+title, domain, language, unit title, chapter title or timestamp. Descriptive
+information is run metadata: `controller/run.json` records `run_id`, `owner` and
+a human-readable `label`, and `RUN_NOTE.md` states both.
+
+This is a path-length requirement, not a cosmetic one. The deepest artifact a run
+writes is `accepted/files/<repo-relative card path>`, and the longest card path in
+the library is about 160 characters. A descriptive run directory used to add
+another 80-plus characters on top of that, which pushed real runs past the
+Windows 260-character limit and made them fail mid-copy. Generated names inside a
+run therefore stay short and structural, and checkpoints store staged artifacts
+as flat content-addressed blobs rather than as a second nested copy of the staged
+tree. `start` refuses a run root over `RUN_ROOT_BUDGET` characters, and PASS does
+not rely on the machine opting into Windows long paths.
+
 `drafts/poetry/sound/PAT_example.md` targets
-`library/<domain>/poetry/sound/PAT_example.md`. Book identity stays in temporary
-workspace organization; placement reflects knowledge, not the source. Cards use
+`library/<domain>/poetry/sound/PAT_example.md`. Source identity stays in run
+metadata; placement reflects knowledge, not the source. Cards use
 the unchanged canonical schema and carry no source locators or controller hashes.
 Drafts may be incomplete during PASS 1; only validated finished objects can land.
 
@@ -408,9 +434,9 @@ exclusive leases, not research state. `recover` is the supported path for a dead
 process that left either lease or a controller/checkpoint mismatch.
 
 After successful source closure, `close-run` removes generated controller state,
-prepared source, accepted staging and its task note, prunes empty task directories
-and preserves nonempty retained work. Preserve original inputs, other tasks and
+prepared source, accepted staging and its run note, prunes empty owner directories
+and preserves nonempty retained work. Preserve original inputs, other runs and
 explicit failure-evidence holds. Project snapshots and published SkillForge
-releases never carry `skill-staging/` authoring state; a resumed run stays
-where it lives, in the repository's workspace. Deleting closed scratch never
+releases never carry `Pass-runs/` authoring state; a resumed run stays
+where it lives, in the repository's run root. Deleting closed scratch never
 invalidates canonical library knowledge.

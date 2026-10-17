@@ -6,6 +6,54 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.110 - 2026-10-17
+
+### Changed
+
+- Normalized PASS run storage onto one canonical run root, `Pass-runs/`, whose
+  hierarchy mirrors canonical library ownership: a run is filed at the module
+  path its cards land in, as in
+  `Pass-runs/software-engineering/languages/python/r_a1b2c3d4/`. The retired
+  `workspace/skill-staging/<domain>/<book-run>/` layout and its parallel
+  "genre" taxonomy are gone, and `PASS/vfx.py` now shares the same run root at
+  `Pass-runs/software-engineering/unreal-engine/vfx/<run-id>/` instead of
+  keeping `workspace/vfx-authoring/<task>/` as a second convention.
+- Replaced descriptive run directory names with short opaque run ids (`r_` plus
+  eight hex characters). No generated path segment carries a source title, book
+  title, domain, language, unit title, chapter title or timestamp. `pass.py
+  start` takes `--owner <module-path>` in place of `--task <slug>`, and
+  `start-over` allocates a replacement id rather than naming one.
+- Recorded run description as metadata instead of path text: `controller/run.json`
+  gains `run_id`, `owner` and a human-readable `label` at run schema 3. A
+  schema-2 run is upgraded in place from its own location, so relocating a run
+  is a plain directory move.
+- Checkpointed staged artifacts as flat content-addressed blobs under
+  `controller/checkpoint/blobs/<sha256>` instead of mirroring the staged tree
+  under `controller/checkpoint/files/<path>`. The old nesting reproduced a full
+  library-relative card path inside every checkpoint.
+
+### Fixed
+
+- Fixed the Windows path-length defect that made real runs fail mid-copy. A live
+  run reached 300 absolute characters, past the 260-character limit, because an
+  86-character source-title directory sat above a 158-character library card
+  path. The same work now peaks at 198 characters, and PASS does not require the
+  machine to opt into Windows long paths. `start` refuses a run root over
+  `RUN_ROOT_BUDGET`, `check_path_budget` names an over-long path instead of
+  letting Windows fail obscurely, and `tests/test_architecture.py::RunPathBudgetTests`
+  holds the measured per-domain worst case to account.
+
+### Added
+
+- Added a regression test for `Run.recover()`, which previously had none, now
+  covering restoration of controller state and staged files from checkpoint
+  blobs after a simulated hard interruption.
+
+### Removed
+
+- Removed `workspace/_diag_paths.py`, a task-owned diagnostic marked
+  delete-after-use whose target run no longer exists and which had no referrers.
+
 ## 1.0.0-beta.107 - 2026-10-12
 
 ### Added

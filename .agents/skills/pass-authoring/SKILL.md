@@ -46,7 +46,11 @@ model-facing package before one source-wide preflight. User requests such as
 or "stop before ingesting units" map to `--stop-after preflight`. If `resume`
 requires `recover`, restore the last verified hard checkpoint before doing any
 new work. Keep provisional cards in
-`workspace/skill-staging/<domain>/<book-run>/drafts/<category>/`. A valid
+`Pass-runs/<domain>[/<module-path>...]/<run-id>/drafts/<category>/`. `Pass-runs/`
+is the one run root; a run is filed at the library ownership path its cards land
+in (`--owner languages/python`), and its directory is a short opaque id such as
+`r_a1b2c3d4`. Source titles are recorded as run metadata, never as a path
+segment. A valid
 source-wide preflight stops at its presentation/acceptance gate: run `present`,
 show the complete packet, and wait for explicit user confirmation before
 `accept-preflight` releases PASS 1. If the user explicitly authorizes this one
@@ -59,7 +63,7 @@ rules in `PASS/docs/PASS_RUN.md`. The old preflight helper alone cannot authoriz
 ingestion. Repository maintenance and packaging do not need a source run. Existing Unreal Niagara assets use the separate `python PASS/vfx.py` analysis lane rather than source preflight; read `PASS/docs/UNREAL_VFX_PASS.md` before such a run.
 
 `library/` holds finished knowledge. Active, per-source transactional state lives
-only in `workspace/skill-staging/` and may travel in a continuation project
+only in `Pass-runs/` and may travel in a continuation project
 snapshot; it is not a ledger, source registry, provenance record, Skillset Memory
 entry, or finished-skill dependency. Unit deltas remain staged until source close.
 

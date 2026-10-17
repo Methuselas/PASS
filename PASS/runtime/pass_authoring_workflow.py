@@ -24,6 +24,7 @@ from typing import Any, Iterable
 import uuid
 
 from . import pass_authoring_run as preflight
+from . import stage_contract as contract
 
 
 RUN_SCHEMA = 3
@@ -460,6 +461,17 @@ def now() -> str:
 ABANDONED = "controller/abandoned-run.json"
 RESET_INTENT = "controller/reset-intent.json"
 CHECKPOINT = "controller/checkpoint"
+# Stage Contract v1: one structured refusal per malformed response, and exactly
+# one correction attempt per pending action before the stage fails closed.
+STAGE_REJECTION = "controller/stage-rejection.json"
+STAGE_CORRECTION_ATTEMPTS = 1
+# Canonical frontmatter order, so a rendered card is byte-stable regardless of
+# the key order a model happened to emit.
+CARD_FRONT_ORDER = (
+    "object_id", "object_type", "name", "library_path", "stage_binding", "lane_fit",
+    "foundation_role", "routing_class", "specialization_axis", "foundation_object_id",
+    "tags", "cross_links", "reference", "confidence", "references", "variants",
+)
 # Staged artifacts are checkpointed as flat content-addressed blobs rather than
 # as a second copy of the staged tree. Mirroring the tree nested a full
 # library-relative card path under controller/checkpoint/files/, which is what
@@ -1702,11 +1714,17 @@ class Run:
         return "\n".join(lines)
 
     def template(self) -> dict:
+        """The fillable response shape for the pending stage.
+
+        For a Stage Contract v1 stage this is the closed envelope: one opaque
+        action_id plus a payload skeleton generated from the schema. There is no
+        second convention to infer -- no SHOUTING placeholder is a literal value,
+        and `pass.py schema` prints the authoritative schema the skeleton came
+        from.
+        """
         phase = self.state["phase"]
-        if phase == "preflight":
-            result = preflight.template_record(self.domain)
-            result.update(title=Path(self.state["source"]).stem)
-            return result
+        if phase in contract.STAGES:
+            return {"action_id": self.stage_action_id(), "payload": self.stage_skeleton(phase)}
         if phase == "preflight_accept":
             marker = self.preflight_presentation_marker(required=False)
             return {
@@ -1716,50 +1734,19 @@ class Run:
                 "basis": "",
                 "reason": "",
             }
+        # Everything that is a Stage Contract v1 stage returned above. What remains
+        # are the decision gates: LOAD, preflight acceptance and landing. They are
+        # hash-bound human/automation decisions rather than model stage artifacts,
+        # so they keep their beta.110 shapes and their protected sequencing.
         result = {"schema_version": 1}
         if phase == "load":
             result["documents_read"] = required_documents(self.repo)
-        else:
+        elif phase in {"land", "closure_land"}:
             result["unit_id"] = self.unit()["unit_id"]
-            if phase == "pass1":
-                result.update(full_read=False, working_drafts=[], overlap_object_ids=[], secondary_subject_flags=[], questions=[])
-                if self.language_modernization_required():
-                    result["version_sensitive_flags"] = []
-            elif phase == "checkpoint":
-                result["answers"] = [{"question_id": q["question_id"], "resolution": ""} for q in self.state["pass1"]["questions"]]
-            elif phase == "pass2":
-                result.update(full_reread=False, flag_resolutions=[{"flag_id": f["flag_id"], "reason": ""} for f in self.state["pass1"]["secondary_subject_flags"]],
-                              buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False,
-                              owner_reconciliation=[], metadata_classification=[])
-                if self.language_modernization_required():
-                    policy = self.language_policy()
-                    result["language_modernization"] = {
-                        "language": policy["language"],
-                        "target_version": policy["target_version"],
-                        "target_basis": policy["target_basis"],
-                        "all_version_sensitive_material_reviewed": False,
-                        "resolutions": [
-                            {
-                                "flag_id": f["flag_id"],
-                                "disposition": "",
-                                "current_guidance": "",
-                                "verification": "",
-                            }
-                            for f in self.state["pass1"].get("version_sensitive_flags", [])
-                        ],
-                        "core_changes": [],
-                    }
-            elif phase == "closure_pass2":
-                result.update(closure_audits={"ap_synthesis": False, "drill_synthesis": False, "cross_library_reconciliation": False, "metadata_classification": False},
-                              buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False,
-                              owner_reconciliation=[], metadata_classification=[])
-            elif phase in {"pass3", "closure_pass3"}:
-                result.update(card_only_review=False, checks={name: False for name in self.semantic_checks()}, reviewed_sha256=self.staged_hashes())
-            elif phase in {"land", "closure_land"}:
-                marker = self.presentation_marker(required=False)
-                result.update(presentation_sha256=marker["sha256"] if marker else "", basis="", reason="")
-            else:
-                raise RunError("this phase has no submission template")
+            marker = self.presentation_marker(required=False)
+            result.update(presentation_sha256=marker["sha256"] if marker else "", basis="", reason="")
+        else:
+            raise RunError("this phase has no submission template")
         return result
 
     def header(self, data: dict, keys: set[str]) -> None:
@@ -1854,6 +1841,567 @@ class Run:
         if not self.live_unchanged():
             raise RunError("live domain/prerequisites changed; rewind to pass2, reconcile and repeat PASS 3 before landing")
 
+    # ------------------------------------------------- Stage Contract v1 boundary
+    #
+    #     free-form model cognition
+    #         -> closed stage output contract
+    #         -> deterministic host validation/rendering
+    #
+    # The model returns a structured response and nothing else. This boundary owns
+    # run/unit/stage identity, filenames, paths, serialization and rendering, and
+    # it refuses a malformed response before anything is written. PASS pedagogy is
+    # untouched: the semantic checks below this layer are the beta.110 ones.
+
+    def stage_action_id(self) -> str:
+        """The opaque token that binds a response to exactly this pending stage.
+
+        Seeded from the bound source, the stage, the unit and the current
+        controller state, so a response produced for another unit, another stage
+        or a superseded state cannot be accepted. The model echoes this token
+        instead of restating unit_id, stage identity or any hash the host owns.
+        """
+        phase = self.state["phase"]
+        unit_id = "-"
+        if self.state["plan"] and self.state["unit_index"] < len(self.state["plan"]["units"]):
+            unit_id = self.unit()["unit_id"]
+        try:
+            source = self.source_identity()["sha256"]
+        except (RunError, OSError, KeyError, TypeError):
+            source = "-"
+        seed = f"{source}|{phase}|{self.state['unit_index']}|{unit_id}|{digest(self.state_path)}"
+        return hashlib.sha256(seed.encode("utf-8")).hexdigest()
+
+    def semantic_check_names(self) -> tuple[str, ...]:
+        return tuple(self.semantic_checks())
+
+    def stage_required_extras(self, stage: str) -> set[str]:
+        """Contract fields this run's configuration promotes to required.
+
+        A field is optional in the contract because it does not apply to every
+        run, not because it may be skipped when it does apply.
+        """
+        extras: set[str] = set()
+        if self.language_modernization_required():
+            if stage == "pass1":
+                extras.add("version_sensitive_flags")
+            elif stage in {"pass2", "closure_pass2"}:
+                extras.add("language_modernization")
+        # Preflight schema 3 makes the programming-language classification
+        # explicit for Software Engineering and forbids it elsewhere.
+        if stage == "preflight" and self.domain == "software-engineering":
+            extras.add("language_policy")
+        return extras
+
+    def stage_seeded_fields(self, stage: str) -> set[str]:
+        """Optional fields worth prefilling so the model sees the whole shape."""
+        seeded = self.stage_required_extras(stage)
+        if stage in {"pass2", "closure_pass2"}:
+            seeded |= {"cards", "artifacts", "removals",
+                       "owner_reconciliation", "metadata_classification"}
+        if stage == "preflight":
+            seeded.add("no_extract")
+            if self.domain == "software-engineering":
+                seeded.add("language_policy")
+        return seeded
+
+    def stage_skeleton(self, stage: str) -> dict:
+        """A fillable payload generated from the schema, never hand-written.
+
+        Seeded with the identifiers the host already owns -- the questions PASS 1
+        raised, the flags it set, the accepted language policy -- so the model
+        supplies meaning rather than re-deriving an id it was handed.
+        """
+        payload = contract.skeleton(stage, self.semantic_check_names(),
+                                    include_optional=self.stage_seeded_fields(stage))
+        pass1 = self.state.get("pass1") or {}
+        if stage == "checkpoint":
+            payload["answers"] = [{"question_id": question["question_id"], "resolution": ""}
+                                  for question in pass1.get("questions", [])]
+        elif stage in {"pass2", "closure_pass2"}:
+            if stage == "pass2":
+                payload["flag_resolutions"] = [{"flag_id": flag["flag_id"], "reason": ""}
+                                               for flag in pass1.get("secondary_subject_flags", [])]
+            if "language_modernization" in payload:
+                policy = self.language_policy() or {}
+                payload["language_modernization"] = {
+                    "language": policy.get("language", ""),
+                    "target_version": policy.get("target_version", ""),
+                    "target_basis": policy.get("target_basis", ""),
+                    "all_version_sensitive_material_reviewed": False,
+                    "resolutions": [
+                        {"flag_id": flag["flag_id"], "disposition": "",
+                         "current_guidance": "", "verification": ""}
+                        for flag in pass1.get("version_sensitive_flags", [])
+                    ],
+                    "core_changes": [],
+                }
+        if stage == "preflight":
+            payload["title"] = Path(self.state["source"]).stem
+        return payload
+
+    def stage_card_skeleton(self, object_type: str) -> dict:
+        """The shape of one drafted card, for the model to fill with meaning."""
+        return contract.card_skeleton(object_type)
+
+    def stage_schema(self, stage: str) -> dict:
+        return contract.json_schema(stage, self.semantic_check_names())
+
+    # ----------------------------------------------------------- rejection state
+
+    def stage_rejection_path(self) -> Path:
+        return inside(self.root, STAGE_REJECTION)
+
+    def stage_rejection(self) -> dict | None:
+        path = self.stage_rejection_path()
+        return preflight._read_json(str(path)) if path.is_file() else None
+
+    def clear_stage_rejection(self) -> None:
+        self.stage_rejection_path().unlink(missing_ok=True)
+
+    def stage_fail_closed(self, action_id: str) -> bool:
+        """True when this exact pending action has spent its correction attempt."""
+        record = self.stage_rejection()
+        return bool(record and record.get("action_id") == action_id and record.get("fail_closed"))
+
+    def record_stage_rejection(self, stage: str, action_id: str,
+                               failures: list) -> dict:
+        """Persist one structured, machine-readable refusal.
+
+        Exactly one correction attempt is allowed per action_id. A genuine state
+        change mints a new token and a fresh budget, so a model that is not
+        progressing cannot buy more attempts by resubmitting.
+        """
+        previous = self.stage_rejection()
+        attempt = 1
+        if previous and previous.get("action_id") == action_id:
+            attempt = int(previous.get("attempt", 1)) + 1
+        fail_closed = attempt > STAGE_CORRECTION_ATTEMPTS
+        record = {
+            "schema_version": 1,
+            "contract_version": contract.CONTRACT_VERSION,
+            "stage": stage,
+            "action_id": action_id,
+            "attempt": attempt,
+            "fail_closed": fail_closed,
+            "correction_allowed": not fail_closed,
+            "failures": [failure.as_dict() for failure in failures],
+            "guidance": (
+                "Repair the named fields and resubmit the same action_id. Do not redo the "
+                "semantic reasoning and do not change any value the host owns."
+                if not fail_closed else
+                "This stage is closed to further automatic correction. The last completed "
+                "boundary is preserved; a human must inspect the failures above."
+            ),
+            "recorded_at": now(),
+        }
+        atomic_write(self.stage_rejection_path(),
+                     (json.dumps(record, indent=2) + "\n").encode("utf-8"))
+        return record
+
+    def stage_rejection_error(self, record: dict) -> RunError:
+        lines = [
+            f"STAGE CONTRACT {'FAIL-CLOSED' if record['fail_closed'] else 'REJECTED'}: "
+            f"{record['stage']} attempt {record['attempt']}",
+        ]
+        for failure in record["failures"]:
+            detail = f"  - {failure['path']}: {failure['code']} — {failure['message']}"
+            if "expected" in failure:
+                detail += f" (expected {failure['expected']!r})"
+            lines.append(detail)
+        lines.append(f"  {record['guidance']}")
+        lines.append(f"  Structured detail: {STAGE_REJECTION}")
+        return RunError("\n".join(lines))
+
+    # -------------------------------------------------------- response acceptance
+
+    def stage_response(self, stage: str, data: dict) -> dict:
+        """Validate a model response completely, then materialize what it names.
+
+        Nothing is written and no state is mutated until every contract failure
+        has been collected, so an invalid response leaves the run exactly as it
+        was. Only contract failures consume the correction attempt; a semantic
+        outcome and an infrastructure error do not reach this method's counter.
+        """
+        action_id = self.stage_action_id()
+        if self.stage_fail_closed(action_id):
+            raise self.stage_rejection_error(self.stage_rejection())
+        try:
+            payload = contract.unwrap_envelope(data, action_id)
+            record = self.translate_stage_payload(stage, payload)
+        except contract.Rejected as rejected:
+            raise self.stage_rejection_error(
+                self.record_stage_rejection(stage, action_id, rejected.failures)
+            ) from None
+        # The response conformed. Materialize cards only now.
+        self.write_stage_cards(record.pop("_cards", []))
+        self.clear_stage_rejection()
+        return record
+
+    def write_stage_cards(self, cards: list[dict]) -> None:
+        """Serialize validated cards to host-derived paths. The model never does."""
+        for card in cards:
+            if card.get("markdown") is None:
+                continue        # host tooling already staged this artifact
+            target = inside(self.root, card["staged_path"])
+            target.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write(target, card["markdown"].encode("utf-8"))
+
+    def staged_card_path(self, card: dict) -> str:
+        """Where a drafted card is staged inside the run, derived by the host.
+
+        ``drafts/`` mirrors the library below the domain, exactly as beta.110
+        staged it, so every downstream consumer keeps working unchanged.
+        """
+        below = card["library_path"][1:]
+        return "drafts/" + "/".join((*below, f"{card['object_id']}.md"))
+
+    def render_stage_card(self, card: dict) -> dict:
+        """Build the complete card file from the structured response."""
+        front = dict(card["frontmatter"])
+        # Identity and placement are host-owned, so they are written, not accepted.
+        front["object_id"] = card["object_id"]
+        front["object_type"] = card["object_type"]
+        front["name"] = card["name"]
+        front["library_path"] = list(card["library_path"])
+        ordered = {key: front[key] for key in CARD_FRONT_ORDER if key in front}
+        ordered.update({key: value for key, value in front.items() if key not in ordered})
+        markdown = contract.render_card(
+            card["object_type"], card["name"],
+            preflight.yaml.safe_dump(ordered, sort_keys=False, allow_unicode=True).strip("\n"),
+            card["body"],
+        )
+        return {"staged_path": self.staged_card_path(card), "markdown": markdown}
+
+    def resolve_live_object(self, object_id: str) -> str | None:
+        """The live card a model named by id, located by the host, not by path."""
+        base = inside(self.repo, f"library/{self.domain}")
+        if not base.is_dir():
+            return None
+        for path in sorted(base.rglob(f"{object_id}.md")):
+            return path.relative_to(base).as_posix()
+        return None
+
+    def translate_stage_payload(self, stage: str, payload: dict) -> dict:
+        """Validate one stage payload and translate it to the internal record.
+
+        The internal shape is deliberately the beta.110 one: this layer closes the
+        model-facing interface without disturbing the controller logic, the
+        checkpoint format or the landing transaction beneath it.
+        """
+        out = contract.Collector()
+        fields = {spec.name: spec for spec in contract.stage_fields(stage)}
+        required = {name for name, spec in fields.items() if spec.required}
+        required |= self.stage_required_extras(stage)
+        # Every declared field stays legal; only requirement is run-conditional.
+        optional = set(fields) - required
+        mapping = contract._keys(payload, required, "payload", out, optional=optional)
+        record: dict[str, Any] = {}
+        cards: list[dict] = []
+
+        if stage == "pass1":
+            record["full_read"] = contract._bool(mapping.get("full_read"), "payload.full_read", out)
+            cards = self.collect_stage_cards(mapping.get("cards"), "payload.cards", out)
+            record["working_drafts"] = [card["staged_path"] for card in cards]
+            # Retired from the serialized contract in Stage Contract v1; the
+            # reasoning obligation lives in the PASS 1 instruction, and PASS 2's
+            # buckets carry the reconciliation that downstream code consumes.
+            record["overlap_object_ids"] = []
+            self.collect_flag_list(mapping, "secondary_subject_flags", ("flag_id", "subject"), record, out)
+            self.collect_flag_list(mapping, "questions", ("question_id", "question"), record, out)
+            if "version_sensitive_flags" in required:
+                self.collect_flag_list(mapping, "version_sensitive_flags",
+                                       ("flag_id", "source_claim", "reason"), record, out)
+        elif stage == "checkpoint":
+            record["answers"] = []
+            for index, item in enumerate(contract._list(mapping.get("answers"), "payload.answers", out)):
+                here = f"payload.answers[{index}]"
+                entry = contract._keys(item, {"question_id", "resolution"}, here, out)
+                record["answers"].append({
+                    "question_id": contract._text(entry.get("question_id"), f"{here}.question_id", out),
+                    "resolution": contract._text(entry.get("resolution"), f"{here}.resolution", out),
+                })
+        elif stage in {"pass2", "closure_pass2"}:
+            record["approval_required"] = contract._bool(mapping.get("approval_required"),
+                                                         "payload.approval_required", out)
+            if stage == "pass2":
+                record["full_reread"] = contract._bool(mapping.get("full_reread"),
+                                                       "payload.full_reread", out)
+                self.collect_flag_list(mapping, "flag_resolutions", ("flag_id", "reason"),
+                                       record, out)
+            record["buckets"] = self.collect_buckets(mapping.get("buckets"), out)
+            record["taxonomy"] = self.collect_taxonomy(mapping.get("taxonomy"), out)
+            cards = self.collect_stage_cards(mapping.get("cards", []), "payload.cards", out)
+            artifacts = self.collect_stage_artifacts(mapping.get("artifacts", []), out)
+            record["changes"] = ([card["staged_path"] for card in cards]
+                                 + [item["staged_path"] for item in artifacts])
+            cards = cards + [item for item in artifacts if item.get("markdown") is not None]
+            record["removals"] = self.collect_removals(mapping.get("removals", []), out)
+            for name in ("owner_reconciliation", "metadata_classification"):
+                record[name] = contract._list(mapping.get(name, []), f"payload.{name}", out)
+            if "language_modernization" in required:
+                record["language_modernization"] = contract._mapping(
+                    mapping.get("language_modernization"), "payload.language_modernization", out)
+            if stage == "closure_pass2":
+                record["closure_audits"] = self.collect_flags_map(
+                    mapping.get("closure_audits"), contract.CLOSURE_AUDITS, "payload.closure_audits", out)
+        elif stage in {"pass3", "closure_pass3"}:
+            record["card_only_review"] = contract._bool(mapping.get("card_only_review"),
+                                                        "payload.card_only_review", out)
+            record["checks"] = self.collect_flags_map(
+                mapping.get("checks"), self.semantic_check_names(), "payload.checks", out)
+            # The host owns the digest map: it computes the staged hashes itself
+            # before and after validation, so asking a model to reproduce them
+            # added a failure mode without adding a check.
+            record["reviewed_sha256"] = self.staged_hashes()
+        elif stage == "preflight":
+            record = self.translate_preflight_payload(mapping, out)
+        else:
+            raise RunError(f"no stage contract for {stage}")
+
+        out.raise_if_failed()
+        if stage != "preflight":
+            # Decision 4: the host writes the identity and version fields its own
+            # internal record needs; the model never echoed them.
+            record["schema_version"] = 1
+            record["unit_id"] = self.unit()["unit_id"]
+        record["_cards"] = cards
+        return record
+
+    def collect_stage_cards(self, value: Any, path: str, out: contract.Collector) -> list[dict]:
+        cards: list[dict] = []
+        seen: set[str] = set()
+        for index, raw in enumerate(contract._list(value, path, out)):
+            here = f"{path}[{index}]"
+            card = contract.validate_card(raw, self.domain, here, out)
+            if not card["object_id"] or not card["object_type"] or len(card["library_path"]) < 2:
+                continue
+            if card["object_id"] in seen:
+                out.add(f"{here}.object_id", "duplicate_value",
+                        "two cards in one response claim the same object_id", None, card["object_id"])
+                continue
+            seen.add(card["object_id"])
+            rendered = self.render_stage_card(card)
+            cards.append({**card, **rendered})
+        return cards
+
+    def collect_stage_artifacts(self, value: Any, out: contract.Collector) -> list[dict]:
+        """Resolve typed artifacts to host-derived staged paths.
+
+        A recipe and a module are serialized by the host from declared content. An
+        asset is host-produced tooling output that the model only references, so
+        the host derives its directory and requires the file to already be staged.
+        """
+        resolved: list[dict] = []
+        for index, raw in enumerate(contract._list(value, "payload.artifacts", out)):
+            here = f"payload.artifacts[{index}]"
+            item = contract.validate_artifact(raw, self.domain, here, out)
+            kind = item.get("kind")
+            if kind == "recipe":
+                if not item["recipe"]:
+                    continue
+                staged = f"recipes/{item['recipe']}.yaml"
+                body = preflight.yaml.safe_dump({"modules": item["modules"]}, sort_keys=False)
+                live = inside(self.repo, f"workspace/release-recipes/{item['recipe']}.yaml")
+                if live.is_file():
+                    owner = preflight.yaml.safe_load(live.read_text(encoding="utf-8")) or {}
+                    merged = {key: val for key, val in owner.items() if key != "modules"}
+                    merged["modules"] = item["modules"]
+                    body = preflight.yaml.safe_dump(merged, sort_keys=False)
+                resolved.append({"staged_path": staged, "markdown": body})
+            elif kind == "module":
+                if not item["library_path"]:
+                    continue
+                below = item["library_path"][1:]
+                staged = "drafts/" + "/".join((*below, "MODULE.yaml"))
+                name = "/".join(item["library_path"])
+                body = preflight.yaml.safe_dump({"name": name, "requires": item["requires"]},
+                                                sort_keys=False)
+                resolved.append({"staged_path": staged, "markdown": body})
+            elif kind == "asset":
+                if not item["library_path"] or not item["filename"]:
+                    continue
+                below = item["library_path"][1:]
+                staged = "drafts/" + "/".join((*below, "assets", item["filename"]))
+                if not inside(self.root, staged).is_file():
+                    out.add(f"{here}.filename", "unresolved_object_id",
+                            "the asset is not staged in this run; host tooling places assets, "
+                            "and the response only references them", None, item["filename"])
+                    continue
+                resolved.append({"staged_path": staged, "markdown": None})
+        return resolved
+
+    def collect_flag_list(self, mapping: dict, name: str, keys: tuple[str, ...],
+                          record: dict, out: contract.Collector) -> None:
+        identifier = keys[0]
+        items: list[dict] = []
+        seen: set[str] = set()
+        for index, raw in enumerate(contract._list(mapping.get(name, []), f"payload.{name}", out)):
+            here = f"payload.{name}[{index}]"
+            entry = contract._keys(raw, set(keys), here, out)
+            value = entry.get(identifier)
+            if not isinstance(value, str) or not contract.FLAG_RE.fullmatch(value):
+                out.add(f"{here}.{identifier}", "invalid_identifier",
+                        "identifier must be a lowercase token", contract.FLAG_RE.pattern, value)
+                continue
+            if value in seen:
+                out.add(f"{here}.{identifier}", "duplicate_value", "identifier repeats", None, value)
+                continue
+            seen.add(value)
+            items.append({key: (value if key == identifier
+                                else contract._text(entry.get(key), f"{here}.{key}", out))
+                          for key in keys})
+        record[name] = items
+
+    def collect_buckets(self, value: Any, out: contract.Collector) -> dict:
+        mapping = contract._keys(value, set(contract.BUCKETS), "payload.buckets", out)
+        result = {}
+        for bucket in contract.BUCKETS:
+            entries = []
+            for index, raw in enumerate(contract._list(mapping.get(bucket, []),
+                                                       f"payload.buckets.{bucket}", out)):
+                here = f"payload.buckets.{bucket}[{index}]"
+                entry = contract._keys(raw, {"object_id", "reason"}, here, out)
+                object_id = entry.get("object_id")
+                if not isinstance(object_id, str) or not contract.OBJECT_ID_RE.fullmatch(object_id):
+                    out.add(f"{here}.object_id", "invalid_identifier",
+                            "object_id must match the canonical identifier shape",
+                            contract.OBJECT_ID_RE.pattern, object_id)
+                    continue
+                entries.append({"object_id": object_id,
+                                "reason": contract._text(entry.get("reason"), f"{here}.reason", out)})
+            result[bucket] = entries
+        return result
+
+    def collect_taxonomy(self, value: Any, out: contract.Collector) -> dict:
+        mapping = contract._keys(value, set(contract.TAXONOMY), "payload.taxonomy", out)
+        result = {}
+        for action in contract.TAXONOMY:
+            entries = []
+            for index, raw in enumerate(contract._list(mapping.get(action, []),
+                                                       f"payload.taxonomy.{action}", out)):
+                here = f"payload.taxonomy.{action}[{index}]"
+                entry = contract._keys(raw, {"library_path", "reason"}, here, out)
+                segments = contract._list(entry.get("library_path"), f"{here}.library_path", out)
+                clean = []
+                for position, segment in enumerate(segments):
+                    if not isinstance(segment, str) or not contract.PATH_SEGMENT_RE.fullmatch(segment):
+                        out.add(f"{here}.library_path[{position}]", "invalid_identifier",
+                                "library_path segments must be lowercase library slugs",
+                                contract.PATH_SEGMENT_RE.pattern, segment)
+                    else:
+                        clean.append(segment)
+                if not clean:
+                    continue
+                if clean[0] != self.domain:
+                    out.add(f"{here}.library_path[0]", "illegal_enum",
+                            "library_path must start with the run's authorized domain",
+                            [self.domain], clean[0])
+                    continue
+                # The host converts declared ownership into the domain-relative
+                # category path the delta is compared against. The model names
+                # neither a path nor a filename.
+                entries.append({"path": "/".join(clean[1:]),
+                                "reason": contract._text(entry.get("reason"), f"{here}.reason", out)})
+            result[action] = entries
+        return result
+
+    def collect_removals(self, value: Any, out: contract.Collector) -> list[str]:
+        removals: list[str] = []
+        for index, raw in enumerate(contract._list(value, "payload.removals", out)):
+            here = f"payload.removals[{index}]"
+            if not isinstance(raw, str) or not contract.OBJECT_ID_RE.fullmatch(raw):
+                out.add(here, "invalid_identifier",
+                        "a removal names a live object_id, never a path",
+                        contract.OBJECT_ID_RE.pattern, raw)
+                continue
+            resolved = self.resolve_live_object(raw)
+            if resolved is None:
+                out.add(here, "unresolved_object_id",
+                        "no live card in this domain carries that object_id", None, raw)
+                continue
+            removals.append(resolved)
+        return removals
+
+    def collect_object_ids(self, value: Any, path: str, out: contract.Collector) -> list[str]:
+        """A list of canonical object ids, deduplicated, shape-checked by the host."""
+        result: list[str] = []
+        seen: set[str] = set()
+        for index, raw in enumerate(contract._list(value, path, out)):
+            here = f"{path}[{index}]"
+            if not isinstance(raw, str) or not contract.OBJECT_ID_RE.fullmatch(raw):
+                out.add(here, "invalid_identifier", "expected a canonical object_id",
+                        contract.OBJECT_ID_RE.pattern, raw)
+                continue
+            if raw in seen:
+                out.add(here, "duplicate_value", "object_id repeats", None, raw)
+                continue
+            seen.add(raw)
+            result.append(raw)
+        return result
+
+    def collect_flags_map(self, value: Any, names: Iterable[str], path: str,
+                          out: contract.Collector) -> dict:
+        wanted = tuple(names)
+        mapping = contract._keys(value, set(wanted), path, out)
+        return {name: contract._bool(mapping.get(name), f"{path}.{name}", out) for name in wanted}
+
+    def translate_preflight_payload(self, mapping: dict, out: contract.Collector) -> dict:
+        """Build the beta.110 preflight record from the closed payload.
+
+        Preflight keeps its own SCHEMA_VERSION: it is a different concept from the
+        stage contract version and previously accepted preflights must keep
+        loading, so the host writes that field rather than merging it away.
+        """
+        record: dict[str, Any] = {
+            "schema_version": preflight.SCHEMA_VERSION,
+            "phase": preflight.PHASE,
+            "domain": self.domain,
+            "mode": "unit ingestion",
+        }
+        for name in ("title", "author", "extent", "text_quality", "subject"):
+            record[name] = contract._text(mapping.get(name), f"payload.{name}", out)
+        units = []
+        seen: set[str] = set()
+        for index, raw in enumerate(contract._list(mapping.get("units"), "payload.units", out)):
+            here = f"payload.units[{index}]"
+            entry = contract._keys(raw, {"unit_id", "material", "locator", "source_pages",
+                                         "printed_pages", "overlap_object_ids",
+                                         "card_potential"}, here, out)
+            unit_id = entry.get("unit_id")
+            if not isinstance(unit_id, str) or not contract.UNIT_ID_RE.fullmatch(unit_id):
+                out.add(f"{here}.unit_id", "invalid_identifier",
+                        "unit_id must look like u01", contract.UNIT_ID_RE.pattern, unit_id)
+                continue
+            if unit_id in seen:
+                out.add(f"{here}.unit_id", "duplicate_value", "unit_id repeats", None, unit_id)
+                continue
+            seen.add(unit_id)
+            units.append({
+                "unit_id": unit_id,
+                "material": contract._text(entry.get("material"), f"{here}.material", out),
+                "locator": contract._text(entry.get("locator"), f"{here}.locator", out),
+                "source_pages": entry.get("source_pages"),
+                "printed_pages": entry.get("printed_pages"),
+                "overlap_object_ids": self.collect_object_ids(
+                    entry.get("overlap_object_ids"), f"{here}.overlap_object_ids", out),
+                "card_potential": contract._enum(entry.get("card_potential"),
+                                                 contract.CARD_POTENTIAL,
+                                                 f"{here}.card_potential", out),
+            })
+        record["units"] = units
+        record["no_extract"] = contract._list(mapping.get("no_extract", []), "payload.no_extract", out)
+        # The host always writes this key for schema 3: a dict for Software
+        # Engineering, null everywhere else. A model may not supply it elsewhere.
+        if self.domain == "software-engineering":
+            record["language_policy"] = contract._mapping(mapping.get("language_policy"),
+                                                          "payload.language_policy", out)
+        else:
+            if "language_policy" in mapping:
+                out.add("payload.language_policy", "unknown_field",
+                        "only software-engineering declares a programming-language policy")
+            record["language_policy"] = None
+        return record
+
     def submit(self, phase: str, data: dict) -> str:
         if self.state.get("stop_reached"):
             raise RunError(f"stop target {self.state.get('stop_after')} has been reached; run continue-run before advancing")
@@ -1861,6 +2409,10 @@ class Run:
             raise RunError(f"cannot submit {phase}; current phase is {self.state['phase']}")
         previous_unit_index = self.state["unit_index"]
         self.require_unattended_action(phase)
+        if phase in contract.STAGES:
+            # Closed contract in, validated internal record out. Nothing below
+            # this line changed with Stage Contract v1.
+            data = self.stage_response(phase, data)
         if phase == "load":
             exact(data, {"schema_version", "documents_read"}, "load")
             documents = array(data["documents_read"], "documents_read")
@@ -3162,6 +3714,44 @@ def resume(repo: Path, root: Path | None = None, domain: str | None = None, sour
     return Run(repo, root).pickup(source)
 
 
+def stage_schemas(repo: Path, root: Path | None, stage: str | None, enums: bool) -> dict:
+    """The authoritative contract description, for a model or a tool to consume.
+
+    Generated from the same declarations the templates and the validator use, so
+    a skeleton, a schema and an acceptance check can never disagree.
+    """
+    if enums:
+        return {
+            "contract_version": contract.CONTRACT_VERSION,
+            "object_types": list(contract.OBJECT_TYPES),
+            "buckets": list(contract.BUCKETS),
+            "taxonomy": list(contract.TAXONOMY),
+            "card_potential": list(contract.CARD_POTENTIAL),
+            "confidence": list(contract.CONFIDENCE),
+            "lane_fit": list(contract.LANE_FIT),
+            "foundation_role": list(contract.FOUNDATION_ROLE),
+            "routing_class": list(contract.ROUTING_CLASS),
+            "specialization_axis": list(contract.SPECIALIZATION_AXIS),
+            "modernization_dispositions": list(contract.MODERNIZATION_DISPOSITIONS),
+            "landing_basis": list(contract.LANDING_BASIS),
+            "artifact_kinds": list(contract.ARTIFACT_KINDS),
+            "closure_audits": list(contract.CLOSURE_AUDITS),
+            "failure_codes": list(contract.FAILURE_CODES),
+            "card_body": {object_type: [heading for heading, _ in sections]
+                          for object_type, sections in contract.CARD_BODY.items()},
+        }
+    checks = SEMANTIC_CHECKS
+    if root is not None:
+        checks = Run(repo, root).semantic_check_names()
+    stages = (stage,) if stage else contract.STAGES
+    return {
+        "contract_version": contract.CONTRACT_VERSION,
+        "stages": {name: contract.json_schema(name, checks) for name in stages},
+        "card_body": {object_type: contract.card_skeleton(object_type)
+                      for object_type in contract.OBJECT_TYPES},
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, help="auto-detected from the current project by default")
@@ -3177,6 +3767,16 @@ def build_parser() -> argparse.ArgumentParser:
     resume_parser.add_argument("--run", type=Path, help="the run to verify; omit to search the domain")
     resume_parser.add_argument("--domain", help="the user-authorized domain to search")
     resume_parser.add_argument("--source", type=Path, help="only runs bound to this source path or identical bytes")
+    schema_parser = sub.add_parser(
+        "schema",
+        help="print the authoritative Stage Contract v1 JSON Schema for a stage",
+    )
+    schema_parser.add_argument("--stage", choices=contract.STAGES,
+                               help="omit to print every stage")
+    schema_parser.add_argument("--run", type=Path,
+                               help="use this run's semantic checks and domain")
+    schema_parser.add_argument("--enums", action="store_true",
+                               help="print the declared vocabularies instead")
     abandon_parser = sub.add_parser("abandon", help="retire an unfinished run on explicit user instruction; drafts are kept")
     abandon_parser.add_argument("--run", type=Path, required=True)
     abandon_parser.add_argument("--reason", required=True, help="the user's explicit instruction to abandon this run")
@@ -3220,6 +3820,9 @@ def main(argv: Iterable[str] | None = None) -> int:
         if args.command == "start":
             run = Run(repo, start(repo, args.source, args.domain, args.owner, args.stop_after))
             print(json.dumps(run.brief(), indent=2))
+            return 0
+        if args.command == "schema":
+            print(json.dumps(stage_schemas(repo, args.run, args.stage, args.enums), indent=2))
             return 0
         if args.command == "resume":
             result = resume(repo, args.run, args.domain, args.source)

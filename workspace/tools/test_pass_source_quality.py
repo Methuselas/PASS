@@ -44,6 +44,23 @@ def language_plan(units: list[dict] | None = None) -> dict:
     return plan
 
 
+def plan_envelope(run, plan: dict) -> dict:
+    """Carry a raw preflight plan through the Stage Contract v1 envelope.
+
+    The raw plan shape still exists and is still parsed by pass_authoring_run:
+    the preflight schema version is independent of the stage contract version.
+    This only moves the model-facing fields into the closed payload.
+    """
+    record = run.template()
+    payload = record["payload"]
+    for key in ("title", "author", "extent", "text_quality", "subject", "units", "no_extract"):
+        if key in plan:
+            payload[key] = plan[key]
+    if plan.get("language_policy") is not None:
+        payload["language_policy"] = plan["language_policy"]
+    return record
+
+
 class CorruptionSignalTests(unittest.TestCase):
     def test_explicit_decode_corruption_fails_code_page(self) -> None:
         metrics = source_prep._text_corruption_metrics(">>> value = \ufffd\n", code_signal_lines=3)
@@ -113,7 +130,7 @@ class SourceQualityWorkflowTests(unittest.TestCase):
         audit = self.run.preflight_quality_audit()
         self.assertEqual(len(audit["source_review"]), 1)
 
-        self.run.submit("preflight", language_plan())
+        self.run.submit("preflight", plan_envelope(self.run, language_plan()))
         pass_source_runner.authorize(self.run, "regression unattended source")
         packet = self.run.present()
         marker = self.run.preflight_presentation_marker(required=True)
@@ -200,7 +217,7 @@ class SourceQualityWorkflowTests(unittest.TestCase):
             {"unit_id": "u03", "material": "Advanced Topics", "locator": "PDF 11-20", "source_pages": {"start": 11, "end": 20}, "printed_pages": None, "overlap_object_ids": [], "card_potential": "medium"},
         ]
         with self.assertRaisesRegex(RunError, "unit-boundary gate failed"):
-            self.run.submit("preflight", language_plan(units))
+            self.run.submit("preflight", plan_envelope(self.run, language_plan(units)))
 
 
 if __name__ == "__main__":

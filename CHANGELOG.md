@@ -6,6 +6,84 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.111 - 2026-10-17
+
+### Added
+
+- Added Stage Contract v1 (`PASS/runtime/stage_contract.py`): one closed,
+  model-facing structural response for Preflight, PASS 1, CHECKPOINT, PASS 2,
+  PASS 3 and both closure stages, so every supported model returns the same
+  artifact. Free-form model cognition, a closed stage output contract, then
+  deterministic host validation and rendering. Model reasoning and semantic
+  conclusions remain unconstrained.
+- Added `python PASS/pass.py schema [--stage <stage>] [--enums]`, the
+  authoritative JSON Schema and declared vocabularies, generated from the same
+  declarations the templates and the validator use.
+- Added `PASS/docs/STAGE_CONTRACT.md` with the ownership split, the envelope, the
+  failure codes and worked artifacts for all four stages plus a rendered Pattern,
+  AP and Drill.
+- Added `tests/test_stage_contract.py`: cross-model conformance (structure,
+  schema, enums and host-written files must match while semantics may differ),
+  host path ownership, write-nothing-on-invalid, stale-token refusal, the bounded
+  correction attempt and fail-close, and preflight schema independence.
+
+### Changed
+
+- Stage responses are now the envelope `{"action_id": ..., "payload": ...}`. The
+  model echoes one opaque host-issued token that binds the bound source, stage,
+  unit index, unit and controller state, and states no other identity. This
+  replaces the `schema_version` and `unit_id` echoes and is strictly stronger: a
+  response produced for another unit, stage or superseded state is refused with
+  `stale_action_id`.
+- Drafted cards cross the boundary as structured objects rather than files. The
+  model supplies `object_id`, `object_type`, `library_path`, `name`, frontmatter
+  and an object-type-specific body; the host derives the path, renders every
+  heading, heading order, IF/THEN/ELSE label, list marker, indent and blank line,
+  and writes the file only after the whole response validates. The audit behind
+  this verified it is lossless: across all 2,388 library cards `object_id` equals
+  the filename stem and `library_path` equals the directory, with no exceptions.
+- Non-card staged items are typed `artifacts` -- an owned release recipe, a
+  `MODULE.yaml`, or an asset -- whose paths the host derives from declared
+  identity. A model no longer composes any path string.
+- Removed `reviewed_sha256`, `working_drafts`, `changes`, `schema_version`,
+  `unit_id` and `mode` from the model-facing payloads. The host already owned
+  every one of them and now writes them itself; PASS 3 attests with
+  `card_only_review` and `checks`, and the host computes the staged digests before
+  and after validation as it already did.
+- Retired `overlap_object_ids` from the PASS 1 payload, which had no downstream
+  consumer. The reasoning obligation is unchanged and PASS 2's buckets still carry
+  the reconciliation. The identically named *preflight unit* field is kept: it is
+  validated against the library, printed in the human-facing preflight packet and
+  counted in the verification summary.
+- `template` now prints the envelope with a payload skeleton generated from the
+  schema and seeded with the identifiers the host already owns, eliminating the
+  split between SHOUTING preflight placeholders and empty-value workflow
+  templates. No value's status is ambiguous any more.
+
+### Fixed
+
+- Fixed the unbounded retry hole: a malformed stage response is refused before
+  anything is written and recorded as a machine-readable
+  `controller/stage-rejection.json` with a closed failure-code vocabulary. The
+  same pending action gets exactly one correction attempt; a second malformed
+  response fails the stage closed, preserves the last completed boundary, and
+  makes unattended mode return `blocked_human_required` instead of reissuing the
+  same action forever. Infrastructure failures and semantic outcomes --
+  `approval_required`, an honest `false` check, a legitimate empty result -- are
+  not contract failures and consume no attempt.
+- Corrected two enum defects found while building the contract: `card_potential`
+  was missing `mixed`, which the synthetic closure unit uses, and `text_quality`
+  is free text upstream rather than an enum. A test now asserts the contract's
+  vocabularies never drift from their authorities.
+- Fixed the PASS 2 `removals` JSON Schema item type under the R1 candidate-3
+  closure review: the published schema declared array items as objects while
+  the runtime validator accepts only `object_id` strings, so a
+  schema-conforming response for a non-empty removals list was guaranteed to be
+  contract-rejected. The schema now declares string items matching
+  `OBJECT_ID_RE`, and a regression test asserts the published schema and the
+  live validator agree on valid, invalid-type, invalid-shape and empty
+  removals.
+
 ## 1.0.0-beta.110 - 2026-10-17
 
 ### Changed

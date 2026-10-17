@@ -18,7 +18,10 @@ import sys
 from typing import Any, Iterable
 
 from . import pass_authoring_run as preflight
-from .pass_authoring_workflow import Run, RunError, atomic_write, digest, exact, inside, string
+from .pass_authoring_workflow import (
+    STAGE_REJECTION as STAGE_REJECTION_NAME,
+    Run, RunError, atomic_write, digest, exact, inside, string,
+)
 
 
 AUTH_SCHEMA = 1
@@ -60,9 +63,9 @@ def issue_action(run: Run) -> dict[str, Any]:
         raise RunError(f"cannot issue substantive action for phase: {phase}")
     unit_id = None if phase == "preflight" else run.unit()["unit_id"]
     state_sha = digest(run.state_path)
-    seed = f"{run.source_identity()['sha256']}|{phase}|{run.state['unit_index']}|{unit_id or '-'}|{state_sha}"
-    import hashlib
-    action_id = hashlib.sha256(seed.encode("utf-8")).hexdigest()
+    # Stage Contract v1: interactive and unattended modes bind a response with
+    # the same token, computed in one place, so both modes share one contract.
+    action_id = run.stage_action_id()
     record = {
         "schema_version": ACTION_SCHEMA,
         "action_id": action_id,
@@ -150,6 +153,21 @@ def drive(run: Run) -> dict[str, Any]:
                 "report": progress_report(run),
             }
         if phase in {"preflight", "pass1", "checkpoint", "pass2", "pass3", "closure_pass2", "closure_pass3"}:
+            # Fail-close is terminal for this action: a non-progressing model may
+            # not be handed the same stage again, which is what made the old
+            # unbounded reissue loop possible.
+            if run.stage_fail_closed(run.stage_action_id()):
+                rejection = run.stage_rejection()
+                return {
+                    "outcome": "blocked_human_required",
+                    "reason": (
+                        f"stage {rejection['stage']} failed the closed contract twice and is "
+                        "closed to further automatic correction; the last completed boundary is "
+                        f"preserved. See {STAGE_REJECTION_NAME}."
+                    ),
+                    "stage_rejection": rejection,
+                    "report": progress_report(run),
+                }
             action = issue_action(run)
             return {"outcome": "host_action_required", "action": action, "report": progress_report(run)}
         if phase == "load":

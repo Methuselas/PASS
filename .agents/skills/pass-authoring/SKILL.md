@@ -62,6 +62,17 @@ or consumes an `approval_required` delta. Read
 rules in `PASS/docs/PASS_RUN.md`. The old preflight helper alone cannot authorize
 ingestion. Repository maintenance and packaging do not need a source run. Existing Unreal Niagara assets use the separate `python PASS/vfx.py` analysis lane rather than source preflight; read `PASS/docs/UNREAL_VFX_PASS.md` before such a run.
 
+Stage responses use the closed Stage Contract v1 envelope,
+`{"action_id": ..., "payload": ...}`: run `template` for the pending stage, fill
+only the payload, and submit it. Return drafted cards as structured objects with
+`object_id`, `object_type`, `library_path`, `name`, frontmatter and the
+object-type body; the host derives every filename and path and renders the
+Markdown, so never name a file or compose a path. Never restate `unit_id`,
+`schema_version`, a stage name, a digest map or a mode -- the host owns them and
+will refuse them. A malformed response gets one structured correction attempt and
+then fails closed. `python PASS/pass.py schema --stage <stage>` is authoritative;
+see `PASS/docs/STAGE_CONTRACT.md`.
+
 `library/` holds finished knowledge. Active, per-source transactional state lives
 only in `Pass-runs/` and may travel in a continuation project
 snapshot; it is not a ledger, source registry, provenance record, Skillset Memory

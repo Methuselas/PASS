@@ -229,6 +229,20 @@ Accepted unit deltas accumulate in this run-local staging area and participate i
 later-unit reconciliation; they do not become canonical `library/` knowledge until
 the mandatory source-close transaction succeeds.
 
+**Model-facing stage boundaries are a closed contract, accepted 2026-10-17.**
+Stage Contract v1 (`PASS/runtime/stage_contract.py`) fixes one structural response
+for Preflight, PASS 1, CHECKPOINT, PASS 2, PASS 3 and closure, so every supported
+model returns the same artifact: free-form model cognition, a closed stage output
+contract, then deterministic host validation and rendering. Model reasoning and
+semantic conclusions stay free; the host owns run/unit/stage identity, filenames,
+paths, enums, defaults, serialization, validation and Markdown rendering, and
+derives a card's path from `object_id` plus `library_path`. A malformed response
+is refused before anything is written, gets one structured correction attempt,
+then fails closed. The contract is not pedagogy: Source Prep, Preflight, PASS 1-3
+and NEW/REFINE/REINFORCE/REJECT are unchanged, the canonical card schema remains
+the authority on what a finished card is, and Preflight keeps its own independent
+`schema_version`. See `PASS/docs/STAGE_CONTRACT.md`.
+
 `PASS/source.py` remains a separate source-level orchestration layer: it may
 persist one bounded unattended authorization, exact packet audit copies, source
 identity and final source verification, but it does not perform PASS reads or own

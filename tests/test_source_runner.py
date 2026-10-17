@@ -47,15 +47,13 @@ class SourceRunnerTests(unittest.TestCase):
         run.submit("load", {"schema_version": 1, "documents_read": required_documents(self.repo)})
         pass_source_prep.prepare(run)
         pass_source_prep.finalize(run)
-        record = preflight.template_record()
-        record.update(
+        record = run.template()
+        record["payload"].update(
             title="Test Source",
             author="Test Author",
-            domain="writing",
             extent="one bounded test unit",
             text_quality="clean text",
             subject="Test one unattended source run without changing canonical knowledge.",
-            mode="unit ingestion",
             units=[{
                 "unit_id": "u01",
                 "material": "Test material",
@@ -78,40 +76,28 @@ class SourceRunnerTests(unittest.TestCase):
         issued = drive(run)
         self.assertEqual(issued["outcome"], "host_action_required")
         self.assertEqual(issued["action"]["phase"], "pass1")
-        run.submit("pass1", {
-            "schema_version": 1,
-            "unit_id": "u01",
+        run.submit("pass1", {"action_id": run.stage_action_id(), "payload": {
             "full_read": True,
-            "working_drafts": [],
-            "overlap_object_ids": [],
+            "cards": [],
             "secondary_subject_flags": [],
             "questions": [],
-        })
+        }})
         issued = drive(run)
         self.assertEqual(issued["action"]["phase"], "pass2")
-        run.submit("pass2", {
-            "schema_version": 1,
-            "unit_id": "u01",
+        run.submit("pass2", {"action_id": run.stage_action_id(), "payload": {
             "full_reread": True,
             "flag_resolutions": [],
             "buckets": {name: [] for name in BUCKETS},
             "taxonomy": {name: [] for name in TAXONOMY},
-            "changes": [],
-            "removals": [],
             "approval_required": approval_required,
-            "owner_reconciliation": [],
-            "metadata_classification": [],
-        })
+        }})
         issued = drive(run)
         self.assertEqual(issued["action"]["phase"], "pass3")
         with patch.object(run, "validate", return_value=None):
-            run.submit("pass3", {
-                "schema_version": 1,
-                "unit_id": "u01",
+            run.submit("pass3", {"action_id": run.stage_action_id(), "payload": {
                 "card_only_review": True,
                 "checks": {name: True for name in SEMANTIC_CHECKS},
-                "reviewed_sha256": {},
-            })
+            }})
         self.assertEqual(run.state["phase"], "land")
 
     def submit_empty_closure(self, run):
@@ -119,13 +105,14 @@ class SourceRunnerTests(unittest.TestCase):
         self.assertEqual(issued["outcome"], "host_action_required")
         self.assertEqual(issued["action"]["phase"], "closure_pass2")
         record = run.template()
-        record["closure_audits"] = {name: True for name in record["closure_audits"]}
+        record["payload"]["closure_audits"] = {
+            name: True for name in record["payload"]["closure_audits"]}
         run.submit("closure_pass2", record)
         issued = drive(run)
         self.assertEqual(issued["action"]["phase"], "closure_pass3")
         record = run.template()
-        record["card_only_review"] = True
-        record["checks"] = {name: True for name in SEMANTIC_CHECKS}
+        record["payload"]["card_only_review"] = True
+        record["payload"]["checks"] = {name: True for name in SEMANTIC_CHECKS}
         with patch.object(run, "validate", return_value=None):
             run.submit("closure_pass3", record)
         self.assertEqual(run.state["phase"], "closure_land")
@@ -189,12 +176,14 @@ class SourceRunnerTests(unittest.TestCase):
         pass_source_prep.prepare(run)
         pass_source_prep.finalize(run)
         authorize(run, "User asked for unattended source completion.")
-        record = preflight.template_record()
-        record.update(
-            title="Test Source", author="Test Author", domain="writing",
+        record = run.template()
+        record["payload"].update(
+            title="Test Source", author="Test Author",
             extent="one unit", text_quality="clean",
-            subject="Test unattended dispatcher entry.", mode="unit ingestion",
-            units=[{"unit_id":"u01","material":"Test material","locator":"entire source","source_pages":None,"printed_pages":None,"overlap_object_ids":[],"card_potential":"low"}],
+            subject="Test unattended dispatcher entry.",
+            units=[{"unit_id": "u01", "material": "Test material", "locator": "entire source",
+                    "source_pages": None, "printed_pages": None, "overlap_object_ids": [],
+                    "card_potential": "low"}],
             no_extract=[],
         )
         with self.assertRaisesRegex(Exception, "no issued action lease"):
@@ -226,9 +215,9 @@ class SourceRunnerTests(unittest.TestCase):
         self.assertIn("current", picked["action_lease"])
         self.assertEqual(drive(fresh)["action"]["action_id"], issued["action_id"])
         fresh.submit("pass1", {
-            "schema_version": 1, "unit_id": "u01", "full_read": True,
-            "working_drafts": [], "overlap_object_ids": [],
-            "secondary_subject_flags": [], "questions": [],
+            "action_id": fresh.stage_action_id(),
+            "payload": {"full_read": True, "cards": [],
+                        "secondary_subject_flags": [], "questions": []},
         })
         self.assertEqual(resume(self.repo, run.root)["action_lease"], "none issued; source.py drive will issue one")
         (run.root / "controller" / "next-action.json").write_text(json.dumps(issued), encoding="utf-8")

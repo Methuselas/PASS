@@ -71,15 +71,16 @@ FLAG_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 # the Windows MAX_PATH limit.
 RUNS_ROOT = "Pass-runs"
 RUN_ID_RE = re.compile(r"^r_[0-9a-f]{8}$")
-OWNER_MAX_PARTS = 3
-OWNER_MAX_CHARS = 40
 LABEL_MAX_CHARS = 80
 
 # Windows refuses paths at or beyond 260 characters unless the machine opts into
 # long paths, which PASS must not require. The deepest artifact a run writes is
 # accepted/files/<repo-relative card path>; the longest card path in the library
 # is roughly 160 characters, so the run root itself has to stay small.
-# RUN_ROOT_BUDGET is the binding check: the whole run root must leave room for
+# RUN_ROOT_BUDGET is the only bound on how deep a run may be filed. Run ownership
+# mirrors the canonical library path, so the layout must not impose a taxonomy
+# limit of its own: the library decides how deep a module sits, and the single
+# real constraint is that the run root still leave room for
 # accepted/files/<repo-relative card path>. Measured against the real library the
 # deepest case is software-engineering at 246 absolute characters from a 14-char
 # repo prefix, and the deepest run root any domain actually needs is 60.
@@ -152,12 +153,18 @@ def runs_root(repo: Path) -> Path:
 
 
 def parse_owner(owner: str | None) -> tuple[str, ...]:
-    """The library module path a run authors into, below its domain.
+    """Shape-check the library module path a run authors into, below its domain.
 
     Runs mirror library ownership rather than inventing a second taxonomy, so a
     Python run is owned by ``languages/python`` -- the path its cards land in --
-    and never by a parallel label such as ``Python``. The location need not exist
-    yet: a run may target an intended canonical home.
+    and never by a parallel label such as ``Python``, which the slug rule
+    rejects. There is deliberately no depth or length limit here: the library
+    decides how deep a module sits, and the binding constraint is the total path
+    budget checked when the run root is created.
+
+    This is shape only, so an existing run stays openable after its library
+    module is renamed or retired. ``resolve_owner`` adds the mirroring check at
+    creation time.
     """
     if owner is None:
         return ()
@@ -169,13 +176,41 @@ def parse_owner(owner: str | None) -> tuple[str, ...]:
     parts = tuple(text.split("/"))
     if not all(parts):
         raise RunError(f"owner has an empty path segment: {owner}")
-    if len(parts) > OWNER_MAX_PARTS:
-        raise RunError(f"owner may name at most {OWNER_MAX_PARTS} module segments below the domain: {owner}")
     for part in parts:
         if not SLUG_RE.fullmatch(part):
             raise RunError(f"owner segment must be a lowercase library slug: {part}")
-    if len("/".join(parts)) > OWNER_MAX_CHARS:
-        raise RunError(f"owner path exceeds {OWNER_MAX_CHARS} characters: {owner}")
+    return parts
+
+
+def resolve_owner(repo: Path, domain: str, owner: str | None) -> tuple[str, ...]:
+    """Validate that a new run's owner really mirrors a canonical library path.
+
+    The owner must name an existing module directory under ``library/<domain>/``,
+    or a new leaf directly beneath one, so a run may author the first card of a
+    genuinely new module while a typo such as ``langauges/python`` is refused
+    instead of quietly creating a junk run tree.
+
+    The limit of this check is deliberate and worth knowing: a misspelled
+    *first* segment (``craftt`` for ``craft``) is indistinguishable from a new
+    top-level module and is therefore accepted. Catching that would require
+    forbidding new modules, which would block authoring a module's first card.
+    """
+    parts = parse_owner(owner)
+    if not parts:
+        return parts
+    base = inside(repo, f"library/{domain}")
+    target = inside(base, "/".join(parts))
+    if target.is_dir():
+        return parts
+    if target.exists():
+        raise RunError(f"owner path is not a library directory: {domain}/{'/'.join(parts)}")
+    parent = target.parent
+    if not parent.is_dir():
+        raise RunError(
+            f"owner does not mirror a canonical library path: library/{domain}/{'/'.join(parts)} "
+            f"does not exist and neither does its parent; create the module location first "
+            f"or correct the path"
+        )
     return parts
 
 
@@ -338,7 +373,7 @@ def start(repo: Path, source: Path, domain: str | None, owner: str | None = None
         )
     if stop_after not in STOP_AFTER:
         raise RunError("stop_after must be source_prep, preflight, or complete")
-    parts = parse_owner(owner)
+    parts = resolve_owner(repo, domain, owner)
     base = inside(repo, "/".join((RUNS_ROOT, domain, *parts)))
     base.mkdir(parents=True, exist_ok=True)
     if run_id is None:
@@ -386,11 +421,8 @@ def run_root(repo: Path, root: Path) -> Path:
         raise RunError(
             f"run must belong to this project's {RUNS_ROOT}/<domain>[/<module>...]/<run-id>"
         ) from exc
-    if len(path.parts) < 2 or len(path.parts) > 2 + OWNER_MAX_PARTS:
-        raise RunError(
-            f"run must be {RUNS_ROOT}/<domain>[/<module>...]/<run-id> with at most "
-            f"{OWNER_MAX_PARTS} module segments"
-        )
+    if len(path.parts) < 2:
+        raise RunError(f"run must be {RUNS_ROOT}/<domain>[/<module>...]/<run-id>")
     if not RUN_ID_RE.fullmatch(path.parts[-1]):
         raise RunError(
             f"run directory must be a short opaque run id matching {RUN_ID_RE.pattern}: {path.parts[-1]}"
@@ -493,11 +525,6 @@ class Run:
         self.state = preflight._read_json(str(self.state_path))
         # beta.78 upgrades beta.77 active runs in memory; the next accepted write
         # persists schema 2. No accepted work is discarded during migration.
-        if self.state.get("schema_version") == 1:
-            self.state.setdefault("source_prep", None)
-            self.state.setdefault("stop_after", "complete")
-            self.state.setdefault("stop_reached", False)
-            self.state["schema_version"] = 2
         # Schema 3 moved every descriptive string out of the path and into state.
         # A schema-2 run that has been moved into the canonical run root is
         # upgraded in memory from its own location; the next accepted write
@@ -2917,7 +2944,9 @@ def start_over(
         raise RunError("a finished run is closed with close-run, not started over")
     # The replacement run keeps the old run's library ownership: a reset changes
     # the run, never where its cards are destined to land.
-    owner_parts = parse_owner(state.get("owner") or "/".join(root.relative_to(repo / RUNS_ROOT).parts[1:-1]))
+    owner_parts = resolve_owner(
+        repo, domain, state.get("owner") or "/".join(root.relative_to(repo / RUNS_ROOT).parts[1:-1])
+    )
 
     existing_intent = inside(root, RESET_INTENT)
     if existing_intent.is_file():

@@ -218,8 +218,9 @@ class RunPathBudgetTests(unittest.TestCase):
     def test_every_real_module_is_a_legal_owner_within_the_run_root_budget(self) -> None:
         for domain, owner, run_root, _suffix, _card in self.domain_worst_cases():
             with self.subTest(domain=domain, owner=owner):
-                # A run must be able to target any real library module.
-                self.assertEqual(workflow.parse_owner(owner),
+                # A run must be able to target any real library module, however
+                # deep the library chooses to put it.
+                self.assertEqual(workflow.resolve_owner(ROOT, domain, owner),
                                  tuple(part for part in owner.split("/") if part))
                 self.assertLessEqual(
                     len(run_root), workflow.RUN_ROOT_BUDGET,

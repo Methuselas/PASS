@@ -31,6 +31,12 @@ skillsets may evolve independently.
   `controller/checkpoint/blobs/<sha256>` instead of mirroring the staged tree
   under `controller/checkpoint/files/<path>`. The old nesting reproduced a full
   library-relative card path inside every checkpoint.
+- Validated run ownership against the library instead of against a taxonomy cap
+  the run layout invented. `OWNER_MAX_PARTS` and `OWNER_MAX_CHARS` are gone;
+  `resolve_owner` requires an owner to resolve to an existing module directory
+  under `library/<domain>/` or to a new leaf directly beneath one, and the only
+  bound on depth is the total path budget. `parse_owner` remains shape-only so an
+  existing run stays openable after its library module is renamed or retired.
 
 ### Fixed
 
@@ -53,6 +59,8 @@ skillsets may evolve independently.
 
 - Removed `workspace/_diag_paths.py`, a task-owned diagnostic marked
   delete-after-use whose target run no longer exists and which had no referrers.
+- Removed the run-schema-1 in-memory upgrade branch. No retained run requires it:
+  every live run is schema 2, verified by reading each `controller/run.json`.
 
 ## 1.0.0-beta.107 - 2026-10-12
 

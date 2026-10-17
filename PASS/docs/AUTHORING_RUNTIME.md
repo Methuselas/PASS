@@ -216,8 +216,15 @@ Pass-runs/<domain>[/<module-path>...]/<run-id>/
 the canonical library ownership path its cards are destined for, so a Python run
 lives at `Pass-runs/software-engineering/languages/python/<run-id>/` and never
 under an invented parallel label such as `Python/`. Runs do not get a second
-domain taxonomy of their own. `--owner` names the module path below the domain
-and may target a library location that does not exist yet.
+domain taxonomy of their own. `--owner` names the module path below the domain.
+
+Ownership is validated against the library itself, not against a limit the run
+layout invents. An owner must resolve to an existing module directory under
+`library/<domain>/`, or to a new leaf directly beneath one so that a run can
+author a genuinely new module's first card. There is deliberately **no depth or
+length cap on ownership**: the library decides how deep a module sits, and the
+only bound is the total path budget below. One known limit: a misspelled first
+segment is indistinguishable from a new top-level module and is accepted.
 
 A run id is short, opaque, stable and non-semantic: `r_` followed by eight hex
 characters, as in `r_a1b2c3d4`. No path segment carries a source title, book

@@ -236,6 +236,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
             "Total Beginners Second Edition Fully Revised And Expanded.txt"
         )
         source.write_text("A long title must not become a long path.\n", encoding="utf-8")
+        self.module("writing/fiction/dialogue")
         root = workflow.start(self.repo, source, "writing", "fiction/dialogue")
         relative = root.relative_to(self.repo).as_posix()
         self.assertTrue(workflow.RUN_ID_RE.fullmatch(root.name))
@@ -244,6 +245,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertTrue(workflow.Run(self.repo, root).state["label"].startswith("Automate"))
 
     def test_run_is_placed_at_its_library_owner_and_discovered_there(self):
+        self.module("writing/fiction/dialogue")
         owned = workflow.start(self.repo, self.other_source(), "writing", "fiction/dialogue")
         placement = owned.relative_to(self.repo / workflow.RUNS_ROOT)
         self.assertEqual(placement.parts[:3], ("writing", "fiction", "dialogue"))
@@ -255,10 +257,36 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertIn("writing/fiction/dialogue/" + owned.name, found)
         self.assertIn("writing/" + self.root.name, found)
 
-    def test_owner_must_be_a_bounded_lowercase_library_path(self):
+    def test_owner_must_mirror_a_canonical_library_path(self):
+        # An invented parallel taxonomy, a typo, and a malformed path are all
+        # refused; the library, not the run layout, decides what is a real owner.
         for owner in ("Python", "fiction/Dialogue", "a/b/c/d", "../writing", "fiction//x"):
             with self.subTest(owner=owner), self.assertRaises(workflow.RunError):
                 workflow.start(self.repo, self.other_source(), "writing", owner)
+
+    def test_owner_depth_is_bounded_by_the_library_not_by_a_taxonomy_cap(self):
+        # Arbitrarily deep ownership is allowed as long as the library has it and
+        # the resulting run root fits the path budget.
+        deep = "fiction/structure/scene/beats"
+        self.module(f"writing/{deep}")
+        root = workflow.start(self.repo, self.other_source(), "writing", deep)
+        self.assertEqual(
+            root.relative_to(self.repo / workflow.RUNS_ROOT).parts[:-1],
+            ("writing", *deep.split("/")),
+        )
+        self.assertEqual(workflow.Run(self.repo, root).state["owner"], deep)
+
+    def test_a_new_module_leaf_is_allowed_but_an_unrooted_path_is_not(self):
+        # Authoring the first card of a genuinely new module must stay possible.
+        self.assertTrue(workflow.start(self.repo, self.other_source(), "writing", "craft/dialogue").is_dir())
+        with self.assertRaisesRegex(workflow.RunError, "does not mirror a canonical library path"):
+            workflow.start(self.repo, self.other_source("Fourth.txt", "Fourth.\n"), "writing", "nope/deeper")
+
+    def test_a_run_root_past_the_path_budget_is_refused(self):
+        owner = "/".join(("a" * 20,) * 3)
+        self.module(f"writing/{owner}")
+        with self.assertRaisesRegex(workflow.RunError, "character budget"):
+            workflow.start(self.repo, self.other_source(), "writing", owner)
 
     def test_run_root_rejects_anything_but_one_canonical_run_path(self):
         base = self.repo / workflow.RUNS_ROOT
@@ -266,7 +294,6 @@ class AuthoringWorkflowTests(unittest.TestCase):
             "writing",                                    # no run id at all
             "writing/fiction",                            # an owner segment, not a run
             "writing/original-book-run-one",              # descriptive, not an opaque id
-            "writing/a/b/c/d/" + self.root.name,          # past the owner depth bound
         )
         for bad in rejected:
             with self.subTest(path=bad), self.assertRaises(workflow.RunError):

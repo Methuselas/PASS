@@ -5,8 +5,8 @@ revealed only now), `freeze-execution` (all-or-nothing verdicts, evidence
 manifests, evaluator relations, contamination) and `evaluate` (arm symmetry,
 per-case deltas, the final gate, a frozen result that never edits canon). The
 end-to-end runs reproduce design fixtures A (qualified) and B (two targets fixed,
-one protection regressed). The synthetic library and memory store come from the
-candidate-freeze suite.
+one protection regressed). The synthetic library, candidate store and training
+history come from the candidate-freeze suite.
 """
 
 from __future__ import annotations
@@ -19,8 +19,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_candidate_qualification_candidate import (  # noqa: E402
-    CONTROLLER, HELD_OUT_TASK, STRESS_TASK, TARGET, CandidateFixture, crq, default_plan_entries,
-    plan_entry, write_text,
+    CONTROLLER, CANDIDATE, HELD_OUT_TASK, STRESS_TASK, TARGET, CandidateFixture, crq,
+    default_plan_entries, plan_entry, write_text,
 )
 
 
@@ -323,7 +323,7 @@ class EvaluateTests(ExecutionFixture):
     def test_result_document_shape(self) -> None:
         result = self.result(self.evaluated(GOOD))
         self.assertEqual(set(result), set(crq.QUALIFICATION_RESULT_KEYS))
-        self.assertEqual(result["candidate_memory_entry"], "SE_MEM_0001")
+        self.assertEqual(result["candidate_id"], CANDIDATE["id"])
         self.assertEqual(result["changed_objects"], ["PAT_target"])
 
 

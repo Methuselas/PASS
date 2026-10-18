@@ -5,8 +5,9 @@ admissibility, fixtures and the protection gap), `stage-candidate` (non-canon
 refusal, byte-exact staging, a brief that withholds held-out cases) and
 `freeze-candidate` (mutation accounting, the scope ceilings, evidence-free
 cards, and the ordinary validators run with `--library` on a temporary overlay).
-The library and memory store are synthetic and every card in them passes the
-ordinary validator; no canonical card or memory entry is read or written.
+The library, candidate store and training history are synthetic and every card
+in the library passes the ordinary validator; no canonical card or candidate
+store is read or written.
 """
 
 from __future__ import annotations
@@ -122,13 +123,12 @@ EVENTS = [
      "validity": "valid", "event_kind": "evidence_correction", "supersedes_events": ["SE_EV_0004"],
      "corrections": {"disposition": "quarantined", "reason": "cards not exposed"}},
 ]
-ENTRY = {
-    "id": "SE_MEM_0001", "scope_type": "pattern", "scope_id": "PAT_target",
-    "type": "card_candidate", "evidence_class": "stochastic_performance",
-    "observation": "The rule omits a boundary condition that reusable decisions need.",
-    "confidence": "repeated", "status": "active",
-    "diagnosis": {"failure_layer": "knowledge"},
-    "evidence_count": 1, "evidence_events": ["SE_EV_0001"], "likely_owners": ["PAT_target"],
+CANDIDATE = {
+    "id": "SE_CAND_01M56ABCD0000000000000001",
+    "hypothesis": "The rule omits a boundary condition that reusable decisions need.",
+    "evidence": ["SE_EV_0001"],
+    "owners": ["PAT_target"],
+    "state": "open",
 }
 
 TARGET_TASK = "Decide how the service handles a borrowed buffer that outlives its owner."
@@ -183,7 +183,8 @@ class CandidateFixture(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.base = Path(self.temporary.name)
         self.library = self.base / "library"
-        self.memory = self.base / "memory"
+        self.candidates = self.base / "canon_workflow"
+        self.history = self.base / "history"
         self.workspace = self.base / "workspace" / "candidate-qualification" / DOMAIN
         for relative, (object_id, object_type, foundation, links) in CARDS.items():
             path = self.library / relative
@@ -191,12 +192,14 @@ class CandidateFixture(unittest.TestCase):
             write_text(path, valid_card(relative, object_id, object_type, foundation, links))
         for relative, name in MODULES.items():
             write_text((self.library / relative), f"name: {name}\nrequires: []\n")
-        store = self.memory / DOMAIN
+        store = self.candidates / DOMAIN
         store.mkdir(parents=True)
-        write_text((store / "skill_memory.yaml"), yaml.safe_dump({
-            "memory_schema_version": 2, "skillset": DOMAIN, "memory_version": 1, "entries": [ENTRY],
+        write_text((store / "card_candidates.yaml"), yaml.safe_dump({
+            "candidate_schema_version": 1, "domain": DOMAIN, "candidates": [CANDIDATE],
         }, sort_keys=False))
-        write_text((store / "training_history.jsonl"),
+        history = self.history / DOMAIN
+        history.mkdir(parents=True)
+        write_text((history / "training_history.jsonl"),
             "".join(json.dumps(item) + "\n" for item in EVENTS))
         self.overlay_temp = self.base / "tmp"
         self.overlay_temp.mkdir()
@@ -218,7 +221,7 @@ class CandidateFixture(unittest.TestCase):
                             "relative_path": NEW_CARD, "reason": "A distinct reusable decision."})
         canon = disposition == "canon-candidate"
         return {
-            "schema_version": 1, "run_id": run["run_id"], "memory_entry_id": "SE_MEM_0001",
+            "schema_version": 1, "run_id": run["run_id"], "candidate_id": CANDIDATE["id"],
             "candidate_disposition": disposition,
             "failure_layer": "knowledge" if canon else "application",
             "primary_attribution": "skillcard" if canon else "application",
@@ -233,8 +236,9 @@ class CandidateFixture(unittest.TestCase):
     def make_run(self, run_id: str = "SE_CRQ_0001", **options) -> Path:
         disposition = options.pop("disposition", "canon-candidate")
         create = options.pop("create", False)
-        out, run = crq.prepare(domain=DOMAIN, memory_entry_id="SE_MEM_0001", out=self.workspace / run_id,
-                               library_root=self.library, memory_root=self.memory, **options)
+        out, run = crq.prepare(domain=DOMAIN, candidate_id=CANDIDATE["id"], out=self.workspace / run_id,
+                               library_root=self.library, candidate_root=self.candidates,
+                               history_root=self.history, **options)
         crq.write_json_atomic(out / "controller" / "assessment.json", self.assessment(run, disposition, create))
         crq.freeze_assessment(out)
         return out
@@ -634,7 +638,8 @@ class FreezeCandidateTests(CandidateFixture):
 
     def test_cards_may_not_name_run_evidence(self) -> None:
         for number, token in enumerate(("SE_CRQ_0001", "SE_MEM_0001", "SE_EV_0001", "TARGET_001",
-                                        "workspace/candidate-qualification/x", "ART_EV_0042"), start=1):
+                                        "workspace/candidate-qualification/x", "ART_EV_0042",
+                                        CANDIDATE["id"]), start=1):
             with self.subTest(token=token):
                 out = self.staged_run(f"SE_CRQ_{number:04d}")
                 path = self.candidate(out)

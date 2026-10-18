@@ -1,9 +1,11 @@
-"""CRQ evidence: Skillset Memory intake, canon reading, and candidate accounting.
+"""CRQ evidence: candidate-store intake, canon reading, and candidate accounting.
 
-Loads `PASS/tools` privately, resolves a `card_candidate` and its events, reads
-only the run's domain plus metaskills, snapshots the bounded baseline closure,
-accounts for every candidate change, and runs the ordinary validators on a
-temporary overlay. It never writes `library/` or Skillset Memory.
+Loads `PASS/tools` privately, resolves an open card candidate from the re-homed
+store at `canon_workflow/<domain>/card_candidates.yaml` and its cited events,
+reads only the run's domain plus metaskills, snapshots the bounded baseline
+closure, accounts for every candidate change, and runs the ordinary validators
+on a temporary overlay. It never writes `library/`, the candidate store, or
+Skillset Memory.
 """
 
 from __future__ import annotations
@@ -24,8 +26,9 @@ import yaml
 from .schemas import (
     _nonempty_str,
     CANDIDATE_CARDS,
-    CANDIDATE_STATUSES,
-    CANDIDATE_TYPE,
+    CANDIDATE_FIELDS,
+    CANDIDATE_SCHEMA_VERSION,
+    CANDIDATE_STORE_FILE,
     CandidateQualificationError,
     contained,
     CONTAMINATION_STATES,
@@ -33,6 +36,7 @@ from .schemas import (
     CRITERION_RESULTS,
     digest_bytes,
     digest_file,
+    ELIGIBLE_CANDIDATE_STATES,
     EVIDENCE_DIR,
     EVIDENCE_ENTRY_KEYS,
     EXECUTOR_KEYS,
@@ -115,67 +119,93 @@ def quarantined_events(events: list[dict[str, Any]]) -> set[str]:
     }
 
 
-def resolve_memory_candidate(memory_root: Path, domain: str, entry_id: str) -> dict[str, Any]:
-    """Resolve one `card_candidate` and its cited events through `memory.py`.
+def resolve_card_candidate(
+    candidate_root: Path, history_root: Path, domain: str, candidate_id: str
+) -> dict[str, Any]:
+    """Resolve one open card candidate and its cited events from the candidate store.
 
-    The whole store must pass `memory.py validate` first; the entry-level checks
-    below then name exactly why this entry cannot start a run.
+    The store at `candidate_root/<domain>/card_candidates.yaml` is the only
+    candidate authority. Cited events come from Training History under
+    `history_root`; the event-level checks below are unchanged and name exactly
+    why this candidate cannot start a run.
     """
-    memory = load_pass_tool("memory")
-    domain_dir = Path(memory_root) / domain
-    if not (domain_dir / "skill_memory.yaml").is_file():
+    domain_dir = Path(candidate_root) / domain
+    store_path = domain_dir / CANDIDATE_STORE_FILE
+    if not store_path.is_file():
         raise CandidateQualificationError(
-            f"no Skillset Memory store for domain {domain!r} under {Path(memory_root)}"
-        )
-    problems = memory.validate_store(domain_dir)
-    if problems:
-        shown = "; ".join(problems[:10]) + ("; ..." if len(problems) > 10 else "")
-        raise CandidateQualificationError(
-            f"memory store {domain!r} fails memory.py validate: {shown}"
+            f"no card-candidate store for domain {domain!r} under {Path(candidate_root)}"
         )
     try:
-        store = memory.load_memory(domain_dir)
-    except memory.MemoryError_ as exc:
-        raise CandidateQualificationError(str(exc)) from exc
-    entry = memory.find_entry(store.get("entries") or [], entry_id)
-    if entry is None:
-        raise CandidateQualificationError(f"memory entry {entry_id} does not exist in {domain}")
-    if entry.get("type") != CANDIDATE_TYPE:
+        store = yaml.safe_load(store_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
         raise CandidateQualificationError(
-            f"memory entry {entry_id} is {entry.get('type')}, not {CANDIDATE_TYPE}"
-        )
-    if entry.get("status") not in CANDIDATE_STATUSES:
+            f"candidate store {store_path} is not valid YAML: {exc}"
+        ) from exc
+    if not isinstance(store, dict):
+        raise CandidateQualificationError(f"candidate store {store_path} must be a YAML mapping")
+    if store.get("candidate_schema_version") != CANDIDATE_SCHEMA_VERSION:
         raise CandidateQualificationError(
-            f"memory entry {entry_id} is {entry.get('status')}; only active or "
-            "monitoring candidates can start a run"
+            f"candidate store {store_path} has candidate_schema_version "
+            f"{store.get('candidate_schema_version')!r}, expected {CANDIDATE_SCHEMA_VERSION}"
         )
-    cited = entry.get("evidence_events") or []
-    if not cited:
+    if store.get("domain") != domain:
         raise CandidateQualificationError(
-            f"memory entry {entry_id} cites no evidence event; link valid evidence "
-            "with memory.py compact before starting a run"
+            f"candidate store {store_path} names domain {store.get('domain')!r}, not {domain!r}"
         )
-    events, _ = memory.load_events(domain_dir)
+    candidates = store.get("candidates")
+    if not isinstance(candidates, list):
+        raise CandidateQualificationError(f"candidate store {store_path} has no candidates list")
+    candidate = next(
+        (item for item in candidates if isinstance(item, dict) and item.get("id") == candidate_id),
+        None,
+    )
+    if candidate is None:
+        raise CandidateQualificationError(f"candidate {candidate_id} does not exist in {domain}")
+    unknown = sorted(set(candidate) - CANDIDATE_FIELDS)
+    missing = sorted(CANDIDATE_FIELDS - set(candidate))
+    if unknown or missing:
+        raise CandidateQualificationError(
+            f"candidate {candidate_id} has a wrong shape"
+            + (f"; unknown fields {unknown}" if unknown else "")
+            + (f"; missing fields {missing}" if missing else "")
+        )
+    if candidate.get("state") not in ELIGIBLE_CANDIDATE_STATES:
+        raise CandidateQualificationError(
+            f"candidate {candidate_id} is {candidate.get('state')!r}; only open "
+            "candidates can start a run"
+        )
+    cited = candidate.get("evidence")
+    if not isinstance(cited, list) or not cited:
+        raise CandidateQualificationError(
+            f"candidate {candidate_id} cites no evidence event; add cited events "
+            "to the candidate store before starting a run"
+        )
+    memory = load_pass_tool("memory")
+    events, _ = memory.load_events(Path(history_root) / domain)
     by_id = {event.get("event_id"): event for event in events}
     quarantined = quarantined_events(events)
     selected = []
     for event_id in cited:
+        if not _nonempty_str(event_id):
+            raise CandidateQualificationError(
+                f"candidate {candidate_id} cites a non-string or empty event id"
+            )
         event = by_id.get(event_id)
         if event is None:
-            raise CandidateQualificationError(f"{entry_id} cites unknown event {event_id}")
+            raise CandidateQualificationError(f"{candidate_id} cites unknown event {event_id}")
         if event.get("validity") != "valid":
-            raise CandidateQualificationError(f"{entry_id} cites invalid event {event_id}")
+            raise CandidateQualificationError(f"{candidate_id} cites invalid event {event_id}")
         if event.get("event_kind", "performance") != "performance":
-            raise CandidateQualificationError(f"{entry_id} cites correction {event_id}")
+            raise CandidateQualificationError(f"{candidate_id} cites correction {event_id}")
         if event_id in quarantined:
-            raise CandidateQualificationError(f"{entry_id} cites quarantined event {event_id}")
+            raise CandidateQualificationError(f"{candidate_id} cites quarantined event {event_id}")
         selected.append(event)
     return {
-        "memory_entry": json_safe(entry),
+        "candidate": json_safe(candidate),
         "events": json_safe(selected),
-        "memory_store": {
-            "memory_schema_version": store.get("memory_schema_version"),
-            "memory_version": store.get("memory_version"),
+        "store": {
+            "candidate_schema_version": store.get("candidate_schema_version"),
+            "domain": store.get("domain"),
         },
     }
 
@@ -340,10 +370,10 @@ def baseline_objects(root: Path, manifest: dict[str, Any]) -> dict[str, dict[str
     return objects
 
 
-def admissible_event_ids(memory_root: Path, domain: str) -> set[str]:
+def admissible_event_ids(history_root: Path, domain: str) -> set[str]:
     """Events a case may cite: valid, performance, not quarantined."""
     memory = load_pass_tool("memory")
-    events, _ = memory.load_events(Path(memory_root) / domain)
+    events, _ = memory.load_events(Path(history_root) / domain)
     quarantined = quarantined_events(events)
     return {
         str(event["event_id"])
@@ -358,8 +388,13 @@ def admissible_event_ids(memory_root: Path, domain: str) -> set[str]:
 # ------------------------------------------------------- candidate freezing
 
 
-# An identifier shaped like a run, memory entry or history event never belongs in a card.
-EVIDENCE_ID_RE = re.compile(r"\b[A-Z][A-Z0-9]*_(?:CRQ|MEM|EV)_[0-9]+\b")
+# An identifier shaped like a run, card candidate or history event never
+# belongs in a card. Candidate ids are opaque; only their leading `_CAND_`
+# namespace token is structural, never the Crockford tail.
+EVIDENCE_ID_RE = re.compile(
+    r"\b[A-Z][A-Z0-9]*_(?:CRQ|MEM|EV)_[0-9]+\b"
+    r"|\b[A-Z][A-Z0-9]*_CAND_[0-9A-HJKMNP-TV-Z]{26}\b"
+)
 CARD_HEADING_RE = re.compile(r"(?m)^## ([^\r\n]+?)\s*$")
 CARD_TITLE_RE = re.compile(r"(?m)^# ([^\r\n]+?)\s*$")
 

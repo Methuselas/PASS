@@ -81,8 +81,8 @@ RUN_FILES = {
 }
 RUN_KEYS = frozenset({
     "schema_version", "run_id", "domain", "state", "created_at", "updated_at",
-    "controller_sha256", "closing_controller_sha256", "memory_entry_id",
-    "library_root", "memory_root", "scope_limits", "files",
+    "controller_sha256", "closing_controller_sha256", "candidate_id",
+    "library_root", "candidate_root", "history_root", "scope_limits", "files",
     "baseline_manifest_sha256", "freezes", "history", "invalid_reason",
     "abandoned_reason",
 })
@@ -259,9 +259,9 @@ def validate_run_record(run: Any) -> list[str]:
             errors.append(f"closing_controller_sha256 is required in state {state}")
     elif closing is not None:
         errors.append("closing_controller_sha256 is allowed only in invalidated or abandoned")
-    if not _nonempty_str(run.get("memory_entry_id")):
-        errors.append("memory_entry_id must be non-empty")
-    for key in ("library_root", "memory_root"):
+    if not _nonempty_str(run.get("candidate_id")):
+        errors.append("candidate_id must be non-empty")
+    for key in ("library_root", "candidate_root", "history_root"):
         value = run.get(key)
         if not _nonempty_str(value) or not Path(value).is_absolute():
             errors.append(f"{key} must be an absolute path")
@@ -391,14 +391,24 @@ def validate_baseline_manifest(manifest: Any, run_id: str) -> list[str]:
     return errors
 
 
-# ------------------------------------------------------------ memory intake
+# ------------------------------------------------------- candidate intake
 
 
-CANDIDATE_TYPE = "card_candidate"
-CANDIDATE_STATUSES = frozenset({"active", "monitoring"})
+# The candidate authority is the re-homed store at
+# `canon_workflow/<domain>/card_candidates.yaml`. Skillset Memory is not a CRQ
+# input. Training History stays independently available under the run's
+# `history_root` for event admissibility.
+CANDIDATE_STORE_FILE = "card_candidates.yaml"
+CANDIDATE_SCHEMA_VERSION = 1
+CANDIDATE_FIELDS = frozenset({"id", "hypothesis", "evidence", "owners", "state"})
+CANDIDATE_STATES = ("open", "resolved_into_canon")
+CANDIDATE_STATE_VALUES = frozenset(CANDIDATE_STATES)
+# Only an open candidate may start a run; a resolved one is refused.
+ELIGIBLE_CANDIDATE_STATES = frozenset({"open"})
+CROCKFORD_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+CANDIDATE_ID_RE = re.compile(rf"[A-Z][A-Z0-9]*_CAND_[{CROCKFORD_ALPHABET}]{{26}}\Z")
 INTAKE_KEYS = frozenset({
-    "schema_version", "run_id", "domain", "memory_entry", "events",
-    "memory_store", "owners",
+    "schema_version", "run_id", "domain", "candidate", "events", "owners",
 })
 OWNER_RESOLUTIONS = frozenset({"target", "metaskills", "label"})
 
@@ -421,9 +431,9 @@ def validate_intake(intake: Any, run: dict[str, Any]) -> list[str]:
         errors.append("intake belongs to a different run or schema")
     if intake["domain"] != run["domain"]:
         errors.append("intake domain does not match the run")
-    entry = intake["memory_entry"]
-    if not isinstance(entry, dict) or entry.get("id") != run["memory_entry_id"]:
-        errors.append("intake memory entry does not match the run")
+    candidate = intake["candidate"]
+    if not isinstance(candidate, dict) or candidate.get("id") != run["candidate_id"]:
+        errors.append("intake candidate does not match the run")
     if not isinstance(intake["events"], list) or not intake["events"]:
         errors.append("intake must carry the cited evidence events")
     owners = intake["owners"]
@@ -440,7 +450,7 @@ def assessment_template(run: dict[str, Any]) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "run_id": run["run_id"],
-        "memory_entry_id": run["memory_entry_id"],
+        "candidate_id": run["candidate_id"],
         "candidate_disposition": None,
         "failure_layer": None,
         "primary_attribution": None,
@@ -463,11 +473,18 @@ PRIMARY_ATTRIBUTIONS = (
     "skillcard", "application", "source-context", "fixture", "runtime-tool",
     "unresolved", "other",
 )
+# CRQ's own failure-layer vocabulary. It lives here because CRQ is its only
+# consumer; the legacy copy in `PASS/tools/memory.py` serves only the
+# transitional legacy validator and dies with that path.
+FAILURE_LAYERS = {
+    "knowledge", "orchestration", "retrieval", "application", "continuity",
+    "reference", "tool", "interface", "training",
+}
 # Only a missing or wrong reusable decision, orchestration, or practice can
-# justify a card change; the other Skillset Memory failure layers cannot.
+# justify a card change; the other failure layers cannot.
 CANON_FAILURE_LAYERS = {"knowledge": "pattern", "orchestration": "ap", "training": "drill"}
 ASSESSMENT_KEYS = frozenset({
-    "schema_version", "run_id", "memory_entry_id", "candidate_disposition",
+    "schema_version", "run_id", "candidate_id", "candidate_disposition",
     "failure_layer", "primary_attribution", "owner_object_ids",
     "proposed_object_actions", "noncanon_failures_considered", "rationale",
     "unresolved_questions",
@@ -508,8 +525,8 @@ def validate_assessment(
         errors.append("assessment schema_version mismatch")
     if assessment.get("run_id") != run["run_id"]:
         errors.append("assessment belongs to a different run")
-    if assessment.get("memory_entry_id") != run["memory_entry_id"]:
-        errors.append("assessment names a different memory entry")
+    if assessment.get("candidate_id") != run["candidate_id"]:
+        errors.append("assessment names a different candidate")
 
     disposition = assessment.get("candidate_disposition")
     if disposition not in CANDIDATE_DISPOSITIONS:
@@ -965,7 +982,7 @@ RESULT_FILE = "result.json"
 EVIDENCE_DIR = "evidence"
 ARM_BUNDLES = "arms"
 QUALIFICATION_RESULT_KEYS = frozenset({
-    "schema_version", "run_id", "status", "reason", "candidate_memory_entry",
+    "schema_version", "run_id", "status", "reason", "candidate_id",
     "changed_objects", "change_accounting", "case_deltas", "blocking_cases",
     "positive_qualification_cases", "synthetic_cases", "protected_case_gap",
     "contamination_confirmed", "canon_modified",
@@ -1020,14 +1037,16 @@ SYNTHESIS_DECISIONS = (
     "redirect-ownership", "retain-in-memory", "add-deterministic-regression",
     "reject-redundant", "reject-false", "reject-too-narrow",
 )
-# Section 28.2: the memory update a human or model later applies through memory.py.
-MEMORY_ACTIONS = (
-    "keep-active", "keep-monitoring", "narrow-boundary", "supersede-candidate",
-    "resolve-after-canon-fix", "obsolete", "no-change",
+# Section 28.2: the candidate-store update a human later applies deliberately.
+# This is candidate-workflow vocabulary; Skillset Memory lifecycle names are
+# retired and never appear here.
+CANDIDATE_ACTIONS = (
+    "keep-open", "narrow-hypothesis", "replace-candidate", "resolve-into-canon",
+    "reject-candidate", "no-change",
 )
 DISPOSITION_KEYS = frozenset({
-    "schema_version", "run_id", "memory_entry_id", "qualification_status",
-    "synthesis_decision", "memory_action", "reason", "reviewer_notes",
+    "schema_version", "run_id", "candidate_id", "qualification_status",
+    "synthesis_decision", "candidate_action", "reason", "reviewer_notes",
 })
 
 
@@ -1109,10 +1128,10 @@ def disposition_template(run: dict[str, Any], status: str) -> dict[str, Any]:
     return {
         "schema_version": SCHEMA_VERSION,
         "run_id": run["run_id"],
-        "memory_entry_id": run["memory_entry_id"],
+        "candidate_id": run["candidate_id"],
         "qualification_status": status,
         "synthesis_decision": None,
-        "memory_action": None,
+        "candidate_action": None,
         "reason": "",
         "reviewer_notes": "",
     }
@@ -1125,9 +1144,9 @@ def validate_disposition(disposition: Any, *, run: dict[str, Any], status: str) 
     errors: list[str] = []
     if (
         disposition["schema_version"] != SCHEMA_VERSION or disposition["run_id"] != run["run_id"]
-        or disposition["memory_entry_id"] != run["memory_entry_id"]
+        or disposition["candidate_id"] != run["candidate_id"]
     ):
-        errors.append("disposition belongs to a different run, memory entry or schema")
+        errors.append("disposition belongs to a different run, candidate or schema")
     if disposition["qualification_status"] != status:
         errors.append(f"disposition must restate the frozen qualification status {status}")
     decision = disposition["synthesis_decision"]
@@ -1135,13 +1154,13 @@ def validate_disposition(disposition: Any, *, run: dict[str, Any], status: str) 
         errors.append(f"synthesis_decision must be one of {list(SYNTHESIS_DECISIONS)}")
     elif decision == "accept-canonical-delta" and status != "qualified-for-synthesis-review":
         errors.append(f"a {status} candidate cannot be accepted as a canonical delta")
-    action = disposition["memory_action"]
-    if action not in MEMORY_ACTIONS:
-        errors.append(f"memory_action must be one of {list(MEMORY_ACTIONS)}")
-    elif action == "resolve-after-canon-fix" and decision not in {
+    action = disposition["candidate_action"]
+    if action not in CANDIDATE_ACTIONS:
+        errors.append(f"candidate_action must be one of {list(CANDIDATE_ACTIONS)}")
+    elif action == "resolve-into-canon" and decision not in {
         "accept-canonical-delta", "add-deterministic-regression",
     }:
-        errors.append("resolve-after-canon-fix needs an accepted delta or a deterministic regression")
+        errors.append("resolve-into-canon needs an accepted delta or a deterministic regression")
     if not _nonempty_str(disposition["reason"]):
         errors.append("reason must explain the decision")
     if not isinstance(disposition["reviewer_notes"], str):

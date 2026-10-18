@@ -33,7 +33,7 @@ SHA256_RE = re.compile(r"[0-9a-f]{64}")
 FORBIDDEN = {
     ".git", ".agents", ".claude", "__pycache__", ".pytest_cache",
     "workspace", "sources", "ledger", "ledgers", "worklogs", "trash",
-    "tmp", "build", "dist",
+    "tmp", "build", "dist", "canon_workflow",
 }
 MEMORY_DIR = "memory"
 MEMORY_STORE = "skill_memory.yaml"

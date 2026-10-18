@@ -792,6 +792,418 @@ def validate_contents(
     return errors
 
 
+# ------------------------------------------------- claim schema (version 3)
+#
+# Structural validation for a `memory_schema_version: 3` store, beside the
+# legacy validator and sharing none of its vocabulary constants. The split is
+# deliberate: FORBIDDEN_KEYS rejects `provenance` on v1/v2 entries and History
+# events, while every v3 claim requires it (R2.5 §4.5 L1, SR1), so the two
+# rejection lists can never be merged. Dispatch is T04's job; nothing routes a
+# live store here yet — this validator is reachable from tests and from an
+# explicit internal call only.
+
+V3_SCHEMA_VERSION = 3
+CLAIM_CLASSES = {"conduct", "reach"}
+CLAIM_KINDS = {"deterministic", "stochastic"}
+# CONFIDENCE_VALUES is shared with the legacy path: one semantic ladder.
+DELTA_KINDS = {"action", "judgment", "verification", "posture", "application_limit"}
+PROVENANCE_VALUES = {
+    "human_teaching", "user_feedback", "runtime_self_audit",
+    "training_benchmark", "source_study", "regression_failure",
+}
+CLAIM_REQUIRED = {
+    "id", "claim", "claim_class", "claim_kind", "confidence", "delta", "envelope",
+    "provenance", "scope", "retrieval_cues", "last_verified",
+}
+CLAIM_OPTIONAL = {"canon", "evidence", "revalidate_after", "contradicts"}
+CLAIM_KEYS = CLAIM_REQUIRED | CLAIM_OPTIONAL
+
+# R2.5 §4.5 L1: the retired authoring vocabulary plus the migration-lineage
+# keys, named so the refusal is legible at the moment an implementer is tempted
+# to keep traceability inside a claim. Unlike FORBIDDEN_KEYS this list
+# deliberately excludes `provenance`, which every v3 claim requires.
+CLAIM_FORBIDDEN_KEYS = {
+    "source_id", "locator", "page", "hash", "receipt", "attestation", "ledger",
+    "session_id", "current_stage", "unit", "next_unit", "parent_gen_id",
+    "legacy_id", "migrated_from", "source_entry", "previous_id",
+}
+V3_FILE_REQUIRED = {"memory_schema_version", "skillset", "memory_version", "claims"}
+CLAIM_KEY_ORDER = (
+    "id", "claim", "claim_class", "claim_kind", "confidence", "delta", "envelope",
+    "provenance", "scope", "retrieval_cues", "last_verified", "canon", "evidence",
+    "revalidate_after", "contradicts",
+)
+
+# The literal signature of in-place accretion in the live corpus; no single
+# legitimate claim uses them, which is why C6 is an ERROR rather than a FLAG.
+ACCRETION_CONNECTIVES = (
+    "further showed", "also showed", "then showed", "additionally demonstrated",
+)
+
+# A `not_shown_in` member that names no region asserts universality, which is
+# the overreach the envelope exists to prevent (R2.5 §4.3 E2).
+ENVELOPE_SENTINELS = {"n/a", "none", "unknown", "everywhere", "no limits"}
+
+# R2.5 §4.5 L3/L4: model-neutral, learner-neutral prose. A claim that needs to
+# name a model or a graded specimen is not yet a skill-level claim.
+MODEL_IDENTITY_TOKENS = (
+    "claude", "opus", "sonnet", "haiku", "fable", "gpt", "gemini", "qwen",
+    "mimo", "longcat", "codex", "llama", "mistral",
+)
+MODEL_IDENTITY_RE = re.compile(
+    r"(?<![a-z0-9])(?:%s)(?![a-z0-9])"
+    % "|".join(sorted(MODEL_IDENTITY_TOKENS, key=len, reverse=True))
+)
+LEARNER_IDENTITY_TOKENS = (
+    "the learner", "the taker", "the evaluator", "the user preferred",
+)
+# A bare specimen grade: signed forms anywhere, unsigned only behind a grading
+# verb, so the article at the start of a sentence is not mistaken for one.
+GRADE_RE = re.compile(
+    r"\b(?:grade[ds]?|earned|scored|rated|received)\s+[ABC][+-]?\b|\b[ABC][+-](?![A-Za-z0-9])"
+)
+
+# L2 carries the legacy self-containment phrases plus the three the v3 rule
+# names that the legacy list does not.
+CONVERSATION_DEFERENCE_PHRASES = NON_SELF_CONTAINED_PHRASES + (
+    "as discussed", "in the session above", "earlier in this conversation",
+)
+
+# L5: the structural leak (`runtime_scope`) is gone by construction, so what
+# remains is prose naming the machine, host, or container it ran on. FLAG,
+# never ERROR — a smell a reviewer must look at, not a decidable rule.
+LOCAL_STATE_PHRASES = (
+    "this machine", "this host", "this laptop", "this workstation",
+    "on my machine", "on my laptop", "this server", "this container",
+)
+
+# Closed limits from R2.5 §4.2, verified against live data in the A-1 study and
+# closed there; a cap reopens only on contradictory evidence from a real
+# migration, never on a repeat of that study.
+CLAIM_WORD_CAP = 75
+DELTA_WORD_CAP = 50
+ENVELOPE_WORD_CAP = 40
+FUSION_FLAG_WORDS = 50
+SCOPE_SLUG_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+DELTA_KEYS = {"kinds", "statement"}
+ENVELOPE_KEYS = {"holds_in", "not_shown_in", "conditions"}
+REACH_DELTA_KINDS = {"posture", "verification"}
+
+
+def _claim_prose(claim: dict[str, Any]) -> str:
+    """The claim and envelope prose the L-rules read (R2.5 §4.5)."""
+    parts: list[str] = []
+    if isinstance(claim.get("claim"), str):
+        parts.append(claim["claim"])
+    envelope = claim.get("envelope")
+    if isinstance(envelope, dict):
+        for key in ("holds_in", "not_shown_in", "conditions"):
+            items = envelope.get(key)
+            if isinstance(items, list):
+                parts.extend(item for item in items if isinstance(item, str))
+    return " ".join(parts)
+
+
+def validate_claim(
+    claim: Any,
+    index: int,
+    errors: list[str],
+    flags: list[str],
+    skillset: str,
+) -> None:
+    """One v3 claim against the closed schema (R2.5 §4.1–§4.5).
+
+    Implements S2–S5, S8–S10, C1–C6, E1–E2, R1 and L1–L5. Errors make the
+    store invalid; flags leave it valid and mark it for review — T08's `review`
+    is what surfaces them. The referential rules I1–I6 are T03's and are
+    deliberately absent here.
+    """
+    where = f"claim[{index}]"
+    if not isinstance(claim, dict):
+        errors.append(f"{where}: must be a mapping")
+        return
+    label = claim.get("id") if isinstance(claim.get("id"), str) else where
+
+    missing = sorted(CLAIM_REQUIRED - set(claim))
+    if missing:
+        errors.append(f"{label}: missing required keys: {', '.join(missing)} (S3)")
+    forbidden = sorted(set(claim) & CLAIM_FORBIDDEN_KEYS)
+    if forbidden:
+        errors.append(
+            f"{label}: forbidden key(s) from retired authoring or migration lineage "
+            f"vocabulary: {', '.join(forbidden)} (L1)"
+        )
+    extra = sorted(set(claim) - CLAIM_KEYS - CLAIM_FORBIDDEN_KEYS)
+    if extra:
+        errors.append(f"{label}: unknown key(s): {', '.join(extra)} (S2)")
+
+    if skillset in CLAIM_DOMAIN_TOKENS:
+        for problem in claim_id_problems(claim.get("id"), skillset):
+            errors.append(f"{label}: {problem} (S5)")
+    # An unmapped skillset is already a file-level error naming the table; with
+    # no token there is no id shape to check, and calling claim_id_problems
+    # would raise instead of collecting.
+
+    for key, allowed in (
+        ("claim_class", CLAIM_CLASSES),
+        ("claim_kind", CLAIM_KINDS),
+        ("confidence", CONFIDENCE_VALUES),
+    ):
+        if key in claim and claim[key] not in allowed:
+            errors.append(f"{label}: {key} '{claim[key]}' is not in the closed vocabulary (S4)")
+
+    text = claim.get("claim")
+    if not isinstance(text, str) or not text.strip():
+        errors.append(f"{label}: claim must be non-empty text (S3)")
+        text = ""
+    words = len(text.split())
+    if words > CLAIM_WORD_CAP:
+        errors.append(f"{label}: claim is {words} words; the cap is {CLAIM_WORD_CAP} (C1)")
+    elif words >= FUSION_FLAG_WORDS:
+        flags.append(f"{label}: claim is {words} words; at the fusion threshold (C2)")
+    lowered = text.lower()
+    for connective in ACCRETION_CONNECTIVES:
+        if connective in lowered:
+            errors.append(f"{label}: claim contains the accretion connective '{connective}' (C6)")
+            break
+
+    if "delta" in claim:
+        delta = claim.get("delta")
+        if not isinstance(delta, dict):
+            errors.append(f"{label}: delta must be a mapping (S3)")
+        else:
+            unknown = sorted(set(delta) - DELTA_KEYS)
+            if unknown:
+                errors.append(f"{label}: delta has unknown key(s): {', '.join(unknown)} (S2)")
+            kinds = delta.get("kinds")
+            if not isinstance(kinds, list) or not kinds:
+                errors.append(f"{label}: delta.kinds must be a non-empty list (S9)")
+            else:
+                for kind in kinds:
+                    if kind not in DELTA_KINDS:
+                        errors.append(
+                            f"{label}: delta.kinds '{kind}' is not in the closed vocabulary (S4)"
+                        )
+                if len(kinds) > 3:
+                    errors.append(
+                        f"{label}: delta.kinds has {len(kinds)} members; the cap is 3 (S9)"
+                    )
+                elif len(kinds) == 3:
+                    flags.append(f"{label}: delta.kinds carries 3 members; fusion smell (C5)")
+                if claim.get("claim_class") == "reach":
+                    disallowed = [kind for kind in kinds if kind not in REACH_DELTA_KINDS]
+                    if disallowed:
+                        errors.append(
+                            f"{label}: claim_class reach allows delta.kinds only from "
+                            f"posture, verification (R1); found {', '.join(map(str, disallowed))}"
+                        )
+            statement = delta.get("statement")
+            if not isinstance(statement, str) or not statement.strip():
+                errors.append(f"{label}: delta.statement must be non-empty text (S3)")
+            elif len(statement.split()) > DELTA_WORD_CAP:
+                errors.append(
+                    f"{label}: delta.statement is {len(statement.split())} words; "
+                    f"the cap is {DELTA_WORD_CAP} (C4)"
+                )
+
+    if "envelope" in claim:
+        envelope = claim.get("envelope")
+        if not isinstance(envelope, dict):
+            errors.append(f"{label}: envelope must be a mapping (S3)")
+        else:
+            unknown = sorted(set(envelope) - ENVELOPE_KEYS)
+            if unknown:
+                errors.append(f"{label}: envelope has unknown key(s): {', '.join(unknown)} (S2)")
+            for key in ("holds_in", "not_shown_in"):
+                items = envelope.get(key)
+                if not isinstance(items, list) or not items:
+                    errors.append(f"{label}: envelope.{key} must be a non-empty list (E1)")
+            conditions = envelope.get("conditions")
+            if conditions is not None and not isinstance(conditions, list):
+                errors.append(f"{label}: envelope.conditions must be a list (S2)")
+            for key in ("holds_in", "not_shown_in", "conditions"):
+                items = envelope.get(key)
+                if not isinstance(items, list):
+                    continue
+                for item in items:
+                    if not isinstance(item, str) or not item.strip():
+                        errors.append(f"{label}: envelope.{key} items must be non-empty text (E1)")
+                        continue
+                    count = len(item.split())
+                    if count > ENVELOPE_WORD_CAP:
+                        errors.append(
+                            f"{label}: envelope.{key} item is {count} words; "
+                            f"the cap is {ENVELOPE_WORD_CAP} (C3)"
+                        )
+                    if key == "not_shown_in" and item.strip().lower() in ENVELOPE_SENTINELS:
+                        errors.append(
+                            f"{label}: envelope.not_shown_in member '{item}' is a "
+                            f"sentinel evasion (E2)"
+                        )
+
+    if "provenance" in claim:
+        provenance = claim.get("provenance")
+        if not isinstance(provenance, list) or not provenance:
+            errors.append(f"{label}: provenance must be a non-empty list (S3)")
+        else:
+            for origin in provenance:
+                if origin not in PROVENANCE_VALUES:
+                    errors.append(
+                        f"{label}: provenance '{origin}' is not in the closed vocabulary (S4)"
+                    )
+
+    if "scope" in claim:
+        scope = claim.get("scope")
+        if not isinstance(scope, str) or not SCOPE_SLUG_RE.fullmatch(scope):
+            errors.append(f"{label}: scope must match [a-z][a-z0-9_]* (S10)")
+
+    if "retrieval_cues" in claim:
+        cues = claim.get("retrieval_cues")
+        if (
+            not isinstance(cues, list)
+            or not cues
+            or any(not isinstance(cue, str) or not cue.strip() for cue in cues)
+        ):
+            errors.append(
+                f"{label}: retrieval_cues must be a non-empty list of non-empty strings (S3)"
+            )
+
+    verified = claim.get("last_verified")
+    if "last_verified" in claim and not (
+        isinstance(verified, (str, date)) and DATE_RE.fullmatch(str(verified))
+    ):
+        errors.append(f"{label}: last_verified must be YYYY-MM-DD (S8)")
+    revalidate = claim.get("revalidate_after")
+    if revalidate is not None:
+        if not (isinstance(revalidate, (str, date)) and DATE_RE.fullmatch(str(revalidate))):
+            errors.append(f"{label}: revalidate_after must be YYYY-MM-DD (S8)")
+        elif DATE_RE.fullmatch(str(verified or "")) and str(revalidate) < str(verified):
+            errors.append(
+                f"{label}: revalidate_after {revalidate} is earlier than "
+                f"last_verified {verified} (S8)"
+            )
+
+    canon = claim.get("canon")
+    if canon is not None:
+        if not isinstance(canon, list) or not canon:
+            errors.append(f"{label}: canon must be a non-empty list when present (S9)")
+        elif len(canon) > 5:
+            errors.append(f"{label}: canon has {len(canon)} members; the cap is 5 (S9)")
+    evidence = claim.get("evidence")
+    if evidence is not None:
+        if not isinstance(evidence, list) or not evidence:
+            errors.append(f"{label}: evidence must be a non-empty list when present (S9)")
+        elif len(evidence) > 3:
+            errors.append(f"{label}: evidence has {len(evidence)} members; the cap is 3 (S9)")
+    contradicts = claim.get("contradicts")
+    if contradicts is not None and (not isinstance(contradicts, list) or not contradicts):
+        errors.append(f"{label}: contradicts must be a non-empty list when present (S9)")
+
+    prose = _claim_prose(claim)
+    lowered_prose = prose.lower()
+    for phrase in CONVERSATION_DEFERENCE_PHRASES:
+        if phrase in lowered_prose:
+            errors.append(
+                f"{label}: prose defers to a conversation ('{phrase}'); it must stand alone (L2)"
+            )
+            break
+    model = MODEL_IDENTITY_RE.search(lowered_prose)
+    if model:
+        errors.append(
+            f"{label}: prose names a model or agent ('{model.group(0)}'); "
+            "a skill-level claim is model-neutral (L3)"
+        )
+    for phrase in LEARNER_IDENTITY_TOKENS:
+        if phrase in lowered_prose:
+            errors.append(
+                f"{label}: prose names a learner or evaluator ('{phrase}'); "
+                "it must be transferable (L4)"
+            )
+            break
+    grade = GRADE_RE.search(prose)
+    if grade:
+        errors.append(
+            f"{label}: prose carries a bare specimen grade ('{grade.group(0)}'); "
+            "specimen grading is not skill-level knowledge (L4)"
+        )
+    for phrase in LOCAL_STATE_PHRASES:
+        if phrase in lowered_prose:
+            flags.append(
+                f"{label}: prose names local machine or host state ('{phrase}'); "
+                "portability smell (L5)"
+            )
+            break
+
+
+def validate_v3_contents(domain: str, memory: dict[str, Any]) -> tuple[list[str], list[str]]:
+    """A schema-3 store's structural contract (R2.5 §2, §4.1 S1–S3, S5a, S6, S7).
+
+    Returns `(errors, flags)`. Errors make the store invalid; flags leave it
+    valid and mark it for review. Nothing here reads `training_history.jsonl`
+    or `library/` — the referential rules I1–I6 are T03's — and nothing writes.
+    """
+    errors: list[str] = []
+    flags: list[str] = []
+    if not isinstance(memory, dict):
+        return ["skill_memory.yaml: top level must be a mapping"], flags
+
+    missing = sorted(V3_FILE_REQUIRED - set(memory))
+    if missing:
+        errors.append(f"skill_memory.yaml: missing file-level keys: {', '.join(missing)} (S3)")
+    extra = sorted(set(memory) - V3_FILE_REQUIRED)
+    if extra:
+        errors.append(f"skill_memory.yaml: unknown key(s): {', '.join(extra)} (S2)")
+    if memory.get("memory_schema_version") != V3_SCHEMA_VERSION:
+        errors.append("skill_memory.yaml: memory_schema_version must be exactly 3 (S1)")
+    skillset = memory.get("skillset")
+    if skillset != domain:
+        errors.append(
+            f"skill_memory.yaml: skillset '{skillset}' does not match directory '{domain}' (S6)"
+        )
+    memory_version = memory.get("memory_version")
+    if not isinstance(memory_version, int) or isinstance(memory_version, bool) or memory_version < 1:
+        errors.append("skill_memory.yaml: memory_version must be a positive integer (S7)")
+    # The token table is checked before any claim id, so an unmapped domain
+    # becomes a collected error here rather than an exception raised from
+    # inside claim_id_problems while iterating the claims.
+    if skillset is not None and skillset not in CLAIM_DOMAIN_TOKENS:
+        known = ", ".join(sorted(CLAIM_DOMAIN_TOKENS))
+        errors.append(
+            f"skill_memory.yaml: no claim id token for domain '{skillset}'; "
+            f"CLAIM_DOMAIN_TOKENS covers {known} (S5)"
+        )
+
+    claims = memory.get("claims")
+    if claims is None:
+        claims = []
+    if not isinstance(claims, list):
+        errors.append("skill_memory.yaml: claims must be a list")
+        claims = []
+    for index, claim in enumerate(claims):
+        validate_claim(
+            claim, index, errors, flags, skillset if isinstance(skillset, str) else "",
+        )
+    ids = [
+        claim["id"] for claim in claims
+        if isinstance(claim, dict) and isinstance(claim.get("id"), str)
+    ]
+    for duplicate in duplicate_claim_ids(ids):
+        errors.append(f"skill_memory.yaml: duplicate claim id '{duplicate}' (S5a)")
+    return errors, flags
+
+
+def validate_v3_store(domain_dir: Path) -> tuple[list[str], list[str]]:
+    """Load one domain's v3 store and validate it. S5b across several stores is
+    the caller's job: gather each store's claim ids and hand them to
+    `duplicate_claim_ids`, which is the same check over whatever the caller
+    could actually read."""
+    try:
+        memory = load_memory(domain_dir)
+    except MemoryError_ as exc:
+        return [str(exc)], []
+    return validate_v3_contents(domain_dir.name, memory)
+
+
 # ---------------------------------------------------------------- query
 
 

@@ -521,3 +521,139 @@ When seeding from retained history:
 - normalize every seed into this schema rather than copying it verbatim from
   wherever it was recovered;
 - never infer an event that was not recorded.
+
+---
+
+## 10. Schema version 3 — the claim
+
+status: validation shipped; runtime dispatch is not wired yet. The sections
+above remain the live contract for the four v1/v2 stores until each domain
+migrates independently and the legacy path is retired. A v3 store is accepted
+by `validate_v3_contents` / `validate_v3_store` in `PASS/tools/memory.py`;
+`memory.py validate` will route to them when dispatch lands, and a live v1/v2
+store is never routed here early.
+
+The unit of a v3 store is the **claim**: one learned proposition that changes
+what the next relevant task does. There is no status, no liveness field, and no
+non-retrievable state — a claim that is no longer current is removed from the
+store, and `memory_version` counts store revisions only; it is never read to
+allocate or order a claim id.
+
+### Store shape
+
+```yaml
+memory_schema_version: 3
+skillset: <domain>
+memory_version: <positive integer>
+claims:
+  - <claim>
+```
+
+No other top-level key is permitted. `skillset` must equal the containing
+directory name and must be one of the four claim-domain tokens (`art`,
+`game-design`, `software-engineering`, `writing`); an unmapped domain is an
+error naming the token table, never a guessed token.
+
+### Claim schema
+
+```yaml
+- id: <DOMAIN_TOKEN>_MEM_<26-char Crockford base32>   # required, generated once, opaque
+  claim: <string>                         # required, ≤75 words
+  claim_class: conduct | reach            # required
+  claim_kind: deterministic | stochastic  # required
+  confidence: provisional | repeated | strong   # required
+  delta:                                  # required
+    kinds: [<delta_kind>, ...]            #   required, 1..3
+    statement: <string>                   #   required, ≤50 words
+  envelope:                               # required
+    holds_in: [<string>, ...]             #   required, ≥1, each ≤40 words
+    not_shown_in: [<string>, ...]         #   required, ≥1, each ≤40 words
+    conditions: [<string>, ...]           #   optional, each ≤40 words
+  provenance: [<provenance>, ...]         # required, ≥1
+  scope: <snake_case slug>                # required, matches [a-z][a-z0-9_]*
+  retrieval_cues: [<string>, ...]         # required, ≥1
+  last_verified: <YYYY-MM-DD>             # required
+  canon: [<object_id>, ...]               # optional, 1..5 when present
+  evidence: [<event_id>, ...]             # optional, 1..3 when present
+  revalidate_after: <YYYY-MM-DD>          # optional, not earlier than last_verified
+  contradicts: [<claim_id>, ...]          # optional, ≥1 when present
+```
+
+No other key is permitted on a claim. Closed vocabularies:
+
+```text
+claim_class   conduct | reach
+claim_kind    deterministic | stochastic
+confidence    provisional | repeated | strong
+delta.kinds   action | judgment | verification | posture | application_limit
+provenance    human_teaching | user_feedback | runtime_self_audit
+              | training_benchmark | source_study | regression_failure
+```
+
+`provenance` is **required and valid** on a v3 claim. The legacy
+`FORBIDDEN_KEYS` list rejects `provenance` for v1/v2 entries and History
+events; the v3 path has its own `CLAIM_FORBIDDEN_KEYS` list, which carries the
+retired authoring vocabulary plus the migration-lineage keys (`legacy_id`,
+`migrated_from`, `source_entry`, `previous_id`) and deliberately excludes
+`provenance`. The two rejection lists are never merged.
+
+`book_close_training` is renamed `source_study`; `cross_model_test` is dropped
+(its one use migrates to `training_benchmark`). Neither legacy value is a v3
+member.
+
+### The rule table
+
+Two channels. **ERROR** makes the store invalid; **FLAG** leaves it valid and
+marks it for review — `review` surfaces flags, and a flags-only result exits
+zero. Every error message ends with its rule id in parentheses, e.g. `(C1)`.
+
+| # | Rule | Type |
+|---|---|---|
+| S1 | `memory_schema_version` is exactly `3` | ERROR |
+| S2 | no unknown top-level key; no unknown claim key (a legacy-only key such as `type`, `status`, `evidence_count`, `runtime_scope`, or `superseded_by` is unknown here) | ERROR |
+| S3 | every required key present and non-empty | ERROR |
+| S4 | every closed-vocabulary value is a member of its vocabulary | ERROR |
+| S5 | `id` matches `<DOMAIN_TOKEN>_MEM_<26 Crockford base32 chars>` with this store's token; an unmapped `skillset` is an error naming `CLAIM_DOMAIN_TOKENS` | ERROR |
+| S5a | `id` unique within the store | ERROR |
+| S5b | across the stores a caller supplies, no `id` appears in two of them | ERROR |
+| S6 | `skillset` equals the containing directory name | ERROR |
+| S7 | `memory_version` is a positive integer (+1 per successful write is the writer's contract) | ERROR |
+| S8 | `last_verified` and `revalidate_after` are ISO `YYYY-MM-DD`; `revalidate_after` is not earlier than `last_verified` | ERROR |
+| S9 | `evidence` 1..3 when present; `canon` 1..5; `delta.kinds` 1..3; `contradicts` ≥1 | ERROR |
+| S10 | `scope` matches `[a-z][a-z0-9_]*` | ERROR |
+| C1 | `claim` at most 75 words | ERROR |
+| C2 | `claim` 50 words or more | FLAG (fusion smell) |
+| C3 | each envelope item at most 40 words | ERROR |
+| C4 | `delta.statement` at most 50 words | ERROR |
+| C5 | `delta.kinds` has 3 members | FLAG (fusion smell) |
+| C6 | `claim` contains an accretion connective (`further showed`, `also showed`, `then showed`, `additionally demonstrated`) | ERROR |
+| E1 | `holds_in` and `not_shown_in` both present with ≥1 member | ERROR |
+| E2 | no `not_shown_in` member is a sentinel evasion (`n/a`, `none`, `unknown`, `everywhere`, `no limits`) | ERROR |
+| R1 | when `claim_class: reach`, `delta.kinds` is a subset of `{posture, verification}`; a reach claim may still carry `canon` | ERROR |
+| L1 | retired authoring vocabulary and migration lineage rejected as keys anywhere on a claim | ERROR |
+| L2 | claim and envelope prose contain no conversation deference | ERROR |
+| L3 | claim and envelope prose contain no model or agent identity token | ERROR |
+| L4 | claim and envelope prose contain no learner/evaluator identity or bare specimen grade | ERROR |
+| L5 | no field carries machine-, host-, session-, or toolchain-local state | FLAG |
+
+The word caps are closed: a cap reopens only on contradictory evidence from a
+real migration, not on a repeat of the completed sample study.
+
+Referential integrity — canon resolution (`I1`/`I2`), evidence admissibility
+against History (`I3`/`I4`/`I5`), and contradiction symmetry (`I6`) — is
+validated when that work lands; a v3 store must validate standing alone with
+no History and no library present.
+
+### What v3 validation deliberately cannot check
+
+Stated so no future implementer mistakes silence for permission:
+
+- whether the stated delta is **real** against this skill + Canon + no Memory;
+- whether the claim merely confirms that Canon worked;
+- whether the claim is portable or craft-scoped;
+- whether `confidence` is honest;
+- whether the claim is genuinely one claim;
+- whether a contradiction should resolve, and how.
+
+All six are semantic judgment. Scripts own structure, accounting, and (once
+wired) referential integrity. Nothing else.

@@ -6,6 +6,29 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.112 - 2026-10-17
+
+### Added
+
+- Added Skillset Memory schema v3 structural validation (`PASS/tools/memory.py`):
+  `validate_v3_contents` / `validate_v3_store` implement the R2.5 claim-store
+  contract as a pure function beside the untouched legacy validator — store
+  shape and required fields (S1–S10), claim prose and fusion smells (C1–C6),
+  envelope invariants (E1–E2), the reach posture invariant (R1), and the
+  retired-vocabulary/leakage gates (L1–L5) — with errors and flags on separate
+  channels so a flags-only result stays exit-zero. Runtime dispatch is not
+  wired; the four live v1/v2 stores keep the legacy validator unchanged, and a
+  v3 store has its own `CLAIM_FORBIDDEN_KEYS` list (provenance is required
+  there, rejected in v1/v2).
+- Added `PASS/docs/MEMORY_SCHEMA.md` §10 documenting the v3 store shape, the
+  claim schema, the closed vocabularies, the full rule table with ERROR/FLAG
+  channels, and the semantic checks v3 validation deliberately cannot make.
+- Added the `tests/test_memory.py` v3 suite (45 tests): store shape, closed
+  vocabularies, required fields, word caps, accretion connectives, envelope
+  sentinels, reach/delta closure, cross-store id collision, legacy-key
+  rejection, the identity/leakage gates, the spec's boundary cases, and the
+  three verbatim §6 specification examples.
+
 ## 1.0.0-beta.111 - 2026-10-17
 
 ### Added

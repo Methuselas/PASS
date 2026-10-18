@@ -1009,5 +1009,710 @@ class ClaimIdentity(unittest.TestCase):
         self.assertEqual(memory_tool.next_event_id(events, "art"), "ART_EV_0003")
 
 
+def v3_store(claims: list, *, skillset: str = "software-engineering", **overrides: object) -> dict:
+    store = {
+        "memory_schema_version": 3,
+        "skillset": skillset,
+        "memory_version": 1,
+        "claims": claims,
+    }
+    store.update(overrides)
+    return store
+
+
+def base_claim(**overrides: object) -> dict:
+    """A minimal structurally valid v3 claim; each test mutates one face."""
+    claim = {
+        "id": "SE_MEM_01M55WJVKRKX5ZNTWCWARDTT8N",
+        "claim": "Checking both overloads before declaring const safety prevents lifetime mistakes.",
+        "claim_class": "conduct",
+        "claim_kind": "deterministic",
+        "confidence": "repeated",
+        "delta": {
+            "kinds": ["judgment"],
+            "statement": "Check the lifetime contract on both overloads.",
+        },
+        "envelope": {
+            "holds_in": ["overload pairs where only const-ness differs"],
+            "not_shown_in": ["value-returning accessors"],
+        },
+        "provenance": ["runtime_self_audit"],
+        "scope": "lifetime_contracts",
+        "retrieval_cues": ["const overload lifetime"],
+        "last_verified": "2026-10-17",
+    }
+    claim.update(overrides)
+    return claim
+
+
+# The three valid examples of R2.5 §6.1–§6.3, verbatim, each in its own domain.
+SPEC_V3_VALID = (
+    (
+        "software-engineering",
+        v3_store([{
+            "id": "SE_MEM_01M55WJVKRKX5ZNTWCWARDTT8N",
+            "claim": (
+                "A non-mutating overload carries the same lifetime obligation as its "
+                "mutating counterpart; const-ness narrows what the call may change, not "
+                "how long the referenced object must outlive it."
+            ),
+            "claim_class": "conduct",
+            "claim_kind": "deterministic",
+            "confidence": "repeated",
+            "delta": {
+                "kinds": ["judgment", "verification"],
+                "statement": (
+                    "Check the lifetime contract on both overloads before declaring a "
+                    "const overload safe, instead of inferring safety from const-ness."
+                ),
+            },
+            "envelope": {
+                "holds_in": [
+                    "reference-returning accessors on owning containers",
+                    "overload pairs where only const-ness differs",
+                ],
+                "not_shown_in": [
+                    "value-returning accessors",
+                    "types with custom reference wrappers",
+                ],
+                "conditions": ["applies where the callee stores or forwards the reference"],
+            },
+            "provenance": ["runtime_self_audit", "regression_failure"],
+            "scope": "lifetime_contracts",
+            "retrieval_cues": [
+                "const overload lifetime",
+                "dangling reference accessor",
+                "overload pair obligation",
+            ],
+            "canon": ["PAT_state_the_lifetime_contract_at_the_interface"],
+            "evidence": ["SOFTWAREENGINEERING_EV_0088", "SOFTWAREENGINEERING_EV_0119"],
+            "last_verified": "2026-10-17",
+        }]),
+    ),
+    (
+        "writing",
+        v3_store([{
+            "id": "WRI_MEM_01M55WJVKR0QB8C42T4SSG2KW2",
+            "claim": (
+                "Poetry craft knowledge is available to this skill at explanation level, "
+                "while original poetic production is not yet demonstrated at the level "
+                "analytical prose has reached."
+            ),
+            "claim_class": "reach",
+            "claim_kind": "stochastic",
+            "confidence": "provisional",
+            "delta": {
+                "kinds": ["posture", "verification"],
+                "statement": (
+                    "Decline to claim demonstrated poetic capability, and route original "
+                    "poetry through an extra review pass before delivery."
+                ),
+            },
+            "envelope": {
+                "holds_in": ["lineation, meter, sound, compression, persona, and form"],
+                "not_shown_in": ["narrative, image, and recurrence lessons drawn from verse works"],
+                "conditions": ["prose renderings of verse sources are not evidence about sonic craft"],
+            },
+            "provenance": ["human_teaching"],
+            "scope": "specialization_poetry",
+            "retrieval_cues": [
+                "poetry specialization",
+                "poetry transfer",
+                "poetic production evidence",
+            ],
+            "last_verified": "2026-10-17",
+            "revalidate_after": "2027-04-17",
+        }], skillset="writing"),
+    ),
+    (
+        "game-design",
+        v3_store([
+            {
+                "id": "GD_MEM_01M55WJVKRN841MC2Z91MFFFBR",
+                "claim": (
+                    "Compressing resolution steps before adding consequence layers keeps a "
+                    "subsystem teachable at the table."
+                ),
+                "claim_class": "conduct",
+                "claim_kind": "stochastic",
+                "confidence": "repeated",
+                "delta": {
+                    "kinds": ["judgment"],
+                    "statement": (
+                        "Cut procedural steps before trimming consequence when a subsystem "
+                        "is too slow to run."
+                    ),
+                },
+                "envelope": {
+                    "holds_in": ["table-facing combat and chase subsystems"],
+                    "not_shown_in": ["asynchronous or play-by-post resolution"],
+                },
+                "provenance": ["human_teaching", "training_benchmark"],
+                "scope": "subsystem_pacing",
+                "retrieval_cues": ["compress before consequence", "subsystem pacing"],
+                "last_verified": "2026-10-17",
+                "contradicts": ["GD_MEM_01M55WJVKRCFWPAHPB4DMNP0QB"],
+            },
+            {
+                "id": "GD_MEM_01M55WJVKRCFWPAHPB4DMNP0QB",
+                "claim": (
+                    "Consequence layers carry the table's attention more than step count "
+                    "does, so trimming consequence costs more than trimming procedure saves."
+                ),
+                "claim_class": "conduct",
+                "claim_kind": "stochastic",
+                "confidence": "provisional",
+                "delta": {
+                    "kinds": ["judgment"],
+                    "statement": (
+                        "Preserve consequence layers and accept a longer procedure when the "
+                        "subsystem's job is dramatic weight."
+                    ),
+                },
+                "envelope": {
+                    "holds_in": ["climactic set-piece subsystems"],
+                    "not_shown_in": ["routine high-frequency resolution"],
+                },
+                "provenance": ["user_feedback"],
+                "scope": "subsystem_pacing",
+                "retrieval_cues": ["consequence over step count", "subsystem pacing"],
+                "last_verified": "2026-10-17",
+                "contradicts": ["GD_MEM_01M55WJVKRN841MC2Z91MFFFBR"],
+            },
+        ], skillset="game-design"),
+    ),
+)
+
+
+class V3StoreChecks(unittest.TestCase):
+    """Shared assertions over the two result channels.
+
+    Errors make a store invalid; flags leave it valid and mark it for review.
+    Every error names the rule it enforced, so a rejection is legible against
+    the R2.5 §4 tables rather than against prose.
+    """
+
+    def errors_of(self, store: dict, domain: str = "software-engineering") -> list[str]:
+        errors, _flags = memory_tool.validate_v3_contents(domain, store)
+        return errors
+
+    def flags_of(self, store: dict, domain: str = "software-engineering") -> list[str]:
+        _errors, flags = memory_tool.validate_v3_contents(domain, store)
+        return flags
+
+    def assertValid(self, store: dict, domain: str = "software-engineering") -> list[str]:
+        errors, flags = memory_tool.validate_v3_contents(domain, store)
+        self.assertEqual(errors, [])
+        return flags
+
+    def assertRejected(self, rule: str, store: dict, domain: str = "software-engineering") -> list[str]:
+        errors, _flags = memory_tool.validate_v3_contents(domain, store)
+        self.assertTrue(
+            any(f"({rule})" in error for error in errors),
+            f"expected rule {rule} to reject the store, got: {errors}",
+        )
+        return errors
+
+
+class V3Schema(V3StoreChecks):
+    """R2.5 §2/§4.1: the v3 store refuses the legacy shape outright (S1–S10)."""
+
+    def test_an_empty_v3_store_is_valid(self) -> None:
+        self.assertValid(v3_store([]))
+
+    def test_every_valid_spec_example_validates(self) -> None:
+        for domain, store in SPEC_V3_VALID:
+            with self.subTest(domain=domain):
+                flags = self.assertValid(store, domain)
+                self.assertEqual(flags, [], "a §6 valid example raised a FLAG")
+
+    def test_the_mechanical_invalid_spec_examples_name_their_rule(self) -> None:
+        """Thirteen of the seventeen §6.4 examples are mechanically decidable.
+
+        1 and 5 are semantic (§4.7), 11 and 12 are referential (T03); each of
+        those groups has its own test that locks the boundary instead.
+        """
+        accretion_claim = (
+            "The early sessions established that shared primitives reduce fragmentation. "
+            "GURPS further showed that shared primitives reduce fragmentation across "
+            "otherwise unrelated subsystems when the vocabulary is small enough to hold "
+            "in mind at the table. " + "And the supporting notes kept accreting. " * 12
+        )
+        examples: dict[int, tuple[str, dict, tuple[str, ...]]] = {
+            2: ("software-engineering", v3_store([base_claim(claim=accretion_claim)]), ("C6", "C1")),
+            3: (
+                "software-engineering",
+                v3_store([base_claim(envelope={"holds_in": ["generally"], "not_shown_in": ["none"]})]),
+                ("E2",),
+            ),
+            4: (
+                "software-engineering",
+                v3_store([base_claim(
+                    claim_class="reach",
+                    delta={"kinds": ["action"], "statement": "Apply the new sequencing immediately."},
+                )]),
+                ("R1",),
+            ),
+            6: (
+                "software-engineering",
+                v3_store([base_claim(
+                    claim="MiMo and the reviewing agent both missed the write barrier, "
+                          "so the fix was applied twice.",
+                )]),
+                ("L3",),
+            ),
+            7: (
+                "software-engineering",
+                v3_store([base_claim(
+                    claim="The learner's story earned an A- from the evaluator, so the "
+                          "profile was marked complete.",
+                )]),
+                ("L4",),
+            ),
+            8: ("software-engineering", v3_store([base_claim(type="known_boundary")]), ("S2",)),
+            9: ("software-engineering", v3_store([base_claim(status="resolved")]), ("S2",)),
+            10: (
+                "software-engineering",
+                v3_store([base_claim(
+                    evidence=[f"SOFTWAREENGINEERING_EV_{n:04d}" for n in range(1, 22)],
+                )]),
+                ("S9",),
+            ),
+            13: (
+                "software-engineering",
+                v3_store([base_claim(runtime_scope="Flash-Next on the 4090 workstation")]),
+                ("S2",),
+            ),
+            14: ("software-engineering", v3_store([]) | {"memory_schema_version": 2}, ("S1",)),
+            15: (
+                "software-engineering",
+                v3_store([{k: v for k, v in base_claim().items() if k != "delta"}]),
+                ("S3",),
+            ),
+            16: ("software-engineering", v3_store([base_claim(id="SE_MEM_104")]), ("S5",)),
+            17: (
+                "software-engineering",
+                v3_store([base_claim(id="GD_MEM_01M55WJVKRMQ4H8PTNZB6JXAFVE0")]),
+                ("S5",),
+            ),
+        }
+        self.assertEqual(sorted(examples), [2, 3, 4, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17])
+        for number, (domain, store, rules) in sorted(examples.items()):
+            with self.subTest(example=number):
+                errors = self.assertRejected(rules[0], store, domain)
+                for rule in rules:
+                    self.assertTrue(
+                        any(f"({rule})" in error for error in errors),
+                        f"example {number} must also name {rule}: {errors}",
+                    )
+
+    def test_the_semantic_only_spec_examples_pass_the_mechanical_validator(self) -> None:
+        """§6.4 examples 1 and 5 fail the Canon-only baseline and a class/delta
+        mismatch — semantic judgment §4.7 states no script may make. The
+        validator's silence here is the contract, not a gap to fill in."""
+        example_1 = base_claim(
+            claim="The card held on every tested claim.",
+            delta={"kinds": ["judgment"], "statement": "Trust the card."},
+        )
+        example_5 = base_claim(
+            claim="Use the three-pass structure for every chapter opening.",
+            delta={"kinds": ["posture"], "statement": "Prefer the three-pass structure."},
+        )
+        for number, claim in ((1, example_1), (5, example_5)):
+            with self.subTest(example=number):
+                self.assertValid(v3_store([claim]))
+
+    def test_the_referential_spec_examples_are_t03_scope(self) -> None:
+        """§6.4 examples 11 (I4) and 12 (I6) are referential rules T03 owns.
+        Under T02 the claims are structurally sound; T03 must flip them."""
+        example_11 = base_claim(evidence=["SOFTWAREENGINEERING_EV_0002"])
+        example_12 = base_claim(contradicts=["WRI_MEM_01M55WJVKR0QB8C42T4SSG2KW2"])
+        self.assertValid(v3_store([example_11]))
+        self.assertValid(v3_store([example_12]))
+
+    def test_every_closed_vocabulary_accepts_every_member_and_rejects_a_nonmember(self) -> None:
+        for key, allowed, nonmember in (
+            ("claim_class", memory_tool.CLAIM_CLASSES, "neutral"),
+            ("claim_kind", memory_tool.CLAIM_KINDS, "sometimes"),
+            ("confidence", memory_tool.CONFIDENCE_VALUES, "certain"),
+        ):
+            for member in sorted(allowed):
+                with self.subTest(key=key, member=member):
+                    claim = base_claim(**{key: member})
+                    if key == "claim_class" and member == "reach":
+                        claim["delta"] = {
+                            "kinds": ["posture"],
+                            "statement": "Decline to claim demonstrated capability.",
+                        }
+                    self.assertValid(v3_store([claim]))
+            with self.subTest(key=key, nonmember=nonmember):
+                self.assertRejected("S4", v3_store([base_claim(**{key: nonmember})]))
+        for kind in sorted(memory_tool.DELTA_KINDS):
+            with self.subTest(delta_kind=kind):
+                self.assertValid(v3_store([base_claim(
+                    delta={"kinds": [kind], "statement": "Check the contract before declaring safety."},
+                )]))
+        self.assertRejected("S4", v3_store([base_claim(
+            delta={"kinds": ["habit"], "statement": "Check the contract before declaring safety."},
+        )]))
+        for origin in sorted(memory_tool.PROVENANCE_VALUES):
+            with self.subTest(provenance=origin):
+                self.assertValid(v3_store([base_claim(provenance=[origin])]))
+        # The renamed and dropped legacy values must not survive as members.
+        for origin in ("book_close_training", "cross_model_test", "vibes"):
+            with self.subTest(provenance=origin):
+                self.assertRejected("S4", v3_store([base_claim(provenance=[origin])]))
+
+    def test_every_unknown_top_level_or_claim_key_is_rejected(self) -> None:
+        self.assertRejected("S2", v3_store([]) | {"entries": []})
+        self.assertRejected("S2", v3_store([base_claim(vibe="strong")]))
+
+    def test_every_legacy_only_claim_key_is_rejected_as_unknown(self) -> None:
+        for key in (
+            "type", "scope_type", "status", "evidence_count", "evidence_events",
+            "evidence_origin", "observation", "boundary", "diagnosis",
+            "interventions", "runtime_scope", "superseded_by", "likely_owners",
+        ):
+            with self.subTest(key=key):
+                errors = self.assertRejected("S2", v3_store([base_claim(**{key: "x"})]))
+                self.assertTrue(any(key in error for error in errors), errors)
+
+    def test_a_duplicate_claim_id_in_one_store_is_rejected(self) -> None:
+        claim = base_claim()
+        self.assertRejected("S5a", v3_store([claim, dict(claim)]))
+
+    def test_the_same_id_in_two_supplied_stores_is_rejected(self) -> None:
+        """S5b is the same uniqueness check over every store the caller could
+        read; each store alone stays complete on its own terms."""
+        claim = base_claim()
+        first = v3_store([claim])
+        second = v3_store([dict(claim)])
+        self.assertValid(first)
+        self.assertValid(second)
+        gathered = [
+            entry["id"]
+            for store in (first, second)
+            for entry in store["claims"]
+        ]
+        self.assertEqual(memory_tool.duplicate_claim_ids(gathered), [claim["id"]])
+
+    def test_skillset_must_equal_the_directory_name(self) -> None:
+        self.assertRejected("S6", v3_store([base_claim()], skillset="writing"))
+
+    def test_memory_version_must_be_a_positive_integer(self) -> None:
+        for bad in (0, -1, True, "2", 1.5):
+            with self.subTest(memory_version=bad):
+                self.assertRejected("S7", v3_store([], memory_version=bad))
+        self.assertValid(v3_store([], memory_version=2))
+
+    def test_an_unmapped_domain_is_a_collected_error_not_an_exception(self) -> None:
+        """claim_id_problems raises for an unmapped skillset, so the store-level
+        token check must fire first and the ids simply go unchecked."""
+        errors = self.errors_of(v3_store([base_claim()], skillset="mathematics"), "mathematics")
+        self.assertTrue(any("CLAIM_DOMAIN_TOKENS" in error and "(S5)" in error for error in errors), errors)
+
+    def test_scope_must_be_a_snake_case_slug(self) -> None:
+        for bad in ("Lifetime Contracts", "Lifetime-Contracts", "1lifetime", ""):
+            with self.subTest(scope=bad):
+                self.assertRejected("S10", v3_store([base_claim(scope=bad)]))
+        for good in ("lifetime", "lifetime_contracts2", "a"):
+            with self.subTest(scope=good):
+                self.assertValid(v3_store([base_claim(scope=good)]))
+
+    def test_dates_follow_s8(self) -> None:
+        self.assertRejected("S8", v3_store([base_claim(last_verified="17-10-2026")]))
+        self.assertRejected("S8", v3_store([base_claim(revalidate_after="17-10-2026")]))
+        self.assertRejected("S8", v3_store([base_claim(revalidate_after="2026-10-16")]))
+        self.assertValid(v3_store([base_claim(revalidate_after="2026-10-17")]))
+        self.assertValid(v3_store([base_claim(revalidate_after="2027-04-17")]))
+
+    def test_provisional_with_deterministic_validates(self) -> None:
+        """No threshold table exists; reproducible-on-demand and not-yet-broad
+        is the honest reading, not a contradiction."""
+        self.assertValid(v3_store([base_claim(confidence="provisional", claim_kind="deterministic")]))
+
+    def test_a_non_mapping_claim_is_rejected_rather_than_crashing(self) -> None:
+        errors = self.errors_of(v3_store(["not a claim"]))
+        self.assertTrue(any("must be a mapping" in error for error in errors), errors)
+
+    def test_claims_must_be_a_list(self) -> None:
+        errors = self.errors_of(v3_store({}) | {"claims": {}})
+        self.assertTrue(any("claims must be a list" in error for error in errors), errors)
+
+    def test_no_code_path_reads_memory_version_to_produce_a_claim_id(self) -> None:
+        """Criterion 7/8: memory_version counts file revisions and is never an
+        identity input. Checked on the syntax tree so docstrings that explain
+        the refusal cannot trip it."""
+        tree = ast.parse(TOOL.read_text(encoding="utf-8"))
+        producers = [
+            node for node in tree.body
+            if isinstance(node, ast.FunctionDef)
+            and ("claim_id" in node.name or node.name in {"_crockford", "claim_domain_token"})
+        ]
+        self.assertTrue(producers, "the claim id functions are not where this test expects them")
+        for function in producers:
+            loaded = {
+                node.id for node in ast.walk(function)
+                if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load)
+            }
+            self.assertNotIn("memory_version", loaded, function.name)
+
+    def test_schema_document_declares_the_v3_contract(self) -> None:
+        text = SCHEMA_DOC.read_text(encoding="utf-8")
+        for required in (
+            "Schema version 3 — the claim",
+            "memory_schema_version: 3",
+            "claim_class",
+            "claim_kind",
+            "source_study",
+            "posture",
+            "S1",
+            "S5a",
+            "C1",
+            "C6",
+            "E2",
+            "R1",
+            "L1",
+            "L5",
+            "FLAG",
+            "whether the stated delta is",
+        ):
+            self.assertIn(required, text, f"MEMORY_SCHEMA.md is missing the v3 contract: {required}")
+
+
+class V3ClaimInvariants(V3StoreChecks):
+    """R2.5 §4.2 and §4.1 S3/S8/S9: one claim per entry, and the caps that
+    actually resist the accretion shape (C1–C5, S9)."""
+
+    def test_every_required_key_is_checked(self) -> None:
+        for key in sorted(memory_tool.CLAIM_REQUIRED):
+            with self.subTest(key=key):
+                claim = base_claim()
+                del claim[key]
+                errors = self.errors_of(v3_store([claim]))
+                self.assertTrue(
+                    any(key in error and "(S3)" in error for error in errors),
+                    f"missing {key} was not reported: {errors}",
+                )
+
+    def test_the_claim_word_cap_is_seventy_five(self) -> None:
+        at_cap = " ".join(["word"] * 75)
+        over_cap = " ".join(["word"] * 76)
+        self.assertValid(v3_store([base_claim(claim=at_cap)]))
+        self.assertRejected("C1", v3_store([base_claim(claim=over_cap)]))
+
+    def test_a_fifty_word_claim_is_flagged_and_still_valid(self) -> None:
+        """C2 is a review smell: exit stays zero, the channel stays separate."""
+        errors, flags = memory_tool.validate_v3_contents(
+            "software-engineering", v3_store([base_claim(claim=" ".join(["word"] * 50))]),
+        )
+        self.assertEqual(errors, [])
+        self.assertTrue(any("(C2)" in flag for flag in flags), flags)
+
+    def test_the_delta_statement_cap_is_fifty(self) -> None:
+        at_cap = " ".join(["word"] * 50)
+        over_cap = " ".join(["word"] * 51)
+        self.assertValid(v3_store([base_claim(delta={"kinds": ["judgment"], "statement": at_cap})]))
+        self.assertRejected("C4", v3_store([base_claim(delta={"kinds": ["judgment"], "statement": over_cap})]))
+
+    def test_every_accretion_connective_is_rejected(self) -> None:
+        for connective in memory_tool.ACCRETION_CONNECTIVES:
+            with self.subTest(connective=connective):
+                claim = base_claim(
+                    claim=f"The evidence set {connective} that the fix held under load.",
+                )
+                self.assertRejected("C6", v3_store([claim]))
+
+    def test_evidence_is_capped_at_three(self) -> None:
+        three = [f"SOFTWAREENGINEERING_EV_{n:04d}" for n in range(1, 4)]
+        self.assertValid(v3_store([base_claim(evidence=three)]))
+        self.assertRejected("S9", v3_store([base_claim(evidence=three + ["SOFTWAREENGINEERING_EV_0004"])]))
+        self.assertRejected("S9", v3_store([base_claim(evidence=[])]))
+
+    def test_canon_is_capped_at_five(self) -> None:
+        five = [f"PAT_example_object_{n}" for n in range(1, 6)]
+        self.assertValid(v3_store([base_claim(canon=five)]))
+        self.assertRejected("S9", v3_store([base_claim(canon=five + ["PAT_example_object_6"])]))
+        self.assertRejected("S9", v3_store([base_claim(canon=[])]))
+
+    def test_delta_kinds_cardinality(self) -> None:
+        three = ["action", "judgment", "verification"]
+        errors, flags = memory_tool.validate_v3_contents(
+            "software-engineering", v3_store([base_claim(delta={"kinds": three, "statement": "Check the contract."})]),
+        )
+        self.assertEqual(errors, [])
+        self.assertTrue(any("(C5)" in flag for flag in flags), flags)
+        self.assertRejected("S9", v3_store([base_claim(
+            delta={"kinds": three + ["posture"], "statement": "Check the contract."},
+        )]))
+
+    def test_contradicts_must_be_non_empty_when_present(self) -> None:
+        self.assertRejected("S9", v3_store([base_claim(contradicts=[])]))
+        self.assertValid(v3_store([base_claim(contradicts=["SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2"])]))
+
+    def test_delta_and_envelope_unknown_subkeys_are_rejected(self) -> None:
+        self.assertRejected("S2", v3_store([base_claim(delta={
+            "kinds": ["judgment"], "statement": "Check the contract.", "weight": 3,
+        })]))
+        self.assertRejected("S2", v3_store([base_claim(envelope={
+            "holds_in": ["overload pairs"], "not_shown_in": ["value accessors"], "verified_by": "x",
+        })]))
+
+
+class V3Envelope(V3StoreChecks):
+    """R2.5 §4.3: a claim with no statable un-demonstrated region asserts
+    universality, which is the overreach the envelope exists to prevent."""
+
+    def test_both_envelope_halves_are_required(self) -> None:
+        self.assertRejected("E1", v3_store([base_claim(envelope={"holds_in": ["overload pairs"]})]))
+        self.assertRejected("E1", v3_store([base_claim(envelope={"not_shown_in": ["value accessors"]})]))
+        self.assertRejected("E1", v3_store([base_claim(envelope={"holds_in": [], "not_shown_in": ["x"]})]))
+        self.assertRejected("E1", v3_store([base_claim(envelope={"holds_in": ["x"], "not_shown_in": []})]))
+
+    def test_every_sentinel_evasion_is_rejected(self) -> None:
+        for sentinel in ("n/a", "none", "unknown", "everywhere", "no limits", "None", "NO LIMITS"):
+            with self.subTest(sentinel=sentinel):
+                claim = base_claim(envelope={
+                    "holds_in": ["overload pairs"],
+                    "not_shown_in": [sentinel],
+                })
+                self.assertRejected("E2", v3_store([claim]))
+
+    def test_a_real_not_shown_in_member_is_accepted(self) -> None:
+        claim = base_claim(envelope={
+            "holds_in": ["overload pairs"],
+            "not_shown_in": ["regions the evidence has not reached"],
+        })
+        self.assertValid(v3_store([claim]))
+
+    def test_envelope_items_are_capped_at_forty_words(self) -> None:
+        at_cap = " ".join(["word"] * 40)
+        over_cap = " ".join(["word"] * 41)
+        for key in ("holds_in", "not_shown_in", "conditions"):
+            with self.subTest(key=key):
+                envelope = {"holds_in": ["overload pairs"], "not_shown_in": ["value accessors"]}
+                envelope[key] = [at_cap]
+                self.assertValid(v3_store([base_claim(envelope=envelope)]))
+                envelope[key] = [over_cap]
+                self.assertRejected("C3", v3_store([base_claim(envelope=envelope)]))
+
+    def test_conditions_are_optional(self) -> None:
+        self.assertValid(v3_store([base_claim(envelope={
+            "holds_in": ["overload pairs"],
+            "not_shown_in": ["value accessors"],
+        })]))
+
+
+class V3ReachInvariant(V3StoreChecks):
+    """R2.5 §4.4: reach may change posture and verification posture, and must
+    never prescribe conduct — the one mechanical rule the invariant needs."""
+
+    def test_reach_rejects_conduct_prescribing_delta_kinds(self) -> None:
+        for kind in ("action", "judgment", "application_limit"):
+            with self.subTest(kind=kind):
+                claim = base_claim(
+                    claim_class="reach",
+                    delta={"kinds": [kind], "statement": "Check the contract before declaring safety."},
+                )
+                self.assertRejected("R1", v3_store([claim]))
+
+    def test_reach_accepts_posture_and_verification(self) -> None:
+        for kinds in (["posture"], ["verification"], ["posture", "verification"]):
+            with self.subTest(kinds=kinds):
+                claim = base_claim(
+                    claim_class="reach",
+                    delta={"kinds": kinds, "statement": "Decline to claim demonstrated capability."},
+                )
+                self.assertValid(v3_store([claim]))
+
+    def test_a_reach_claim_may_carry_a_canon_link(self) -> None:
+        claim = base_claim(
+            claim_class="reach",
+            claim_kind="stochastic",
+            confidence="provisional",
+            delta={"kinds": ["posture"], "statement": "Decline to claim demonstrated capability."},
+            canon=["PAT_state_the_lifetime_contract_at_the_interface"],
+        )
+        self.assertValid(v3_store([claim]))
+
+    def test_conduct_claims_accept_every_closed_delta_kind(self) -> None:
+        for kind in sorted(memory_tool.DELTA_KINDS):
+            with self.subTest(kind=kind):
+                claim = base_claim(delta={"kinds": [kind], "statement": "Check the contract."})
+                self.assertValid(v3_store([claim]))
+
+
+class V3Leakage(V3StoreChecks):
+    """R2.5 §4.5: model-neutral, learner-neutral, portable prose — and the one
+    collision with the legacy tool: `provenance` is required here, forbidden
+    there (SR1), so the two rejection lists can never be merged."""
+
+    def test_model_identity_tokens_are_rejected_in_claim_and_envelope(self) -> None:
+        for token in memory_tool.MODEL_IDENTITY_TOKENS:
+            with self.subTest(token=token, surface="claim"):
+                claim = base_claim(claim=f"The contract held when {token} checked the interface.")
+                self.assertRejected("L3", v3_store([claim]))
+            with self.subTest(token=token, surface="envelope"):
+                claim = base_claim(envelope={
+                    "holds_in": [f"reviews where {token} applied the const rule"],
+                    "not_shown_in": ["value accessors"],
+                })
+                self.assertRejected("L3", v3_store([claim]))
+
+    def test_conversation_deference_is_rejected(self) -> None:
+        for phrase in ("see the chat", "as discussed", "in the session above", "earlier in this conversation"):
+            with self.subTest(phrase=phrase):
+                claim = base_claim(claim=f"The contract held; {phrase} for the full trace.")
+                self.assertRejected("L2", v3_store([claim]))
+
+    def test_learner_identity_and_specimen_grades_are_rejected(self) -> None:
+        for phrase in ("the learner", "the taker", "the evaluator", "the user preferred"):
+            with self.subTest(phrase=phrase):
+                claim = base_claim(claim=f"The contract held until {phrase} changed the task.")
+                self.assertRejected("L4", v3_store([claim]))
+        for text in (
+            "The draft earned an A- from the review.",
+            "The profile was graded B+.",
+            "The artifact scored C+ on the first pass.",
+            "The sitting was graded A under the frozen criteria.",
+        ):
+            with self.subTest(grade=text):
+                self.assertRejected("L4", v3_store([base_claim(claim=text)]))
+
+    def test_local_state_prose_is_flagged_not_rejected(self) -> None:
+        claim = base_claim(claim="The check holds on this machine after the driver update.")
+        errors, flags = memory_tool.validate_v3_contents("software-engineering", v3_store([claim]))
+        self.assertEqual(errors, [])
+        self.assertTrue(any("(L5)" in flag for flag in flags), flags)
+
+    def test_retired_authoring_and_lineage_keys_are_rejected(self) -> None:
+        self.assertEqual(
+            sorted(memory_tool.CLAIM_FORBIDDEN_KEYS),
+            sorted([
+                "source_id", "locator", "page", "hash", "receipt", "attestation",
+                "ledger", "session_id", "current_stage", "unit", "next_unit",
+                "parent_gen_id", "legacy_id", "migrated_from", "source_entry",
+                "previous_id",
+            ]),
+        )
+        for key in sorted(memory_tool.CLAIM_FORBIDDEN_KEYS):
+            with self.subTest(key=key):
+                errors = self.assertRejected("L1", v3_store([base_claim(**{key: "x"})]))
+                self.assertTrue(any(key in error for error in errors), errors)
+
+    def test_provenance_is_required_and_never_a_forbidden_key(self) -> None:
+        """The SR1 collision: FORBIDDEN_KEYS rejects `provenance` for v1/v2,
+        and every v3 claim requires it. Reusing the legacy list here would
+        reject every valid claim."""
+        for origins in (["human_teaching"], ["user_feedback", "runtime_self_audit"]):
+            with self.subTest(provenance=origins):
+                errors, flags = memory_tool.validate_v3_contents(
+                    "software-engineering", v3_store([base_claim(provenance=origins)]),
+                )
+                self.assertEqual(errors, [])
+                self.assertEqual(flags, [])
+                self.assertFalse(any("forbidden" in error for error in errors))
+
+
 if __name__ == "__main__":
     unittest.main()

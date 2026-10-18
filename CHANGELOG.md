@@ -6,6 +6,38 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.114 - 2026-10-18
+
+### Added
+
+- Added schema-version dispatch to Skillset Memory (`PASS/tools/memory.py`):
+  `validate_contents` now returns `(errors, flags)` and routes each store's
+  claim side by `memory_schema_version` — schema 3 to `validate_v3_contents`,
+  schemas 1 and 2 to the new `PASS/tools/memory_legacy_input.py`, anything
+  else to the existing unknown-version error — while Training History
+  validation (event shape, duplicate event ids, correction ordering) runs
+  unchanged for every version, because History is not versioned (R2.5 §8.4).
+  A mixed-state corpus of v1/v2 and v3 stores now validates in one `validate`
+  run, which also prints each store's declared schema version and any review
+  FLAGs (a flags-only result still exits 0).
+- Added `PASS/tools/memory_legacy_input.py`, the isolated v1/v2
+  migration-input reader: the legacy claim vocabularies and `validate_entry`
+  moved there verbatim. Its docstring binds it to deletion by ticket T21 and
+  forbids any runtime path from growing a dependency on it, and
+  `tests/test_memory.py::SchemaDispatch` enforces that the dispatch in
+  `memory.py` is its only importer. A v3 store beside an absent
+  `training_history.jsonl` keeps its I5 semantics through `validate_store`:
+  absence is not corruption, and the file is not reported missing.
+
+### Changed
+
+- Extracted one shared evidence-admissibility implementation
+  (`evidence_admissibility_problem`, field-parameterized) called by both the
+  legacy `evidence_events` path and the v3 `evidence` path, with quarantine
+  derived by the single `quarantined_event_ids` helper, so the invalid-run
+  invariant cannot drift between the two claim sides. Legacy messages read
+  exactly as before; v3 messages keep their `(I4)` rule tags.
+
 ## 1.0.0-beta.113 - 2026-10-18
 
 ### Added

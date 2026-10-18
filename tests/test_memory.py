@@ -427,7 +427,9 @@ class SchemaContract(MemoryStoreFixture):
                 self.assertIn("requires memory_schema_version 2", result.stdout)
 
     def test_unknown_schema_version_is_rejected(self) -> None:
-        self.write([VALID_ENTRY], [], schema_version=3)
+        # 3 now dispatches to the v3 path, so the unknown-version rejection is
+        # stated with a version that is genuinely outside {1, 2, 3}.
+        self.write([VALID_ENTRY], [], schema_version=4)
         result = self.validate()
         self.assertEqual(result.returncode, 1)
         self.assertIn("memory_schema_version must be one of [1, 2]", result.stdout)
@@ -2103,6 +2105,89 @@ class V3ReferentialIntegrity(V3StoreChecks):
             "I6", v3_store([base_claim(contradicts=[claim["id"]])]),
         )
         self.assertTrue(any("itself" in error for error in errors), errors)
+
+
+class SchemaDispatch(unittest.TestCase):
+    """T04: `validate` routes each store by `memory_schema_version`, one run
+    over a mixed-state corpus, with the v1/v2 claim side reachable only through
+    the dispatch."""
+
+    def temp_root(self, prefix: str) -> Path:
+        root = Path(tempfile.mkdtemp(prefix=prefix))
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        return root
+
+    def write_store(
+        self, root: Path, domain: str, store: dict, events: list[dict] | None,
+    ) -> None:
+        domain_dir = root / domain
+        domain_dir.mkdir(parents=True)
+        (domain_dir / "skill_memory.yaml").write_text(
+            yaml.safe_dump(store, sort_keys=False), encoding="utf-8",
+        )
+        if events is not None:
+            (domain_dir / "training_history.jsonl").write_text(
+                "".join(json.dumps(event, sort_keys=True) + "\n" for event in events),
+                encoding="utf-8",
+            )
+
+    def test_a_v3_store_and_a_v1_store_validate_in_one_run(self) -> None:
+        root = self.temp_root("pass-memory-dispatch-")
+        self.write_store(
+            root,
+            "art",
+            {
+                "memory_schema_version": 1,
+                "skillset": "art",
+                "memory_version": 1,
+                "entries": [dict(VALID_ENTRY)],
+            },
+            [VALID_EVENT],
+        )
+        self.write_store(root, "software-engineering", v3_store([base_claim()]), None)
+        result = run_tool("validate", memory=root)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("art: memory_schema_version 1\n", result.stdout)
+        self.assertIn("software-engineering: memory_schema_version 3\n", result.stdout)
+        self.assertIn("PASS: 2 store(s), 1 entr(ies), 1 event(s) validated", result.stdout)
+
+    def test_review_flags_print_without_failing_the_run(self) -> None:
+        root = self.temp_root("pass-memory-flags-")
+        claim = base_claim(claim="The check holds on this machine after the driver update.")
+        self.write_store(root, "software-engineering", v3_store([claim]), None)
+        result = run_tool("validate", memory=root)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("software-engineering: FLAG: ", result.stdout)
+        self.assertIn("(L5)", result.stdout)
+        self.assertIn("PASS: 1 store(s), 0 entr(ies), 0 event(s) validated", result.stdout)
+
+    def test_only_the_dispatch_imports_the_legacy_input_module(self) -> None:
+        """The boundary T04 exists to draw: `memory_legacy_input` is a
+        migration-input reader, so only the dispatch in `memory.py` — later the
+        migrator (T13) — may depend on it. Scanned as text: importing it here to
+        ask would itself be the dependency being forbidden."""
+        importers = set()
+        for tree in (ROOT / "PASS", ROOT / "tests", ROOT / "workspace/tools"):
+            for path in tree.rglob("*.py"):
+                if "__pycache__" in path.parts:
+                    continue
+                text = path.read_text(encoding="utf-8")
+                if re.search(
+                    r"(?:^|\n)[ \t]*(?:from[ \t]+memory_legacy_input[ \t]+import"
+                    r"|import[ \t]+memory_legacy_input\b)",
+                    text,
+                ):
+                    importers.add(path.relative_to(ROOT).as_posix())
+        self.assertEqual(importers, {"PASS/tools/memory.py"})
+
+    def test_the_legacy_module_states_it_is_transitional(self) -> None:
+        """The docstring is how T21 and any future reader learn that the legacy
+        claim side never becomes a resting place."""
+        text = (ROOT / "PASS/tools/memory_legacy_input.py").read_text(encoding="utf-8")
+        first_block = text.split('"""', 1)[1].split("\n\n", 1)[0].lower()
+        self.assertIn("migration-input reader for v1/v2", first_block)
+        self.assertIn("no runtime path", first_block)
+        self.assertIn("t21", first_block)
 
 
 if __name__ == "__main__":

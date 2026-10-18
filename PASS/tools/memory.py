@@ -43,27 +43,15 @@ from paths import default_memory_root, default_library_root
 
 SCHEMA_VERSION = 2
 SUPPORTED_SCHEMA_VERSIONS = {1, 2}
-LEGACY_V1_ENTRY_TYPES = {
-    "learned_principle",
-    "recurring_failure",
-    "successful_tendency",
-    "known_boundary",
-    "training_result",
-}
-
-SCOPE_TYPES = {"skillset", "ap", "pattern", "drill", "training", "topic", "runtime"}
-ENTRY_TYPES = LEGACY_V1_ENTRY_TYPES | {
-    "specialization_profile",
-    "card_candidate",
-}
-EVIDENCE_CLASSES = {"stochastic_performance", "deterministic_contract"}
+# The legacy claim vocabularies (entry types, scopes, evidence classes,
+# statuses, origins, the optional face of the entry keys, file-level keys) live
+# with `validate_entry` in `memory_legacy_input.py`, the transient migration
+# reader T21 deletes. What stays here serves surviving runtime paths: the
+# semantic ladder and failure layers are shared with the v3 path, retrievable
+# status feeds `query`/`review`, and `ENTRY_REQUIRED` below is read by
+# `entry update`, which no runtime path may route through that module.
 CONFIDENCE_VALUES = {"provisional", "repeated", "strong"}
-STATUS_VALUES = {"active", "monitoring", "resolved", "superseded", "obsolete"}
 RETRIEVABLE_STATUS = {"active", "monitoring"}
-EVIDENCE_ORIGINS = {
-    "runtime_self_audit", "user_feedback", "human_teaching", "training_benchmark",
-    "regression_failure", "book_close_training", "cross_model_test",
-}
 FAILURE_LAYERS = {
     "knowledge", "orchestration", "retrieval", "application", "continuity",
     "reference", "tool", "interface", "training",
@@ -88,17 +76,6 @@ ENTRY_REQUIRED = {
     "id", "scope_type", "scope_id", "type", "evidence_class", "observation",
     "confidence", "status",
 }
-ENTRY_OPTIONAL = {
-    "diagnosis", "boundary", "evidence_count", "evidence_events", "evidence_origin",
-    "likely_owners", "interventions", "retrieval_cues", "runtime_scope",
-    "superseded_by", "last_verified",
-}
-ENTRY_KEYS = ENTRY_REQUIRED | ENTRY_OPTIONAL
-DIAGNOSIS_KEYS = {"failure_layer", "hypothesis"}
-INTERVENTION_KEYS = {
-    "training", "drill", "isolation_result", "retention_result", "transfer_result",
-}
-FILE_REQUIRED = {"memory_schema_version", "skillset", "memory_version", "entries"}
 
 EVENT_REQUIRED = {"event_id", "date", "task", "validity"}
 EVENT_OPTIONAL = {
@@ -312,99 +289,6 @@ def load_events(domain_dir: Path) -> tuple[list[dict[str, Any]], list[str]]:
 
 
 # ---------------------------------------------------------------- validation
-
-
-def validate_entry(entry: Any, index: int, errors: list[str]) -> None:
-    where = f"entry[{index}]"
-    if not isinstance(entry, dict):
-        errors.append(f"{where}: must be a mapping")
-        return
-    label = entry.get("id") if isinstance(entry.get("id"), str) else where
-
-    missing = sorted(ENTRY_REQUIRED - set(entry))
-    if missing:
-        errors.append(f"{label}: missing required keys: {', '.join(missing)}")
-    forbidden = sorted(set(entry) & FORBIDDEN_KEYS)
-    if forbidden:
-        errors.append(f"{label}: forbidden key(s) from retired or session vocabulary: {', '.join(forbidden)}")
-    extra = sorted(set(entry) - ENTRY_KEYS - FORBIDDEN_KEYS)
-    if extra:
-        errors.append(f"{label}: unknown key(s): {', '.join(extra)}")
-
-    if isinstance(entry.get("id"), str) and not ID_RE.fullmatch(entry["id"]):
-        errors.append(f"{label}: id must be uppercase alphanumeric with underscores")
-
-    for key, allowed in (
-        ("scope_type", SCOPE_TYPES),
-        ("type", ENTRY_TYPES),
-        ("evidence_class", EVIDENCE_CLASSES),
-        ("confidence", CONFIDENCE_VALUES),
-        ("status", STATUS_VALUES),
-    ):
-        if key in entry and entry[key] not in allowed:
-            errors.append(f"{label}: {key} '{entry[key]}' is not in the closed vocabulary")
-
-    observation = entry.get("observation")
-    if not isinstance(observation, str) or not observation.strip():
-        errors.append(f"{label}: observation must be non-empty text")
-    else:
-        lowered = observation.lower()
-        for phrase in NON_SELF_CONTAINED_PHRASES:
-            if phrase in lowered:
-                errors.append(f"{label}: observation defers to a conversation ('{phrase}'); it must stand alone")
-                break
-
-    if "scope_id" in entry and (not isinstance(entry["scope_id"], str) or not entry["scope_id"].strip()):
-        errors.append(f"{label}: scope_id must be a non-empty string")
-
-    diagnosis = entry.get("diagnosis")
-    if diagnosis is not None:
-        if not isinstance(diagnosis, dict):
-            errors.append(f"{label}: diagnosis must be a mapping")
-        else:
-            unknown = sorted(set(diagnosis) - DIAGNOSIS_KEYS)
-            if unknown:
-                errors.append(f"{label}: diagnosis has unknown key(s): {', '.join(unknown)}")
-            layer = diagnosis.get("failure_layer")
-            if layer is not None and layer not in FAILURE_LAYERS:
-                errors.append(f"{label}: diagnosis.failure_layer '{layer}' is not in the closed vocabulary")
-
-    origins = entry.get("evidence_origin")
-    if origins is not None:
-        if not isinstance(origins, list):
-            errors.append(f"{label}: evidence_origin must be a list")
-        else:
-            for origin in origins:
-                if origin not in EVIDENCE_ORIGINS:
-                    errors.append(f"{label}: evidence_origin '{origin}' is not in the closed vocabulary")
-
-    count = entry.get("evidence_count")
-    if count is not None and (not isinstance(count, int) or isinstance(count, bool) or count < 1):
-        errors.append(f"{label}: evidence_count must be an integer >= 1")
-
-    for key in ("evidence_events", "likely_owners", "retrieval_cues"):
-        if key in entry and not isinstance(entry[key], list):
-            errors.append(f"{label}: {key} must be a list")
-
-    interventions = entry.get("interventions")
-    if interventions is not None:
-        if not isinstance(interventions, list):
-            errors.append(f"{label}: interventions must be a list")
-        else:
-            for item in interventions:
-                if not isinstance(item, dict):
-                    errors.append(f"{label}: each intervention must be a mapping")
-                    continue
-                unknown = sorted(set(item) - INTERVENTION_KEYS)
-                if unknown:
-                    errors.append(f"{label}: intervention has unknown key(s): {', '.join(unknown)}")
-                for result_key in ("isolation_result", "retention_result", "transfer_result"):
-                    if result_key in item and item[result_key] not in STAGE_RESULTS:
-                        errors.append(f"{label}: intervention {result_key} '{item[result_key]}' is not in the closed vocabulary")
-
-    verified = entry.get("last_verified")
-    if verified is not None and not (isinstance(verified, (str, date)) and DATE_RE.fullmatch(str(verified))):
-        errors.append(f"{label}: last_verified must be YYYY-MM-DD")
 
 
 def validate_event(
@@ -658,64 +542,70 @@ def validate_event(
         errors.append(f"{label}: observations must be a list")
 
 
-def validate_store(domain_dir: Path) -> list[str]:
+def validate_store(domain_dir: Path) -> tuple[list[str], list[str]]:
+    """Load one domain's store and validate it, as `(errors, flags)`.
+
+    History loading differs by version: a v1/v2 store (or an unknown version)
+    must have its `training_history.jsonl` — absence is the load error
+    `load_events` reports, exactly as before — while beside a v3 store absence
+    means "no resolution" (I5), so nothing is loaded and nothing is reported
+    missing.
+    """
     try:
         memory = load_memory(domain_dir)
     except MemoryError_ as exc:
-        return [str(exc)]
-    events, event_errors = load_events(domain_dir)
+        return [str(exc)], []
+    if memory.get("memory_schema_version") == V3_SCHEMA_VERSION:
+        if (domain_dir / "training_history.jsonl").is_file():
+            events, event_errors = load_events(domain_dir)
+        else:
+            events, event_errors = None, None
+    else:
+        events, event_errors = load_events(domain_dir)
     return validate_contents(domain_dir.name, memory, events, event_errors)
 
 
 def validate_contents(
     domain: str,
     memory: dict[str, Any],
-    events: list[dict[str, Any]],
-    event_errors: list[str],
-) -> list[str]:
-    """Validate a store's contents, so a proposed write is checked before it lands."""
+    events: list[dict[str, Any]] | None,
+    event_errors: list[str] | None,
+) -> tuple[list[str], list[str]]:
+    """Validate a store's contents by its declared schema version (T04).
+
+    The claim side dispatches: schema 3 to `validate_v3_contents`, schemas 1
+    and 2 to the transient `memory_legacy_input` module, anything else to the
+    existing unknown-version error. The Training History path runs for every
+    version — History is not versioned (R2.5 §8.4) — and `events is None`
+    means the file is absent beside a v3 store (I5): nothing to validate and
+    nothing to report. Returns `(errors, flags)`: errors make the store
+    invalid (exit 1); flags leave it valid and are printed as reviewable
+    (exit 0).
+    """
     errors: list[str] = []
-    missing = sorted(FILE_REQUIRED - set(memory))
-    if missing:
-        errors.append(f"skill_memory.yaml: missing file-level keys: {', '.join(missing)}")
+    flags: list[str] = []
     schema_version = memory.get("memory_schema_version")
-    if schema_version not in SUPPORTED_SCHEMA_VERSIONS:
+    if schema_version == V3_SCHEMA_VERSION:
+        claim_errors, claim_flags = validate_v3_contents(
+            domain, memory, events=events, event_errors=None,
+        )
+        errors.extend(claim_errors)
+        flags.extend(claim_flags)
+    elif schema_version in SUPPORTED_SCHEMA_VERSIONS:
+        import memory_legacy_input  # transient dispatch dependency; deleted by T21
+        errors.extend(
+            memory_legacy_input.validate_legacy_contents(domain, memory, events or [])
+        )
+    else:
         errors.append(
             f"skill_memory.yaml: memory_schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}"
         )
-    if memory.get("skillset") != domain:
-        errors.append(f"skill_memory.yaml: skillset '{memory.get('skillset')}' does not match directory '{domain}'")
 
-    entries = memory.get("entries")
-    if entries is None:
-        entries = []
-    if not isinstance(entries, list):
-        errors.append("skill_memory.yaml: entries must be a list")
-        entries = []
-
-    if schema_version == 1:
-        for index, entry in enumerate(entries):
-            if isinstance(entry, dict) and entry.get("type") in {"specialization_profile", "card_candidate"}:
-                label = entry.get("id", f"entry[{index}]")
-                errors.append(
-                    f"{label}: type '{entry.get('type')}' requires memory_schema_version 2"
-                )
-
-    for index, entry in enumerate(entries):
-        validate_entry(entry, index, errors)
-
-    ids = [e["id"] for e in entries if isinstance(e, dict) and isinstance(e.get("id"), str)]
-    for duplicate in sorted({i for i in ids if ids.count(i) > 1}):
-        errors.append(f"skill_memory.yaml: duplicate entry id '{duplicate}'")
-
-    errors.extend(event_errors)
-    quarantined = {
-        str(target)
-        for event in events
-        if event.get("event_kind") == "evidence_correction"
-        and (event.get("corrections") or {}).get("disposition") == "quarantined"
-        for target in (event.get("supersedes_events") or [])
-    }
+    if events is None:
+        return errors, flags
+    if event_errors:
+        errors.extend(event_errors)
+    quarantined = quarantined_event_ids(events)
     for index, event in enumerate(events):
         validate_event(
             event,
@@ -743,53 +633,7 @@ def validate_contents(
                 errors.append(f"{label}: supersedes unknown event '{target}'")
             elif event_positions[target] >= event_positions.get(label, -1):
                 errors.append(f"{label}: correction target '{target}' must appear earlier")
-    known_ids = set(ids)
-
-    for entry in entries:
-        if not isinstance(entry, dict):
-            continue
-        label = entry.get("id", "entry")
-        superseded_by = entry.get("superseded_by")
-        if superseded_by is not None and superseded_by not in known_ids:
-            errors.append(f"{label}: superseded_by '{superseded_by}' does not resolve to an entry")
-        if entry.get("status") == "superseded" and not superseded_by:
-            errors.append(f"{label}: status superseded requires superseded_by")
-
-        cited = entry.get("evidence_events")
-        if not isinstance(cited, list):
-            continue
-        for event_id in cited:
-            event = by_event_id.get(event_id)
-            if event is None:
-                errors.append(f"{label}: evidence_events cites unknown event '{event_id}'")
-                continue
-            # The invariant this whole tool exists to hold.
-            if event.get("validity") == "invalid":
-                errors.append(
-                    f"{label}: evidence_events cites invalid event '{event_id}' "
-                    f"({event.get('invalid_reason', 'no reason recorded')}); "
-                    "an invalid run is never evidence about a capability"
-                )
-            elif event.get("event_kind") == "metadata_correction":
-                errors.append(
-                    f"{label}: evidence_events cites metadata correction '{event_id}'; "
-                    "a correction is not capability evidence"
-                )
-            elif event.get("event_kind") == "evidence_correction":
-                errors.append(
-                    f"{label}: evidence_events cites evidence correction '{event_id}'; "
-                    "a correction is not capability evidence"
-                )
-            elif event_id in quarantined:
-                errors.append(
-                    f"{label}: evidence_events cites quarantined event '{event_id}'; "
-                    "a superseding evidence correction removed it from capability evidence"
-                )
-        count = entry.get("evidence_count")
-        if isinstance(count, int) and not isinstance(count, bool) and cited and count != len(cited):
-            errors.append(f"{label}: evidence_count {count} does not match {len(cited)} cited evidence_events")
-
-    return errors
+    return errors, flags
 
 
 # ------------------------------------------------- claim schema (version 3)
@@ -798,9 +642,10 @@ def validate_contents(
 # legacy validator and sharing none of its vocabulary constants. The split is
 # deliberate: FORBIDDEN_KEYS rejects `provenance` on v1/v2 entries and History
 # events, while every v3 claim requires it (R2.5 §4.5 L1, SR1), so the two
-# rejection lists can never be merged. Dispatch is T04's job; nothing routes a
-# live store here yet — this validator is reachable from tests and from an
-# explicit internal call only.
+# rejection lists can never be merged. Since T04, `validate_contents` dispatches
+# here for schema 3 — schemas 1 and 2 route to the transient
+# `memory_legacy_input` reader that T21 deletes — and this validator is also
+# reachable from tests and from an explicit internal call.
 
 V3_SCHEMA_VERSION = 3
 CLAIM_CLASSES = {"conduct", "reach"}
@@ -1202,8 +1047,9 @@ def evidence_id_well_formed(member: Any, prefixes: set[str]) -> bool:
 def quarantined_event_ids(events: list[dict[str, Any]]) -> set[str]:
     """Events a superseding evidence correction removed from capability evidence.
 
-    The same derivation the legacy path applies inline (`validate_contents`);
-    T04 folds both into one helper so the two cannot drift apart.
+    The single derivation, called from both claim sides since T04: the legacy
+    `evidence_events` reader in `memory_legacy_input` and this tool's own
+    `validate_event`/v3 paths, so the two cannot drift apart.
     """
     return {
         str(target)
@@ -1216,45 +1062,51 @@ def quarantined_event_ids(events: list[dict[str, Any]]) -> set[str]:
 
 def evidence_admissibility_problem(
     label: str,
+    field: str,
     event_id: str,
-    event: dict[str, Any],
+    event: dict[str, Any] | None,
     quarantined: set[str],
 ) -> str | None:
-    """I4: why this event may not be cited as capability evidence, or None.
+    """Why this event may not be cited as capability evidence, or None.
 
-    The legacy path's admissibility block — invalid run, both correction
-    kinds, quarantine ("the invariant this whole tool exists to hold") — plus
-    the performance-kind requirement of R2.5 §3.5, phrased for this path's
-    field name. T04 extracts one helper both paths call; until then these two
-    implementations state the same semantics, and a change to one belongs in
-    the other.
+    One implementation for both claim sides (T04): the legacy path passes field
+    `evidence_events`, the v3 path passes `evidence`, and each caller tags the
+    message its way — "(I4)" belongs to the v3 rule ids, the legacy messages
+    stay exactly as they read before the extraction. `event is None` is an
+    unknown citation: nothing validates a run that is not there. The checks run
+    in the order the legacy block stated them — invalid run (the invariant this
+    whole tool exists to hold), both correction kinds, quarantine — then the
+    performance-kind requirement of R2.5 §3.5, which only the v3 path used to
+    state.
     """
+    if event is None:
+        return f"{label}: {field} cites unknown event '{event_id}'"
     if event.get("validity") == "invalid":
         return (
-            f"{label}: evidence cites invalid event '{event_id}' "
+            f"{label}: {field} cites invalid event '{event_id}' "
             f"({event.get('invalid_reason', 'no reason recorded')}); "
-            "an invalid run is never evidence about a capability (I4)"
+            "an invalid run is never evidence about a capability"
         )
     kind = event.get("event_kind", "performance")
     if kind == "metadata_correction":
         return (
-            f"{label}: evidence cites metadata correction '{event_id}'; "
-            "a correction is not capability evidence (I4)"
+            f"{label}: {field} cites metadata correction '{event_id}'; "
+            "a correction is not capability evidence"
         )
     if kind == "evidence_correction":
         return (
-            f"{label}: evidence cites evidence correction '{event_id}'; "
-            "a correction is not capability evidence (I4)"
+            f"{label}: {field} cites evidence correction '{event_id}'; "
+            "a correction is not capability evidence"
         )
     if event_id in quarantined:
         return (
-            f"{label}: evidence cites quarantined event '{event_id}'; "
-            "a superseding evidence correction removed it from capability evidence (I4)"
+            f"{label}: {field} cites quarantined event '{event_id}'; "
+            "a superseding evidence correction removed it from capability evidence"
         )
     if kind != "performance":
         return (
-            f"{label}: evidence cites '{event_id}' of kind '{kind}'; "
-            "only a performance event is capability evidence (I4)"
+            f"{label}: {field} cites '{event_id}' of kind '{kind}'; "
+            "only a performance event is capability evidence"
         )
     return None
 
@@ -1355,13 +1207,11 @@ def validate_v3_references(
                     continue
                 if not history_present:
                     continue  # I5: absent History means no resolution, not invalidity
-                event = by_event_id.get(str(member))
-                if event is None:
-                    errors.append(f"{label}: evidence cites unknown event '{member}' (I4)")
-                    continue
-                problem = evidence_admissibility_problem(label, str(member), event, quarantined)
+                problem = evidence_admissibility_problem(
+                    label, "evidence", str(member), by_event_id.get(str(member)), quarantined,
+                )
                 if problem:
-                    errors.append(problem)
+                    errors.append(f"{problem} (I4)")
 
         contradicts = claim.get("contradicts")
         if isinstance(contradicts, list):
@@ -1721,7 +1571,7 @@ def change_entries(domain_dir: Path, change) -> tuple[bool, list[str], dict[str,
     with store_lock(domain_dir):
         memory = load_memory(domain_dir)
         events, event_errors = load_events(domain_dir)
-        before = validate_contents(domain_dir.name, memory, events, event_errors)
+        before, _flags = validate_contents(domain_dir.name, memory, events, event_errors)
         if before:
             return False, ["the store is already invalid; repair it before writing:", *before], {}
         candidate = copy.deepcopy(memory)
@@ -1736,7 +1586,7 @@ def change_entries(domain_dir: Path, change) -> tuple[bool, list[str], dict[str,
             ordered_entry(e) if isinstance(e, dict) and original.get(e.get("id")) != e else e
             for e in entries
         ]
-        after = validate_contents(domain_dir.name, candidate, events, event_errors)
+        after, _flags = validate_contents(domain_dir.name, candidate, events, event_errors)
         if after:
             return False, after, {}
         candidate["memory_version"] = int(candidate.get("memory_version", 0)) + 1
@@ -1997,6 +1847,15 @@ def review_store(domain_dir: Path, library_root: Path | None) -> list[str]:
 # ---------------------------------------------------------------- CLI
 
 
+def _schema_version_label(domain_dir: Path) -> str:
+    """The store's declared schema version, as the validate summary prints it."""
+    try:
+        version = load_memory(domain_dir).get("memory_schema_version")
+    except MemoryError_:
+        return "unreadable"
+    return "absent" if version is None else str(version)
+
+
 def cmd_validate(args: argparse.Namespace) -> int:
     dirs = domain_dirs(args.memory, args.domain)
     if not dirs:
@@ -2004,9 +1863,14 @@ def cmd_validate(args: argparse.Namespace) -> int:
         return 0
     total = 0
     for domain_dir in dirs:
-        errors = validate_store(domain_dir)
+        # Which schema version this store declares, so a mixed-state corpus is
+        # legible while domains migrate (T04).
+        print(f"{domain_dir.name}: memory_schema_version {_schema_version_label(domain_dir)}")
+        errors, flags = validate_store(domain_dir)
         for error in errors:
             print(f"{domain_dir.name}: {error}")
+        for flag in flags:
+            print(f"{domain_dir.name}: FLAG: {flag}")
         total += len(errors)
     if total:
         print(f"FAIL: {total} issue(s) across {len(dirs)} memory store(s)")

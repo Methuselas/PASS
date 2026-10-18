@@ -526,12 +526,14 @@ When seeding from retained history:
 
 ## 10. Schema version 3 — the claim
 
-status: validation shipped; runtime dispatch is not wired yet. The sections
-above remain the live contract for the four v1/v2 stores until each domain
-migrates independently and the legacy path is retired. A v3 store is accepted
-by `validate_v3_contents` / `validate_v3_store` in `PASS/tools/memory.py`;
-`memory.py validate` will route to them when dispatch lands, and a live v1/v2
-store is never routed here early.
+status: validation shipped; dispatch wired (T04). `memory.py validate` routes
+each store by `memory_schema_version`: schema 3 to `validate_v3_contents` /
+`validate_v3_store`, schemas 1 and 2 to the transient
+`memory_legacy_input` migration reader, anything else to the unknown-version
+error — so a mixed-state corpus validates in one run, and a live v1/v2 store is
+never routed here early. The sections above remain the live contract for the
+four v1/v2 stores until each domain migrates independently and the legacy path
+is retired by T21.
 
 The unit of a v3 store is the **claim**: one learned proposition that changes
 what the next relevant task does. There is no status, no liveness field, and no

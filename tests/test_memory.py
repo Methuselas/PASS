@@ -17,6 +17,8 @@ task. It can only show that the tooling reports honestly what it retrieved.
 
 from __future__ import annotations
 
+import ast
+import importlib.util
 import json
 import re
 import shutil
@@ -33,6 +35,16 @@ MEMORY = ROOT / "memory"
 LIBRARY = ROOT / "library"
 TOOL = ROOT / "PASS/tools/memory.py"
 SCHEMA_DOC = ROOT / "PASS/docs/MEMORY_SCHEMA.md"
+
+# Most of this suite drives the CLI, which is the supported surface. Claim
+# identity is a library function with no CLI of its own yet, so it is imported
+# directly.
+sys.path.insert(0, str(ROOT / "PASS" / "tools"))
+_MEMORY_SPEC = importlib.util.spec_from_file_location("skillset_memory_tool", TOOL)
+assert _MEMORY_SPEC and _MEMORY_SPEC.loader
+memory_tool = importlib.util.module_from_spec(_MEMORY_SPEC)
+sys.modules[_MEMORY_SPEC.name] = memory_tool
+_MEMORY_SPEC.loader.exec_module(memory_tool)
 
 VALID_ENTRY = {
     "id": "TST_MEM_001",
@@ -833,6 +845,168 @@ class EntryCommands(MemoryStoreFixture):
         self.write([VALID_ENTRY, dict(VALID_ENTRY)], [VALID_EVENT])
         before = self.store()
         self.assert_refused(self.entry_tool("add", "--json", self.new_entry()), before, "already invalid")
+
+
+class ClaimIdentity(unittest.TestCase):
+    """Schema 3 claim identity: opaque, generated once, never reused.
+
+    The legacy allocator derives the next number from the highest *surviving*
+    entry, so once retirement deletes a claim it hands the same id out twice.
+    A locally generated token needs no surviving state to be unique, which is
+    why these tests care as much about what the generator does not read as
+    about what it produces.
+    """
+
+    # Everything the generator and its helpers are allowed to reach for. An
+    # allowlist rather than a banned-word list: a denylist only catches the
+    # allocator shapes we thought of, and scanning raw text would match the
+    # docstring that explains what the generator refuses to read. Anything new
+    # appearing here fails until somebody justifies it in this list.
+    GENERATION_ALLOWED_REFERENCES = frozenset({
+        "CLAIM_DOMAIN_TOKENS", "CLAIM_DOMAIN_TOKENS.get",
+        "CLAIM_ID_TAIL_LENGTH", "CROCKFORD_ALPHABET",
+        "MemoryError_", "claim_domain_token", "_crockford",
+        # the randomness, and the timestamp that only shapes the token
+        "secrets.token_bytes", "time.time",
+        # builtins
+        "int", "int.from_bytes", "range", "str", "sorted", "len",
+    })
+
+    GENERATION_FUNCTIONS = ("claim_domain_token", "_crockford", "new_claim_id")
+
+    def generation_references(self) -> set[str]:
+        """Every non-local name the generator trio loads, as dotted paths.
+
+        Built from the syntax tree rather than the text, so prose in a docstring
+        cannot pass or fail this check.
+        """
+        tree = ast.parse((ROOT / "PASS/tools/memory.py").read_text(encoding="utf-8"))
+        functions = [
+            node for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name in self.GENERATION_FUNCTIONS
+        ]
+        self.assertEqual(
+            sorted(f.name for f in functions), sorted(self.GENERATION_FUNCTIONS),
+            "the claim id generator is not where this test expects it",
+        )
+
+        references: set[str] = set()
+        for function in functions:
+            local = {argument.arg for argument in function.args.args}
+            for node in ast.walk(function):
+                if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+                    local.add(node.id)
+                elif isinstance(node, ast.comprehension) and isinstance(node.target, ast.Name):
+                    local.add(node.target.id)
+            for node in ast.walk(function):
+                if isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name):
+                    references.add(f"{node.value.id}.{node.attr}")
+                elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+                    if node.id not in local:
+                        references.add(node.id)
+        # An attribute access contributes its dotted path, not its root.
+        return {
+            reference for reference in references
+            if not any(other.startswith(f"{reference}.") for other in references)
+        }
+
+    def test_generated_id_matches_the_locked_shape(self) -> None:
+        claim_id = memory_tool.new_claim_id("software-engineering")
+        self.assertRegex(claim_id, memory_tool.CLAIM_ID_RE)
+        self.assertTrue(claim_id.startswith("SE_MEM_"), claim_id)
+        self.assertEqual(len(claim_id.split("_MEM_")[1]), 26, claim_id)
+        self.assertEqual(memory_tool.claim_id_problems(claim_id, "software-engineering"), [])
+
+    def test_domain_token_comes_from_the_table_not_the_directory_name(self) -> None:
+        # The case the table exists for: no string rule turns `game-design`
+        # into `GD` and `art` into `ART` and `writing` into `WRI`.
+        self.assertTrue(memory_tool.new_claim_id("game-design").startswith("GD_MEM_"))
+        self.assertTrue(memory_tool.new_claim_id("art").startswith("ART_MEM_"))
+        self.assertTrue(memory_tool.new_claim_id("writing").startswith("WRI_MEM_"))
+        for domain, token in memory_tool.CLAIM_DOMAIN_TOKENS.items():
+            with self.subTest(domain=domain):
+                self.assertTrue(memory_tool.new_claim_id(domain).startswith(f"{token}_MEM_"))
+
+    def test_unmapped_domain_is_an_error(self) -> None:
+        with self.assertRaises(memory_tool.MemoryError_) as caught:
+            memory_tool.new_claim_id("mathematics")
+        self.assertIn("CLAIM_DOMAIN_TOKENS", str(caught.exception))
+
+    def test_a_legacy_sequence_tail_is_rejected(self) -> None:
+        for legacy in ("SE_MEM_104", "SE_MEM_001", "SE_MEM_46"):
+            with self.subTest(id=legacy):
+                self.assertTrue(memory_tool.claim_id_problems(legacy, "software-engineering"))
+
+    def test_shape_alone_cannot_catch_a_legacy_id_padded_to_the_full_length(self) -> None:
+        """Stated so the shape check is not mistaken for the no-legacy-id guarantee.
+
+        Digits are Crockford base32 characters, so a sequence number padded to 26
+        places is a structurally valid id. What actually stops a legacy id
+        becoming a live claim id is the migration check that compares every
+        emitted id against the real legacy entry ids; no regex can do it.
+        """
+        padded = "SE_MEM_" + "104".rjust(26, "0")
+        self.assertEqual(memory_tool.claim_id_problems(padded, "software-engineering"), [])
+
+    def test_a_foreign_domain_prefix_is_rejected(self) -> None:
+        foreign = memory_tool.new_claim_id("game-design")
+        self.assertTrue(memory_tool.claim_id_problems(foreign, "software-engineering"))
+        self.assertEqual(memory_tool.claim_id_problems(foreign, "game-design"), [])
+
+    def test_excluded_crockford_letters_are_rejected(self) -> None:
+        for letter in "ILOU":
+            tail = letter + "0" * 25
+            with self.subTest(letter=letter):
+                self.assertTrue(memory_tool.claim_id_problems(f"SE_MEM_{tail}", "software-engineering"))
+
+    def test_a_malformed_id_is_rejected_rather_than_crashing(self) -> None:
+        for bad in (None, "", 104, "SE_MEM_", "SE_MEM_" + "0" * 25, "SE_MEM_" + "0" * 27, "se_mem_" + "0" * 26):
+            with self.subTest(id=bad):
+                self.assertTrue(memory_tool.claim_id_problems(bad, "software-engineering"))
+
+    def test_ten_thousand_ids_are_distinct(self) -> None:
+        ids = [memory_tool.new_claim_id("writing") for _ in range(10_000)]
+        self.assertEqual(len(set(ids)), 10_000)
+        self.assertEqual(memory_tool.duplicate_claim_ids(ids), [])
+
+    def test_duplicates_are_reported_within_and_across_stores(self) -> None:
+        one = memory_tool.new_claim_id("art")
+        two = memory_tool.new_claim_id("art")
+        self.assertEqual(memory_tool.duplicate_claim_ids([one, two]), [])
+        self.assertEqual(memory_tool.duplicate_claim_ids([one, two, one]), [one])
+        # S5b is the same check over the ids of every store the caller could read.
+        self.assertEqual(memory_tool.duplicate_claim_ids([one] + [two] + [one, two]), sorted([one, two]))
+
+    def test_generation_reads_no_allocator_counter_or_identity(self) -> None:
+        """The grep that keeps the allocator from growing back.
+
+        If the generator ever needs to read a file, a counter, or the ids already
+        present, never-reuse has stopped being a property of the token and has
+        become state somebody has to maintain.
+        """
+        references = self.generation_references()
+        unexpected = sorted(references - self.GENERATION_ALLOWED_REFERENCES)
+        self.assertEqual(
+            unexpected, [],
+            "claim id generation reached for something new; if it is not allocator "
+            "state, machine identity, or a file, add it to GENERATION_ALLOWED_REFERENCES "
+            f"deliberately: {unexpected}",
+        )
+        # The randomness is the uniqueness, so its absence is the real failure.
+        self.assertIn("secrets.token_bytes", references)
+
+    def test_the_legacy_allocator_is_still_present_for_the_legacy_tree(self) -> None:
+        """T01 adds the vNext mechanism beside the old one; T05 removes the old one.
+
+        Deleting it here would break every v1/v2 store before anything can write
+        a v3 claim.
+        """
+        self.assertTrue(hasattr(memory_tool, "next_entry_id"))
+        self.assertTrue(hasattr(memory_tool, "next_event_id"))
+
+    def test_training_history_event_ids_are_untouched(self) -> None:
+        events = [{"event_id": "ART_EV_0001"}, {"event_id": "ART_EV_0002"}]
+        self.assertEqual(memory_tool.next_event_id(events, "art"), "ART_EV_0003")
 
 
 if __name__ == "__main__":

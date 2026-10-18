@@ -28,7 +28,9 @@ import copy
 import json
 import os
 import re
+import secrets
 import sys
+import time
 import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -145,11 +147,123 @@ ID_RE = re.compile(r"^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$")
 STALE_DAYS = 180
 
 
-# ---------------------------------------------------------------- loading
-
-
 class MemoryError_(Exception):
     """Raised when a store cannot be read at all."""
+
+
+# ------------------------------------------------- claim identity (schema 3)
+
+# The token a claim id carries for its domain. It is a table rather than a
+# derivation because no rule produces all four: `art` keeps its whole name,
+# `game-design` and `software-engineering` take initials, and `writing`
+# truncates. Deriving it by string manipulation would silently invent a token
+# for a domain nobody has decided on, so an unmapped domain is an error.
+#
+# The token exists for readability and cross-domain diagnosis — so an id read in
+# a receipt or a `contradicts` link says which skill holds the claim. It is not
+# the source of uniqueness; the tail is.
+CLAIM_DOMAIN_TOKENS = {
+    "art": "ART",
+    "game-design": "GD",
+    "software-engineering": "SE",
+    "writing": "WRI",
+}
+
+# Crockford base32: the digits and uppercase letters less I, L, O and U, which
+# are excluded because they misread as 1, 1, 0 and V.
+CROCKFORD_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+CLAIM_ID_TAIL_LENGTH = 26
+CLAIM_ID_RE = re.compile(
+    r"^(?:%s)_MEM_[%s]{%d}$"
+    % ("|".join(sorted(set(CLAIM_DOMAIN_TOKENS.values()))),
+       CROCKFORD_ALPHABET,
+       CLAIM_ID_TAIL_LENGTH)
+)
+
+
+def claim_domain_token(skillset: str) -> str:
+    """The id token for a domain, or an error naming the table."""
+    token = CLAIM_DOMAIN_TOKENS.get(str(skillset))
+    if token is None:
+        known = ", ".join(sorted(CLAIM_DOMAIN_TOKENS))
+        raise MemoryError_(
+            f"no claim id token for domain '{skillset}'; CLAIM_DOMAIN_TOKENS covers {known}. "
+            "Add the domain to the table deliberately rather than deriving a token from its name"
+        )
+    return token
+
+
+def _crockford(value: int, length: int) -> str:
+    return "".join(
+        CROCKFORD_ALPHABET[(value >> (5 * position)) & 31]
+        for position in range(length - 1, -1, -1)
+    )
+
+
+def new_claim_id(skillset: str) -> str:
+    """A fresh claim id, generated from nothing but this process's randomness.
+
+    128 bits rendered as 26 Crockford base32 characters: 48 bits of millisecond
+    timestamp followed by 80 bits from `secrets`. That is ULID's shape, and the
+    80 random bits are what make two writers who never meet miss each other.
+
+    Nothing here reads persisted state. No counter, no high-water mark, no
+    allocation tombstone, no retired-id list, no `memory_version`, no existing
+    claim, no version control, no training history, and no model, machine,
+    process or session identity. That is the whole point: retirement deletes a
+    claim, so an allocator derived from the surviving claims would hand the same
+    id out twice.
+
+    The timestamp is a generator detail and carries no meaning a reader may use.
+    Nothing sorts, ranks, or infers recency from an id (the retrieval rule in
+    MEMORY_SCHEMA.md); callers treat the whole string as opaque.
+    """
+    token = claim_domain_token(skillset)
+    moment = int(time.time() * 1000) & ((1 << 48) - 1)
+    value = (moment << 80) | int.from_bytes(secrets.token_bytes(10), "big")
+    return f"{token}_MEM_{_crockford(value, CLAIM_ID_TAIL_LENGTH)}"
+
+
+def claim_id_problems(claim_id: Any, skillset: str) -> list[str]:
+    """Why this is not a valid claim id for this store, or nothing.
+
+    Shape only. No check asserts which library produced a token, because that is
+    not knowable from a store; practical uniqueness is a property of the
+    generator, and the two things a file can actually prove are duplication
+    within a store and across the stores a caller supplied.
+    """
+    if not isinstance(claim_id, str) or not claim_id:
+        return ["id must be a non-empty string"]
+    if not CLAIM_ID_RE.fullmatch(claim_id):
+        return [
+            f"id '{claim_id}' is not <DOMAIN_TOKEN>_MEM_<{CLAIM_ID_TAIL_LENGTH} Crockford base32 "
+            "characters>; a legacy sequence number is not a claim id"
+        ]
+    token = claim_domain_token(skillset)
+    if not claim_id.startswith(f"{token}_MEM_"):
+        return [f"id '{claim_id}' does not carry this store's domain token '{token}'"]
+    return []
+
+
+def duplicate_claim_ids(ids: list[str]) -> list[str]:
+    """Ids appearing more than once in the sequence handed in.
+
+    Called with one store's ids to enforce uniqueness within it, and with
+    several stores' ids concatenated to enforce it across whatever the caller
+    could actually read. A single-store validation stays complete on its own
+    terms; this never claims global uniqueness, which no single file can prove.
+    """
+    seen: set[str] = set()
+    repeated: set[str] = set()
+    for claim_id in ids:
+        if claim_id in seen:
+            repeated.add(claim_id)
+        seen.add(claim_id)
+    return sorted(repeated)
+
+
+
+# ---------------------------------------------------------------- loading
 
 
 def domain_dirs(memory_root: Path, domain: str | None) -> list[Path]:

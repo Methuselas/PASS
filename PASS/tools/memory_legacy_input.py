@@ -9,14 +9,16 @@ store-level check from file-level keys through evidence admissibility. It is a
 reader for migration and mixed-state validation only — the dispatch inside
 `PASS/tools/memory.py` is its sole importer (the migrator of T13 becomes the
 second), which `tests/test_memory.py::SchemaDispatch` enforces as text. It must
-never be re-exported, wrapped, or reached from `entry`, `query`, `append`,
-`compact`, `review`, or any other command.
+never be re-exported, wrapped, or reached from `query`, `append`, `compact`,
+`review`, or any other command. There is no legacy write path left to reach it:
+T05 made `memory.py` a schema-3 writer, so a legacy store is read until its
+domain migrates and is changed by migrating it.
 
 Shared names come from `memory` rather than being duplicated: the semantic
 ladder (`CONFIDENCE_VALUES`), the failure layers, the forbidden legacy
-vocabulary, the date/id shapes, `ENTRY_REQUIRED` (which stays in `memory.py`
-because the runtime write path reads it), and the one admissibility
-implementation both claim sides call. The event path — `validate_event`, its
+vocabulary, the date/id shapes, `ENTRY_REQUIRED` (which stays defined in
+`memory.py` so that T21 removes this module in one deletion), and the one
+admissibility implementation both claim sides call. The event path — `validate_event`, its
 constants, duplicate event ids, correction ordering — stays in `memory.py`,
 because Training History is not versioned (R2.5 §8.4) and validates for every
 store version.

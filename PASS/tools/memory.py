@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Skillset Memory tooling: validate, query, append, compact, review, entry.
+"""Skillset Memory tooling: validate, query, append, compact, review, add, update,
+retire, show.
 
 Memory is the portable compact current state of a skill: learned principles are
 kept distinct from empirical training results. Training history is the event
@@ -47,9 +48,11 @@ SUPPORTED_SCHEMA_VERSIONS = {1, 2}
 # statuses, origins, the optional face of the entry keys, file-level keys) live
 # with `validate_entry` in `memory_legacy_input.py`, the transient migration
 # reader T21 deletes. What stays here serves surviving runtime paths: the
-# semantic ladder and failure layers are shared with the v3 path, retrievable
-# status feeds `query`/`review`, and `ENTRY_REQUIRED` below is read by
-# `entry update`, which no runtime path may route through that module.
+# semantic ladder and failure layers are shared with the v3 path, and
+# retrievable status feeds `query`/`review` until T07 and T08 reach them.
+# `ENTRY_REQUIRED` below is the one exception — since T05 removed the legacy
+# write path, its only reader is the legacy module, which imports it from here.
+# It stays put rather than moving so that T21 deletes one module, not two edits.
 CONFIDENCE_VALUES = {"provisional", "repeated", "strong"}
 RETRIEVABLE_STATUS = {"active", "monitoring"}
 FAILURE_LAYERS = {
@@ -1458,37 +1461,47 @@ def dump(data: Any) -> str:
 
 
 def spliced_store(current: str, memory: dict[str, Any]) -> str | None:
-    """The new store text with every unchanged entry kept byte for byte.
+    """The new store text with every unchanged member kept byte for byte.
 
-    Re-serializing a whole store re-wraps every hand-wrapped observation, so a
+    Re-serializing a whole store re-wraps every hand-wrapped sentence, so a
     one-field change would rewrite hundreds of lines. Instead the file is cut at
-    its top-level `- id:` entries, unchanged entries keep their text, and only
-    changed or new entries (plus `memory_version`) are dumped. None means the file
+    its top-level `- id:` members, unchanged members keep their text, and only
+    changed or new ones (plus `memory_version`) are dumped. None means the file
     is not in that shape; the caller then writes a full dump.
+
+    The collection key is read from the store being written: `claims` for schema
+    3, `entries` for a legacy store this still has to read back. R2.0 is explicit
+    that byte-splicing is implementation rather than contract — it survives here
+    because one key name was the whole cost of keeping it.
     """
+    collection = "claims" if "claims" in memory else "entries"
     text = current.replace("\r\n", "\n")
     starts = [m.start() for m in re.finditer(r"(?m)^- id:", text)]
     if not starts:
         return None
     header, bodies = text[:starts[0]], [text[a:b] for a, b in zip(starts, starts[1:] + [len(text)])]
     try:
-        old_header = yaml.safe_load(header + " []\n") if header.rstrip().endswith("entries:") else None
-        old_entries = [yaml.safe_load(body)[0] for body in bodies]
+        old_header = (
+            yaml.safe_load(header + " []\n")
+            if header.rstrip().endswith(f"{collection}:")
+            else None
+        )
+        old_members = [yaml.safe_load(body)[0] for body in bodies]
     except (yaml.YAMLError, TypeError, KeyError, IndexError):
         return None
-    new_header = {k: v for k, v in memory.items() if k != "entries"}
-    if not isinstance(old_header, dict) or {k: v for k, v in old_header.items() if k not in {"entries", "memory_version"}} != {
+    new_header = {k: v for k, v in memory.items() if k != collection}
+    if not isinstance(old_header, dict) or {k: v for k, v in old_header.items() if k not in {collection, "memory_version"}} != {
         k: v for k, v in new_header.items() if k != "memory_version"
     }:
         return None
     header = re.sub(r"(?m)^memory_version:.*$", f"memory_version: {memory['memory_version']}", header, count=1)
-    kept = {entry.get("id"): body for entry, body in zip(old_entries, bodies) if isinstance(entry, dict)}
-    unchanged = {entry.get("id"): entry for entry in old_entries if isinstance(entry, dict)}
+    kept = {member.get("id"): body for member, body in zip(old_members, bodies) if isinstance(member, dict)}
+    unchanged = {member.get("id"): member for member in old_members if isinstance(member, dict)}
     parts = []
-    for entry in memory.get("entries") or []:
-        key = entry.get("id") if isinstance(entry, dict) else None
-        body = kept.get(key) if unchanged.get(key) == entry else None
-        parts.append(body if body is not None else dump([entry]))
+    for member in memory.get(collection) or []:
+        key = member.get("id") if isinstance(member, dict) else None
+        body = kept.get(key) if unchanged.get(key) == member else None
+        parts.append(body if body is not None else dump([member]))
     return header + "".join(part if part.endswith("\n") else part + "\n" for part in parts)
 
 
@@ -1533,58 +1546,123 @@ def store_lock(domain_dir: Path):
         path.unlink(missing_ok=True)
 
 
-# ---------------------------------------------------------------- entries
+# ---------------------------------------------------------------- claims
 
-# The order the schema documents; new and edited entries are written in it so
-# diffs stay small and every entry reads the same way.
-ENTRY_KEY_ORDER = (
-    "id", "scope_type", "scope_id", "type", "evidence_class", "observation", "confidence",
-    "status", "diagnosis", "boundary", "evidence_count", "evidence_events", "evidence_origin",
-    "likely_owners", "interventions", "retrieval_cues", "runtime_scope", "superseded_by",
-    "last_verified",
+# R2.5 §9.4: the question a claim-admitting write asks, verbatim from the R2.4
+# admission rule and its Canon-only qualifier. It is printed, never evaluated.
+# Whether a stated delta is real is a semantic judgment, and a validator that
+# answered it would have exceeded its authority; what the tool can do is put the
+# question in front of whoever is writing, at the moment of the write, rather
+# than leave it to be inferred afterwards.
+ADMISSION_QUESTION = (
+    "Relative to this skill with Canon and no Memory, what does the next relevant\n"
+    "task do differently because this is remembered?"
+)
+CANON_ONLY_BASELINE = (
+    "Canon-only baseline: the comparison baseline is this skill + Canon + no Memory.\n"
+    "Canon-as-written sits at the baseline. Therefore merely confirming that Canon\n"
+    "worked is not a Memory delta.\n"
+    "  - A restatement of a card, in the card's own terms, is not Memory.\n"
+    "  - A delta that exists only because the skill failed to read available Canon is\n"
+    "    a retrieval failure, not learned craft knowledge.\n"
+    "  - A delta that would disappear if Canon were simply applied as written belongs\n"
+    "    to the Canon-quality conversation, not to Memory."
+)
+# The keys whose change re-opens admission: the claim itself, and the behavioral
+# delta that is the reason for keeping it. Editing an envelope, a cue, a canon
+# link or a date does not re-ask the question.
+ADMITTING_KEYS = ("claim", "delta")
+
+# The write contract, stated once and attached to each writing subcommand's
+# --help so the rules sit where an operator reads them.
+WRITE_DISCIPLINE = (
+    "Every write validates the whole resulting store first, replaces the file atomically "
+    "under a per-domain lock, raises memory_version by exactly one, and confirms the "
+    "result on readback; a refused write changes nothing. Currentness is presence: a "
+    "claim that is no longer current leaves the store through `retire`, which writes no "
+    "tombstone and no lineage. A replacement is `retire` then `add`, with a freshly "
+    "generated id and independently re-derived confidence; nothing is inherited. Writing "
+    "requires memory_schema_version 3."
 )
 
 
-def ordered_entry(entry: dict[str, Any]) -> dict[str, Any]:
-    known = {key: entry[key] for key in ENTRY_KEY_ORDER if key in entry}
-    verified = known.get("last_verified")
-    if isinstance(verified, str) and DATE_RE.fullmatch(verified):
-        known["last_verified"] = date.fromisoformat(verified)
-    return {**known, **{key: value for key, value in entry.items() if key not in known}}
+def print_admission_prompt(stream: Any = None) -> None:
+    """Put the admission question in front of the operator before the write."""
+    stream = sys.stdout if stream is None else stream
+    # Deliberately ASCII, like every other line this tool prints: the Windows
+    # console encoding is not UTF-8, and a section sign here would arrive as a
+    # decode error in whatever reads the transcript.
+    print(
+        "ADMISSION (R2.5, section 9.4) - a prompt, not a gate: this tool validates "
+        "the shape of `delta` and never judges whether the delta is real.",
+        file=stream,
+    )
+    print(ADMISSION_QUESTION, file=stream)
+    print(CANON_ONLY_BASELINE, file=stream)
 
 
-def next_entry_id(entries: list[dict[str, Any]]) -> str:
-    numbered = [re.fullmatch(r"(.*_)(\d+)", str(e.get("id", ""))) for e in entries]
-    numbered = [m for m in numbered if m]
-    if not numbered:
-        raise MemoryError_("this store has no numbered entry ids to continue; give the new entry an explicit id")
-    prefix = max(numbered, key=lambda m: int(m.group(2))).group(1)
-    width = max(len(m.group(2)) for m in numbered)
-    number = max(int(m.group(2)) for m in numbered if m.group(1) == prefix) + 1
-    return f"{prefix}{number:0{width}d}"
+def ordered_claim(claim: dict[str, Any]) -> dict[str, Any]:
+    """One claim in the order §3 documents, so every diff reads the same way.
+
+    Dates become `date` objects, which YAML writes unquoted and reads back as
+    dates - the readback comparison in `change_claims` is only meaningful if what
+    was written round-trips to what was built.
+    """
+    known = {key: claim[key] for key in CLAIM_KEY_ORDER if key in claim}
+    for key in ("last_verified", "revalidate_after"):
+        value = known.get(key)
+        if isinstance(value, str) and DATE_RE.fullmatch(value):
+            known[key] = date.fromisoformat(value)
+    return {**known, **{key: value for key, value in claim.items() if key not in known}}
 
 
-def change_entries(domain_dir: Path, change) -> tuple[bool, list[str], dict[str, Any]]:
-    """Apply `change(entries)` to a copy of the store, validate the whole result,
+def find_claim(claims: list[dict[str, Any]], claim_id: str) -> dict[str, Any] | None:
+    return next((c for c in claims if isinstance(c, dict) and c.get("id") == claim_id), None)
+
+
+def change_claims(domain_dir: Path, change) -> tuple[bool, list[str], dict[str, Any]]:
+    """Apply `change(claims)` to a copy of the store, validate the whole result,
     then write it atomically and confirm it on readback. Nothing is written when
-    the change or the resulting store is invalid."""
+    the store was already invalid, the change reports a problem, the resulting
+    store is invalid, or the readback disagrees.
+
+    Those safety properties are inherited unchanged from the legacy writer this
+    replaces; what changed is the collection it edits (`claims`), the validator
+    the result is checked against, and the refusal of any store that is not
+    schema 3. Writing is v3-only deliberately (R2.5 §9.1): a legacy store stays
+    readable until its domain migrates, and the way to change one is to migrate
+    it, not to keep a second writer alive behind it.
+
+    History is loaded only when it sits beside the store, because beside a v3
+    store its absence means "no evidence resolution" (I5) rather than a missing
+    file.
+    """
     with store_lock(domain_dir):
         memory = load_memory(domain_dir)
-        events, event_errors = load_events(domain_dir)
+        declared = memory.get("memory_schema_version")
+        if declared != V3_SCHEMA_VERSION:
+            return False, [
+                f"this store declares memory_schema_version {declared!r}; memory.py writes "
+                f"schema {V3_SCHEMA_VERSION} only. Migrate the domain before writing to it"
+            ], {}
+        if (domain_dir / "training_history.jsonl").is_file():
+            events, event_errors = load_events(domain_dir)
+        else:
+            events, event_errors = None, None
         before, _flags = validate_contents(domain_dir.name, memory, events, event_errors)
         if before:
             return False, ["the store is already invalid; repair it before writing:", *before], {}
         candidate = copy.deepcopy(memory)
-        entries = candidate.get("entries") or []
-        candidate["entries"] = entries
-        problems = change(entries)
+        claims = candidate.get("claims") or []
+        candidate["claims"] = claims
+        problems = change(claims)
         if problems:
             return False, problems, {}
-        # Normalize only what this write touched, so untouched entries keep their bytes.
-        original = {e.get("id"): e for e in memory.get("entries") or [] if isinstance(e, dict)}
-        candidate["entries"] = [
-            ordered_entry(e) if isinstance(e, dict) and original.get(e.get("id")) != e else e
-            for e in entries
+        # Normalize only what this write touched, so untouched claims keep their bytes.
+        original = {c.get("id"): c for c in memory.get("claims") or [] if isinstance(c, dict)}
+        candidate["claims"] = [
+            ordered_claim(c) if isinstance(c, dict) and original.get(c.get("id")) != c else c
+            for c in claims
         ]
         after, _flags = validate_contents(domain_dir.name, candidate, events, event_errors)
         if after:
@@ -1597,87 +1675,107 @@ def change_entries(domain_dir: Path, change) -> tuple[bool, list[str], dict[str,
     return True, [], candidate
 
 
-def find_entry(entries: list[dict[str, Any]], entry_id: str) -> dict[str, Any] | None:
-    return next((e for e in entries if isinstance(e, dict) and e.get("id") == entry_id), None)
+def add_claim(domain_dir: Path, claim: dict[str, Any]) -> tuple[bool, list[str], str]:
+    """Add one claim under an id this process generates (R2.5 §3.4, §9.3).
 
+    The caller never supplies the id. There is no allocator to consult and
+    nothing to continue from: retirement physically removes a claim, so a number
+    derived from the surviving claims would be handed out twice. A supplied id is
+    refused rather than honoured, because the id a caller is most likely to have
+    in hand is the one that just left the store.
 
-def add_entry(domain_dir: Path, entry: dict[str, Any]) -> tuple[bool, list[str], str]:
-    if not isinstance(entry, dict):
-        return False, ["the entry must be a JSON object"], ""
-    entry = dict(entry)
-    added: list[str] = []
+    `confidence` is whatever the caller stated. Nothing here reads the `evidence`
+    list, counts events, looks at a date, or consults a claim that was retired, in
+    order to produce, suggest or adjust it (F1, F4).
+    """
+    if not isinstance(claim, dict):
+        return False, ["the claim must be a JSON object"], ""
+    if "id" in claim:
+        return False, [
+            "a claim id is generated by `add` and never supplied: drop the `id` key. "
+            "A retired claim's id is never reissued, so there is nothing to carry over"
+        ], ""
+    claim = dict(claim)
+    claim["id"] = new_claim_id(domain_dir.name)
 
-    def change(entries: list[dict[str, Any]]) -> list[str]:
-        entry.setdefault("id", next_entry_id(entries))
-        if find_entry(entries, entry["id"]):
-            return [f"entry '{entry['id']}' already exists; use `entry update`"]
-        entries.append(entry)
-        added.append(entry["id"])
+    def change(claims: list[dict[str, Any]]) -> list[str]:
+        if find_claim(claims, claim["id"]):
+            present = claim["id"]
+            return [f"generated id '{present}' is already in this store; run `add` again"]
+        claims.append(claim)
         return []
 
-    ok, problems, _ = change_entries(domain_dir, change)
-    return ok, problems, added[0] if added else ""
+    ok, problems, _ = change_claims(domain_dir, change)
+    return ok, problems, claim["id"] if ok else ""
 
 
-def update_entry(domain_dir: Path, entry_id: str, patch: dict[str, Any]) -> tuple[bool, list[str]]:
-    """Merge `patch` into one entry; a null value removes an optional key."""
+def update_claim(domain_dir: Path, claim_id: str, patch: dict[str, Any]) -> tuple[bool, list[str]]:
+    """Merge `patch` into one claim; a null value removes an optional key.
+
+    Identity is not updatable, and no patch may reach it. A claim whose subject
+    has moved far enough to want a different id is a different claim: retire this
+    one and add that one.
+    """
     if not isinstance(patch, dict) or not patch:
         return False, ["the update must be a non-empty JSON object"]
     if "id" in patch:
-        return False, ["an entry id never changes; add a new entry and supersede this one instead"]
-    removed_required = sorted(k for k, v in patch.items() if v is None and k in ENTRY_REQUIRED)
+        return False, [
+            "a claim id never changes; a claim that needs a different id is a different "
+            "claim: `retire` this one and `add` the replacement, with a freshly generated "
+            "id and independently re-derived confidence"
+        ]
+    removed_required = sorted(k for k, v in patch.items() if v is None and k in CLAIM_REQUIRED)
     if removed_required:
         return False, [f"required key(s) cannot be removed: {', '.join(removed_required)}"]
 
-    def change(entries: list[dict[str, Any]]) -> list[str]:
-        entry = find_entry(entries, entry_id)
-        if entry is None:
-            return [f"no entry '{entry_id}'"]
-        if patch.get("status") == "superseded":
-            return ["mark an entry superseded with `entry supersede`, which names its replacement"]
+    def change(claims: list[dict[str, Any]]) -> list[str]:
+        claim = find_claim(claims, claim_id)
+        if claim is None:
+            return [f"no claim '{claim_id}'"]
         for key, value in patch.items():
             if value is None:
-                entry.pop(key, None)
+                claim.pop(key, None)
             else:
-                entry[key] = value
+                claim[key] = value
         return []
 
-    ok, problems, _ = change_entries(domain_dir, change)
+    ok, problems, _ = change_claims(domain_dir, change)
     return ok, problems
 
 
-def supersede_entry(
-    domain_dir: Path, entry_id: str, replacement_id: str | None, replacement: dict[str, Any] | None,
-) -> tuple[bool, list[str], str]:
-    """Retire one entry in favour of another, optionally adding the replacement in
-    the same write so the store is never left pointing at nothing."""
-    chosen: list[str] = []
+def retire_claim(domain_dir: Path, claim_id: str, reason: str | None) -> tuple[bool, list[str]]:
+    """Remove one claim. Currentness is presence, so retirement is removal
+    (R2.5 §1.4-§1.5).
 
-    def change(entries: list[dict[str, Any]]) -> list[str]:
-        old = find_entry(entries, entry_id)
-        if old is None:
-            return [f"no entry '{entry_id}'"]
-        if old.get("status") == "superseded":
-            return [f"'{entry_id}' is already superseded by '{old.get('superseded_by')}'"]
-        target = replacement_id
-        if replacement is not None:
-            new = dict(replacement)
-            new.setdefault("id", next_entry_id(entries))
-            if find_entry(entries, new["id"]):
-                return [f"entry '{new['id']}' already exists; pass it with --by instead"]
-            entries.append(new)
-            target = new["id"]
-        if not target or find_entry(entries, target) is None:
-            return [f"replacement entry '{target}' does not exist"]
-        if target == entry_id:
-            return ["an entry cannot supersede itself"]
-        old["status"] = "superseded"
-        old["superseded_by"] = target
-        chosen.append(target)
+    `reason` is required and operator-facing at the moment of the write. It is
+    deliberately written nowhere: a retired claim's reason is lineage, and lineage
+    is portable history-side, never a tombstone, a retired-id list, a sidecar, or
+    a surviving field. The store left behind is a complete and correct statement
+    of current learned state, with nothing missing from it.
+
+    A claim another claim declares a contradiction with cannot leave on its own:
+    the whole-store validation that follows fails I6 and the write is refused.
+    That refusal is deliberate - R2.5 §4.8 forbids automatic erasure of a
+    contradiction marker, so `retire` may not quietly strip the surviving side to
+    let itself through. It also means a contradicted pair is currently stuck:
+    resolving one needs a single write touching both claims, and that operation
+    is not on the §8.3 surface. T08 sees the pair as a review item.
+    """
+    if not isinstance(reason, str) or not reason.strip():
+        return False, [
+            "retiring a claim requires an explicit reason; it is operator-facing at the "
+            "moment of the write and is deliberately not persisted anywhere"
+        ]
+
+    def change(claims: list[dict[str, Any]]) -> list[str]:
+        claim = find_claim(claims, claim_id)
+        if claim is None:
+            return [f"no claim '{claim_id}'"]
+        claims.remove(claim)
         return []
 
-    ok, problems, _ = change_entries(domain_dir, change)
-    return ok, problems, chosen[0] if chosen else ""
+    ok, problems, _ = change_claims(domain_dir, change)
+    return ok, problems
 
 
 def compact_link(domain_dir: Path, entry_id: str, event_ids: list[str], allow_drop: bool = False) -> tuple[bool, list[str]]:
@@ -1992,32 +2090,40 @@ def read_json_argument(value: str | None) -> Any:
         raise MemoryError_(f"--json is not valid JSON: {exc}") from exc
 
 
-def cmd_entry(args: argparse.Namespace) -> int:
+def cmd_claim(args: argparse.Namespace) -> int:
+    """`add`, `update`, `retire` and `show` against one domain's v3 store.
+
+    The admission prompt is printed before `add` and before any `update` that
+    touches a key in `ADMITTING_KEYS`, whatever the write then turns out to be:
+    it asks the operator a question, so it would be useless printed only after
+    the tool had already agreed to the write.
+    """
     dirs = domain_dirs(args.memory, args.domain)
     if not args.domain or len(dirs) != 1:
-        print("FAIL: entry commands require exactly one --domain", file=sys.stderr)
+        print(f"FAIL: {args.command} requires exactly one --domain", file=sys.stderr)
         return 1
     domain_dir = dirs[0]
-    if args.action == "show":
-        entry = find_entry(load_memory(domain_dir).get("entries") or [], args.id)
-        if entry is None:
-            print(f"FAIL: no entry '{args.id}'", file=sys.stderr)
+    if args.command == "show":
+        claim = find_claim(load_memory(domain_dir).get("claims") or [], args.id)
+        if claim is None:
+            print(f"FAIL: no claim '{args.id}'", file=sys.stderr)
             return 1
-        print(yaml.safe_dump(entry, sort_keys=False, allow_unicode=True, width=88), end="")
+        print(yaml.safe_dump(claim, sort_keys=False, allow_unicode=True, width=88), end="")
         return 0
-    data = read_json_argument(args.json)
-    if args.action == "add":
-        ok, problems, entry_id = add_entry(domain_dir, data)
-        done = f"added {entry_id}"
-    elif args.action == "update":
-        ok, problems = update_entry(domain_dir, args.id, data)
-        done = f"updated {args.id}"
+    if args.command == "retire":
+        ok, problems = retire_claim(domain_dir, args.id, args.reason)
+        done = f"retired {args.id}; its reason stays with you and was written nowhere"
+    elif args.command == "add":
+        data = read_json_argument(args.json)
+        print_admission_prompt()
+        ok, problems, claim_id = add_claim(domain_dir, data)
+        done = f"added {claim_id}"
     else:
-        if (args.by is None) == (data is None):
-            print("FAIL: supersede needs exactly one of --by <existing id> or --json <new entry>", file=sys.stderr)
-            return 1
-        ok, problems, entry_id = supersede_entry(domain_dir, args.id, args.by, data)
-        done = f"{args.id} superseded by {entry_id}"
+        data = read_json_argument(args.json)
+        if isinstance(data, dict) and any(key in data for key in ADMITTING_KEYS):
+            print_admission_prompt()
+        ok, problems = update_claim(domain_dir, args.id, data)
+        done = f"updated {args.id}"
     if not ok:
         for problem in problems:
             print(f"{domain_dir.name}: {problem}", file=sys.stderr)
@@ -2080,33 +2186,39 @@ def main() -> int:
     review = sub.add_parser("review", parents=[common], help="List entries that need revalidation.")
     review.add_argument("--library", type=Path, default=default_library_root())
 
-    entry = sub.add_parser(
-        "entry",
-        help="Add, update, supersede or show one skill_memory.yaml entry; the supported way to change entries.",
-        description=(
-            "Every write validates the whole resulting store first, replaces the file atomically "
-            "under a per-domain lock, and confirms it on readback; a refused write changes nothing. "
-            "There is no delete: evidence is never deleted, so retire an entry by status "
-            "(resolved, obsolete) or supersede it."
-        ),
+    add = sub.add_parser(
+        "add", parents=[common], description=WRITE_DISCIPLINE,
+        help="Add one claim under a generated id; the caller never supplies one.",
     )
-    actions = entry.add_subparsers(dest="action", required=True)
-    add = actions.add_parser("add", parents=[common], help="Add an entry; the id is assigned when omitted.")
-    add.add_argument("--json", required=True, help="Path to, or literal, JSON entry.")
-    update = actions.add_parser("update", parents=[common], help="Merge fields into an entry; null removes an optional key.")
+    add.add_argument("--json", required=True, help="Path to, or literal, JSON claim.")
+
+    update = sub.add_parser(
+        "update", parents=[common], description=WRITE_DISCIPLINE,
+        help="Merge fields into one claim; null removes an optional key. The id never changes.",
+    )
     update.add_argument("--id", required=True)
     update.add_argument("--json", required=True, help="Path to, or literal, JSON object of changed fields.")
-    supersede = actions.add_parser("supersede", parents=[common], help="Retire an entry in favour of a replacement.")
-    supersede.add_argument("--id", required=True)
-    supersede.add_argument("--by", default=None, help="An existing replacement entry id.")
-    supersede.add_argument("--json", default=None, help="A new replacement entry, added in the same write.")
-    show = actions.add_parser("show", parents=[common], help="Print one entry, whatever its status.")
+
+    retire = sub.add_parser(
+        "retire", parents=[common], description=WRITE_DISCIPLINE,
+        help="Remove one claim; a replacement is `retire` then `add`, with a fresh id and "
+             "independently re-derived confidence.",
+    )
+    retire.add_argument("--id", required=True)
+    retire.add_argument(
+        "--reason", required=True,
+        help="Why this is no longer current. Operator-facing at the moment of the write; "
+             "never persisted into Memory, History, or anything beside them.",
+    )
+
+    show = sub.add_parser("show", parents=[common], help="Print one claim.")
     show.add_argument("--id", required=True)
 
     args = parser.parse_args()
     handlers = {
         "validate": cmd_validate, "query": cmd_query, "append": cmd_append,
-        "compact": cmd_compact, "review": cmd_review, "entry": cmd_entry,
+        "compact": cmd_compact, "review": cmd_review,
+        "add": cmd_claim, "update": cmd_claim, "retire": cmd_claim, "show": cmd_claim,
     }
     try:
         return handlers[args.command](args)

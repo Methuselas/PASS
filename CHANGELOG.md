@@ -6,6 +6,73 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.115 - 2026-10-18
+
+### Added
+
+- Added the Skillset Memory v3 writer to `PASS/tools/memory.py`: `add_claim`,
+  `update_claim` and `retire_claim`, reached from the new top-level `add`,
+  `update`, `retire` and `show` subcommands. `add` generates the claim's id
+  itself (R2.5 §3.4) and refuses a caller-supplied one; `update` can reach every
+  field except `id`; `retire` requires `--reason` and **physically removes** the
+  claim, because currentness is presence (§1.4). The reason is operator-facing at
+  the moment of the write and is persisted nowhere — no tombstone, no retired-id
+  list, no lineage field, no sidecar, no History event.
+- Added the §9.4 admission prompt. Before every `add`, and before any `update`
+  touching `claim` or `delta`, the writer prints the R2.4 admission question and
+  the Canon-only baseline verbatim, including when the write is then refused. It
+  is a prompt, not a gate: the tool validates `delta`'s shape and never judges
+  whether the delta is real, and it never reads from stdin.
+
+### Changed
+
+- **Writing Skillset Memory is now schema-3 only** (R2.5 §9.1). A v1 or v2 store
+  is still read and validated through the T04 dispatch, but a write against one
+  is refused naming the schema; the way to change a legacy store is to migrate
+  its domain. The whole-store validation, per-domain lock, atomic replace,
+  `memory_version` +1 and readback confirmation are carried over unchanged, now
+  keyed on `claims` and checked against the v3 validator.
+- Generalized `spliced_store` over the store's collection key, so untouched v3
+  claims keep their bytes and line endings exactly as untouched legacy entries
+  did. R2.0 calls byte-splicing implementation rather than contract; it survives
+  because one key name was its whole cost.
+- Rewrote the write-discipline statements in `memory/README.md` and the memory
+  command block in `.claude/skills/pass-authoring/SKILL.md` (and its `.agents`
+  mirror) for v3: generated ids, retirement as removal with a mandatory
+  operator-facing reason, replacement as `retire` then `add`, and no computed or
+  inherited confidence.
+
+### Removed
+
+- **Deleted the sequential claim allocator** `next_entry_id` rather than porting
+  it. It derived the next number from the highest *surviving* entry, so the first
+  `add` after a retirement reissued the retired id. Training History keeps its
+  own sequence: `next_event_id` is untouched, because events are append-only and
+  nothing removes one (§8.4).
+- **Removed `supersede`** from the tool and its help, with `add_entry`,
+  `update_entry`, `supersede_entry`, `change_entries`, `ordered_entry`,
+  `ENTRY_KEY_ORDER`, `find_entry` and the `entry` subcommand group. A replacement
+  is `retire` then `add`, with a fresh id and an independently re-derived
+  `confidence`; no write path computes, suggests, copies or auto-promotes a
+  confidence value (F1–F4), which `tests/test_memory.py` now locks at the syntax
+  tree as well as end to end.
+
+### Tests
+
+- Replaced `EntryCommands` with `V3WriteIdentity`, `V3Retirement`,
+  `V3WriteConfidence`, `V3Admission`, `V3WriteSafety` and `V3WriterSurface`
+  against temporary v3 stores, the live corpus being untouched. The reversals are
+  deliberate and named: `test_there_is_no_delete` became
+  `test_retirement_removes_the_claim_and_requires_a_reason`, the two supersede
+  tests became `test_replacement_is_retire_then_add_with_a_fresh_id`, and
+  `test_the_legacy_allocator_is_still_present_for_the_legacy_tree` became
+  `test_the_sequential_claim_allocator_is_gone`.
+- `test_retiring_a_contradiction_target_is_refused` records a found gap rather
+  than working around it: §4.8 forbids automatic erasure of a contradiction
+  marker, so a contradicted pair can be neither retired nor unlinked one claim at
+  a time. Resolving a pair needs a single write touching both claims, which is
+  not on the §8.3 operation surface.
+
 ## 1.0.0-beta.114 - 2026-10-18
 
 ### Added

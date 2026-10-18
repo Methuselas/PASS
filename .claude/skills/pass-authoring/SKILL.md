@@ -126,11 +126,16 @@ weakness; attribute it to the tool, controller, or package that actually failed.
 python PASS/tools/memory.py validate
 python PASS/tools/memory.py review --domain <domain>
 python PASS/tools/memory.py compact --domain <domain>
-python PASS/tools/memory.py entry add|update|supersede|show --domain <domain> ...
+python PASS/tools/memory.py add|update|retire|show --domain <domain> ...
 ```
 
-Change memory entries only through `memory.py entry`; it validates the whole
-store before an atomic write, so never hand-edit `skill_memory.yaml`.
+Change memory only through those commands; each validates the whole store before
+an atomic write, so never hand-edit `skill_memory.yaml`. `add` generates the
+claim's id — a caller never supplies one, and a retired id is never reissued.
+Retirement is removal: `retire` requires `--reason`, which is operator-facing at
+the moment of the write and is persisted nowhere. There is no `supersede`; a
+replacement is `retire` then `add`, with a fresh id and an independently
+re-derived `confidence`, because no tool may compute, suggest, or copy one.
 
 The card tools read `library/` and the memory tool reads `memory/`. Keep them
 apart; neither store is an input to the other.

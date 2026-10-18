@@ -743,75 +743,678 @@ class ToolingBoundary(unittest.TestCase):
             self.assertIn(required, text, f"MEMORY_SCHEMA.md is missing: {required}")
 
 
-class EntryCommands(MemoryStoreFixture):
-    """`entry` is the supported way to change an entry: whole-store validation
-    first, an atomic locked write, readback, and nothing changed on refusal."""
+class V3WriteFixture(unittest.TestCase):
+    """A disposable schema-3 store, so no test mutates the shipped corpus.
 
-    def entry_tool(self, action: str, *args: object) -> subprocess.CompletedProcess[str]:
-        return run_tool("entry", action, "--domain", "art", *args, memory=self.tmp)
+    The live corpus is still v1/v2 while the domains migrate, so every write
+    test runs against a temporary v3 store. That is not a convenience: writing
+    is schema-3 only, and a legacy store is read until its own migration lands.
+    """
+
+    DOMAIN = "software-engineering"
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp(prefix="pass-memory-v3-"))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.domain = self.tmp / self.DOMAIN
+        self.domain.mkdir(parents=True)
+
+    def write(
+        self, claims: list[dict], events: list[dict] | None = None, **overrides: object,
+    ) -> None:
+        (self.domain / "skill_memory.yaml").write_text(
+            yaml.safe_dump(
+                v3_store(claims, skillset=self.DOMAIN, **overrides), sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+        if events is not None:
+            (self.domain / "training_history.jsonl").write_text(
+                "".join(json.dumps(event, sort_keys=True) + "\n" for event in events),
+                encoding="utf-8",
+            )
+
+    def tool(self, *args: object) -> subprocess.CompletedProcess[str]:
+        return run_tool(*args, "--domain", self.DOMAIN, memory=self.tmp)
+
+    def validate_tool(self) -> subprocess.CompletedProcess[str]:
+        return run_tool("validate", "--domain", self.DOMAIN, memory=self.tmp)
 
     def store(self) -> bytes:
         return (self.domain / "skill_memory.yaml").read_bytes()
 
-    def entries(self) -> dict[str, dict]:
-        data = yaml.safe_load(self.store())
-        return {entry["id"]: entry for entry in data["entries"]}
+    def claims(self) -> dict[str, dict]:
+        return {
+            claim["id"]: claim
+            for claim in yaml.safe_load(self.store()).get("claims") or []
+        }
 
-    def new_entry(self, **changes: object) -> str:
-        entry = {key: value for key, value in VALID_ENTRY.items() if key != "id"}
-        entry.update(observation="A second, separate lesson that stands alone.", **changes)
-        return json.dumps(entry)
+    def version(self) -> int:
+        return yaml.safe_load(self.store())["memory_version"]
 
-    def assert_refused(self, result: subprocess.CompletedProcess[str], before: bytes, text: str) -> None:
+    def new_claim(self, **changes: object) -> str:
+        """A structurally valid claim with no `id`: `add` generates that."""
+        claim = {key: value for key, value in base_claim().items() if key != "id"}
+        claim.update(changes)
+        return json.dumps(claim)
+
+    def added_id(self, result: subprocess.CompletedProcess[str]) -> str:
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        match = re.search(r"added (\S+);", result.stdout)
+        self.assertIsNotNone(match, result.stdout)
+        return match.group(1)
+
+    def add(self, **changes: object) -> str:
+        return self.added_id(self.tool("add", "--json", self.new_claim(**changes)))
+
+    def assert_refused(
+        self, result: subprocess.CompletedProcess[str], before: bytes, text: str,
+    ) -> None:
         self.assertEqual(result.returncode, 1, result.stdout)
         self.assertIn(text, result.stderr)
         self.assertIn("memory unchanged", result.stderr)
         self.assertEqual(self.store(), before)
 
-    def test_add_assigns_the_next_id_and_bumps_the_version(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        result = self.entry_tool("add", "--json", self.new_entry())
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("added TST_MEM_002", result.stdout)
-        self.assertEqual(yaml.safe_load(self.store())["memory_version"], 2)
-        self.assertEqual(self.validate().returncode, 0)
 
-    def test_an_invalid_entry_changes_nothing(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
+class V3WriteIdentity(V3WriteFixture):
+    """R2.5 §3.4/§9.3: `add` owns the id, `update` cannot reach it, and a
+    retired id never comes back."""
+
+    def test_add_generates_a_unique_id(self) -> None:
+        self.write([])
+        first = self.add()
+        second = self.add(scope="other_contracts")
+        self.assertNotEqual(first, second)
+        for claim_id in (first, second):
+            with self.subTest(id=claim_id):
+                self.assertRegex(claim_id, memory_tool.CLAIM_ID_RE)
+                self.assertEqual(
+                    memory_tool.claim_id_problems(claim_id, self.DOMAIN), [],
+                )
+        self.assertEqual(sorted(self.claims()), sorted([first, second]))
+
+    def test_add_refuses_a_caller_supplied_id(self) -> None:
+        self.write([])
         before = self.store()
-        self.assert_refused(self.entry_tool("add", "--json", self.new_entry(confidence="certain")), before, "closed vocabulary")
+        supplied = json.dumps(base_claim())
+        self.assert_refused(
+            self.tool("add", "--json", supplied), before, "never supplied",
+        )
+        self.assertEqual(self.claims(), {})
+
+    def test_add_bumps_the_version(self) -> None:
+        self.write([base_claim()])
+        self.assertEqual(self.version(), 1)
+        self.add(scope="other_contracts")
+        self.assertEqual(self.version(), 2)
+        self.add(scope="third_contracts")
+        self.assertEqual(self.version(), 3)
+
+    def test_update_refuses_to_change_an_id(self) -> None:
+        claim = base_claim()
+        self.write([claim])
+        before = self.store()
+        fresh = memory_tool.new_claim_id(self.DOMAIN)
+        self.assert_refused(
+            self.tool("update", "--id", claim["id"], "--json", json.dumps({"id": fresh})),
+            before,
+            "never changes",
+        )
+        self.assertEqual(sorted(self.claims()), [claim["id"]])
+
+    def test_update_leaves_the_id_byte_identical(self) -> None:
+        """Criterion 7e, over every field the criterion names: each rewrite is
+        allowed and none of them can move the claim's identity."""
+        claim = base_claim()
+        self.write([claim], [V3_VALID_EVENT])
+        patches = (
+            {"claim": "A const overload carries the lifetime obligation of its mutating twin."},
+            {"delta": {"kinds": ["verification"], "statement": "Check both overloads."}},
+            {"envelope": {"holds_in": ["const overload pairs"], "not_shown_in": ["free functions"]}},
+            {"confidence": "strong"},
+            {"canon": ["PAT_state_the_lifetime_contract_at_the_interface"]},
+            {"evidence": ["SE_EV_0001"]},
+            {"retrieval_cues": ["const overload", "lifetime"]},
+            {"last_verified": "2026-10-18"},
+        )
+        for patch in patches:
+            with self.subTest(patch=sorted(patch)):
+                result = self.tool(
+                    "update", "--id", claim["id"], "--json", json.dumps(patch),
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(sorted(self.claims()), [claim["id"]])
+        self.assertIn(claim["id"].encode("utf-8"), self.store())
+
+    def test_update_merges_and_null_removes_an_optional_key(self) -> None:
+        claim = base_claim(revalidate_after="2026-12-01")
+        self.write([claim])
+        result = self.tool(
+            "update", "--id", claim["id"],
+            "--json", '{"confidence": "strong", "revalidate_after": null}',
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        stored = self.claims()[claim["id"]]
+        self.assertEqual(stored["confidence"], "strong")
+        self.assertNotIn("revalidate_after", stored)
+
+    def test_update_refuses_to_remove_a_required_key_or_add_an_unknown_one(self) -> None:
+        claim = base_claim()
+        self.write([claim])
+        before = self.store()
+        for patch, text in (
+            ('{"claim": null}', "required key(s) cannot be removed"),
+            ('{"colour": "blue"}', "unknown key"),
+            ('{}', "non-empty JSON object"),
+        ):
+            with self.subTest(patch=patch):
+                self.assert_refused(
+                    self.tool("update", "--id", claim["id"], "--json", patch), before, text,
+                )
+
+    def test_a_retired_id_is_never_reissued(self) -> None:
+        """Criterion 7g. The legacy allocator read the highest surviving entry,
+        so the first `add` after a retirement handed the retired number straight
+        back. The generated token needs no surviving state, so there is nothing
+        to collide with and nothing to maintain."""
+        self.write([])
+        retired = self.add()
+        self.assertEqual(
+            self.tool("retire", "--id", retired, "--reason", "no longer current").returncode,
+            0,
+        )
+        issued = {self.add(scope="other_contracts")}
+        for _ in range(20):
+            ok, problems, claim_id = memory_tool.add_claim(
+                self.domain, json.loads(self.new_claim(scope="loop_contracts")),
+            )
+            self.assertTrue(ok, problems)
+            issued.add(claim_id)
+        self.assertNotIn(retired, issued)
+        self.assertEqual(len(issued), 21)
+
+    def test_write_operations_work_in_a_bare_directory(self) -> None:
+        """Criterion 7i: a store copied somewhere with nothing beside it — no
+        History, no Library, no sibling domain, no version-control directory —
+        still accepts `add`, `update` and `retire`, because identity comes from
+        this process and not from anything on disk."""
+        claim = base_claim()
+        self.write([claim])
+        bare = Path(tempfile.mkdtemp(prefix="pass-memory-bare-write-"))
+        self.addCleanup(shutil.rmtree, bare, ignore_errors=True)
+        root = bare / "memory"
+        (root / self.DOMAIN).mkdir(parents=True)
+        shutil.copy2(self.domain / "skill_memory.yaml", root / self.DOMAIN / "skill_memory.yaml")
+        self.assertEqual(
+            sorted(path.name for path in (root / self.DOMAIN).iterdir()),
+            ["skill_memory.yaml"],
+        )
+
+        def tool(*args: object) -> subprocess.CompletedProcess[str]:
+            return run_tool(*args, "--domain", self.DOMAIN, memory=root)
+
+        added = tool("add", "--json", self.new_claim(scope="bare_contracts"))
+        self.assertEqual(added.returncode, 0, added.stderr)
+        fresh = re.search(r"added (\S+);", added.stdout).group(1)
+        self.assertEqual(memory_tool.claim_id_problems(fresh, self.DOMAIN), [])
+        self.assertEqual(
+            tool("update", "--id", fresh, "--json", '{"confidence": "strong"}').returncode, 0,
+        )
+        self.assertEqual(
+            tool("retire", "--id", claim["id"], "--reason", "superseded by craft review").returncode,
+            0,
+        )
+        self.assertEqual(
+            sorted(path.name for path in (root / self.DOMAIN).iterdir()),
+            ["skill_memory.yaml"],
+        )
+        # The only thing beside the store is the write lock's folder, which the
+        # lock empties on release. It is concurrency control, not allocator state.
+        self.assertEqual(sorted(path.name for path in root.iterdir()), [".locks", self.DOMAIN])
+        self.assertEqual(list((root / ".locks").iterdir()), [])
+
+
+class V3Retirement(V3WriteFixture):
+    """R2.5 §1.4–§1.5: currentness is presence, so retirement is removal and
+    the reason it happened is not Memory's to keep."""
+
+    def test_retirement_removes_the_claim_and_requires_a_reason(self) -> None:
+        """The reversal of `test_there_is_no_delete`, and the reason for it.
+
+        The old invariant existed to stop evidence destruction. Evidence lives
+        in Training History and is untouched by this; what `retire` removes is a
+        conclusion that is no longer current, and under current-state semantics
+        keeping it was the defect.
+        """
+        claim = base_claim()
+        other = base_claim(id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2", scope="other_contracts")
+        self.write([claim, other])
+        before = self.store()
+
+        missing = self.tool("retire", "--id", claim["id"])
+        self.assertEqual(missing.returncode, 2, missing.stdout)
+        self.assertEqual(self.store(), before)
+        self.assert_refused(
+            self.tool("retire", "--id", claim["id"], "--reason", "   "),
+            before,
+            "requires an explicit reason",
+        )
+
+        result = self.tool("retire", "--id", claim["id"], "--reason", "contradicted by later work")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(sorted(self.claims()), [other["id"]])
+        self.assertEqual(self.version(), 2)
+        self.assertNotIn(claim["id"].encode("utf-8"), self.store())
+        self.assertEqual(self.tool("show", "--id", claim["id"]).returncode, 1)
+        self.assertEqual(self.validate_tool().returncode, 0)
+
+    def test_retiring_an_unknown_claim_changes_nothing(self) -> None:
+        self.write([base_claim()])
+        before = self.store()
+        self.assert_refused(
+            self.tool("retire", "--id", memory_tool.new_claim_id(self.DOMAIN), "--reason", "x"),
+            before,
+            "no claim",
+        )
+
+    def test_retirement_writes_no_tombstone_or_allocator_record(self) -> None:
+        """Criterion 7f. The reason is operator-facing at the moment of the
+        write: it is not a field, not a tombstone, not a lineage record, and not
+        a sidecar. Nothing in or beside the store mentions the removed claim
+        afterwards, which is what makes the surviving store a complete statement
+        of current state rather than a view over a graveyard."""
+        self.write([base_claim(), base_claim(
+            id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2", scope="other_contracts",
+        )])
+        retired = sorted(self.claims())[0]
+        reason = "replaced after the envelope turned out to be narrower"
+        self.assertEqual(
+            self.tool("retire", "--id", retired, "--reason", reason).returncode, 0,
+        )
+        files = sorted(
+            path for path in self.tmp.rglob("*") if path.is_file()
+        )
+        self.assertEqual(
+            [path.relative_to(self.tmp).as_posix() for path in files],
+            [f"{self.DOMAIN}/skill_memory.yaml"],
+        )
+        for path in files:
+            text = path.read_bytes().decode("utf-8")
+            self.assertNotIn(retired, text, f"{path.name} still names the retired claim")
+            self.assertNotIn(reason, text, f"{path.name} persisted the retirement reason")
+        for word in ("retired", "tombstone", "superseded", "lineage"):
+            self.assertNotIn(word, self.store().decode("utf-8"))
+
+    def test_replacement_is_retire_then_add_with_a_fresh_id(self) -> None:
+        """Criterion 22 and F4, in the one sequence that replaces `supersede`.
+
+        The replacement carries nothing forward: not the id, and not the
+        confidence. A tool that copied either would be deciding, on the
+        operator's behalf, that the new claim is as well evidenced as the old
+        one — which is exactly the judgment §4.9 reserves for a human write.
+        """
+        self.write([])
+        retired = self.add(confidence="strong")
+        self.assertEqual(
+            self.tool("retire", "--id", retired, "--reason", "envelope was wrong").returncode, 0,
+        )
+        replacement = self.add(
+            confidence="provisional",
+            claim="A const overload narrows what a call may change, not how long the object must live.",
+        )
+        self.assertNotEqual(replacement, retired)
+        stored = self.claims()
+        self.assertEqual(sorted(stored), [replacement])
+        self.assertEqual(stored[replacement]["confidence"], "provisional")
+        # add, retire, add: one bump each, and the retirement is a write like
+        # any other rather than a deletion that happens off the books.
+        self.assertEqual(self.version(), 4)
+
+    def test_retiring_a_contradiction_target_is_refused(self) -> None:
+        """A claim another claim contradicts cannot leave on its own: the
+        whole-store validation fails I6 and nothing is written.
+
+        That refusal is the specified behavior, not a convenience. R2.5 §4.8 is
+        explicit that a contradicted pair carries "no automatic demotion, no
+        automatic merge, no automatic erasure" — so `retire` must not quietly
+        strip the surviving side's marker to let itself succeed.
+
+        It also locks the pair: neither claim can be retired while the other
+        names it, and no single-claim `update` can reach a state where one can,
+        because dropping either side's `contradicts` leaves the other one-sided.
+        Resolving a pair needs one write that touches both claims, which is not
+        on R2.5 §8.3's operation surface. T08 sees the pair as a review item;
+        this test records the gap rather than inventing a resolver here.
+        """
+        first = base_claim(contradicts=["SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2"])
+        second = base_claim(
+            id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2",
+            scope="other_contracts",
+            contradicts=[first["id"]],
+        )
+        self.write([first, second])
+        before = self.store()
+        for claim_id in (first["id"], second["id"]):
+            with self.subTest(retire=claim_id):
+                self.assert_refused(
+                    self.tool("retire", "--id", claim_id, "--reason", "resolved"),
+                    before,
+                    "(I6)",
+                )
+        for claim_id in (first["id"], second["id"]):
+            with self.subTest(update=claim_id):
+                self.assert_refused(
+                    self.tool("update", "--id", claim_id, "--json", '{"contradicts": null}'),
+                    before,
+                    "one-sided",
+                )
+
+    def test_three_claims_from_one_source_are_independent(self) -> None:
+        """Criterion 7j: three propositions split out of one legacy entry are
+        three claims, each retrievable, updatable and retirable on its own."""
+        self.write([])
+        ids = [
+            self.add(scope=f"split_{index}", claim=text)
+            for index, text in enumerate((
+                "Const-ness narrows what a call may change, not the lifetime it requires.",
+                "A value-returning accessor carries no lifetime obligation on the receiver.",
+                "A span returned from a temporary dangles even when the call is const.",
+            ))
+        ]
+        self.assertEqual(len(set(ids)), 3)
+        untouched = self.claims()[ids[0]]
+        self.assertEqual(
+            self.tool("update", "--id", ids[1], "--json", '{"confidence": "strong"}').returncode, 0,
+        )
+        self.assertEqual(
+            self.tool("retire", "--id", ids[2], "--reason", "folded into the second").returncode, 0,
+        )
+        after = self.claims()
+        self.assertEqual(after[ids[0]], untouched)
+        self.assertEqual(after[ids[1]]["confidence"], "strong")
+        self.assertNotIn(ids[2], after)
+        self.assertEqual(self.tool("show", "--id", ids[0]).returncode, 0)
+
+
+class V3WriteConfidence(V3WriteFixture):
+    """R2.5 §4.9 F1–F4 as a tool contract: confidence is stated, never derived."""
+
+    # Every function a write passes through. The confidence rules are negative
+    # requirements, so the lock is over this exact set rather than over prose.
+    WRITE_FUNCTIONS = (
+        "add_claim", "update_claim", "retire_claim", "change_claims", "ordered_claim",
+    )
+
+    def write_path_functions(self) -> list[ast.FunctionDef]:
+        tree = ast.parse(TOOL.read_text(encoding="utf-8"))
+        found = [
+            node for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name in self.WRITE_FUNCTIONS
+        ]
+        self.assertEqual(
+            sorted(f.name for f in found), sorted(self.WRITE_FUNCTIONS),
+            "the v3 write path is not where this test expects it",
+        )
+        return found
+
+    def test_no_write_path_computes_or_suggests_a_confidence(self) -> None:
+        """F1 at the syntax tree, so a convenience default cannot sneak in.
+
+        Three things are banned outright on a write path: naming the confidence
+        vocabulary (nothing here needs to know the ladder), assigning to a
+        `confidence` key, and measuring the evidence list. Each is a step on the
+        road from "the caller said repeated" to "three events, so repeated".
+        """
+        for function in self.write_path_functions():
+            for node in ast.walk(function):
+                if isinstance(node, ast.Name) and node.id == "CONFIDENCE_VALUES":
+                    self.fail(f"{function.name} reads the confidence vocabulary")
+                if (
+                    isinstance(node, ast.Subscript)
+                    and isinstance(node.ctx, ast.Store)
+                    and isinstance(node.slice, ast.Constant)
+                    and node.slice.value == "confidence"
+                ):
+                    self.fail(f"{function.name} assigns a confidence value")
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "len":
+                    measured = ast.dump(node)
+                    self.assertNotIn("'evidence'", measured, f"{function.name} measures evidence")
+
+    def test_a_claim_with_no_confidence_is_refused_rather_than_defaulted(self) -> None:
+        self.write([])
+        before = self.store()
+        claim = json.loads(self.new_claim())
+        del claim["confidence"]
+        self.assert_refused(
+            self.tool("add", "--json", json.dumps(claim)), before, "missing required keys",
+        )
+
+    def test_the_stored_confidence_is_exactly_what_was_stated(self) -> None:
+        """F1 end to end: three admissible events behind a claim do not make it
+        `strong`, and no amount of evidence moves the value the caller set."""
+        self.write([], [V3_VALID_EVENT, dict(V3_VALID_EVENT, event_id="SE_EV_0005"),
+                        dict(V3_VALID_EVENT, event_id="SE_EV_0006")])
+        claim_id = self.add(
+            confidence="provisional",
+            evidence=["SE_EV_0001", "SE_EV_0005", "SE_EV_0006"],
+        )
+        self.assertEqual(self.claims()[claim_id]["confidence"], "provisional")
+
+    def test_no_write_output_names_a_confidence_it_was_not_given(self) -> None:
+        """Criterion 18 over the write surface: nothing a write prints suggests
+        or promotes a value. (The legacy `review` heuristic that derives one from
+        `evidence_count` is T08's to remove on the v3 path.)"""
+        self.write([], [V3_VALID_EVENT])
+        transcript: list[str] = []
+        added = self.tool("add", "--json", self.new_claim(evidence=["SE_EV_0001"]))
+        transcript += [added.stdout, added.stderr]
+        claim_id = self.added_id(added)
+        for args in (
+            ("update", "--id", claim_id, "--json", '{"last_verified": "2026-10-18"}'),
+            ("retire", "--id", claim_id, "--reason", "no longer current"),
+        ):
+            result = self.tool(*args)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            transcript += [result.stdout, result.stderr]
+        for value in memory_tool.CONFIDENCE_VALUES:
+            for text in transcript:
+                self.assertNotIn(value, text, f"a write suggested confidence '{value}'")
+
+    def test_a_claim_citing_an_invalid_run_is_refused(self) -> None:
+        """The invariant this suite exists for, on the v3 write path: an invalid
+        run is never evidence about a capability (I4)."""
+        self.write([], [V3_VALID_EVENT, V3_INVALID_EVENT])
+        before = self.store()
+        self.assert_refused(
+            self.tool("add", "--json", self.new_claim(evidence=["SE_EV_0002"])),
+            before,
+            "never evidence about a capability",
+        )
+
+
+class V3Admission(V3WriteFixture):
+    """R2.5 §9.4: the admission question is asked at the moment of the write."""
+
+    def assert_prompted(self, result: subprocess.CompletedProcess[str]) -> None:
+        self.assertIn(memory_tool.ADMISSION_QUESTION, result.stdout)
+        self.assertIn(memory_tool.CANON_ONLY_BASELINE, result.stdout)
+
+    def test_the_writer_prints_the_admission_question(self) -> None:
+        self.write([])
+        added = self.tool("add", "--json", self.new_claim())
+        self.assertEqual(added.returncode, 0, added.stderr)
+        self.assert_prompted(added)
+        self.assertIn("Relative to this skill with Canon and no Memory", added.stdout)
+        self.assertIn("Canon-as-written sits at the baseline", added.stdout)
+
+    def test_a_refused_add_is_still_prompted(self) -> None:
+        """A prompt, not a gate. The question is for the operator, so it is
+        printed before the tool has an opinion about the write at all."""
+        self.write([])
+        refused = self.tool("add", "--json", self.new_claim(confidence="certain"))
+        self.assertEqual(refused.returncode, 1)
+        self.assert_prompted(refused)
+
+    def test_an_update_to_the_claim_or_the_delta_re_asks_the_question(self) -> None:
+        claim = base_claim()
+        self.write([claim])
+        for patch in (
+            {"claim": "Const-ness narrows what a call changes, not the lifetime it needs."},
+            {"delta": {"kinds": ["action"], "statement": "Re-check the mutating twin."}},
+        ):
+            with self.subTest(patch=sorted(patch)):
+                result = self.tool("update", "--id", claim["id"], "--json", json.dumps(patch))
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assert_prompted(result)
+
+    def test_an_update_that_admits_nothing_new_is_not_prompted(self) -> None:
+        claim = base_claim()
+        self.write([claim])
+        for patch in (
+            '{"confidence": "strong"}',
+            '{"last_verified": "2026-10-18"}',
+            '{"retrieval_cues": ["const overload"]}',
+        ):
+            with self.subTest(patch=patch):
+                result = self.tool("update", "--id", claim["id"], "--json", patch)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertNotIn(memory_tool.ADMISSION_QUESTION, result.stdout)
+        retired = self.tool("retire", "--id", claim["id"], "--reason", "no longer current")
+        self.assertEqual(retired.returncode, 0, retired.stderr)
+        self.assertNotIn(memory_tool.ADMISSION_QUESTION, retired.stdout)
+
+    def test_the_prompt_never_waits_for_an_answer(self) -> None:
+        """It would stop being a prompt and become a gate — and the gate would
+        be a validator deciding whether a delta is real, which §4.7 says no
+        validator can do."""
+        source = TOOL.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                self.assertNotEqual(node.func.id, "input", "the tool reads from stdin")
+        self.assertNotIn("sys.stdin", source)
+
+
+class V3WriteSafety(V3WriteFixture):
+    """The safety properties carried over from the legacy writer unchanged:
+    whole-store validation, one lock, one version bump, readback, and a refusal
+    that leaves the file byte-identical."""
+
+    def test_an_invalid_claim_changes_nothing(self) -> None:
+        self.write([base_claim()])
+        before = self.store()
+        for changes, text in (
+            ({"confidence": "certain"}, "closed vocabulary"),
+            ({"claim_class": "reach", "delta": {"kinds": ["action"], "statement": "Do it."}}, "(R1)"),
+            ({"envelope": {"holds_in": ["everywhere"], "not_shown_in": ["none"]}}, "(E2)"),
+            ({"scope": "Not A Slug"}, "(S10)"),
+        ):
+            with self.subTest(changes=sorted(changes)):
+                self.assert_refused(
+                    self.tool("add", "--json", self.new_claim(**changes)), before, text,
+                )
+
+    def test_a_legacy_store_is_not_writable(self) -> None:
+        """Writing is schema-3 only (R2.5 §9.1). A v1 store stays readable until
+        its domain migrates; the way to change one is to migrate it, not to keep
+        a second writer alive behind the dispatch."""
+        legacy = self.tmp / "art"
+        legacy.mkdir()
+        (legacy / "skill_memory.yaml").write_text(
+            yaml.safe_dump(
+                {
+                    "memory_schema_version": 1, "skillset": "art",
+                    "memory_version": 1, "entries": [dict(VALID_ENTRY)],
+                },
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+        (legacy / "training_history.jsonl").write_text(
+            json.dumps(VALID_EVENT, sort_keys=True) + "\n", encoding="utf-8",
+        )
+        before = (legacy / "skill_memory.yaml").read_bytes()
+        self.assertEqual(run_tool("validate", "--domain", "art", memory=self.tmp).returncode, 0)
+        result = run_tool("add", "--domain", "art", "--json", "{}", memory=self.tmp)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("writes schema 3 only", result.stderr)
+        self.assertEqual((legacy / "skill_memory.yaml").read_bytes(), before)
+
+    def test_an_already_invalid_store_must_be_repaired_first(self) -> None:
+        self.write([base_claim(), base_claim()])
+        before = self.store()
+        self.assert_refused(
+            self.tool("add", "--json", self.new_claim()), before, "already invalid",
+        )
+
+    def test_a_held_lock_refuses_the_write_and_nothing_is_left_behind(self) -> None:
+        self.write([base_claim()])
+        before = self.store()
+        lock = self.tmp / ".locks" / f"{self.DOMAIN}.lock"
+        lock.parent.mkdir()
+        lock.write_text("{}", encoding="utf-8")
+        result = self.tool("add", "--json", self.new_claim(scope="other_contracts"))
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("another memory.py write", result.stderr)
+        self.assertEqual(self.store(), before)
+        lock.unlink()
+        self.assertEqual(
+            self.tool("add", "--json", self.new_claim(scope="other_contracts")).returncode, 0,
+        )
+        self.assertFalse(lock.exists())
+        self.assertEqual(sorted(p.name for p in self.domain.iterdir()), ["skill_memory.yaml"])
+
+    def test_untouched_claims_keep_their_bytes_and_line_endings(self) -> None:
+        """Re-pointed at `claims`. R2.0 calls byte-splicing implementation rather
+        than contract; it survives because one key name was its whole cost."""
+        first = base_claim()
+        second = base_claim(
+            id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2", scope="other_contracts",
+        )
+        hand = yaml.safe_dump(
+            v3_store([first, second], skillset=self.DOMAIN, memory_version=4),
+            sort_keys=False, width=40,
+        ).replace("\n", "\r\n")
+        (self.domain / "skill_memory.yaml").write_bytes(hand.encode("utf-8"))
+        result = self.tool("update", "--id", second["id"], "--json", '{"confidence": "strong"}')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        after = self.store().decode("utf-8")
+        untouched = hand.split(f"- id: {second['id']}")[0].replace(
+            "memory_version: 4", "memory_version: 5",
+        )
+        self.assertTrue(after.startswith(untouched), "an untouched claim was rewritten")
+        self.assertNotIn("\n", after.replace("\r\n", ""), "line endings were converted")
+        self.assertEqual(self.claims()[second["id"]]["confidence"], "strong")
 
     def test_long_literal_json_is_parsed_not_probed_as_a_path(self) -> None:
         # Regression: a literal JSON argument longer than a filename may be was
         # stat()ed as a path first, which raises ENAMETOOLONG on Linux.
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        long_entry = json.dumps(dict(json.loads(self.new_entry()),
-                                     observation="A long, self-contained lesson. " * 40))
-        self.assertGreater(len(long_entry.encode("utf-8")), 1024)
-        result = self.entry_tool("add", "--json", long_entry)
+        self.write([])
+        long_claim = self.new_claim(
+            envelope={
+                "holds_in": ["overload pairs where only const-ness differs"],
+                "not_shown_in": ["value-returning accessors"],
+                "conditions": ["a reviewed call site"] * 40,
+            },
+        )
+        self.assertGreater(len(long_claim.encode("utf-8")), 1024)
+        result = self.tool("add", "--json", long_claim)
         self.assertEqual(result.returncode, 0, result.stderr)
-        event = dict(VALID_EVENT, event_id="TST_EV_0099", notes="A long note about the sitting. " * 40)
-        result = run_tool("append", "--domain", "art", "--json", json.dumps(event), memory=self.tmp)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.validate().returncode, 0)
 
     def test_json_argument_may_still_name_a_file(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        path = self.tmp / "entry.json"
-        path.write_bytes(self.new_entry().encode("utf-8"))
-        result = self.entry_tool("add", "--json", str(path))
+        self.write([])
+        path = self.tmp / "claim.json"
+        path.write_bytes(self.new_claim().encode("utf-8"))
+        result = self.tool("add", "--json", str(path))
         self.assertEqual(result.returncode, 0, result.stderr)
-        missing = self.entry_tool("add", "--json", str(self.tmp / "missing.json"))
+        missing = self.tool("add", "--json", str(self.tmp / "missing.json"))
         self.assertEqual(missing.returncode, 1)
         self.assertIn("literal JSON object or a readable JSON file", missing.stderr)
-        scalar = run_tool("append", "--domain", "art", "--json", "[1, 2]", memory=self.tmp)
+        scalar = self.tool("add", "--json", "[1, 2]")
         self.assertEqual(scalar.returncode, 1)
         self.assertIn("must be a JSON object", scalar.stderr)
 
     def test_literal_json_never_touches_the_filesystem(self) -> None:
-        sys.path.insert(0, str(ROOT / "PASS/tools"))
-        self.addCleanup(sys.path.remove, str(ROOT / "PASS/tools"))
-        import memory as memory_tool
         from unittest import mock
 
         def refuse(*_args: object, **_kwargs: object) -> None:
@@ -825,97 +1428,87 @@ class EntryCommands(MemoryStoreFixture):
             with self.assertRaisesRegex(memory_tool.MemoryError_, "not valid JSON"):
                 memory_tool.read_json_argument("{not json")
 
-    def test_an_entry_citing_an_invalid_run_is_refused(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT, INVALID_EVENT])
-        before = self.store()
-        result = self.entry_tool("add", "--json", self.new_entry(evidence_events=["TST_EV_0002"]))
-        self.assert_refused(result, before, "never evidence about a capability")
+    def test_show_prints_one_claim_and_fails_honestly_on_a_missing_one(self) -> None:
+        claim = base_claim()
+        self.write([claim])
+        shown = self.tool("show", "--id", claim["id"])
+        self.assertEqual(shown.returncode, 0, shown.stderr)
+        self.assertEqual(yaml.safe_load(shown.stdout)["id"], claim["id"])
+        missing = self.tool("show", "--id", memory_tool.new_claim_id(self.DOMAIN))
+        self.assertEqual(missing.returncode, 1)
+        self.assertIn("no claim", missing.stderr)
 
-    def test_update_merges_and_null_removes_an_optional_key(self) -> None:
-        self.write([dict(VALID_ENTRY, boundary="Seen in one run only.")], [VALID_EVENT])
-        result = self.entry_tool("update", "--id", "TST_MEM_001", "--json", '{"confidence": "repeated", "boundary": null}')
-        self.assertEqual(result.returncode, 0, result.stderr)
-        entry = self.entries()["TST_MEM_001"]
-        self.assertEqual(entry["confidence"], "repeated")
-        self.assertNotIn("boundary", entry)
-
-    def test_update_refuses_what_would_break_identity_or_lifecycle(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        before = self.store()
-        for patch, text in (
-            ('{"observation": null}', "required key(s) cannot be removed"),
-            ('{"id": "TST_MEM_009"}', "never changes"),
-            ('{"status": "superseded"}', "entry supersede"),
-            ('{"colour": "blue"}', "unknown key"),
-        ):
-            with self.subTest(patch=patch):
-                self.assert_refused(self.entry_tool("update", "--id", "TST_MEM_001", "--json", patch), before, text)
-
-    def test_supersede_adds_the_replacement_in_the_same_write(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        result = self.entry_tool("supersede", "--id", "TST_MEM_001", "--json", self.new_entry())
-        self.assertEqual(result.returncode, 0, result.stderr)
-        entries = self.entries()
-        self.assertEqual((entries["TST_MEM_001"]["status"], entries["TST_MEM_001"]["superseded_by"]), ("superseded", "TST_MEM_002"))
-        self.assertEqual(entries["TST_MEM_002"]["status"], "active")
-        shown = self.entry_tool("show", "--id", "TST_MEM_001")
-        self.assertIn("superseded_by: TST_MEM_002", shown.stdout)
-
-    def test_supersede_needs_a_real_other_replacement(self) -> None:
-        second = dict(VALID_ENTRY, id="TST_MEM_002", observation="Another lesson.")
-        self.write([VALID_ENTRY, second], [VALID_EVENT])
-        before = self.store()
-        self.assert_refused(self.entry_tool("supersede", "--id", "TST_MEM_001", "--by", "TST_MEM_404"), before, "does not exist")
-        self.assert_refused(self.entry_tool("supersede", "--id", "TST_MEM_001", "--by", "TST_MEM_001"), before, "cannot supersede itself")
-        self.assertEqual(self.entry_tool("supersede", "--id", "TST_MEM_001", "--by", "TST_MEM_002").returncode, 0)
-        self.assert_refused(self.entry_tool("supersede", "--id", "TST_MEM_001", "--by", "TST_MEM_002"), self.store(), "already superseded")
-
-    def test_there_is_no_delete(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        before = self.store()
-        result = self.entry_tool("delete", "--id", "TST_MEM_001")
-        self.assertEqual(result.returncode, 2)
-        self.assertEqual(self.store(), before)
-
-    def test_untouched_entries_keep_their_bytes_and_line_endings(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        hand = (
-            "memory_schema_version: 1\nskillset: art\nmemory_version: 4\nentries:\n"
-            "- id: TST_MEM_001\n  scope_type: topic\n  scope_id: example_topic\n  type: recurring_failure\n"
-            "  evidence_class: stochastic_performance\n  observation: 'A hand-wrapped lesson that a full\n"
-            "    re-dump would wrap differently and quote differently.'\n  confidence: provisional\n"
-            "  status: active\n  last_verified: '2026-08-28'\n"
-            "- id: TST_MEM_002\n  scope_type: topic\n  scope_id: other_topic\n  type: recurring_failure\n"
-            "  evidence_class: stochastic_performance\n  observation: Another lesson.\n"
-            "  confidence: provisional\n  status: active\n"
-        ).replace("\n", "\r\n")
-        (self.domain / "skill_memory.yaml").write_bytes(hand.encode("utf-8"))
-        result = self.entry_tool("update", "--id", "TST_MEM_002", "--json", '{"confidence": "repeated"}')
-        self.assertEqual(result.returncode, 0, result.stderr)
-        after = self.store().decode("utf-8")
-        untouched = hand.split("- id: TST_MEM_002")[0].replace("memory_version: 4", "memory_version: 5")
-        self.assertTrue(after.startswith(untouched), "an untouched entry was rewritten")
-        self.assertNotIn("\n", after.replace("\r\n", ""), "line endings were converted")
-
-    def test_a_held_lock_refuses_the_write_and_nothing_is_left_behind(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        before = self.store()
-        lock = self.tmp / ".locks" / "art.lock"
-        lock.parent.mkdir()
-        lock.write_text("{}", encoding="utf-8")
-        result = self.entry_tool("add", "--json", self.new_entry())
+    def test_a_write_needs_exactly_one_domain(self) -> None:
+        self.write([])
+        result = run_tool("add", "--json", self.new_claim(), memory=self.tmp)
         self.assertEqual(result.returncode, 1)
-        self.assertIn("another memory.py write", result.stderr)
-        self.assertEqual(self.store(), before)
-        lock.unlink()
-        self.assertEqual(self.entry_tool("add", "--json", self.new_entry()).returncode, 0)
-        self.assertFalse(lock.exists())
-        self.assertEqual(sorted(p.name for p in self.domain.iterdir()), ["skill_memory.yaml", "training_history.jsonl"])
+        self.assertIn("requires exactly one --domain", result.stderr)
 
-    def test_an_already_invalid_store_must_be_repaired_first(self) -> None:
-        self.write([VALID_ENTRY, dict(VALID_ENTRY)], [VALID_EVENT])
-        before = self.store()
-        self.assert_refused(self.entry_tool("add", "--json", self.new_entry()), before, "already invalid")
+
+class V3WriterSurface(unittest.TestCase):
+    """What the write surface no longer offers, and who else may write."""
+
+    def test_the_sequential_claim_allocator_is_gone(self) -> None:
+        """T01 added the vNext mechanism beside the old one; T05 removes the old
+        one rather than porting it. It derived the next number from the highest
+        *surviving* entry, so the first `add` after a retirement reissued the
+        retired id. Training History keeps its own sequence: event ids are
+        append-only and nothing removes an event, so `next_event_id` is sound and
+        R2.5 §8.4 leaves it alone."""
+        self.assertFalse(hasattr(memory_tool, "next_entry_id"))
+        self.assertTrue(hasattr(memory_tool, "next_event_id"))
+        source = TOOL.read_text(encoding="utf-8")
+        for gone in ("next_entry_id", "add_entry", "update_entry", "supersede_entry"):
+            self.assertNotIn(gone, source, f"{gone} survived T05")
+
+    def test_training_history_event_ids_are_untouched(self) -> None:
+        events = [{"event_id": "ART_EV_0001"}, {"event_id": "ART_EV_0002"}]
+        self.assertEqual(memory_tool.next_event_id(events, "art"), "ART_EV_0003")
+
+    def test_supersede_is_gone_from_the_help_and_the_source(self) -> None:
+        """Criterion 11. A replacement is `retire` then `add`; what survives of
+        the word is Training History correction vocabulary, which R2.5 §8.4
+        leaves exactly as it is."""
+        help_text = run_tool("--help").stdout
+        self.assertNotIn("supersede", help_text)
+        self.assertIn("`retire` then", help_text + run_tool("retire", "--help").stdout)
+        self.assertEqual(run_tool("supersede", "--id", "x").returncode, 2)
+        source = TOOL.read_text(encoding="utf-8")
+        self.assertNotIn("superseded_by", source)
+        self.assertEqual(
+            {match.group(0) for match in re.finditer(r"supersede[a-z_]*", source)},
+            {"supersedes_events", "supersedes", "superseded"},
+        )
+
+    def test_there_is_no_delete_command(self) -> None:
+        """`delete` is still not a command, because `retire` is: removal without
+        a stated reason is what the old invariant was actually protecting
+        against."""
+        self.assertEqual(run_tool("delete", "--id", "x").returncode, 2)
+
+    def test_only_the_memory_tool_writes_a_memory_file(self) -> None:
+        """Criterion 36. Scanned as a syntax tree rather than as text, so a
+        read-only mention of a store filename — the release gate's existence
+        check, a docstring — does not read as a write."""
+        writers = {"write_text", "write_bytes", "open", "replace", "copy", "copy2", "copyfile"}
+        stores = ("skill_memory", "training_history", "MEMORY_STORE")
+        offenders: list[str] = []
+        for path in (ROOT / "PASS").rglob("*.py"):
+            if "__pycache__" in path.parts or path.name == "memory.py":
+                continue
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                name = node.func.attr if isinstance(node.func, ast.Attribute) else (
+                    node.func.id if isinstance(node.func, ast.Name) else ""
+                )
+                if name not in writers:
+                    continue
+                rendered = ast.dump(node)
+                if any(store in rendered for store in stores):
+                    offenders.append(f"{path.relative_to(ROOT).as_posix()}:{node.lineno}")
+        self.assertEqual(offenders, [], "something other than memory.py writes a Memory file")
 
 
 class ClaimIdentity(unittest.TestCase):
@@ -1065,19 +1658,6 @@ class ClaimIdentity(unittest.TestCase):
         )
         # The randomness is the uniqueness, so its absence is the real failure.
         self.assertIn("secrets.token_bytes", references)
-
-    def test_the_legacy_allocator_is_still_present_for_the_legacy_tree(self) -> None:
-        """T01 adds the vNext mechanism beside the old one; T05 removes the old one.
-
-        Deleting it here would break every v1/v2 store before anything can write
-        a v3 claim.
-        """
-        self.assertTrue(hasattr(memory_tool, "next_entry_id"))
-        self.assertTrue(hasattr(memory_tool, "next_event_id"))
-
-    def test_training_history_event_ids_are_untouched(self) -> None:
-        events = [{"event_id": "ART_EV_0001"}, {"event_id": "ART_EV_0002"}]
-        self.assertEqual(memory_tool.next_event_id(events, "art"), "ART_EV_0003")
 
 
 def v3_store(claims: list, *, skillset: str = "software-engineering", **overrides: object) -> dict:

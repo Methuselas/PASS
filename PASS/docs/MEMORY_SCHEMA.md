@@ -635,14 +635,24 @@ zero. Every error message ends with its rule id in parentheses, e.g. `(C1)`.
 | L3 | claim and envelope prose contain no model or agent identity token | ERROR |
 | L4 | claim and envelope prose contain no learner/evaluator identity or bare specimen grade | ERROR |
 | L5 | no field carries machine-, host-, session-, or toolchain-local state | FLAG |
+| I1 | `canon` members match `(AP\|PAT\|DRILL)_[a-z0-9_]+` or a bare package variant id (`[a-z][a-z0-9_]*`) | ERROR |
+| I2 | when a `library/` root is supplied and present, each `canon` member resolves within this claim's package or `metaskills` | FLAG |
+| I3 | `evidence` members match this store's own event-id family - derived from its History (`ART_EV_`, `GAMEDESIGN_EV_`, `SE_EV_`, `WRITING_EV_`, never from the claim-domain token table), with the generic `[A-Z][A-Z0-9]*_EV_[0-9]+` family applying when there is no History to derive from | ERROR |
+| I4 | when `training_history.jsonl` is present, each `evidence` member exists, is `valid`, is `performance`, is not a correction, and is not quarantined | ERROR |
+| I5 | when History is absent, `evidence` members are not resolved: absence is not corruption and the store stays valid | by construction |
+| I6 | `contradicts` resolves to a claim in the same store, is symmetric (A names B implies B names A), and never self-references | ERROR |
 
 The word caps are closed: a cap reopens only on contradictory evidence from a
 real migration, not on a repeat of the completed sample study.
 
-Referential integrity — canon resolution (`I1`/`I2`), evidence admissibility
-against History (`I3`/`I4`/`I5`), and contradiction symmetry (`I6`) — is
-validated when that work lands; a v3 store must validate standing alone with
-no History and no library present.
+Referential integrity - canon resolution (`I1`/`I2`), evidence admissibility
+against History (`I3`/`I4`/`I5`), and contradiction symmetry (`I6`) - is
+validated by `validate_v3_references`, and its resolution is conditional by
+design. A v3 store validates standing alone with no History, no `library/`,
+and no version-control repository beside it: shape is checked always, evidence
+resolves only when History is present, canon resolves only when a Library root
+is present, and a canon reference that does not resolve is a FLAG for `review`,
+never an ERROR - Memory validity does not depend on library state.
 
 ### What v3 validation deliberately cannot check
 

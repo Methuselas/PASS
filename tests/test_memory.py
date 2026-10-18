@@ -646,6 +646,75 @@ class Portability(unittest.TestCase):
             for phrase in ("see the chat", "see the conversation", "see the transcript", "source_id", "page "):
                 self.assertNotIn(phrase, text, f"{store.as_posix()} depends on {phrase!r}")
 
+    @staticmethod
+    def v3_reference_store() -> dict:
+        """A v3 store exercising every reference kind: canon, evidence, and a
+        symmetric contradiction pair."""
+        first = base_claim(
+            canon=["PAT_state_the_lifetime_contract_at_the_interface"],
+            evidence=["SE_EV_0001"],
+        )
+        second = base_claim(id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2")
+        first["contradicts"] = [second["id"]]
+        second["contradicts"] = [first["id"]]
+        return v3_store([first, second])
+
+    def write_v3_domain(self, root: Path, store: dict) -> Path:
+        domain_dir = root / "memory" / "software-engineering"
+        domain_dir.mkdir(parents=True, exist_ok=True)
+        (domain_dir / "skill_memory.yaml").write_text(
+            yaml.safe_dump(store, sort_keys=False), encoding="utf-8",
+        )
+        return domain_dir
+
+    def test_v3_store_validates_in_a_bare_directory(self) -> None:
+        """Criterion 28a: a copy containing only memory/<domain>/skill_memory.yaml
+        — no version-control repository, no History, no Library, no sibling
+        domains — validates exactly as the same store does in place, and a
+        `.git` directory beside it changes nothing because nothing reads it."""
+        store = self.v3_reference_store()
+        expected = memory_tool.validate_v3_contents("software-engineering", store)
+        self.assertEqual(expected, ([], []))
+
+        bare = Path(tempfile.mkdtemp(prefix="pass-v3-bare-"))
+        self.addCleanup(shutil.rmtree, bare, ignore_errors=True)
+        bare_domain = self.write_v3_domain(bare, store)
+        self.assertEqual(
+            sorted(path.name for path in (bare / "memory").iterdir()),
+            ["software-engineering"],
+        )
+        self.assertFalse((bare_domain / "training_history.jsonl").exists())
+        self.assertFalse((bare / "library").exists())
+        self.assertFalse((bare / ".git").exists())
+        self.assertEqual(memory_tool.validate_v3_store(bare_domain), expected)
+
+        with_repository = Path(tempfile.mkdtemp(prefix="pass-v3-repo-"))
+        self.addCleanup(shutil.rmtree, with_repository, ignore_errors=True)
+        (with_repository / ".git").mkdir()
+        repo_domain = self.write_v3_domain(with_repository, store)
+        self.assertEqual(memory_tool.validate_v3_store(repo_domain), expected)
+
+    def test_no_tool_invokes_version_control(self) -> None:
+        """Criterion 28a (grep-level): the memory tool never names, imports, or
+        runs a version-control command on any path — a store must validate with
+        no repository around it."""
+        source = TOOL.read_text(encoding="utf-8")
+        self.assertIsNone(
+            re.search(r"(?i)\bgit\b", source),
+            "PASS/tools/memory.py names version control",
+        )
+        tree = ast.parse(source)
+        imported = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imported.update(alias.name for alias in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imported.add(node.module)
+        for banned in ("subprocess", "git", "pexpect"):
+            self.assertNotIn(banned, imported, f"memory.py imports {banned}")
+        for banned in ("os.system", "Popen", "check_call", "check_output"):
+            self.assertNotIn(banned, source, f"memory.py can execute {banned}")
+
 
 class ToolingBoundary(unittest.TestCase):
     """The memory tool reads memory. It does not grow a ledger."""
@@ -1323,12 +1392,30 @@ class V3Schema(V3StoreChecks):
                 self.assertValid(v3_store([claim]))
 
     def test_the_referential_spec_examples_are_t03_scope(self) -> None:
-        """§6.4 examples 11 (I4) and 12 (I6) are referential rules T03 owns.
-        Under T02 the claims are structurally sound; T03 must flip them."""
+        """§6.4 examples 11 (I4) and 12 (I6), flipped by T03.
+
+        11 flips exactly when History is present to show the cited event is
+        invalid — with History absent the same claim must still validate (I5),
+        because absence is not corruption. 12 flips unconditionally: a
+        contradiction resolves inside the store alone, so no surrounding file
+        excuses a target that is not there.
+        """
         example_11 = base_claim(evidence=["SOFTWAREENGINEERING_EV_0002"])
         example_12 = base_claim(contradicts=["WRI_MEM_01M55WJVKR0QB8C42T4SSG2KW2"])
         self.assertValid(v3_store([example_11]))
-        self.assertValid(v3_store([example_12]))
+        errors, _flags = memory_tool.validate_v3_contents(
+            "software-engineering",
+            v3_store([example_11]),
+            events=[{
+                "event_id": "SOFTWAREENGINEERING_EV_0002",
+                "date": "2026-10-17",
+                "task": "Run the isolation drill under load",
+                "validity": "invalid",
+                "invalid_reason": "grader_failed_open",
+            }],
+        )
+        self.assertTrue(any("(I4)" in error for error in errors), errors)
+        self.assertRejected("I6", v3_store([example_12]))
 
     def test_every_closed_vocabulary_accepts_every_member_and_rejects_a_nonmember(self) -> None:
         for key, allowed, nonmember in (
@@ -1474,6 +1561,10 @@ class V3Schema(V3StoreChecks):
             "R1",
             "L1",
             "L5",
+            "I1",
+            "I4",
+            "I6",
+            "standing alone",
             "FLAG",
             "whether the stated delta is",
         ):
@@ -1548,7 +1639,15 @@ class V3ClaimInvariants(V3StoreChecks):
 
     def test_contradicts_must_be_non_empty_when_present(self) -> None:
         self.assertRejected("S9", v3_store([base_claim(contradicts=[])]))
-        self.assertValid(v3_store([base_claim(contradicts=["SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2"])]))
+        # Non-empty is only half of I6: the target must exist in this store,
+        # so a valid `contradicts` here carries its counterpart as well.
+        first = base_claim()
+        second = base_claim(
+            id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2",
+            contradicts=[first["id"]],
+        )
+        first["contradicts"] = [second["id"]]
+        self.assertValid(v3_store([first, second]))
 
     def test_delta_and_envelope_unknown_subkeys_are_rejected(self) -> None:
         self.assertRejected("S2", v3_store([base_claim(delta={
@@ -1712,6 +1811,298 @@ class V3Leakage(V3StoreChecks):
                 self.assertEqual(errors, [])
                 self.assertEqual(flags, [])
                 self.assertFalse(any("forbidden" in error for error in errors))
+
+
+# History fixtures for the referential tests. The prefixes are this store's
+# own event-id family (SR2), derived from the events themselves — never from
+# CLAIM_DOMAIN_TOKENS, whose `SE` token is not how any live History is numbered.
+V3_VALID_EVENT = {
+    "event_id": "SE_EV_0001",
+    "date": "2026-10-16",
+    "task": "Run the isolation drill under competing load",
+    "validity": "valid",
+}
+V3_INVALID_EVENT = {
+    "event_id": "SE_EV_0002",
+    "date": "2026-10-16",
+    "task": "Tighten an accepted artifact without redesign",
+    "validity": "invalid",
+    "invalid_reason": "grader_failed_open",
+}
+V3_METADATA_CORRECTION = {
+    "event_id": "SE_EV_0003",
+    "date": "2026-10-17",
+    "task": "Correct the recorded runtime for an earlier attempt",
+    "validity": "valid",
+    "event_kind": "metadata_correction",
+    "supersedes_events": ["SE_EV_0001"],
+    "corrections": {"taker.runtime.name": "recorded-runtime-corrected"},
+}
+V3_EVIDENCE_CORRECTION = {
+    "event_id": "SE_EV_0004",
+    "date": "2026-10-17",
+    "task": "Correct the evidence classification of an earlier attempt",
+    "validity": "valid",
+    "event_kind": "evidence_correction",
+    "supersedes_events": ["SE_EV_0001"],
+    "corrections": {
+        "disposition": "quarantined",
+        "reason": "The attempt did not exercise the capability it was said to measure.",
+    },
+}
+
+
+class V3ReferentialIntegrity(V3StoreChecks):
+    """R2.5 §4.6 I1–I6: references checked exactly as far as the files beside
+    the store permit. Shape runs always; resolution runs only against a History
+    or a Library root that is actually present; the store stays valid with
+    neither (I5, §9.1.1)."""
+
+    def check(
+        self,
+        store: dict,
+        *,
+        events: list[dict] | None = None,
+        event_errors: list[str] | None = None,
+        library: Path | None = None,
+        domain: str = "software-engineering",
+    ) -> tuple[list[str], list[str]]:
+        return memory_tool.validate_v3_contents(
+            domain, store, events=events, event_errors=event_errors, library_root=library,
+        )
+
+    def assertReferentiallyRejected(
+        self, rule: str, store: dict, **kwargs: object,
+    ) -> list[str]:
+        errors, _flags = self.check(store, **kwargs)
+        self.assertTrue(
+            any(f"({rule})" in error for error in errors),
+            f"expected rule {rule} to reject the store, got: {errors}",
+        )
+        return errors
+
+    def tempdir(self, prefix: str) -> Path:
+        tmp = Path(tempfile.mkdtemp(prefix=prefix))
+        self.addCleanup(shutil.rmtree, tmp, ignore_errors=True)
+        return tmp
+
+    def write_library_card(self, root: Path, package: str, name: str, body: str) -> None:
+        package_dir = root / package
+        package_dir.mkdir(parents=True, exist_ok=True)
+        (package_dir / f"{name}.md").write_text(body, encoding="utf-8")
+
+    # --- I1: canon shape -------------------------------------------------
+
+    def test_a_malformed_canon_member_is_rejected(self) -> None:
+        for bad in ("PAT_", "PAT_UPPERCASE_TAIL", "AP", "DRILL", "1_lifetime", "PAT-fail", 42, None):
+            with self.subTest(member=bad):
+                errors = self.assertReferentiallyRejected(
+                    "I1", v3_store([base_claim(canon=[bad])]),
+                )
+                self.assertTrue(any("canon member" in error for error in errors), errors)
+
+    def test_a_well_formed_canon_member_validates(self) -> None:
+        for good in (
+            "PAT_state_the_lifetime_contract_at_the_interface",
+            "AP_check_both_overloads",
+            "DRILL_practise_the_lifetime_contract",
+        ):
+            with self.subTest(member=good):
+                errors, flags = self.check(v3_store([base_claim(canon=[good])]))
+                self.assertEqual(errors, [])
+                self.assertEqual(flags, [])
+
+    def test_a_bare_variant_canon_id_validates(self) -> None:
+        """Variant ids are bare lowercase snake tokens, not (PAT|AP|DRILL)_
+        prefixed — I1 admits them as they are and never rewrites them."""
+        variant = "writing_fiction_variant_anchor_absurdity_in_legible_operating_logic"
+        errors, flags = self.check(v3_store([base_claim(canon=[variant])]))
+        self.assertEqual(errors, [])
+        self.assertEqual(flags, [])
+
+    # --- I2: canon resolution -------------------------------------------
+
+    def test_a_nonexistent_but_well_formed_canon_id_flags_only(self) -> None:
+        library = self.tempdir("pass-v3-library-") / "library"
+        library.mkdir()
+        store = v3_store([base_claim(canon=["PAT_nothing_by_this_name"])])
+        errors, flags = self.check(store, library=library)
+        self.assertEqual(errors, [])
+        self.assertTrue(
+            any("(I2)" in flag and "PAT_nothing_by_this_name" in flag for flag in flags),
+            flags,
+        )
+
+    def test_the_library_is_never_required(self) -> None:
+        store = v3_store([base_claim(canon=["PAT_nothing_by_this_name"])])
+        absent = self.tempdir("pass-v3-nolib-") / "never-created"
+        for library in (None, absent):
+            with self.subTest(library=library):
+                errors, flags = self.check(store, library=library)
+                self.assertEqual(errors, [])
+                self.assertEqual(flags, [])
+
+    def test_canon_resolves_within_the_package_and_metaskills_only(self) -> None:
+        library = self.tempdir("pass-v3-ownership-") / "library"
+        self.write_library_card(
+            library, "software-engineering", "PAT_local",
+            "---\nobject_id: PAT_local_object\n---\n\n# Pattern Rule\n\nLocal.\n",
+        )
+        self.write_library_card(
+            library, "metaskills", "AP_shared",
+            "---\nobject_id: AP_shared_object\n---\n\n# Objective\n\nShared.\n",
+        )
+        self.write_library_card(
+            library, "writing", "PAT_other",
+            "---\nobject_id: PAT_writing_only_object\n---\n\n# Pattern Rule\n\nOther.\n",
+        )
+        own = v3_store([base_claim(canon=["PAT_local_object", "AP_shared_object"])])
+        errors, flags = self.check(own, library=library)
+        self.assertEqual(errors, [])
+        self.assertEqual(flags, [])
+        cross = v3_store([base_claim(canon=["PAT_writing_only_object"])])
+        errors, flags = self.check(cross, library=library)
+        self.assertEqual(errors, [])
+        self.assertTrue(any("(I2)" in flag for flag in flags), flags)
+
+    def test_an_existing_package_variant_resolves_instead_of_flagging(self) -> None:
+        library = self.tempdir("pass-v3-variant-") / "library"
+        variant = "software_engineering_variant_check_both_overloads_first"
+        self.write_library_card(
+            library, "software-engineering", "PAT_variant_owner",
+            "---\nobject_id: PAT_variant_owner_object\nvariants:\n"
+            f"  - variant_id: {variant}\n---\n\n# Pattern Rule\n\nOwned.\n",
+        )
+        errors, flags = self.check(v3_store([base_claim(canon=[variant])]), library=library)
+        self.assertEqual(errors, [])
+        self.assertEqual(flags, [])
+
+    # --- I3: evidence-id shape ------------------------------------------
+
+    def test_a_malformed_evidence_id_is_rejected_without_history(self) -> None:
+        for bad in ("se_ev_0001", "SE-EV-0001", "EV_0001", "SE_EV_", "SE_MEM_0001", 42):
+            with self.subTest(member=bad):
+                self.assertReferentiallyRejected("I3", v3_store([base_claim(evidence=[bad])]))
+
+    def test_the_evidence_family_is_derived_from_the_store_history(self) -> None:
+        """SR2: the spec's illustrative prefix and every other domain's live
+        prefix are wrong for this store; only its own History decides."""
+        resolved = v3_store([base_claim(evidence=["SE_EV_0001"])])
+        errors, flags = self.check(resolved, events=[V3_VALID_EVENT])
+        self.assertEqual(errors, [])
+        self.assertEqual(flags, [])
+        for foreign in ("SOFTWAREENGINEERING_EV_0088", "ART_EV_0001", "GAMEDESIGN_EV_0119"):
+            with self.subTest(member=foreign):
+                self.assertReferentiallyRejected(
+                    "I3", v3_store([base_claim(evidence=[foreign])]),
+                    events=[V3_VALID_EVENT],
+                )
+
+    def test_without_history_the_generic_event_family_is_the_shape(self) -> None:
+        for good in ("SE_EV_0001", "ART_EV_0001", "SOFTWAREENGINEERING_EV_0088", "GAMEDESIGN_EV_0119"):
+            with self.subTest(member=good):
+                errors, flags = self.check(v3_store([base_claim(evidence=[good])]))
+                self.assertEqual(errors, [])
+                self.assertEqual(flags, [])
+        for bad in ("se_ev_0001", "SE_EV_0001_EXTRA", "EV_0001"):
+            with self.subTest(member=bad):
+                self.assertReferentiallyRejected("I3", v3_store([base_claim(evidence=[bad])]))
+
+    # --- I4: evidence admissibility, only when History is present --------
+
+    def test_an_invalid_history_event_is_rejected(self) -> None:
+        store = v3_store([base_claim(evidence=["SE_EV_0002"])])
+        errors, flags = self.check(store, events=[V3_VALID_EVENT, V3_INVALID_EVENT])
+        self.assertTrue(
+            any("(I4)" in error and "invalid event" in error for error in errors), errors,
+        )
+        self.assertEqual(flags, [])
+
+    def test_a_metadata_correction_is_rejected_as_evidence(self) -> None:
+        store = v3_store([base_claim(evidence=["SE_EV_0003"])])
+        errors, _flags = self.check(
+            store, events=[V3_VALID_EVENT, V3_METADATA_CORRECTION],
+        )
+        self.assertTrue(
+            any("(I4)" in error and "metadata correction" in error for error in errors),
+            errors,
+        )
+
+    def test_an_evidence_correction_is_rejected_as_evidence(self) -> None:
+        store = v3_store([base_claim(evidence=["SE_EV_0004"])])
+        errors, _flags = self.check(
+            store, events=[V3_VALID_EVENT, V3_EVIDENCE_CORRECTION],
+        )
+        self.assertTrue(
+            any("(I4)" in error and "evidence correction" in error for error in errors),
+            errors,
+        )
+
+    def test_a_quarantined_event_is_rejected(self) -> None:
+        store = v3_store([base_claim(evidence=["SE_EV_0001"])])
+        errors, _flags = self.check(store, events=[V3_VALID_EVENT, V3_EVIDENCE_CORRECTION])
+        self.assertTrue(
+            any("(I4)" in error and "quarantined" in error for error in errors), errors,
+        )
+
+    def test_evidence_must_exist_when_history_is_present(self) -> None:
+        store = v3_store([base_claim(evidence=["SE_EV_0099"])])
+        errors, _flags = self.check(store, events=[V3_VALID_EVENT])
+        self.assertTrue(
+            any("(I4)" in error and "unknown event" in error for error in errors), errors,
+        )
+
+    # --- I5: History absence ---------------------------------------------
+
+    def test_the_same_evidence_validates_when_history_is_absent(self) -> None:
+        """The exact claim I4 rejects above must pass with no History at all:
+        nothing to resolve against, and absence is not corruption."""
+        store = v3_store([base_claim(evidence=["SE_EV_0002"])])
+        errors, flags = self.check(store, events=None)
+        self.assertEqual(errors, [])
+        self.assertEqual(flags, [])
+
+    def test_a_store_with_no_history_file_validates(self) -> None:
+        tmp = self.tempdir("pass-v3-nohistory-")
+        domain_dir = tmp / "memory" / "software-engineering"
+        domain_dir.mkdir(parents=True)
+        store = v3_store([base_claim(evidence=["SE_EV_0002"])])
+        (domain_dir / "skill_memory.yaml").write_text(
+            yaml.safe_dump(store, sort_keys=False), encoding="utf-8",
+        )
+        errors, flags = memory_tool.validate_v3_store(domain_dir)
+        self.assertEqual(errors, [])
+        self.assertEqual(flags, [])
+
+    # --- I6: contradictions ----------------------------------------------
+
+    def test_a_one_sided_contradiction_is_rejected(self) -> None:
+        first = base_claim(contradicts=["SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2"])
+        second = base_claim(id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2")
+        errors = self.assertReferentiallyRejected("I6", v3_store([first, second]))
+        self.assertTrue(any("one-sided" in error for error in errors), errors)
+
+    def test_a_symmetric_contradiction_is_accepted(self) -> None:
+        first = base_claim()
+        second = base_claim(id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2")
+        first["contradicts"] = [second["id"]]
+        second["contradicts"] = [first["id"]]
+        errors, flags = self.check(v3_store([first, second]))
+        self.assertEqual(errors, [])
+        self.assertEqual(flags, [])
+
+    def test_a_nonexistent_contradiction_target_is_rejected(self) -> None:
+        errors = self.assertReferentiallyRejected(
+            "I6", v3_store([base_claim(contradicts=["SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2"])]),
+        )
+        self.assertTrue(any("does not resolve" in error for error in errors), errors)
+
+    def test_a_contradiction_cannot_reference_itself(self) -> None:
+        claim = base_claim()
+        errors = self.assertReferentiallyRejected(
+            "I6", v3_store([base_claim(contradicts=[claim["id"]])]),
+        )
+        self.assertTrue(any("itself" in error for error in errors), errors)
 
 
 if __name__ == "__main__":

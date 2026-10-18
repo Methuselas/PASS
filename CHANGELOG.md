@@ -6,6 +6,36 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.113 - 2026-10-18
+
+### Added
+
+- Added v3 referential integrity to Skillset Memory (`PASS/tools/memory.py`):
+  `validate_v3_references` implements the R2.5 §4.6 rules I1–I6. Canon shape
+  (I1) and evidence-id shape (I3) are checked always; canon resolves against
+  the claim's own package plus `metaskills` only when a `library/` root is
+  supplied and present, and a reference that does not resolve is a FLAG for
+  review rather than an ERROR (I2), so Memory validity never depends on
+  library state. Evidence members resolve against `training_history.jsonl`
+  only when it is present, reusing the legacy invalid / correction /
+  quarantine admissibility semantics unchanged (I4); with History absent they
+  are not resolved and the store stays valid (I5). `contradicts` targets must
+  exist in the same store, be symmetric, and never self-reference (I6).
+  `validate_v3_store` now accepts an optional library root and loads History
+  only when the file exists.
+- Added the `tests/test_memory.py` `V3ReferentialIntegrity` suite (21 tests)
+  and extended `Portability` with two criterion-28a tests: a v3 store
+  validates in a bare directory containing nothing but
+  `memory/<domain>/skill_memory.yaml` (with or without a `.git` directory
+  beside it), and `PASS/tools/memory.py` never names, imports, or runs a
+  version-control command.
+
+### Changed
+
+- Updated `PASS/docs/MEMORY_SCHEMA.md` §10 with the I1–I6 rule-table rows and
+  the conditional-resolution design: shape checked always, evidence resolved
+  only against a present History, canon only against a present Library root.
+
 ## 1.0.0-beta.112 - 2026-10-17
 
 ### Added

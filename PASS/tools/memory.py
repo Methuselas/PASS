@@ -915,8 +915,9 @@ def validate_claim(
 
     Implements S2–S5, S8–S10, C1–C6, E1–E2, R1 and L1–L5. Errors make the
     store invalid; flags leave it valid and mark it for review — T08's `review`
-    is what surfaces them. The referential rules I1–I6 are T03's and are
-    deliberately absent here.
+    is what surfaces them. The referential rules I1–I6 are deliberately not
+    here: they need the store's History, its Library, and its sibling claims,
+    so they run once per store in `validate_v3_references`.
     """
     where = f"claim[{index}]"
     if not isinstance(claim, dict):
@@ -1135,12 +1136,271 @@ def validate_claim(
             break
 
 
-def validate_v3_contents(domain: str, memory: dict[str, Any]) -> tuple[list[str], list[str]]:
-    """A schema-3 store's structural contract (R2.5 §2, §4.1 S1–S3, S5a, S6, S7).
+# ---------------------------------------------- referential integrity (version 3)
+#
+# R2.5 §4.6 I1–I6. Shape is checked always; resolution happens only against
+# files that actually exist beside the store — a Library root for I2, a
+# `training_history.jsonl` for I4 — because a v3 store must validate standing
+# alone with neither present (I5, §9.1.1). Memory validity never depends on
+# library state: an unresolvable canon reference is a FLAG, never an ERROR.
+
+# I1: a canon member is a card object id or a bare package variant id. The
+# variant form is the plain lowercase snake token variant ids are written in
+# (for example `writing_fiction_variant_anchor_absurdity_in_legible_operating_logic`),
+# not a `(PAT|AP|DRILL)_` prefix — a variant is not a card.
+CANON_CARD_RE = re.compile(r"^(?:AP|PAT|DRILL)_[a-z0-9_]+$")
+CANON_VARIANT_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+# I3: the evidence-id family is derived from the store's own History (SR2:
+# live prefixes are `ART_EV_`, `GAMEDESIGN_EV_`, `SE_EV_`, `WRITING_EV_`, none
+# of which come from CLAIM_DOMAIN_TOKENS, and no event id is ever renumbered to
+# match a token). The fallback family applies when there is no History to
+# derive from — absent or empty — and is the only shape check I5 lets run.
+EVENT_ID_FALLBACK_RE = re.compile(r"^[A-Z][A-Z0-9]*_EV_[0-9]+$")
+EVENT_ID_PREFIX_RE = re.compile(r"([A-Z][A-Z0-9]*_EV_)[0-9]+")
+
+
+def event_id_prefixes(events: list[dict[str, Any]]) -> set[str]:
+    """The event-id families this store's History actually uses (I3, SR2)."""
+    prefixes: set[str] = set()
+    for event in events:
+        event_id = event.get("event_id")
+        if not isinstance(event_id, str):
+            continue
+        match = EVENT_ID_PREFIX_RE.fullmatch(event_id)
+        if match:
+            prefixes.add(match.group(1))
+    return prefixes
+
+
+def canon_member_well_formed(member: Any) -> bool:
+    """I1: a card object id, or a bare package variant id."""
+    return isinstance(member, str) and (
+        CANON_CARD_RE.fullmatch(member) is not None
+        or CANON_VARIANT_RE.fullmatch(member) is not None
+    )
+
+
+def evidence_id_well_formed(member: Any, prefixes: set[str]) -> bool:
+    """I3: the id belongs to this store's event-id family.
+
+    With prefixes derived from History the id must be one of them; with none
+    derived (History absent, or an id-less History) the generic family is the
+    shape. Shape only — existence and admissibility are I4's, and only when
+    History is present at all.
+    """
+    if not isinstance(member, str):
+        return False
+    if not prefixes:
+        return EVENT_ID_FALLBACK_RE.fullmatch(member) is not None
+    return any(
+        member.startswith(prefix) and member[len(prefix):].isdigit()
+        for prefix in prefixes
+    )
+
+
+def quarantined_event_ids(events: list[dict[str, Any]]) -> set[str]:
+    """Events a superseding evidence correction removed from capability evidence.
+
+    The same derivation the legacy path applies inline (`validate_contents`);
+    T04 folds both into one helper so the two cannot drift apart.
+    """
+    return {
+        str(target)
+        for event in events
+        if event.get("event_kind") == "evidence_correction"
+        and (event.get("corrections") or {}).get("disposition") == "quarantined"
+        for target in (event.get("supersedes_events") or [])
+    }
+
+
+def evidence_admissibility_problem(
+    label: str,
+    event_id: str,
+    event: dict[str, Any],
+    quarantined: set[str],
+) -> str | None:
+    """I4: why this event may not be cited as capability evidence, or None.
+
+    The legacy path's admissibility block — invalid run, both correction
+    kinds, quarantine ("the invariant this whole tool exists to hold") — plus
+    the performance-kind requirement of R2.5 §3.5, phrased for this path's
+    field name. T04 extracts one helper both paths call; until then these two
+    implementations state the same semantics, and a change to one belongs in
+    the other.
+    """
+    if event.get("validity") == "invalid":
+        return (
+            f"{label}: evidence cites invalid event '{event_id}' "
+            f"({event.get('invalid_reason', 'no reason recorded')}); "
+            "an invalid run is never evidence about a capability (I4)"
+        )
+    kind = event.get("event_kind", "performance")
+    if kind == "metadata_correction":
+        return (
+            f"{label}: evidence cites metadata correction '{event_id}'; "
+            "a correction is not capability evidence (I4)"
+        )
+    if kind == "evidence_correction":
+        return (
+            f"{label}: evidence cites evidence correction '{event_id}'; "
+            "a correction is not capability evidence (I4)"
+        )
+    if event_id in quarantined:
+        return (
+            f"{label}: evidence cites quarantined event '{event_id}'; "
+            "a superseding evidence correction removed it from capability evidence (I4)"
+        )
+    if kind != "performance":
+        return (
+            f"{label}: evidence cites '{event_id}' of kind '{kind}'; "
+            "only a performance event is capability evidence (I4)"
+        )
+    return None
+
+
+def library_reference_ids(package_root: Path) -> set[str]:
+    """Ids a `canon` member may resolve to inside one package (I2).
+
+    Every card `object_id` — the scan `review_store` already uses — plus the
+    variant ids I1 admits: variant ids live under a card's `variants:` list in
+    front matter, so the object scan alone would flag every variant reference
+    that actually exists. Package ownership itself is unchanged: the package
+    is the directory under `library/`.
+    """
+    ids = library_object_ids(package_root)
+    if not package_root.is_dir():
+        return ids
+    for path in package_root.rglob("*.md"):
+        if path.name in {"README.md", "INDEX.md"}:
+            continue
+        ids.update(
+            match.group(1)
+            for match in re.finditer(
+                r"(?m)^\s*-?\s*variant_id:\s*(\S+)\s*$", path.read_text(encoding="utf-8")
+            )
+        )
+    return ids
+
+
+def validate_v3_references(
+    claims: list[Any],
+    *,
+    events: list[dict[str, Any]] | None,
+    library_ids: set[str] | None,
+) -> tuple[list[str], list[str]]:
+    """I1–I6 over one store's claims (R2.5 §4.6), as `(errors, flags)`.
+
+    `events=None` means `training_history.jsonl` is absent: evidence members
+    are shape-checked against the fallback family and never resolved — an
+    unresolvable evidence target is not invalid (I5). `library_ids=None`
+    means no Library root exists: canon members are shape-checked only, and
+    no flag is raised either (I2 has nothing to resolve against).
+    Contradictions resolve against this store alone (I6); they need no file
+    outside it, and co-return is a later ticket's retrieval behavior, not
+    something checked here beyond symmetry.
+    """
+    errors: list[str] = []
+    flags: list[str] = []
+
+    # Each claim id mapped to the contradictions it names, so symmetry can be
+    # checked from either side of a pair in one pass over the store.
+    known_claims: dict[str, set[str]] = {}
+    for claim in claims:
+        if not isinstance(claim, dict) or not isinstance(claim.get("id"), str):
+            continue
+        named = known_claims.setdefault(claim["id"], set())
+        if isinstance(claim.get("contradicts"), list):
+            named.update(
+                str(target) for target in claim["contradicts"] if isinstance(target, str)
+            )
+
+    history_present = events is not None
+    events = events or []
+    prefixes = event_id_prefixes(events)
+    quarantined = quarantined_event_ids(events) if history_present else set()
+    by_event_id = {
+        str(event.get("event_id")): event
+        for event in events
+        if isinstance(event.get("event_id"), str)
+    }
+
+    for index, claim in enumerate(claims):
+        if not isinstance(claim, dict):
+            continue
+        label = claim.get("id") if isinstance(claim.get("id"), str) else f"claim[{index}]"
+
+        canon = claim.get("canon")
+        if isinstance(canon, list):
+            for member in canon:
+                if not canon_member_well_formed(member):
+                    errors.append(
+                        f"{label}: canon member '{member}' is neither an object id "
+                        "nor a package variant id (I1)"
+                    )
+                elif library_ids is not None and member not in library_ids:
+                    flags.append(
+                        f"{label}: canon member '{member}' does not resolve in this "
+                        "package or metaskills (I2)"
+                    )
+
+        evidence = claim.get("evidence")
+        if isinstance(evidence, list):
+            for member in evidence:
+                if not evidence_id_well_formed(member, prefixes):
+                    errors.append(
+                        f"{label}: evidence member '{member}' does not match this "
+                        "store's event-id family (I3)"
+                    )
+                    continue
+                if not history_present:
+                    continue  # I5: absent History means no resolution, not invalidity
+                event = by_event_id.get(str(member))
+                if event is None:
+                    errors.append(f"{label}: evidence cites unknown event '{member}' (I4)")
+                    continue
+                problem = evidence_admissibility_problem(label, str(member), event, quarantined)
+                if problem:
+                    errors.append(problem)
+
+        contradicts = claim.get("contradicts")
+        if isinstance(contradicts, list):
+            own_id = claim.get("id") if isinstance(claim.get("id"), str) else None
+            for target in contradicts:
+                if not isinstance(target, str) or target not in known_claims:
+                    errors.append(
+                        f"{label}: contradicts target '{target}' does not resolve to a "
+                        "claim in this store (I6)"
+                    )
+                elif target == own_id:
+                    errors.append(f"{label}: contradicts itself (I6)")
+                elif own_id is not None and own_id not in known_claims.get(target, ()):
+                    errors.append(
+                        f"{label}: contradiction with '{target}' is one-sided; "
+                        f"'{target}' must also name '{label}' (I6)"
+                    )
+
+    return errors, flags
+
+
+def validate_v3_contents(
+    domain: str,
+    memory: dict[str, Any],
+    *,
+    events: list[dict[str, Any]] | None = None,
+    event_errors: list[str] | None = None,
+    library_root: Path | None = None,
+) -> tuple[list[str], list[str]]:
+    """A schema-3 store's structural contract (R2.5 §2, §4.1 S1–S3, S5a, S6,
+    S7) plus its referential integrity (§4.6 I1–I6).
 
     Returns `(errors, flags)`. Errors make the store invalid; flags leave it
-    valid and mark it for review. Nothing here reads `training_history.jsonl`
-    or `library/` — the referential rules I1–I6 are T03's — and nothing writes.
+    valid and mark it for review. `events=None` means History is absent, so
+    evidence is shape-checked but never resolved (I5); `event_errors` carries
+    the parse failures of a History file that is present. `library_root=None`,
+    or a root that does not exist, skips canon resolution (I2), and the only
+    thing a present root can produce is a flag — Memory validity never depends
+    on library state. Nothing here writes.
     """
     errors: list[str] = []
     flags: list[str] = []
@@ -1189,19 +1449,49 @@ def validate_v3_contents(domain: str, memory: dict[str, Any]) -> tuple[list[str]
     ]
     for duplicate in duplicate_claim_ids(ids):
         errors.append(f"skill_memory.yaml: duplicate claim id '{duplicate}' (S5a)")
+
+    if event_errors:
+        errors.extend(event_errors)
+    library_ids = None
+    if library_root is not None and library_root.is_dir():
+        library_ids = library_reference_ids(library_root / domain) | library_reference_ids(
+            library_root / "metaskills"
+        )
+    ref_errors, ref_flags = validate_v3_references(
+        claims, events=events, library_ids=library_ids
+    )
+    errors.extend(ref_errors)
+    flags.extend(ref_flags)
     return errors, flags
 
 
-def validate_v3_store(domain_dir: Path) -> tuple[list[str], list[str]]:
-    """Load one domain's v3 store and validate it. S5b across several stores is
-    the caller's job: gather each store's claim ids and hand them to
-    `duplicate_claim_ids`, which is the same check over whatever the caller
-    could actually read."""
+def validate_v3_store(
+    domain_dir: Path, *, library_root: Path | None = None
+) -> tuple[list[str], list[str]]:
+    """Load one domain's v3 store and validate it, resolving references against
+    the History and Library that actually sit beside it. Either may be absent:
+    that changes what is checked, never whether the store is valid — no
+    `training_history.jsonl` means no evidence resolution (I5), no Library root
+    means no canon resolution and no flags (I2).
+
+    S5b across several stores is the caller's job: gather each store's claim
+    ids and hand them to `duplicate_claim_ids`, which is the same check over
+    whatever the caller could actually read."""
     try:
         memory = load_memory(domain_dir)
     except MemoryError_ as exc:
         return [str(exc)], []
-    return validate_v3_contents(domain_dir.name, memory)
+    events: list[dict[str, Any]] | None = None
+    event_errors: list[str] | None = None
+    if (domain_dir / "training_history.jsonl").is_file():
+        events, event_errors = load_events(domain_dir)
+    return validate_v3_contents(
+        domain_dir.name,
+        memory,
+        events=events,
+        event_errors=event_errors,
+        library_root=library_root,
+    )
 
 
 # ---------------------------------------------------------------- query

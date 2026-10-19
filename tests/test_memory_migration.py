@@ -1,11 +1,15 @@
-"""R2.5 migration tooling, ticket T13: FREEZE and hash verification.
+"""R2.5 migration tooling, tickets T13-T14: FREEZE, hash verification, and the
+A1-A10 accounting checker.
 
 The mechanical half of the migration contract, and only that half. FREEZE
 records one legacy store's exact input state — schema version, store version,
 entry count, a sha256 per entry's serialized bytes, and the admissible event id
 set — into a one-time workspace ledger, and refuses any store that does not
 pass the existing Memory validator. `verify-hashes` (check A2) detects a store
-edited after FREEZE.
+edited after FREEZE. `account` (T14) validates the ledger's schema and closed
+vocabularies, then checks the recorded decompositions, propositions, and
+dispositions against the ten completeness rules of R2.5 §7.5, naming every
+failure's check.
 
 What this suite must never do is migrate a domain: no proposition is
 decomposed, no disposition is invented, no vNext claim is authored, no live
@@ -542,6 +546,557 @@ class LegacyValidatorBoundary(unittest.TestCase):
             set(),
         )
         self.assertIn("validate_store", source)
+
+
+class AccountLedgerFixture(MigrationFixture):
+    """A frozen two-entry legacy store plus a hand-built judgment ledger and a
+    candidate v3 store. Every fixture here is disposable; the live corpus is
+    never a migration input to this suite."""
+
+    STORE_T1 = "ART_MEM_01M55WJVKRMGS6KTMQ5TSXRQDC"
+    STORE_T2 = "ART_MEM_01M55WJVKRFNJW5TVAPVTVSM7T"
+    STORE_T3 = "ART_MEM_01M55WJVKRTZQ3EHK6RJP8XWVY"
+    FOREIGN = "GD_MEM_01M55WJVKRMGS6KTMQ5TSXRQDC"
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.write_store(
+            [
+                valid_entry(
+                    "ART_MEM_001",
+                    "An entry carrying two independently evaluable propositions.",
+                ),
+                valid_entry(
+                    "ART_MEM_002",
+                    "A second entry carrying one proposition.",
+                    confidence="repeated",
+                ),
+            ],
+            [dict(VALID_EVENT)],
+        )
+        self.assertEqual(self.freeze().returncode, 0)
+        frozen = self.ledger()
+        self.legacy_block = frozen["legacy"]
+        self.hashes = self.legacy_block["entry_hashes"]
+        self.candidate = self.tmp / "candidate" / "skill_memory.yaml"
+        self.write_candidate_store([self.STORE_T1, self.STORE_T2])
+
+    def write_candidate_store(self, claim_ids: list[str]) -> None:
+        self.candidate.parent.mkdir(parents=True, exist_ok=True)
+        self.candidate.write_bytes(
+            yaml.safe_dump(
+                {
+                    "memory_schema_version": 3,
+                    "skillset": self.DOMAIN,
+                    "memory_version": 1,
+                    "claims": [
+                        {
+                            "id": claim_id,
+                            "claim": "A candidate claim standing in the new store.",
+                        }
+                        for claim_id in claim_ids
+                    ],
+                },
+                sort_keys=False,
+            ).encode("utf-8")
+        )
+
+    def base_ledger(self) -> dict:
+        """A fully consistent hand-built ledger: every check passes on it."""
+        return {
+            "domain": self.DOMAIN,
+            "legacy": self.legacy_block,
+            "vnext": {"memory_schema_version": 3, "claim_count": 2},
+            "decompositions": [
+                {
+                    "legacy_entry": "ART_MEM_001",
+                    "legacy_sha256": self.hashes["ART_MEM_001"],
+                    "propositions": [
+                        {
+                            "id": "ART_MEM_001#p1",
+                            "text": "The first proposition of the first entry.",
+                        },
+                        {
+                            "id": "ART_MEM_001#p2",
+                            "text": "The second proposition of the first entry.",
+                        },
+                    ],
+                },
+                {
+                    "legacy_entry": "ART_MEM_002",
+                    "legacy_sha256": self.hashes["ART_MEM_002"],
+                    "propositions": [
+                        {
+                            "id": "ART_MEM_002#p1",
+                            "text": "The single proposition of the second entry.",
+                        },
+                    ],
+                },
+            ],
+            "dispositions": [
+                {
+                    "proposition": "ART_MEM_001#p1",
+                    "class": "CARRY",
+                    "targets": [self.STORE_T1],
+                },
+                {
+                    "proposition": "ART_MEM_001#p2",
+                    "class": "REWRITE",
+                    "targets": [self.STORE_T2],
+                    "rewrite_reason": "voice",
+                },
+                {
+                    "proposition": "ART_MEM_002#p1",
+                    "class": "REJECT",
+                    "reason_kind": "fails_canon_only_baseline",
+                    "reason": "The claim fails the Canon-only baseline.",
+                },
+            ],
+            "holds": [],
+        }
+
+    def account(
+        self, ledger: dict, store_claim_ids: list[str] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        if store_claim_ids is not None:
+            self.write_candidate_store(store_claim_ids)
+        self.ledger_path().write_bytes(
+            yaml.safe_dump(ledger, sort_keys=False).encode("utf-8")
+        )
+        return run_migrator(
+            "account", "--domain", self.DOMAIN,
+            "--ledger-dir", self.ledger_dir,
+            "--store", self.candidate,
+            memory=self.memory_root,
+        )
+
+    def output(self, result: subprocess.CompletedProcess[str]) -> str:
+        return result.stdout + result.stderr
+
+
+class Accounting(AccountLedgerFixture):
+    """T14: one test per completeness check, each fixture breaking exactly it."""
+
+    def test_a_hand_built_ledger_passes_all_ten_checks(self) -> None:
+        """Acceptance criterion 1: the baseline ledger holds, and A9 is
+        honestly reported as delegated rather than silently skipped."""
+        result = self.account(self.base_ledger())
+        self.assertEqual(result.returncode, 0, self.output(result))
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+        self.assertIn("A9: delegated", result.stdout)
+        self.assertIn("PASS: account", result.stdout)
+
+    def test_a1_fails_on_a_missing_or_duplicate_decomposition(self) -> None:
+        ledger = self.base_ledger()
+        # One mutation covering both directions: ART_MEM_002's decomposition
+        # is replaced by a second decomposition of ART_MEM_001, so the entry
+        # count still matches A8 while A1 alone reports the duplicate and the
+        # omission. The duplicate carries a fresh proposition id (with its own
+        # disposition) so the ledger stays schema-valid, A3 stays green, and
+        # every failure here is A1's.
+        ledger["decompositions"][1] = {
+            "legacy_entry": "ART_MEM_001",
+            "legacy_sha256": self.hashes["ART_MEM_001"],
+            "propositions": [
+                {
+                    "id": "ART_MEM_001#p3",
+                    "text": "A proposition recorded under the wrong entry.",
+                },
+            ],
+        }
+        ledger["dispositions"] = ledger["dispositions"][:2] + [
+            {
+                "proposition": "ART_MEM_001#p3",
+                "class": "REJECT",
+                "reason_kind": "not_portable",
+                "reason": "Not portable across instances.",
+            }
+        ]
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A1: FAIL", result.stdout)
+        self.assertIn("appears in 2 decompositions", self.output(result))
+        self.assertIn("ART_MEM_002", self.output(result))
+        self.assertIn("no decomposition", self.output(result))
+        self.assertIn("A8: PASS", result.stdout)
+        for check in ("A3", "A4", "A5", "A6", "A7", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a3_fails_when_a_proposition_loses_its_disposition(self) -> None:
+        ledger = self.base_ledger()
+        del ledger["dispositions"][1]  # ART_MEM_001#p2 left undispositioned
+        ledger["vnext"]["claim_count"] = 1
+        result = self.account(ledger, store_claim_ids=[self.STORE_T1])
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A3: FAIL", result.stdout)
+        self.assertIn("ART_MEM_001#p2", self.output(result))
+        self.assertIn("has no disposition", self.output(result))
+        for check in ("A1", "A2", "A4", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a_proposition_deleted_from_the_ledger_fails_a3(self) -> None:
+        """Acceptance criterion 47: a proposition deleted between passes
+        leaves its disposition pointing at nothing, and A3 says so."""
+        ledger = self.base_ledger()
+        del ledger["decompositions"][0]["propositions"][1]  # ART_MEM_001#p2
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A3: FAIL", result.stdout)
+        self.assertIn("ART_MEM_001#p2", self.output(result))
+        self.assertIn("absent from this ledger's decompositions", self.output(result))
+        for check in ("A1", "A2", "A4", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a4_fails_when_a_disposition_lacks_its_obligation(self) -> None:
+        ledger = self.base_ledger()
+        ledger["dispositions"][1] = {
+            "proposition": "ART_MEM_001#p2",
+            "class": "SPLIT",
+            "targets": [self.STORE_T2],
+        }
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A4: FAIL", result.stdout)
+        self.assertIn("SPLIT requires at least 2 target claim ids", self.output(result))
+        for check in ("A1", "A2", "A3", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a4_fails_when_a_rewrite_has_no_reason(self) -> None:
+        ledger = self.base_ledger()
+        del ledger["dispositions"][1]["rewrite_reason"]
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A4: FAIL", result.stdout)
+        self.assertIn("REWRITE requires a rewrite_reason", self.output(result))
+        self.assertIn("A3: PASS", result.stdout)
+
+    def test_a5_fails_when_a_target_is_absent_from_the_store(self) -> None:
+        ledger = self.base_ledger()
+        ledger["vnext"]["claim_count"] = 1
+        result = self.account(ledger, store_claim_ids=[self.STORE_T1])
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A5: FAIL", result.stdout)
+        self.assertIn(self.STORE_T2, self.output(result))
+        self.assertIn("does not exist in the candidate store", self.output(result))
+        for check in ("A1", "A2", "A3", "A4", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a6_fails_when_a_claim_is_named_by_no_disposition(self) -> None:
+        """Acceptance criterion 7: a claim injected into the new store without
+        a source proposition fails the gate."""
+        ledger = self.base_ledger()
+        ledger["vnext"]["claim_count"] = 3
+        result = self.account(
+            ledger, store_claim_ids=[self.STORE_T1, self.STORE_T2, self.STORE_T3],
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A6: FAIL", result.stdout)
+        self.assertIn(self.STORE_T3, self.output(result))
+        self.assertIn("named by no disposition", self.output(result))
+        for check in ("A1", "A2", "A3", "A4", "A5", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a7_fails_while_a_hold_remains(self) -> None:
+        ledger = self.base_ledger()
+        ledger["holds"] = [
+            {
+                "question": "Does the specimen claim survive as its own proposition?",
+                "must_answer": "the domain owner",
+            }
+        ]
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A7: FAIL", result.stdout)
+        self.assertIn("1 hold(s) remain", self.output(result))
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a7_fails_while_a_disposition_is_still_hold(self) -> None:
+        ledger = self.base_ledger()
+        ledger["dispositions"][1] = {
+            "proposition": "ART_MEM_001#p2",
+            "class": "HOLD",
+            "question": "Is this proposition portable?",
+            "must_answer": "the migration reviewer",
+        }
+        ledger["vnext"]["claim_count"] = 1
+        result = self.account(ledger, store_claim_ids=[self.STORE_T1])
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A7: FAIL", result.stdout)
+        self.assertIn("still HOLD", self.output(result))
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a8_reports_the_counts_and_fails_on_a_claim_count_mismatch(self) -> None:
+        ledger = self.base_ledger()
+        ledger["vnext"]["claim_count"] = 5
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A8: FAIL", result.stdout)
+        self.assertIn("vnext.claim_count 5 disagrees with 2", self.output(result))
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a_merge_passes_accounting_and_a8_states_the_difference(self) -> None:
+        """Acceptance criterion 6: three propositions collapsing into one
+        shared target passes A3, A5, A6, and A8, and A8 states the difference
+        rather than asserting equality. That it passes at all is the proof
+        that no check compares the shared target against its source ids —
+        the id encodes no lineage, and none is inferred (§7.3, §7.5)."""
+        ledger = self.base_ledger()
+        ledger["vnext"] = {"memory_schema_version": 3, "claim_count": 1}
+        ledger["decompositions"] = [
+            {
+                "legacy_entry": "ART_MEM_001",
+                "legacy_sha256": self.hashes["ART_MEM_001"],
+                "propositions": [
+                    {"id": "ART_MEM_001#p1", "text": "First merged proposition."},
+                    {"id": "ART_MEM_001#p2", "text": "Second merged proposition."},
+                    {"id": "ART_MEM_001#p3", "text": "Third merged proposition."},
+                ],
+            },
+            {
+                "legacy_entry": "ART_MEM_002",
+                "legacy_sha256": self.hashes["ART_MEM_002"],
+                "propositions": [
+                    {"id": "ART_MEM_002#p1", "text": "The other entry's claim."},
+                ],
+            },
+        ]
+        ledger["dispositions"] = [
+            {
+                "proposition": "ART_MEM_001#p1",
+                "class": "CARRY",
+                "targets": [self.STORE_T1],
+            },
+            {
+                "proposition": "ART_MEM_001#p2",
+                "class": "REWRITE",
+                "targets": [self.STORE_T1],
+                "rewrite_reason": "voice",
+            },
+            {
+                "proposition": "ART_MEM_001#p3",
+                "class": "CARRY",
+                "targets": [self.STORE_T1],
+            },
+            {
+                "proposition": "ART_MEM_002#p1",
+                "class": "REJECT",
+                "reason_kind": "fails_canon_only_baseline",
+                "reason": "The claim fails the Canon-only baseline.",
+            },
+        ]
+        result = self.account(ledger, store_claim_ids=[self.STORE_T1])
+        self.assertEqual(result.returncode, 0, self.output(result))
+        for check in ("A3", "A5", "A6", "A8"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+        self.assertIn(
+            "3 surviving disposition(s) naming 1 distinct target claim(s)",
+            result.stdout,
+        )
+        self.assertIn("1 target(s) shared across dispositions (merge)", result.stdout)
+
+    def test_a10_rejects_a_carried_legacy_id(self) -> None:
+        """Acceptance criterion 4: a one-to-one CARRY that kept its legacy id
+        fails A10. The id is placed in the candidate store so the failure is
+        exactly A10's — the shape rule fires before the legacy-equality rule."""
+        ledger = self.base_ledger()
+        ledger["dispositions"][0]["targets"] = ["ART_MEM_001"]
+        result = self.account(
+            ledger, store_claim_ids=["ART_MEM_001", self.STORE_T2],
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A10: FAIL", result.stdout)
+        self.assertIn("legacy sequence number is not a claim id", self.output(result))
+        self.assertIn("equals a legacy entry id", self.output(result))
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a10_rejects_a_foreign_domain_token(self) -> None:
+        """Acceptance criterion 5: a target carrying another domain's token
+        fails A10 even though the shape itself is well formed."""
+        ledger = self.base_ledger()
+        ledger["dispositions"][0]["targets"] = [self.FOREIGN]
+        result = self.account(ledger, store_claim_ids=[self.FOREIGN, self.STORE_T2])
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A10: FAIL", result.stdout)
+        self.assertIn("does not carry this store's domain token 'ART'", self.output(result))
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_the_account_command_writes_nothing(self) -> None:
+        """Account is a read-only checker: the ledger is written by this test,
+        the candidate store by this test, and the legacy tree is untouched."""
+        self.ledger_path().write_bytes(
+            yaml.safe_dump(self.base_ledger(), sort_keys=False).encode("utf-8")
+        )
+        before = self.tree_bytes()
+        ledger_bytes = self.ledger_path().read_bytes()
+        candidate_bytes = self.candidate.read_bytes()
+        result = run_migrator(
+            "account", "--domain", self.DOMAIN,
+            "--ledger-dir", self.ledger_dir,
+            "--store", self.candidate,
+            memory=self.memory_root,
+        )
+        self.assertEqual(result.returncode, 0, self.output(result))
+        self.assertEqual(self.tree_bytes(), before)
+        self.assertEqual(self.ledger_path().read_bytes(), ledger_bytes)
+        self.assertEqual(self.candidate.read_bytes(), candidate_bytes)
+
+
+class LedgerSchema(AccountLedgerFixture):
+    """The ledger schema validator: closed vocabularies, required blocks, and
+    proposition identity format, fail-closed before any accounting runs."""
+
+    def assert_schema_refusal(self, ledger: dict, *expected: str) -> None:
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("ledger schema:", result.stderr)
+        self.assertIn("checks do not run", result.stdout)
+        for fragment in expected:
+            self.assertIn(fragment, result.stderr)
+
+    def test_an_unknown_top_level_key_is_rejected(self) -> None:
+        ledger = self.base_ledger()
+        ledger["signoffs"] = []
+        self.assert_schema_refusal(ledger, "unknown key 'signoffs'")
+
+    def test_an_unknown_disposition_class_is_rejected(self) -> None:
+        ledger = self.base_ledger()
+        ledger["dispositions"][0]["class"] = "MERGE"
+        self.assert_schema_refusal(ledger, "closed disposition class vocabulary")
+
+    def test_every_closed_vocabulary_rejects_a_non_member(self) -> None:
+        cases = [
+            ({"rewrite_reason": "because"}, "rewrite_reason"),
+            ({"reason_kind": "bogus"}, "reason_kind"),
+        ]
+        for patch, field in cases:
+            with self.subTest(field=field):
+                ledger = self.base_ledger()
+                ledger["dispositions"][1].update(patch)
+                self.assert_schema_refusal(ledger, field)
+        ledger = self.base_ledger()
+        ledger["dispositions"].append(
+            {
+                "proposition": "ART_MEM_002#p1",
+                "class": "REHOME",
+                "destination": "the_crdt_ledger",
+                "pointer": "A pointer to the destination.",
+            }
+        )
+        # The duplicate disposition for ART_MEM_002#p1 would also break A3,
+        # but schema refuses first: the destination vocabulary is closed.
+        self.assert_schema_refusal(ledger, "destination")
+
+    def test_a_malformed_proposition_id_is_rejected(self) -> None:
+        for bad_id in ("ART_MEM_001#p0", "OTHER_MEM_001#p1", "ART_MEM_001#p1x"):
+            with self.subTest(proposition_id=bad_id):
+                ledger = self.base_ledger()
+                ledger["decompositions"][0]["propositions"][0]["id"] = bad_id
+                self.assert_schema_refusal(ledger, "is not shaped")
+
+    def test_the_vnext_block_must_declare_schema_3(self) -> None:
+        ledger = self.base_ledger()
+        ledger["vnext"]["memory_schema_version"] = 2
+        self.assert_schema_refusal(ledger, "memory_schema_version must be 3")
+
+    def test_a_class_inappropriate_key_is_rejected(self) -> None:
+        ledger = self.base_ledger()
+        ledger["dispositions"][0]["rewrite_reason"] = "voice"
+        self.assert_schema_refusal(ledger, "unknown key 'rewrite_reason'")
+
+    def test_a_hold_without_its_question_is_rejected(self) -> None:
+        ledger = self.base_ledger()
+        ledger["holds"] = [{"question": "An open question."}]
+        self.assert_schema_refusal(ledger, "required key 'must_answer' is missing")
+
+    def test_the_schema_validator_accepts_the_whole_closed_class_set(self) -> None:
+        """Every member of every closed vocabulary is accepted, not just the
+        members the baseline fixture happens to use."""
+        ledger = self.base_ledger()
+        ledger["vnext"] = {"memory_schema_version": 3, "claim_count": 3}
+        ledger["decompositions"] = ledger["decompositions"][:1] + [
+            {
+                "legacy_entry": "ART_MEM_002",
+                "legacy_sha256": self.hashes["ART_MEM_002"],
+                "propositions": [
+                    {"id": "ART_MEM_002#p1", "text": "One."},
+                    {"id": "ART_MEM_002#p2", "text": "Two."},
+                    {"id": "ART_MEM_002#p3", "text": "Three."},
+                    {"id": "ART_MEM_002#p4", "text": "Four."},
+                    {"id": "ART_MEM_002#p5", "text": "Five."},
+                    {"id": "ART_MEM_002#p6", "text": "Six."},
+                    {"id": "ART_MEM_002#p7", "text": "Seven."},
+                ],
+            }
+        ]
+        ledger["dispositions"] = [
+            {
+                "proposition": "ART_MEM_001#p1",
+                "class": "CARRY",
+                "targets": [self.STORE_T1],
+            },
+            {
+                "proposition": "ART_MEM_001#p2",
+                "class": "SPLIT",
+                "targets": [self.STORE_T2, self.STORE_T3],
+            },
+            {
+                "proposition": "ART_MEM_002#p1",
+                "class": "CONDENSE",
+                "targets": [self.STORE_T1],
+                "shed": [
+                    {
+                        "proposition": "ART_MEM_002#p2",
+                        "shed_reason": "Restates the surviving claim.",
+                    }
+                ],
+            },
+            {
+                "proposition": "ART_MEM_002#p3",
+                "class": "EXTRACT",
+                "targets": [self.STORE_T1],
+                "destination": "training_history",
+            },
+            {
+                "proposition": "ART_MEM_002#p4",
+                "class": "REHOME",
+                "destination": "canon_workflow",
+                "hand_off": "Handed to the candidate store; acceptance owed.",
+            },
+            {
+                "proposition": "ART_MEM_002#p5",
+                "class": "REJECT",
+                "reason_kind": "duplicate_of",
+                "reason": "Duplicates the surviving claim.",
+                "duplicate_of": self.STORE_T1,
+            },
+            {
+                "proposition": "ART_MEM_002#p6",
+                "class": "HOLD",
+                "question": "Does this proposition survive?",
+                "must_answer": "the domain owner",
+            },
+            {
+                "proposition": "ART_MEM_002#p7",
+                "class": "REJECT",
+                "reason_kind": "belongs_to_regression",
+                "reason": "The content belongs to the regression authority.",
+            },
+        ]
+        result = self.account(
+            ledger, store_claim_ids=[self.STORE_T1, self.STORE_T2, self.STORE_T3],
+        )
+        # Schema accepts every class; the run then fails on A7 for the HOLD,
+        # which is the completion gate's own refusal, not a schema one.
+        self.assertNotIn("ledger schema:", result.stderr)
+        self.assertIn("A7: FAIL", result.stdout)
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
 
 
 if __name__ == "__main__":

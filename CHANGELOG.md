@@ -6,6 +6,33 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.122 - 2026-10-19
+
+### Added
+
+- **The migration ledger now carries a schema, and `account` checks recorded
+  judgments against all ten completeness rules (R2.5 §7.2–§7.5).
+  `migrate_memory_v3.py account --domain <d> --ledger-dir <dir> --store <path>`
+  first validates the ledger's structure — required blocks, the closed
+  disposition class vocabulary (CARRY, REWRITE, SPLIT, CONDENSE, EXTRACT,
+  REHOME, REJECT, plus the transient HOLD), the closed rewrite-reason,
+  rejection-reason-kind, and destination-authority vocabularies, and the
+  `<legacy-entry-id>#p<n>` proposition identity shape — refusing a malformed
+  artifact before any check runs. It then runs A1–A10: every legacy entry
+  decomposed exactly once; the frozen hashes still matching (A2, reusing
+  T13's mechanics); every proposition dispositioned exactly once, including
+  CONDENSE sheds as explicit per-proposition accounting; every disposition
+  carrying its class's obligation; every target claim existing in the
+  candidate store; every store claim named by at least one disposition; zero
+  HOLDs; counts reported with the merge difference stated rather than an
+  equality asserted; and every target a well-formed vNext id that equals no
+  legacy entry id or proposition id. A9 is reported as delegated to T15.
+  Every failure names its check. The checker never assigns, proposes, or
+  suggests a disposition and never judges semantic fidelity — completeness
+  and referential integrity only — and it writes nothing, to `memory/` or
+  anywhere else. One-time tooling, deleted by T21 with the legacy input
+  reader.
+
 ## 1.0.0-beta.121 - 2026-10-19
 
 ### Added

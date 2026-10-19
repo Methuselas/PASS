@@ -945,8 +945,19 @@ def validate_claim(
         elif len(evidence) > 3:
             errors.append(f"{label}: evidence has {len(evidence)} members; the cap is 3 (S9)")
     contradicts = claim.get("contradicts")
-    if contradicts is not None and (not isinstance(contradicts, list) or not contradicts):
-        errors.append(f"{label}: contradicts must be a non-empty list when present (S9)")
+    if contradicts is not None:
+        # A Memory contradiction is a disputed pair (R2.5 §4.8), which is a
+        # cardinality and not a style: with I6 symmetry and no self-reference,
+        # "exactly one" is what makes every contradiction component exactly two
+        # claims. A list of two would admit a chain, and a chain is what turns
+        # the pair co-return at retrieval into an unbounded component walk.
+        if not isinstance(contradicts, list) or not contradicts:
+            errors.append(f"{label}: contradicts must be a non-empty list when present (S9)")
+        elif len(contradicts) != 1:
+            errors.append(
+                f"{label}: contradicts names {len(contradicts)} claims; a contradiction is "
+                "a disputed pair and carries exactly one counterpart (S9)"
+            )
 
     prose = _claim_prose(claim)
     lowered_prose = prose.lower()
@@ -1152,8 +1163,10 @@ def validate_v3_references(
     means no Library root exists: canon members are shape-checked only, and
     no flag is raised either (I2 has nothing to resolve against).
     Contradictions resolve against this store alone (I6); they need no file
-    outside it, and co-return is a later ticket's retrieval behavior, not
-    something checked here beyond symmetry.
+    outside it. Symmetry and no-self-reference are checked here; the one-member
+    cardinality that makes a contradiction a *pair* is `validate_claim`'s S9.
+    Together they leave every contradiction component exactly two claims, which
+    is what bounds retrieval's co-return structurally rather than by a budget.
     """
     errors: list[str] = []
     flags: list[str] = []
@@ -1470,11 +1483,18 @@ def query_v3_store(
     charged against the limit, because a reader shown one side of a dispute
     alone has been told something the store does not say (R2.5 §4.8).
 
-    Co-return follows the whole contradiction component, not one hop: a
-    counterpart that is itself contradicted would otherwise arrive alone, which
-    is the thing being forbidden. A target that resolves to nothing is skipped
-    rather than raised - I6 already makes that store invalid, and retrieval
-    reports the store it has.
+    Co-return is one hop to one counterpart, and it does not recurse. A
+    contradiction is a disputed pair: S9 caps `contradicts` at one member and
+    I6 makes it symmetric, so a claim has exactly one counterpart and every
+    component is exactly two claims. Expansion is therefore at most one
+    counterpart per ranked claim - bounded by the request, not by the file -
+    and there is no component to walk. Following the component instead, or
+    spending a traversal budget on it, would let a `limit` of 1 answer with an
+    arbitrarily long chain, which is the store dump the limit exists to refuse.
+    The first member is the one taken, so the bound holds even on a store that
+    does not validate. A target that resolves to nothing is skipped rather than
+    raised - I6 already makes that store invalid, and retrieval reports the
+    store it has.
 
     Claims of equal rank keep the order the file gives them. That is the only
     deterministic order available, because sorting by id is exactly what an
@@ -1501,18 +1521,17 @@ def query_v3_store(
                 continue
             emitted.add(claim_id)
         returned.append((claim, None))
-        frontier = [claim]
-        while frontier:
-            current = frontier.pop(0)
-            for target in current.get("contradicts") or []:
-                if not isinstance(target, str) or target in emitted or target in ranked_ids:
-                    continue
-                counterpart = by_id.get(target)
-                if counterpart is None:
-                    continue
-                emitted.add(target)
-                returned.append((counterpart, str(current.get("id"))))
-                frontier.append(counterpart)
+        # The claim's one counterpart, attached without recursing. Taking the
+        # first member rather than iterating costs nothing where S9 holds, and
+        # keeps the bound a property of this function where it does not.
+        for target in (claim.get("contradicts") or [])[:1]:
+            if not isinstance(target, str) or target in emitted or target in ranked_ids:
+                continue
+            counterpart = by_id.get(target)
+            if counterpart is None:
+                continue
+            emitted.add(target)
+            returned.append((counterpart, str(claim_id)))  # the ranked side of the pair
     return returned
 
 
@@ -2371,8 +2390,9 @@ def main() -> int:
         description=(
             "Ranks by match specificity - exact scope, then exact canon id, then cue and "
             "claim substrings - and by confidence last. A contradicted claim always comes "
-            "back with its counterpart, which is not charged against the limit. One "
-            "receipt names everything returned."
+            "back with its one counterpart, which is not charged against the limit; a "
+            "contradiction is a pair, so co-return never walks a chain. One receipt names "
+            "everything returned."
         ),
     )
     query.add_argument("--scope", default=None, help="One topic slug, matched exactly.")

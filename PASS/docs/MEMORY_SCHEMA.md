@@ -578,7 +578,7 @@ error naming the token table, never a guessed token.
   canon: [<object_id>, ...]               # optional, 1..5 when present
   evidence: [<event_id>, ...]             # optional, 1..3 when present
   revalidate_after: <YYYY-MM-DD>          # optional, not earlier than last_verified
-  contradicts: [<claim_id>, ...]          # optional, ≥1 when present
+  contradicts: [<claim_id>]               # optional, exactly 1 when present
 ```
 
 No other key is permitted on a claim. Closed vocabularies:
@@ -621,7 +621,7 @@ zero. Every error message ends with its rule id in parentheses, e.g. `(C1)`.
 | S6 | `skillset` equals the containing directory name | ERROR |
 | S7 | `memory_version` is a positive integer (+1 per successful write is the writer's contract) | ERROR |
 | S8 | `last_verified` and `revalidate_after` are ISO `YYYY-MM-DD`; `revalidate_after` is not earlier than `last_verified` | ERROR |
-| S9 | `evidence` 1..3 when present; `canon` 1..5; `delta.kinds` 1..3; `contradicts` ≥1 | ERROR |
+| S9 | `evidence` 1..3 when present; `canon` 1..5; `delta.kinds` 1..3; `contradicts` exactly 1 | ERROR |
 | S10 | `scope` matches `[a-z][a-z0-9_]*` | ERROR |
 | C1 | `claim` at most 75 words | ERROR |
 | C2 | `claim` 50 words or more | FLAG (fusion smell) |
@@ -655,6 +655,29 @@ and no version-control repository beside it: shape is checked always, evidence
 resolves only when History is present, canon resolves only when a Library root
 is present, and a canon reference that does not resolve is a FLAG for `review`,
 never an ERROR - Memory validity does not depend on library state.
+
+### A contradiction is a pair, and that is a bound
+
+R2.5 §4.8 defines a Memory contradiction as a **disputed pair** and calls the
+other side a **counterpart**, singular, without ever stating the cardinality as
+a rule. S9 states it: when `contradicts` is present it holds **exactly one**
+claim id. With I6's symmetry and no-self-reference, that makes every valid
+contradiction component exactly two claims:
+
+```text
+A contradicts B
+B contradicts A
+```
+
+The rule is load-bearing at retrieval, not decorative. A query returns a
+contradicted claim together with its counterpart, and the counterpart is not
+charged against the caller's limit. Co-return is therefore **one hop to one
+counterpart and never recursive**: nothing walks a contradiction-connected
+component, and nothing spends a traversal budget on one. Expansion is at most
+one counterpart per ranked claim, so what comes back is bounded by the request
+and not by the store. Chains and contradiction graphs are not supported: they
+are rejected as invalid, and a `limit` of 1 answered with a chain would be the
+store dump §9.2 forbids.
 
 ### What v3 validation deliberately cannot check
 

@@ -6,6 +6,68 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.118 - 2026-10-18
+
+### Fixed
+
+- **A contradiction is a disputed pair, and `contradicts` now carries exactly
+  one claim id (S9).** R2.5 §4.8 defines the relation as a pair and names the
+  other side a *counterpart*, singular, but never stated the cardinality as a
+  rule. The gap was latent until T07 built co-return on top of it: retrieval
+  expanded the whole contradiction-connected component, so a validator-accepted
+  symmetric chain of 10, 100 or 1,000 claims came back entire from
+  `--limit 1` - bounded by the store rather than by the request, which is the
+  store dump R2.5 §9.2 forbids. Absent `contradicts` stays valid and one member
+  stays valid; more than one is now an ERROR. With I6's symmetry and
+  no-self-reference, every valid contradiction component is exactly two claims,
+  so chains and contradiction graphs are rejected at the schema.
+- **Co-return is one hop to one counterpart and never recursive.** Retrieval
+  attaches the single direct counterpart of each ranked claim; the recursive
+  component walk is deleted. Expansion is at most one counterpart per ranked
+  claim, so what a query returns is bounded by the request. The bound is a
+  property of retrieval rather than of the store it reads: retrieval takes the
+  one counterpart a valid claim has, so a malformed file cannot make a query
+  unbounded either. No traversal or component budget was introduced - a budget
+  would have made the bound a tuning number instead of a structural fact.
+
+### Unchanged
+
+- Every other accepted T07 behavior: the rank tuple and its order, Canon
+  authority and the printing of no card id, opaque ids, `revalidate_after`
+  changing nothing, empty and missing query behavior, exactly one receipt, and
+  the legacy `score_entry` / `query_store` path. The counterpart still does not
+  consume the caller's limit, still returns with the ranked member, and still
+  produces the same pair receipt segment. The live corpus is legacy and
+  byte-untouched.
+
+### Documentation
+
+- `PASS/docs/MEMORY_SCHEMA.md` states the pair cardinality in the claim schema,
+  in S9, and in a new section that says why it is a bound and not a style
+  rule. `memory/README.md` and the `query` help say the counterpart is one and
+  that co-return never walks a chain. The R2.5 design artifacts under
+  `workspace/handoffs/` are left as written: the underspecification they
+  contain is part of how this defect happened.
+
+### Tests
+
+- `V3ClaimInvariants::test_a_contradiction_carries_exactly_one_counterpart`
+  rejects a claim naming two targets while both name it back - a store I6
+  accepts, so the pair cap is demonstrably what catches a graph.
+- `V3ReferentialIntegrity::test_a_three_claim_contradiction_chain_is_structurally_rejected`
+  and `::test_a_contradiction_triangle_is_structurally_rejected` reject both
+  three-claim components, chain and cycle, and confirm the two-claim pair still
+  validates.
+- `V3Retrieval::test_a_limit_of_one_cannot_expand_into_a_contradiction_chain`
+  is the defect's regression, at review's 10, 100 and 1,000;
+  `::test_expansion_is_bounded_by_the_request_at_every_limit` holds the general
+  bound; `::test_a_store_that_breaks_the_pair_rule_still_cannot_dump` holds it
+  over a store the validator refuses. Each was mutation-checked: restoring the
+  component walk, dropping the one-counterpart take, and removing the S9
+  cardinality branch each made them fail before being reverted.
+- `pop` leaves the retrieval AST allowlist with the frontier queue it existed
+  for.
+
 ## 1.0.0-beta.117 - 2026-10-18
 
 ### Added

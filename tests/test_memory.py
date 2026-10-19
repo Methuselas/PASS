@@ -1734,6 +1734,71 @@ class V3Retrieval(V3RetrievalFixture):
             self.counterparts(result), [f"{self.claim_id('B')} with {self.claim_id('A')}"],
         )
 
+    def test_a_limit_of_one_cannot_expand_into_a_contradiction_chain(self) -> None:
+        """The T07 defect, as a regression.
+
+        Co-return originally followed the whole contradiction-connected
+        component, so a chain of 10, 100 or 1,000 claims came back entire from
+        `--limit 1` - bounded by the store rather than by the request, which is
+        the store dump R2.5 §9.2 forbids outright. One ranked claim plus its
+        one direct counterpart is the whole of the answer, at every length.
+        """
+        for length in (10, 100, 1000):
+            with self.subTest(length=length):
+                ids, claims = contradiction_chain(length)
+                self.write(claims)
+                result = self.query("--cues", "shared cue", "--limit", "1")
+                self.assertEqual(self.returned(result), [ids[0]])
+                self.assertEqual(
+                    self.counterparts(result), [f"{ids[1]} with {ids[0]}"],
+                )
+                self.assertEqual(
+                    [claim_id for claim_id in ids if claim_id in result.stdout],
+                    ids[:2],
+                    "retrieval expanded past the ranked claim and its counterpart",
+                )
+
+    def test_expansion_is_bounded_by_the_request_at_every_limit(self) -> None:
+        """The general form of the bound: at most one counterpart per ranked
+        claim, so nothing a query returns exceeds twice what was asked for,
+        whatever the store's contradiction structure looks like."""
+        ids, claims = contradiction_chain(100)
+        self.write(claims)
+        for limit in (0, 1, 3, 5):
+            with self.subTest(limit=limit):
+                result = self.query("--cues", "shared cue", "--limit", str(limit))
+                returned = self.returned(result)
+                self.assertLessEqual(len(returned), limit)
+                self.assertLessEqual(
+                    len([claim_id for claim_id in ids if claim_id in result.stdout]),
+                    2 * limit,
+                )
+
+    def test_a_store_that_breaks_the_pair_rule_still_cannot_dump(self) -> None:
+        """The bound belongs to retrieval, not to the store it happens to read.
+
+        A claim naming many counterparts is invalid (S9) and the validator is
+        what keeps it out of a live store. Retrieval reads whatever parses, so
+        it attaches the one counterpart a valid claim has and stops - a query
+        cannot be made unbounded by handing it a malformed file.
+        """
+        ids = [self.claim_id(format(index, "x")) for index in range(40)]
+        self.write([
+            base_claim(
+                id=claim_id,
+                scope="disputed_topic",
+                retrieval_cues=["shared cue"],
+                contradicts=ids[1:] if position == 0 else [ids[0]],
+            )
+            for position, claim_id in enumerate(ids)
+        ])
+        result = self.query("--cues", "shared cue", "--limit", "1")
+        self.assertEqual(self.returned(result), [ids[0]])
+        self.assertEqual(self.counterparts(result), [f"{ids[1]} with {ids[0]}"])
+        self.assertEqual(
+            [claim_id for claim_id in ids if claim_id in result.stdout], ids[:2],
+        )
+
     def test_a_counterpart_that_is_itself_a_hit_is_not_relabelled(self) -> None:
         """Both sides matched and both fit, so neither arrived as the other's
         passenger and the receipt says so."""
@@ -1860,7 +1925,7 @@ class V3RetrievalSurface(unittest.TestCase):
     RETRIEVAL_ALLOWED_ATTRIBUTES = frozenset({
         "get",                 # claim fields, and the exact-equality counterpart lookup
         "sort",                # the rank tuple; nothing sorts on a claim or an id
-        "append", "add", "pop",  # the co-return walk, over local collections
+        "append", "add",       # the co-return attach, over local collections
         "lower", "join",       # case-folding and assembling the cue haystack
     })
 
@@ -2228,6 +2293,33 @@ def base_claim(**overrides: object) -> dict:
     }
     claim.update(overrides)
     return claim
+
+
+def contradiction_chain(length: int) -> tuple[list[str], list[dict]]:
+    """`length` claims, all matching one cue, each naming its neighbours.
+
+    Every link is symmetric and resolves, so this is the shape I6 alone
+    accepts and a contradiction *pair* does not: every interior claim names two
+    counterparts. Independent review built exactly this - at 10, 100 and 1,000 -
+    to show T07's co-return walking the whole connected component out of a
+    `limit` of 1. The validator refuses it now, and retrieval is tested over it
+    anyway, because retrieval reads whatever parses: the bound on what a query
+    returns cannot be delegated to validation of the store it happens to read.
+    """
+    ids = [
+        "SE_MEM_" + str(index).rjust(memory_tool.CLAIM_ID_TAIL_LENGTH, "0")
+        for index in range(length)
+    ]
+    claims = [
+        base_claim(
+            id=claim_id,
+            scope="disputed_topic",
+            retrieval_cues=["shared cue"],
+            contradicts=ids[max(position - 1, 0):position] + ids[position + 1:position + 2],
+        )
+        for position, claim_id in enumerate(ids)
+    ]
+    return ids, claims
 
 
 # The three valid examples of R2.5 §6.1–§6.3, verbatim, each in its own domain.
@@ -2765,6 +2857,26 @@ class V3ClaimInvariants(V3StoreChecks):
         first["contradicts"] = [second["id"]]
         self.assertValid(v3_store([first, second]))
 
+    def test_a_contradiction_carries_exactly_one_counterpart(self) -> None:
+        """R2.5 §4.8 defines a Memory contradiction as a disputed **pair** and
+        names the other side a **counterpart**, singular. The cardinality is
+        the whole of it: one member plus I6 symmetry makes every contradiction
+        component exactly two claims, and two members is the shape that admits
+        a chain. A chain is what let T07's component walk answer a `limit` of 1
+        with a thousand claims, so the bound lives here, in the schema, and not
+        in a traversal budget at the reader.
+        """
+        first = base_claim()
+        second = base_claim(id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2")
+        third = base_claim(id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW3")
+        first["contradicts"] = [second["id"], third["id"]]
+        second["contradicts"] = [first["id"]]
+        third["contradicts"] = [first["id"]]
+        errors = self.assertRejected("S9", v3_store([first, second, third]))
+        self.assertTrue(
+            any("exactly one counterpart" in error for error in errors), errors,
+        )
+
     def test_delta_and_envelope_unknown_subkeys_are_rejected(self) -> None:
         self.assertRejected("S2", v3_store([base_claim(delta={
             "kinds": ["judgment"], "statement": "Check the contract.", "weight": 3,
@@ -3219,6 +3331,31 @@ class V3ReferentialIntegrity(V3StoreChecks):
             "I6", v3_store([base_claim(contradicts=[claim["id"]])]),
         )
         self.assertTrue(any("itself" in error for error in errors), errors)
+
+    def test_a_three_claim_contradiction_chain_is_structurally_rejected(self) -> None:
+        """A↔B↔C has no asymmetric link and no dangling target, so I6 accepts
+        it. The pair cardinality is what refuses it: the middle claim names two
+        counterparts. With that rule, no valid component is larger than two
+        claims and a component walk has nothing to walk."""
+        errors = self.assertRejected("S9", v3_store(contradiction_chain(3)[1]))
+        self.assertTrue(
+            any("disputed pair" in error for error in errors), errors,
+        )
+        self.assertEqual(self.check(v3_store(contradiction_chain(2)[1]))[0], [])
+
+    def test_a_contradiction_triangle_is_structurally_rejected(self) -> None:
+        """The other three-claim component: a cycle rather than a chain. Every
+        link is symmetric and resolvable here too, and every claim names two."""
+        ids = [
+            "SE_MEM_01M55WJVKRKX5ZNTWCWARDTT8N",
+            "SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2",
+            "SE_MEM_01M55WJVKR0QB8C42T4SSG2KW3",
+        ]
+        triangle = [
+            base_claim(id=claim_id, contradicts=[ids[(index + 1) % 3], ids[(index + 2) % 3]])
+            for index, claim_id in enumerate(ids)
+        ]
+        self.assertRejected("S9", v3_store(triangle))
 
 
 class SchemaDispatch(unittest.TestCase):

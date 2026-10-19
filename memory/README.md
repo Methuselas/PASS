@@ -30,9 +30,10 @@ anything. The short version:
   substrings - with `confidence` last and never written. The `--canon` ids are
   ones Canon selection has already pinned: Memory matches them and never
   proposes, ranks or discovers a card. A contradicted claim always comes back
-  with its counterpart, which is not charged against the limit, and an empty
-  scope with no cues and no canon ids is answered as nothing rather than as a
-  store dump.
+  with its counterpart, which is not charged against the limit; a contradiction
+  is a pair, so `contradicts` carries exactly one claim id and co-return is one
+  hop that never walks a chain. An empty scope with no cues and no canon ids is
+  answered as nothing rather than as a store dump.
 - **A write is not persisted until the target is reopened and confirmed.**
   Every write reads back and fails loudly if the state is not there.
 - **Temporary state is not memory.** Workflow position, reading progress,

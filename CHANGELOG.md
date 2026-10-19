@@ -6,6 +6,60 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.119 - 2026-10-18
+
+### Added
+
+- **`memory.py review` has a schema-3 surface, and it reports rather than
+  repairs.** A v3 store is now reviewed by its own path: a past-due
+  `revalidate_after`, the FLAG rules (C2 fusion word count, C5 three-kind
+  delta, L5 host-local prose, and I2 an unresolved `canon` id), every valid
+  disputed pair, and the informational uncited-events line. Findings are read
+  only - review writes no file, leaves `memory_version` alone, appends no
+  History event, and keeps no receipt, sidecar, cache, or acknowledgement that
+  a finding was seen. A finding is a property of current state, so it comes
+  back on every run until an authorised write changes that state.
+- **A valid disputed pair is a review item, listed once.** Both claims stay
+  present and retrievable. Review performs no demotion, no merge, no erasure,
+  no confidence change, no winner selection, and no retirement: which side
+  wins is a human judgment the tool does not make or record. The stale R2.5
+  wording that `review` reports *asymmetric* `contradicts` is superseded -
+  after beta.118 asymmetry is an ERROR, so a well-formed pair is the only
+  contradiction shape left to surface.
+
+### Changed
+
+- **Review and validation are two channels, and review never softens the
+  other.** A structurally invalid store is reported under `ERROR:` with its
+  rule id and exits non-zero, and its findings are withheld rather than
+  restated as softer concerns: a malformed contradiction - one-sided, missing
+  its target, or naming more than one counterpart - stays an error. No ERROR
+  rule was downgraded to a flag to let review continue.
+- **Age triggers a listing and nothing else (F2).** A past-due claim is not
+  suppressed, not rank-penalised, and not relabelled; `last_verified` and
+  `revalidate_after` are untouched. A store whose every claim is past due
+  retrieves identically to one that is not. `STALE_DAYS` no longer reaches the
+  v3 path - the per-claim date replaced the repository-wide constant - and the
+  legacy `confidence strong on N event(s)` heuristic was not ported, so no v3
+  review output computes, suggests, promotes, or demotes a confidence, or
+  prints one at all (F1, SR4).
+- **Unresolved `canon` ids are conditional on the library.** I2 is reported
+  only when a `library/` root exists; with none, the same store stays valid and
+  unflagged, because library absence is a missing input and not Memory
+  corruption. Review reports only what failed to resolve and never enumerates
+  the links that did - listing them would be Memory offering a Canon menu, and
+  Canon is selected before Memory is read.
+
+### Known issues
+
+- A valid disputed pair cannot be resolved through the ordinary one-claim
+  `retire`: removing either member leaves the survivor with an I6-asymmetric
+  link. I6 is not weakened and no atomic pair-resolution operation was
+  invented; the gap is recorded for a later decision.
+- A schema-invalid mapping-shaped `contradicts` can still crash `query`, which
+  slices the value before checking its list shape. Found during the beta.118
+  review, bounded, and left for a separate maintenance decision.
+
 ## 1.0.0-beta.118 - 2026-10-18
 
 ### Fixed

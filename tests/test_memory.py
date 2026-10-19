@@ -3358,6 +3358,410 @@ class V3ReferentialIntegrity(V3StoreChecks):
         self.assertRejected("S9", v3_store(triangle))
 
 
+class V3Review(unittest.TestCase):
+    """T08: `review` reports what needs a human and changes nothing.
+
+    The line this class holds is the one the operation is named for. Review is
+    a *reporting* surface: it distinguishes structurally invalid state (an
+    ERROR, which stays an error) from a mechanically detectable but
+    semantically undecidable concern (a review item), and it never crosses from
+    the second into a verdict. It computes no confidence, resolves no
+    contradiction, and writes no byte - not even a note to itself that a
+    finding was already seen.
+    """
+
+    DOMAIN = "software-engineering"
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp(prefix="pass-memory-review-"))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+        self.root = self.tmp / "memory"
+        self.domain = self.root / self.DOMAIN
+        self.domain.mkdir(parents=True)
+
+    # -------------------------------------------------- fixture construction
+
+    def write(self, claims: list[dict], events: list[dict] | None = None, **overrides) -> None:
+        (self.domain / "skill_memory.yaml").write_text(
+            yaml.safe_dump(v3_store(claims, skillset=self.DOMAIN, **overrides), sort_keys=False),
+            encoding="utf-8",
+        )
+        if events is not None:
+            (self.domain / "training_history.jsonl").write_text(
+                "".join(json.dumps(event, sort_keys=True) + "\n" for event in events),
+                encoding="utf-8",
+            )
+
+    def library(self, package: str, *object_ids: str) -> Path:
+        """A minimal library root carrying one package and its cards."""
+        root = self.tmp / "library"
+        package_dir = root / package
+        package_dir.mkdir(parents=True, exist_ok=True)
+        for object_id in object_ids:
+            (package_dir / f"{object_id}.md").write_text(
+                f"---\nobject_id: {object_id}\n---\n\nA card.\n", encoding="utf-8",
+            )
+        return root
+
+    def claim_id(self, suffix: str) -> str:
+        return "SE_MEM_" + suffix.rjust(memory_tool.CLAIM_ID_TAIL_LENGTH, "0")
+
+    def dated_claim(self, revalidate_after: str, **overrides) -> dict:
+        """A claim whose dates are unambiguous: `last_verified` long before the
+        due date, so S8 holds and no test depends on today being the boundary."""
+        return base_claim(
+            last_verified="2020-01-01", revalidate_after=revalidate_after, **overrides,
+        )
+
+    # -------------------------------------------------- running and snapshots
+
+    def review(self, *args: object) -> subprocess.CompletedProcess[str]:
+        return run_tool("review", "--domain", self.DOMAIN, *args, memory=self.root)
+
+    def validate(self) -> subprocess.CompletedProcess[str]:
+        return run_tool("validate", "--domain", self.DOMAIN, memory=self.root)
+
+    def snapshot(self) -> dict[str, bytes]:
+        """Every byte under the temporary tree, keyed by path.
+
+        Hashing the whole tree rather than one file is deliberate: the thing
+        being proved is that review leaves no receipt, sidecar, cache, or
+        acknowledgement file anywhere, and a new file is invisible to a check
+        that only re-reads the files it already knew about.
+        """
+        return {
+            path.relative_to(self.tmp).as_posix(): path.read_bytes()
+            for path in sorted(self.tmp.rglob("*")) if path.is_file()
+        }
+
+    def assertReviewed(self, *args: object) -> str:
+        """Run review over an unchanged tree and return its stdout."""
+        before = self.snapshot()
+        result = self.review(*args)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.snapshot(), before, "review wrote to the tree")
+        return result.stdout
+
+    # -------------------------------------------------- revalidate_after
+
+    def test_a_past_due_claim_is_listed_and_nothing_is_written(self) -> None:
+        """Criterion 20. The listing is the whole consequence of age: the file
+        is byte-identical afterwards, down to `memory_version`."""
+        claim = self.dated_claim("2020-06-01")
+        self.write([claim])
+        path = self.domain / "skill_memory.yaml"
+        before = yaml.safe_load(path.read_text(encoding="utf-8"))
+        output = self.assertReviewed()
+        self.assertIn(f"{claim['id']}: revalidate_after 2020-06-01 is past due", output)
+        self.assertIn("1 item(s) suggested for review", output)
+        after = yaml.safe_load(path.read_text(encoding="utf-8"))
+        self.assertEqual(after, before)
+        self.assertEqual(after["memory_version"], 1)
+        self.assertEqual(str(after["claims"][0]["revalidate_after"]), "2020-06-01")
+        self.assertEqual(str(after["claims"][0]["last_verified"]), "2020-01-01")
+
+    def test_a_future_revalidate_after_is_not_listed_for_age(self) -> None:
+        self.write([self.dated_claim("2099-01-01")])
+        output = self.assertReviewed()
+        self.assertNotIn("past due", output)
+        self.assertIn("0 item(s) suggested for review", output)
+
+    def test_the_due_date_changes_nothing_about_retrieval(self) -> None:
+        """F2 and criterion 19, cross-checked against T07: age is a listing and
+        never a suppression, a rank penalty, or a label change."""
+        retrieved = {}
+        for label, due in (("past", "2020-06-01"), ("future", "2099-01-01")):
+            self.write([self.dated_claim(due)])
+            result = run_tool(
+                "query", "--domain", self.DOMAIN, "--scope", "lifetime_contracts",
+                memory=self.root,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            retrieved[label] = [
+                line for line in result.stdout.splitlines() if not line.startswith("note:")
+            ]
+        self.assertEqual(retrieved["past"], retrieved["future"])
+        self.assertTrue(
+            any("retrieved:" in line for line in retrieved["past"]), retrieved["past"],
+        )
+
+    # -------------------------------------------------- the FLAG surface
+
+    def assertFlagged(self, claim: dict, rule: str) -> None:
+        """The claim is valid, and review surfaces exactly this rule."""
+        self.write([claim])
+        self.assertEqual(self.validate().returncode, 0, "the store should stay valid")
+        output = self.assertReviewed()
+        self.assertIn(f"FLAG: {claim['id']}", output)
+        self.assertIn(f"({rule})", output)
+
+    def test_review_surfaces_the_fusion_word_count_flag(self) -> None:
+        """C2: at or past 50 words a claim smells fused - a smell, not a fact
+        about the claim, which is why it is a flag and the human decides."""
+        self.assertFlagged(base_claim(claim=" ".join(["prose"] * 52)), "C2")
+
+    def test_review_surfaces_the_three_kind_delta_flag(self) -> None:
+        """C5: three delta kinds is the cap and the smell at once."""
+        self.assertFlagged(
+            base_claim(delta={
+                "kinds": ["action", "judgment", "verification"],
+                "statement": "Check the lifetime contract on both overloads.",
+            }),
+            "C5",
+        )
+
+    def test_review_surfaces_the_local_state_flag(self) -> None:
+        """L5: prose naming host-local state is a portability smell."""
+        self.assertFlagged(
+            base_claim(claim="The const check holds on this machine after the driver update."),
+            "L5",
+        )
+
+    def test_a_flagged_store_is_still_valid_and_still_retrievable(self) -> None:
+        """A flag is not an invalidity: the store validates, review exits zero,
+        and the claim comes back from a query exactly as any other would."""
+        claim = base_claim(claim="The const check holds on this machine after the driver update.")
+        self.write([claim])
+        self.assertEqual(self.validate().returncode, 0)
+        output = self.assertReviewed()
+        self.assertIn("(L5)", output)
+        found = run_tool(
+            "query", "--domain", self.DOMAIN, "--scope", "lifetime_contracts", memory=self.root,
+        )
+        self.assertIn(claim["id"], found.stdout)
+
+    # -------------------------------------------------- canon resolution (I2)
+
+    def test_a_resolvable_canon_id_produces_no_finding(self) -> None:
+        library = self.library(self.DOMAIN, "PAT_const_overloads")
+        self.write([base_claim(canon=["PAT_const_overloads"])])
+        output = self.assertReviewed("--library", library)
+        self.assertNotIn("(I2)", output)
+        self.assertIn("0 item(s) suggested for review", output)
+        # Review reports what failed to resolve. It never prints the canon ids
+        # that did: enumerating them would be Memory offering a Canon list, and
+        # Canon is selected before Memory is read at all.
+        self.assertNotIn("PAT_const_overloads", output)
+
+    def test_an_unresolved_canon_id_stays_valid_and_is_flagged(self) -> None:
+        """Criterion 26. A well-formed id that resolves to nothing is a review
+        item, never a structural error: Memory does not become invalid because
+        a card left the library."""
+        library = self.library(self.DOMAIN, "PAT_const_overloads")
+        claim = base_claim(canon=["PAT_a_card_that_left"])
+        self.write([claim])
+        self.assertEqual(self.validate().returncode, 0)
+        output = self.assertReviewed("--library", library)
+        self.assertIn(f"FLAG: {claim['id']}", output)
+        self.assertIn("PAT_a_card_that_left", output)
+        self.assertIn("(I2)", output)
+
+    def test_an_absent_library_is_not_memory_corruption(self) -> None:
+        """The same store, reviewed with no library to resolve against, is
+        neither invalid nor flagged. Memory is self-sufficient; library absence
+        is a missing input, not a defect in Memory."""
+        claim = base_claim(canon=["PAT_a_card_that_left"])
+        self.write([claim])
+        self.assertEqual(self.validate().returncode, 0)
+        output = self.assertReviewed("--library", self.tmp / "no-library-here")
+        self.assertNotIn("(I2)", output)
+        self.assertNotIn("PAT_a_card_that_left", output)
+        self.assertIn("0 item(s) suggested for review", output)
+
+    # -------------------------------------------------- disputed pairs
+
+    def disputed_pair(self) -> tuple[dict, dict]:
+        left, right = self.claim_id("A1"), self.claim_id("B2")
+        return (
+            base_claim(id=left, contradicts=[right]),
+            base_claim(
+                id=right, contradicts=[left],
+                claim="Checking one overload suffices when the pair differs only in const-ness.",
+            ),
+        )
+
+    def test_a_valid_disputed_pair_is_one_review_item(self) -> None:
+        """R2.5 §4.8 with T07's cardinality: a contradiction component is two
+        claims, so the pair is reported once - from the pair, not once from
+        each claim's link because both sides name each other."""
+        left, right = self.disputed_pair()
+        self.write([left, right])
+        self.assertEqual(self.validate().returncode, 0, "a symmetric pair is valid")
+        output = self.assertReviewed()
+        self.assertIn(f"{left['id']} and {right['id']} are a disputed pair", output)
+        self.assertIn("1 item(s) suggested for review", output)
+        # Not an asymmetric-link flag: the stale R2.5 wording that `review`
+        # reports asymmetric `contradicts` was closed by T07, which made
+        # asymmetry an error instead.
+        self.assertNotIn("one-sided", output)
+        self.assertNotIn("(I6)", output)
+
+    def test_a_disputed_pair_is_reported_and_otherwise_untouched(self) -> None:
+        """No demotion, no merge, no erasure, no winner. Both claims stay in
+        the file, both still retrieve, and nothing is written."""
+        left, right = self.disputed_pair()
+        self.write([left, right])
+        before = self.snapshot()
+        output = self.assertReviewed()
+        self.assertEqual(self.snapshot(), before)
+        for verdict in ("demote", "retire", "merge", "winner", "supersede", "should be"):
+            self.assertNotIn(verdict, output.lower(), f"review issued a verdict: '{verdict}'")
+        found = run_tool(
+            "query", "--domain", self.DOMAIN, "--scope", "lifetime_contracts",
+            "--limit", "1", memory=self.root,
+        )
+        self.assertIn(left["id"], found.stdout)
+        self.assertIn(right["id"], found.stdout)
+
+    def test_review_does_not_downgrade_a_malformed_contradiction(self) -> None:
+        """T07's ERROR boundary survives T08. A one-sided link, a missing
+        target and a two-member `contradicts` are each invalid, and review
+        reports them as errors with a non-zero exit rather than listing them as
+        softer concerns."""
+        left, right = self.disputed_pair()
+        third = self.claim_id("C3")
+        shapes = {
+            "one-sided": (
+                [left, {k: v for k, v in right.items() if k != "contradicts"}],
+                "(I6)",
+            ),
+            "missing target": ([dict(left, contradicts=[third])], "(I6)"),
+            "two counterparts": (
+                [
+                    dict(left, contradicts=[right["id"], third]),
+                    right,
+                    base_claim(id=third, contradicts=[left["id"]]),
+                ],
+                "(S9)",
+            ),
+        }
+        for label, (claims, rule) in shapes.items():
+            with self.subTest(shape=label):
+                self.write(claims)
+                self.assertEqual(self.validate().returncode, 1, f"{label} must stay invalid")
+                result = self.review()
+                self.assertEqual(result.returncode, 1, result.stdout)
+                self.assertIn("ERROR: ", result.stdout)
+                self.assertIn(rule, result.stdout)
+                self.assertNotIn("item(s) suggested for review", result.stdout)
+                self.assertNotIn("are a disputed pair", result.stdout)
+
+    # -------------------------------------------------- the confidence firewall
+
+    def test_review_never_suggests_a_confidence(self) -> None:
+        """SR4, F1 and F2, and criterion 18. The store is engineered to trip
+        every heuristic the legacy path had and every one a reader might be
+        tempted to add: a `strong` label on a single event, a long-past due
+        date, a `stochastic` kind, and a live contradiction. No confidence
+        vocabulary may appear in the output at all."""
+        left, right = self.disputed_pair()
+        left = dict(
+            left, confidence="strong", claim_kind="stochastic", evidence=["SE_EV_0001"],
+            last_verified="2020-01-01", revalidate_after="2020-06-01",
+        )
+        right = dict(right, confidence="provisional")
+        self.write([left, right], [V3_VALID_EVENT])
+        output = self.assertReviewed()
+        self.assertIn("past due", output)
+        self.assertIn("disputed pair", output)
+        for value in memory_tool.CONFIDENCE_VALUES:
+            self.assertNotIn(value, output, f"review printed the confidence '{value}'")
+        for word in ("confidence", "promote", "demote", "raise", "lower", "downgrade"):
+            self.assertNotIn(word, output.lower(), f"review discussed confidence: '{word}'")
+        # The evidence length is read by nothing: one event behind a `strong`
+        # claim is the exact shape the removed heuristic reported on.
+        self.assertNotIn("event(s)", output.replace("valid event(s) are not cited", ""))
+
+    def test_the_legacy_confidence_heuristic_is_not_on_the_v3_path(self) -> None:
+        """SR4 as a source check, because an output scan only proves what this
+        fixture happened to trip. `STALE_DAYS` and the evidence-count remark
+        belong to the legacy reader T21 deletes; neither may be reachable from
+        the v3 review functions."""
+        tree = ast.parse(TOOL.read_text(encoding="utf-8"))
+        wanted = {"review_v3_store", "disputed_pairs", "uncited_events_note"}
+        found = {}
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.FunctionDef) or node.name not in wanted:
+                continue
+            # The docstrings name what these functions must not reach, so the
+            # scan reads code only: `ast.unparse` of the body without its
+            # docstring drops prose and comments alike.
+            body = [
+                statement for statement in node.body
+                if not (
+                    isinstance(statement, ast.Expr)
+                    and isinstance(statement.value, ast.Constant)
+                    and isinstance(statement.value.value, str)
+                )
+            ]
+            found[node.name] = "; ".join(ast.unparse(statement) for statement in body)
+        self.assertEqual(set(found), wanted, "the v3 review functions moved or were renamed")
+        for name, code in found.items():
+            for token in ("STALE_DAYS", "evidence_count", "CONFIDENCE", "'confidence'"):
+                self.assertNotIn(token, code, f"{name} reaches '{token}'")
+
+    # -------------------------------------------------- read-only, end to end
+
+    def test_review_writes_nothing_with_every_finding_at_once(self) -> None:
+        """One store carrying a past-due date, a C2 claim, a C5 delta, an L5
+        smell, an unresolvable canon id and a disputed pair. Every byte in the
+        tree - store, history and library alike - is identical afterwards, and
+        no file appeared beside them."""
+        left, right = self.disputed_pair()
+        claims = [
+            dict(left, last_verified="2020-01-01", revalidate_after="2020-06-01"),
+            right,
+            base_claim(id=self.claim_id("D4"), claim=" ".join(["prose"] * 52)),
+            base_claim(id=self.claim_id("E5"), delta={
+                "kinds": ["action", "judgment", "posture"],
+                "statement": "Check the lifetime contract on both overloads.",
+            }),
+            base_claim(
+                id=self.claim_id("F6"),
+                claim="The const check holds on this host after the driver update.",
+            ),
+            base_claim(id=self.claim_id("G7"), canon=["PAT_a_card_that_left"]),
+        ]
+        library = self.library(self.DOMAIN, "PAT_const_overloads")
+        self.write(claims, [V3_VALID_EVENT])
+        self.assertEqual(self.validate().returncode, 0, "the fixture must be valid")
+        before = self.snapshot()
+        first = self.review("--library", library)
+        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
+        self.assertEqual(self.snapshot(), before, "review wrote to the tree")
+        for rule in ("(C2)", "(C5)", "(L5)", "(I2)"):
+            self.assertIn(rule, first.stdout)
+        self.assertIn("past due", first.stdout)
+        self.assertIn("disputed pair", first.stdout)
+        # A finding is a property of current state, not an event: nothing
+        # remembers that it was seen, so the second run says the same thing.
+        second = self.review("--library", library)
+        self.assertEqual(second.stdout, first.stdout)
+        self.assertEqual(self.snapshot(), before)
+
+    def test_review_has_no_repair_mode(self) -> None:
+        self.write([self.dated_claim("2020-06-01")])
+        for flag in ("--fix", "--repair", "--resolve", "--acknowledge"):
+            result = self.review(flag)
+            self.assertEqual(result.returncode, 2, f"review accepted {flag}")
+            self.assertIn("unrecognized arguments", result.stderr)
+
+    def test_each_finding_identifies_its_claim_and_its_reason(self) -> None:
+        """Criterion 5 and the §6 output contract: every line names the claim
+        or the pair it is about, and review does not dump the store it read."""
+        claims = [
+            self.dated_claim("2020-06-01"),
+            base_claim(id=self.claim_id("D4"), claim=" ".join(["prose"] * 52)),
+        ]
+        self.write(claims)
+        output = self.assertReviewed()
+        findings = [line for line in output.splitlines() if line.startswith(f"{self.DOMAIN}: ")]
+        self.assertEqual(len(findings), 2, output)
+        for line in findings:
+            self.assertTrue(any(claim["id"] in line for claim in claims), line)
+        self.assertNotIn("Checking both overloads", output, "review dumped claim prose")
+
+
 class SchemaDispatch(unittest.TestCase):
     """T04: `validate` routes each store by `memory_schema_version`, one run
     over a mixed-state corpus, with the v1/v2 claim side reachable only through

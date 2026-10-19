@@ -692,3 +692,69 @@ Stated so no future implementer mistakes silence for permission:
 
 All six are semantic judgment. Scripts own structure, accounting, and (once
 wired) referential integrity. Nothing else.
+
+### `review`: what it reports, and what it refuses to decide
+
+`review` is a **reporting** operation, not a repair one. It reads the store,
+prints what a human should look at, and changes nothing: no file, no
+`memory_version`, no History event, and no receipt, sidecar, cache, or
+acknowledgement file recording that a finding was seen. A finding is a
+property of current state, so the same run reports it again until an
+authorised write changes that state.
+
+Three outcomes are kept apart:
+
+| State | Channel | Exit |
+|---|---|---|
+| structurally invalid | `ERROR:`, with the rule id | non-zero; findings are withheld |
+| mechanically detectable, semantically undecidable | a review item | zero |
+| ordinary healthy claim | nothing | zero |
+
+Review is **not a substitute for validation** and never softens it. An ERROR
+rule is not downgraded to a flag so that review can keep going: a malformed
+contradiction — one-sided, missing its target, naming more than one
+counterpart, or naming itself — is still invalid after T07, and review reports
+it as an error rather than listing it as a concern.
+
+What a v3 review lists:
+
+- **`revalidate_after` past due.** Age triggers a listing *and nothing else*
+  (F2). It does not suppress retrieval, lower rank, change `confidence`,
+  suggest a new one, or touch `last_verified` or `revalidate_after`. A store
+  whose every claim is past due retrieves identically to one that is not.
+  `STALE_DAYS` has no part on this path; the per-claim date replaced it.
+- **The FLAG rules** — C2 (a claim at or past 50 words), C5 (`delta.kinds` with
+  three members), L5 (prose carrying machine-, host-, session-, or
+  toolchain-local state), and I2 (an unresolved `canon` id). These come
+  straight from the validator, so review and `validate` cannot disagree about
+  what is a flag. A flag leaves the store **valid**; it is a smell to look at,
+  not an invalidity.
+- **Unresolved `canon` ids, conditional on the library.** I2 is reported only
+  when a `library/` root actually exists. With no library there is nothing to
+  resolve against, and absence is a missing input rather than corruption: the
+  same store stays valid and unflagged. Review reports only what failed to
+  resolve — it never enumerates the links that did, because listing them would
+  be Memory offering a Canon menu, and Canon is selected before Memory is read.
+- **Valid disputed pairs.** Each pair is listed once, for human judgment. Both
+  claims stay present and retrievable; review performs no demotion, no merge,
+  no erasure, no confidence change, no winner selection, and no retirement.
+  (The stale R2.5 wording that `review` reports *asymmetric* `contradicts` is
+  superseded: after T07 asymmetry is an ERROR, so the only thing left to
+  surface is a well-formed pair.)
+- **The uncited-events line**, informational, as T06 relabelled it.
+
+No review code computes, recommends, promotes, or demotes a `confidence`, and
+none derives one from evidence length, event count, elapsed time, `claim_kind`,
+or the presence of a contradiction (F1, F2). The v3 output prints no confidence
+value at all.
+
+Everything in "What v3 validation deliberately cannot check" above stays
+uncheckable here too. Review exposes mechanical smells; whether the delta is
+real, whether the claim only confirms Canon worked, whether it is portable,
+whether the confidence is honest, whether the prose is one claim, and which
+side of a contradiction should win remain the reader's judgment.
+
+One known gap is recorded rather than worked around: a valid disputed pair
+cannot be resolved by the ordinary one-claim `retire`, because removing either
+member leaves the survivor with an I6-asymmetric link. I6 is not weakened to
+make that work, and no atomic pair-resolution operation exists yet.

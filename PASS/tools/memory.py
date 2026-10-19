@@ -2089,9 +2089,128 @@ def library_object_ids(library_root: Path) -> set[str]:
     return ids
 
 
-def review_store(domain_dir: Path, library_root: Path | None) -> list[str]:
-    notes: list[str] = []
+def review_store(domain_dir: Path, library_root: Path | None) -> tuple[list[str], list[str]]:
+    """Report what a human must look at, as `(errors, findings)`.
+
+    `review` reads and nothing else: it writes no file, touches no
+    `memory_version`, appends no History event, and leaves no acknowledgement
+    behind. A finding is a property of current state, so it comes back on every
+    run until an authorised write changes that state.
+
+    `errors` is the validation channel, not a review channel. A structurally
+    invalid store has nothing reviewable to say — its claims are not yet
+    well-formed — so review reports the errors and returns no findings rather
+    than restating a validation failure as a softer kind of concern.
+
+    Each store is routed by its own declared schema version: a schema-3 store
+    takes the v3 path, and an unmigrated store keeps the legacy heuristics
+    until T21 deletes them.
+    """
     memory = load_memory(domain_dir)
+    if memory.get("memory_schema_version") == V3_SCHEMA_VERSION:
+        return review_v3_store(domain_dir, memory, library_root)
+    return [], review_legacy_store(domain_dir, memory, library_root)
+
+
+def disputed_pairs(claims: list[Any]) -> list[tuple[str, str]]:
+    """Every valid disputed pair in the store, each listed once (R2.5 §4.8).
+
+    After T07 a valid `contradicts` is exactly one id, symmetric, resolving,
+    and never self-referential, so a contradiction component is exactly two
+    claims and the pair is the whole of it. Deduplication is therefore the
+    mechanical one — order the two ids and keep one copy — and needs no graph
+    traversal, no component budget, and no decision about which side leads.
+    """
+    seen: set[tuple[str, str]] = set()
+    for claim in claims:
+        if not isinstance(claim, dict) or not isinstance(claim.get("id"), str):
+            continue
+        targets = claim.get("contradicts")
+        if not isinstance(targets, list):
+            continue
+        for target in targets:
+            if isinstance(target, str):
+                seen.add(tuple(sorted((claim["id"], target))))  # type: ignore[arg-type]
+    return sorted(seen)
+
+
+def review_v3_store(
+    domain_dir: Path, memory: dict[str, Any], library_root: Path | None
+) -> tuple[list[str], list[str]]:
+    """A schema-3 store's review surface (R2.5 §8.3), as `(errors, findings)`.
+
+    Four duties, and no fifth. A past-due `revalidate_after` is listed and
+    nothing more — F2's "age never changes confidence" is mechanical here: this
+    function reads no `confidence` and emits none, so there is no value for it
+    to compute, suggest, or promote. The FLAG rules (C2, C5, L5, I2) come
+    straight from the validator rather than being re-derived, so review and
+    `validate` can never disagree about what is a flag. I2 is reported only
+    when a Library root actually exists: an absent library leaves Memory
+    self-sufficient, never corrupt. And a valid disputed pair is surfaced for a
+    human, with both claims left present, retrievable, and unchanged.
+
+    What a FLAG is not: a verdict. Review reports mechanically detectable
+    smells. Whether the delta is real, whether the prose is one claim, whether
+    the confidence is honest, and which side of a contradiction should win are
+    all §4.7 judgments that stay with the person reading this output.
+
+    `STALE_DAYS` has no part on this path: per-claim `revalidate_after`
+    replaced the repository-wide constant (R2.5 §5.1).
+    """
+    errors, flags = validate_v3_store(domain_dir, library_root=library_root)
+    if errors:
+        return errors, []
+
+    findings: list[str] = []
+    claims = [c for c in memory.get("claims") or [] if isinstance(c, dict)]
+    # `revalidate_after` reads as "revalidate after this date", so a claim is
+    # due once today is past it. Tests pin dates that are unambiguously before
+    # or after; the equality case is left as the plain reading of the word and
+    # is not a rule either the specification or the schema states.
+    today = datetime.now().date().isoformat()
+    for claim in claims:
+        due = claim.get("revalidate_after")
+        label = claim.get("id") if isinstance(claim.get("id"), str) else "claim"
+        if due is not None and DATE_RE.fullmatch(str(due)) and str(due) < today:
+            findings.append(
+                f"{label}: revalidate_after {due} is past due - a listing only: "
+                "retrieval, rank, and the stored label are all untouched"
+            )
+    findings.extend(f"FLAG: {flag}" for flag in flags)
+    for left, right in disputed_pairs(claims):
+        findings.append(
+            f"{left} and {right} are a disputed pair - both stay present and "
+            "retrievable; resolving the dispute is a human decision this tool "
+            "does not make or record"
+        )
+    findings.extend(uncited_events_note(domain_dir))
+    return [], findings
+
+
+def uncited_events_note(domain_dir: Path) -> list[str]:
+    """The T06 uncited-events line, shared by both review paths."""
+    uncited = uncited_valid_events(domain_dir)
+    if not uncited:
+        return []
+    return [
+        f"{len(uncited)} valid event(s) are not cited by any claim or entry: "
+        f"{', '.join(uncited[:8])} - informational only, not a backlog: under the "
+        "cap of three representative events this is not a measure of support"
+    ]
+
+
+def review_legacy_store(
+    domain_dir: Path, memory: dict[str, Any], library_root: Path | None
+) -> list[str]:
+    """The v1/v2 review heuristics, unchanged and going nowhere new.
+
+    These read `status`, `evidence_count`, and `evidence_class`, none of which
+    exist in schema 3, and one of them derives a confidence remark from an
+    evidence count — which is exactly what F1 forbids and why the v3 path above
+    was written rather than extended from here. This function is deleted with
+    the rest of the legacy reader (T21); it is not a model for anything.
+    """
+    notes: list[str] = []
     entries = [e for e in memory.get("entries") or [] if isinstance(e, dict)]
     known = library_object_ids(library_root) if library_root else set()
     cutoff = datetime.now().date() - timedelta(days=STALE_DAYS)
@@ -2118,13 +2237,7 @@ def review_store(domain_dir: Path, library_root: Path | None) -> list[str]:
                 owner = str(owner)
                 if re.fullmatch(r"(?:PAT|DRILL|AP)_[a-z0-9_]+", owner) and owner not in known:
                     notes.append(f"{label}: likely_owner '{owner}' no longer exists in the library")
-    uncited = uncited_valid_events(domain_dir)
-    if uncited:
-        notes.append(
-            f"{len(uncited)} valid event(s) are not cited by any claim or entry: "
-            f"{', '.join(uncited[:8])} - informational only, not a backlog: under the "
-            "cap of three representative events this is not a measure of support"
-        )
+    notes.extend(uncited_events_note(domain_dir))
     return notes
 
 
@@ -2359,14 +2472,32 @@ def cmd_claim(args: argparse.Namespace) -> int:
 
 
 def cmd_review(args: argparse.Namespace) -> int:
+    """List what needs a human, and change nothing.
+
+    Two channels, as `validate` has: `ERROR:` means the store is structurally
+    invalid and review has nothing to say about it, and anything else is a
+    review item that leaves the store valid. Review is not a substitute for
+    validation and does not soften it — an invalid store exits non-zero here
+    too, and its findings are withheld rather than reported as concerns.
+    """
     dirs = domain_dirs(args.memory, args.domain)
     library = args.library if args.library and args.library.is_dir() else None
     total = 0
+    invalid = 0
     for domain_dir in dirs:
-        notes = review_store(domain_dir, library)
-        for note in notes:
+        errors, findings = review_store(domain_dir, library)
+        for error in errors:
+            print(f"{domain_dir.name}: ERROR: {error}")
+        for note in findings:
             print(f"{domain_dir.name}: {note}")
-        total += len(notes)
+        total += len(findings)
+        invalid += len(errors)
+    if invalid:
+        print(
+            f"FAIL: {invalid} validation error(s); review reports invalid state "
+            "rather than reviewing it - run validate"
+        )
+        return 1
     print(f"{total} item(s) suggested for review")
     return 0
 
@@ -2442,8 +2573,24 @@ def main() -> int:
         help="Confirm that events the claim already cites and --events omits should be dropped.",
     )
 
-    review = sub.add_parser("review", parents=[common], help="List entries that need revalidation.")
-    review.add_argument("--library", type=Path, default=default_library_root())
+    review = sub.add_parser(
+        "review", parents=[common],
+        help="List what needs a human. Read-only: review writes nothing.",
+        description=(
+            "Reports past-due `revalidate_after`, the FLAG rules (C2, C5, L5, and I2 "
+            "when a library root is present), and every valid disputed pair. A finding "
+            "is a review smell, never a verdict and never an invalidity: review changes "
+            "no file, no `memory_version`, and no `confidence`, and a past due date "
+            "leaves retrieval and the stored label exactly as they were. Structural "
+            "errors are reported as errors and exit non-zero; review does not downgrade "
+            "them."
+        ),
+    )
+    review.add_argument(
+        "--library", type=Path, default=default_library_root(),
+        help="Library root for canon resolution (I2). When it is absent, Memory stays "
+             "self-sufficient: canon ids are shape-checked and nothing is flagged.",
+    )
 
     add = sub.add_parser(
         "add", parents=[common], description=WRITE_DISCIPLINE,

@@ -47,7 +47,7 @@ python PASS/tools/memory.py validate                          # shape, vocabular
 python PASS/tools/memory.py query --domain <domain> --scope <topic> --cues a,b --canon <card id>   # bounded retrieval
 python PASS/tools/memory.py append --domain art --task "..."  # one event, verified by readback
 python PASS/tools/memory.py link-evidence --domain art --claim <claim id> --events E1,E2   # one to three events behind a claim
-python PASS/tools/memory.py review --domain art               # what needs revalidating
+python PASS/tools/memory.py review --domain art               # read-only: what needs a human
 python PASS/tools/memory.py add --domain <domain> --json claim.json              # new claim, generated id
 python PASS/tools/memory.py update --domain <domain> --id <claim id> --json '{"confidence": "strong"}'
 python PASS/tools/memory.py retire --domain <domain> --id <claim id> --reason "..."

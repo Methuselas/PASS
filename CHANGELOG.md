@@ -6,6 +6,28 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.121 - 2026-10-19
+
+### Added
+
+- **Migration FREEZE records a legacy Memory store exactly, or refuses it
+  (R2.5 §7.4 step 0).** `migrate_memory_v3.py freeze --domain <d>` runs the
+  existing Memory validator against a v1/v2 store — the same dispatch
+  `memory.py validate` uses — and on success writes a one-time
+  `ledger-<domain>.yaml` into the task's workspace purpose directory: the
+  store's `memory_schema_version`, `memory_version`, entry count, a sha256 of
+  each entry's exact serialized bytes, and the admissible event id set (valid +
+  performance + not quarantined, the CRQ rule mirrored rather than imported).
+  `verify-hashes` re-checks every recorded hash and the entry id set (check
+  A2), so an entry edited, removed, or added after FREEZE fails loudly. The
+  tool refuses an invalid store without emitting a ledger, refuses a schema-3
+  store, refuses to overwrite an existing ledger, and never writes under
+  `memory/`: legacy stores stay read-only migration inputs until their own
+  domain migration is signed off. It decomposes nothing, classifies nothing,
+  authors no vNext claim, and computes no confidence — judgment stays with
+  models and humans. One-time tooling, deleted by T21 with the legacy input
+  reader.
+
 ## 1.0.0-beta.120 - 2026-10-19
 
 ### Changed

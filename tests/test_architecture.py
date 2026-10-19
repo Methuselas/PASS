@@ -11,11 +11,13 @@ import json
 import os
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import yaml
 
@@ -33,6 +35,9 @@ CANONICAL_RECIPES = tuple(sorted(RECIPES.glob("SkillForge_*.yaml")))
 ART_RECIPE = RECIPES / "SkillForge_Art.yaml"
 SOFTWARE_ENGINEERING_RECIPE = RECIPES / "SkillForge_Software_Engineering.yaml"
 SHARED_PACKAGE = "metaskills"
+
+sys.path.insert(0, str(ROOT / "PASS/tools"))
+import build_release  # noqa: E402
 # Discovered, not hardcoded: a lane may be absent or empty while it is being
 # rebuilt, and the invariant is about the domains that exist, not a fixed list.
 DOMAINS = tuple(
@@ -178,6 +183,184 @@ def write_authority_manifest(
         + "\n",
         encoding="utf-8",
     )
+
+
+def v3_art_claim(claim_id: str, **overrides: object) -> dict:
+    """A structurally valid schema-3 Art claim for release projection tests."""
+    claim = {
+        "id": claim_id,
+        "claim": "Blocking the light side of a form first keeps the shadow shape readable.",
+        "claim_class": "conduct",
+        "claim_kind": "deterministic",
+        "confidence": "repeated",
+        "delta": {
+            "kinds": ["action"],
+            "statement": "Block the light side before describing the shadow.",
+        },
+        "envelope": {
+            "holds_in": ["simple convex forms under a single light"],
+            "not_shown_in": ["interior cavities and reflected-light setups"],
+        },
+        "provenance": ["runtime_self_audit"],
+        "scope": "light_block_in",
+        "retrieval_cues": ["blocking light side", "light block-in"],
+        "last_verified": "2026-10-18",
+    }
+    claim.update(overrides)
+    return claim
+
+
+def write_v3_art_memory(memory_root: Path) -> dict[str, object]:
+    """Write a schema-3 Art store plus its History into `memory_root`.
+
+    The claims cover every face the projection must preserve: one claim with a
+    single evidence id, one with no evidence key at all, one at the
+    three-evidence cap, one with a `canon` reference and a `revalidate_after`
+    date, and a symmetric `contradicts` pair with no evidence. The History
+    holds the three cited events so the source store validates standing alone
+    with evidence resolved (I4). Returns the parsed store for byte-level
+    comparisons after a build.
+    """
+    def claim_id(n: int) -> str:
+        return "ART_MEM_" + str(n).rjust(26, "0")
+
+    def event_id(n: int) -> str:
+        return f"ART_EV_{n:04d}"
+
+    claims = [
+        v3_art_claim(claim_id(1), evidence=[event_id(1)]),
+        v3_art_claim(
+            claim_id(2),
+            claim=(
+                "A cast shadow ends where the reflected light begins, not where "
+                "the outline ends."
+            ),
+            claim_kind="stochastic",
+            confidence="provisional",
+            delta={
+                "kinds": ["judgment"],
+                "statement": "Watch the reflected light at the shadow edge.",
+            },
+            envelope={
+                "holds_in": ["studio-lit still life"],
+                "not_shown_in": ["outdoor noon scenes"],
+            },
+            scope="cast_shadow_edges",
+            retrieval_cues=["cast shadow boundary"],
+        ),
+        v3_art_claim(
+            claim_id(3),
+            claim=(
+                "A construction line stays lighter than any value laid over it."
+            ),
+            confidence="strong",
+            delta={
+                "kinds": ["action", "verification"],
+                "statement": "Keep construction lines lighter than values.",
+            },
+            envelope={
+                "holds_in": ["pencil underpainting"],
+                "not_shown_in": ["ink-only studies"],
+            },
+            scope="construction_line_weight",
+            retrieval_cues=["construction line weight"],
+            provenance=["runtime_self_audit", "training_benchmark"],
+            evidence=[event_id(1), event_id(2), event_id(3)],
+        ),
+        v3_art_claim(
+            claim_id(4),
+            claim=(
+                "Squinting collapses detail into the two value groups that decide "
+                "the read."
+            ),
+            delta={
+                "kinds": ["verification"],
+                "statement": "Squint before committing to a value.",
+            },
+            envelope={
+                "holds_in": ["value composition checks"],
+                "not_shown_in": ["line-only contour work"],
+            },
+            scope="value_grouping",
+            retrieval_cues=["squint check"],
+            provenance=["source_study"],
+            canon=["PAT_build_gesture_into_clear_masses"],
+            revalidate_after="2026-12-31",
+        ),
+    ]
+    left_id, right_id = claim_id(5), claim_id(6)
+    claims.append(
+        v3_art_claim(
+            left_id,
+            claim="Fix the eye alignment before any shading is applied.",
+            delta={"kinds": ["action"], "statement": "Fix eye alignment before shading."},
+            envelope={
+                "holds_in": ["portrait construction"],
+                "not_shown_in": ["landscape studies"],
+            },
+            scope="head_construction_order",
+            retrieval_cues=["eye alignment order"],
+            contradicts=[right_id],
+        )
+    )
+    claims.append(
+        v3_art_claim(
+            right_id,
+            claim="Block the whole head mass before fixing any single feature.",
+            delta={"kinds": ["action"], "statement": "Block the whole head before features."},
+            envelope={
+                "holds_in": ["quick head studies"],
+                "not_shown_in": ["finished portrait rendering"],
+            },
+            scope="head_construction_order",
+            retrieval_cues=["eye alignment order"],
+            contradicts=[left_id],
+        )
+    )
+    store = {
+        "memory_schema_version": 3,
+        "skillset": "art",
+        "memory_version": 1,
+        "claims": claims,
+    }
+    events = [
+        {
+            "event_id": event_id(1),
+            "date": "2026-10-18",
+            "task": "Block the light side of a cast form",
+            "validity": "valid",
+        },
+        {
+            "event_id": event_id(2),
+            "date": "2026-10-17",
+            "task": "Study reflected light at a cast shadow edge",
+            "validity": "valid",
+        },
+        {
+            "event_id": event_id(3),
+            "date": "2026-10-16",
+            "task": "Lay construction lines under a pencil value pass",
+            "validity": "valid",
+        },
+    ]
+    domain = memory_root / "art"
+    domain.mkdir(parents=True, exist_ok=True)
+    (domain / "skill_memory.yaml").write_bytes(
+        yaml.safe_dump(store, sort_keys=False, allow_unicode=True, width=88).encode("utf-8")
+    )
+    with (domain / "training_history.jsonl").open("w", encoding="utf-8", newline="\n") as handle:
+        for event in events:
+            handle.write(json.dumps(event, ensure_ascii=False, sort_keys=True) + "\n")
+    return store
+
+
+def tree_hashes(root: Path) -> dict[str, str]:
+    """SHA-256 of every file under `root`, keyed by POSIX-relative path."""
+    return {
+        path.relative_to(root).as_posix(): build_release.sha256_file(path)
+        for path in sorted(root.rglob("*"))
+        if path.is_file()
+    }
 
 
 class RunPathBudgetTests(unittest.TestCase):
@@ -1109,6 +1292,7 @@ class ReleaseMemoryTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             manifest = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["memory_domains"], [])
+            self.assertFalse((out / "memory").exists())
             self.assertNotIn("## Skillset Memory", (out / "SKILL.md").read_text(encoding="utf-8"))
 
     @unittest.skipUnless(ART_STORE.is_file(), "no Art memory store in this checkout")
@@ -1137,6 +1321,284 @@ class ReleaseMemoryTests(unittest.TestCase):
                 text=True, encoding="utf-8", capture_output=True, cwd=ROOT,
             )
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+class ReleaseV3MemoryTests(unittest.TestCase):
+    """T09: a schema-3 Memory store ships as a current-state projection.
+
+    R2.5 §8.5: the release stages only `skill_memory.yaml`, strips claim-level
+    `evidence`, and ships no `training_history.jsonl`. The source store is read
+    and never rewritten; every id and non-evidence key carries through
+    unchanged. A pre-v3 store still ships whole (legacy pass-through, deleted
+    with the reader in T21).
+    """
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls._tmp = tempfile.TemporaryDirectory()
+        cls.addClassCleanup(cls._tmp.cleanup)
+        root = Path(cls._tmp.name)
+        cls.fixture_memory = root / "memory"
+        cls.source_store = cls.fixture_memory / "art" / "skill_memory.yaml"
+        write_v3_art_memory(cls.fixture_memory)
+        cls.source_hashes = tree_hashes(cls.fixture_memory)
+        cls.out = root / "release"
+        result = run("build", ART_RECIPE, cls.out, "--memory", str(cls.fixture_memory))
+        if result.returncode:
+            raise AssertionError(result.stdout + result.stderr)
+
+    def staged_store(self) -> dict:
+        return yaml.safe_load(
+            (self.out / "memory/art/skill_memory.yaml").read_text(encoding="utf-8")
+        )
+
+    def source_store_data(self) -> dict:
+        return yaml.safe_load(self.source_store.read_text(encoding="utf-8"))
+
+    def test_release_strips_evidence_from_a_v3_store(self) -> None:
+        staged = self.staged_store()
+        self.assertEqual(staged["memory_schema_version"], 3)
+        for claim in staged["claims"]:
+            with self.subTest(claim=claim["id"]):
+                self.assertNotIn("evidence", claim)
+        source = self.source_store_data()
+        for src_claim, dst_claim in zip(source["claims"], staged["claims"]):
+            with self.subTest(claim=src_claim["id"]):
+                expected = {key: value for key, value in src_claim.items() if key != "evidence"}
+                self.assertEqual(dst_claim, expected)
+
+    def test_release_ships_no_training_history_for_a_v3_store(self) -> None:
+        self.assertFalse((self.out / "memory/art/training_history.jsonl").exists())
+        self.assertEqual(
+            sorted(item.name for item in (self.out / "memory/art").iterdir()),
+            ["skill_memory.yaml"],
+        )
+
+    def test_release_carries_every_claim_id_unchanged(self) -> None:
+        source = self.source_store_data()
+        staged = self.staged_store()
+        self.assertEqual(
+            [claim["id"] for claim in staged["claims"]],
+            [claim["id"] for claim in source["claims"]],
+        )
+        by_id = {claim["id"]: claim for claim in staged["claims"]}
+        self.assertEqual(
+            by_id["ART_MEM_00000000000000000000000004"]["canon"],
+            ["PAT_build_gesture_into_clear_masses"],
+        )
+        self.assertEqual(
+            str(by_id["ART_MEM_00000000000000000000000004"]["revalidate_after"]),
+            "2026-12-31",
+        )
+        self.assertEqual(
+            by_id["ART_MEM_00000000000000000000000005"]["contradicts"],
+            ["ART_MEM_00000000000000000000000006"],
+        )
+        self.assertEqual(
+            by_id["ART_MEM_00000000000000000000000006"]["contradicts"],
+            ["ART_MEM_00000000000000000000000005"],
+        )
+
+    def test_release_source_store_is_never_rewritten(self) -> None:
+        self.assertEqual(tree_hashes(self.fixture_memory), self.source_hashes)
+
+    def test_shipped_v3_memory_is_read_only(self) -> None:
+        for shipped in (self.out / "memory").rglob("*"):
+            if shipped.is_file():
+                with self.subTest(file=shipped.name):
+                    self.assertEqual(
+                        stat.S_IMODE(shipped.stat().st_mode) & 0o222,
+                        0,
+                        f"{shipped.name} shipped writable",
+                    )
+
+    def test_skill_memory_section_describes_the_projection(self) -> None:
+        skill = (self.out / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("## Skillset Memory", skill)
+        self.assertIn("current-state projection", skill)
+        self.assertNotIn("holds the events an entry was consolidated from", skill)
+
+    def test_manifest_records_memory_validation(self) -> None:
+        manifest = json.loads(
+            (self.out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(manifest["memory_domains"], ["art"])
+        self.assertEqual(manifest["quality_gates"]["memory_validation"], "passed")
+        self.assertEqual(run("check", self.out).returncode, 0)
+
+    def test_staged_store_validates_with_the_memory_tool(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable, str(ROOT / "PASS/tools/memory.py"), "validate",
+                "--memory", str(self.out / "memory"),
+            ],
+            text=True, encoding="utf-8", capture_output=True, cwd=ROOT,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_check_rejects_a_shipped_history_beside_a_v3_store(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            clone = Path(tmp) / "release"
+            shutil.copytree(self.out, clone)
+            (clone / "memory/art/training_history.jsonl").write_text(
+                json.dumps(
+                    {
+                        "event_id": "ART_EV_0999",
+                        "date": "2026-10-19",
+                        "task": "Reintroduced beside a projected store",
+                        "validity": "valid",
+                    },
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            check = run("check", clone)
+            self.assertNotEqual(check.returncode, 0)
+            self.assertIn(
+                "packaged memory ships training history beside a v3 store: art",
+                check.stderr,
+            )
+
+    def test_check_rejects_a_reintroduced_evidence_key(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            clone = Path(tmp) / "release"
+            shutil.copytree(self.out, clone)
+            store = clone / "memory/art/skill_memory.yaml"
+            store.chmod(0o600)
+            data = yaml.safe_load(store.read_text(encoding="utf-8"))
+            data["claims"][0]["evidence"] = ["ART_EV_0001"]
+            store.write_bytes(
+                yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=88).encode(
+                    "utf-8"
+                )
+            )
+            check = run("check", clone)
+            self.assertNotEqual(check.returncode, 0)
+            self.assertIn(
+                "packaged v3 memory carries an evidence key: art ART_MEM_00000000000000000000000001",
+                check.stderr,
+            )
+
+    def test_build_fails_closed_on_an_invalid_v3_store(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            memory_root = root / "memory"
+            store = write_v3_art_memory(memory_root)
+            del store["claims"][0]["confidence"]
+            (memory_root / "art/skill_memory.yaml").write_bytes(
+                yaml.safe_dump(store, sort_keys=False, allow_unicode=True, width=88).encode(
+                    "utf-8"
+                )
+            )
+            out = root / "release"
+            result = run("build", ART_RECIPE, out, "--memory", str(memory_root))
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("quality gate failed (memory.py)", result.stderr)
+            self.assertFalse(out.exists())
+
+
+class ReleaseMemoryProjectionTests(unittest.TestCase):
+    """Unit surface for the projection helpers, without a full release build."""
+
+    def test_stage_memory_projects_a_v3_store(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            memory_root = root / "memory"
+            source_store = write_v3_art_memory(memory_root)
+            staging = root / "staging"
+            shipped = build_release.stage_memory(staging, memory_root, {"art"})
+            self.assertEqual(shipped, ["art"])
+            staged = staging / "memory/art"
+            self.assertTrue((staged / "skill_memory.yaml").is_file())
+            self.assertFalse((staged / "training_history.jsonl").exists())
+            data = yaml.safe_load((staged / "skill_memory.yaml").read_text(encoding="utf-8"))
+            for claim in data["claims"]:
+                self.assertNotIn("evidence", claim)
+            self.assertEqual(
+                [claim["id"] for claim in data["claims"]],
+                [claim["id"] for claim in source_store["claims"]],
+            )
+
+    def test_stage_memory_copies_a_legacy_store_untouched(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            memory_root = root / "memory"
+            legacy = memory_root / "art"
+            legacy.mkdir(parents=True)
+            store_bytes = b"memory_schema_version: 1\nskillset: art\nentries: []\n"
+            history_bytes = b'{"event_id": "ART_EV_0001"}\n'
+            (legacy / "skill_memory.yaml").write_bytes(store_bytes)
+            (legacy / "training_history.jsonl").write_bytes(history_bytes)
+            staging = root / "staging"
+            shipped = build_release.stage_memory(staging, memory_root, {"art"})
+            self.assertEqual(shipped, ["art"])
+            staged = staging / "memory/art"
+            self.assertEqual((staged / "skill_memory.yaml").read_bytes(), store_bytes)
+            self.assertEqual((staged / "training_history.jsonl").read_bytes(), history_bytes)
+
+    def test_stage_memory_skips_domains_without_a_store(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            memory_root = root / "memory"
+            memory_root.mkdir()
+            staging = root / "staging"
+            shipped = build_release.stage_memory(staging, memory_root, {"art", "writing"})
+            self.assertEqual(shipped, [])
+
+    def test_projected_store_problems_reports_history_and_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            memory_root = root / "memory"
+            write_v3_art_memory(memory_root)
+            staged = root / "staged/art"
+            staged.mkdir(parents=True)
+            build_release.write_projected_store(
+                yaml.safe_load(
+                    (memory_root / "art/skill_memory.yaml").read_text(encoding="utf-8")
+                ),
+                staged / "skill_memory.yaml",
+            )
+            self.assertEqual(build_release.projected_store_problems(staged), [])
+            (staged / "training_history.jsonl").write_text("{}\n", encoding="utf-8")
+            problems = build_release.projected_store_problems(staged)
+            self.assertTrue(any("training history" in problem for problem in problems))
+            (staged / "training_history.jsonl").unlink()
+            data = yaml.safe_load((staged / "skill_memory.yaml").read_text(encoding="utf-8"))
+            data["claims"][0]["evidence"] = ["ART_EV_0001"]
+            (staged / "skill_memory.yaml").write_bytes(
+                yaml.safe_dump(data, sort_keys=False).encode("utf-8")
+            )
+            problems = build_release.projected_store_problems(staged)
+            self.assertTrue(any("evidence key" in problem for problem in problems))
+
+    def test_projected_store_problems_passes_a_legacy_store(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            domain = Path(tmp) / "art"
+            domain.mkdir()
+            (domain / "skill_memory.yaml").write_text(
+                "memory_schema_version: 1\n", encoding="utf-8"
+            )
+            (domain / "training_history.jsonl").write_text("{}\n", encoding="utf-8")
+            self.assertEqual(build_release.projected_store_problems(domain), [])
+
+    def test_run_quality_gates_validates_the_staged_memory(self) -> None:
+        calls: list[tuple[str, list[str]]] = []
+
+        def fake_run_python(script, *args):
+            calls.append((script.name, list(args)))
+            return subprocess.CompletedProcess([str(script), *args], 0, "", "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            lib = Path(tmp) / "library"
+            mem = Path(tmp) / "memory"
+            lib.mkdir()
+            mem.mkdir()
+            with mock.patch.object(build_release, "run_python", fake_run_python):
+                gates = build_release.run_quality_gates(lib, mem)
+        self.assertEqual(gates["memory_validation"], "passed")
+        self.assertIn(("memory.py", ["validate", "--memory", str(mem)]), calls)
 
 
 if __name__ == "__main__":

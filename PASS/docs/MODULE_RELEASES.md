@@ -159,6 +159,19 @@ to the library that owns the store. Read-only is a statement of that contract,
 not a security boundary — a consumer who clears the bit only forks a copy that
 no longer travels back.
 
+A store that declares schema 3 ships as a **current-state projection**
+(R2.5 §8.5): the release stages only `memory/<domain>/skill_memory.yaml`, with
+every claim-level `evidence` key removed and no `training_history.jsonl`. The
+projection is not a rewrite — no id is regenerated, renumbered, compacted, or
+abbreviated, and the source store is read, never written. Serialization mirrors
+`memory.py`'s own dump, and the staged bytes are exactly what the memory
+quality gate validates. `check` rejects a release that ships History beside a
+v3 store or an `evidence` key inside one. A store of any older schema still
+ships whole, History included, unchanged; that pass-through is deleted with the
+legacy reader. A project snapshot is not a projection: it round-trips the full
+writable store, History and evidence included, and its import gate validates
+those shipped bytes.
+
 `RELEASE_MANIFEST.json` records the shipped domains in `memory_domains`, and
 `check` rejects a declared domain whose store is missing, a packaged domain the
 manifest does not declare, and a memory domain with no matching packaged library

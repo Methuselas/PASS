@@ -6,6 +6,22 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.120 - 2026-10-19
+
+### Changed
+
+- **A release stages a schema-3 Memory store as a current-state projection
+  (R2.5 §8.5).** `build_release.py` reads a v3 `skill_memory.yaml`, drops every
+  claim-level `evidence` key, and ships only that file — no
+  `training_history.jsonl` — for each owned domain. Every claim id and every
+  other key carries through unchanged; the source store is read and never
+  rewritten. `check` rejects a v3 store shipped with History beside it or with
+  an `evidence` key still present, and the SKILL.md memory section says the
+  copy is a projection when no History ships. Stores of any older schema still
+  ship whole, History included, until the legacy reader is deleted. Project
+  snapshots are unaffected: they continue to round-trip the full writable
+  store, and their import gate validates those shipped bytes.
+
 ## 1.0.0-beta.119 - 2026-10-18
 
 ### Added

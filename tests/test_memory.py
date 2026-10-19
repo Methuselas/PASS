@@ -432,45 +432,6 @@ class TemporaryStateFirewall(MemoryStoreFixture):
         self.assertIn("must stand alone", result.stdout)
 
 
-class RetrievalContract(MemoryStoreFixture):
-    """Retrieval is bounded, and it reports what it actually returned."""
-
-    def test_query_returns_only_matching_entries(self) -> None:
-        entries = [
-            dict(VALID_ENTRY, id="TST_MEM_001", scope_id="hands", retrieval_cues=["hand", "grip"]),
-            dict(VALID_ENTRY, id="TST_MEM_002", scope_id="landscape", retrieval_cues=["terrain"]),
-        ]
-        self.write(entries, [])
-        result = run_tool("query", "--domain", "art", "--cues", "hand", memory=self.tmp)
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("retrieved: TST_MEM_001", result.stdout)
-        self.assertNotIn("TST_MEM_002", result.stdout)
-
-    def test_query_respects_the_limit(self) -> None:
-        entries = [
-            dict(VALID_ENTRY, id=f"TST_MEM_{n:03d}", retrieval_cues=["shared"])
-            for n in range(1, 6)
-        ]
-        self.write(entries, [])
-        result = run_tool("query", "--domain", "art", "--cues", "shared", "--limit", "2", memory=self.tmp)
-        receipt = [line for line in result.stdout.splitlines() if line.startswith("retrieved:")][0]
-        self.assertEqual(len(receipt.split(":")[1].split(",")), 2)
-
-    def test_resolved_entries_stop_being_retrieved(self) -> None:
-        entries = [
-            dict(VALID_ENTRY, id="TST_MEM_001", status="resolved", retrieval_cues=["hand"]),
-            dict(VALID_ENTRY, id="TST_MEM_002", status="active", retrieval_cues=["hand"]),
-        ]
-        self.write(entries, [])
-        result = run_tool("query", "--domain", "art", "--cues", "hand", memory=self.tmp)
-        self.assertIn("retrieved: TST_MEM_002", result.stdout)
-
-    def test_query_reports_an_empty_retrieval_honestly(self) -> None:
-        self.write([dict(VALID_ENTRY, retrieval_cues=["hand"])], [])
-        result = run_tool("query", "--domain", "art", "--cues", "unrelated", memory=self.tmp)
-        self.assertIn("retrieved: (none)", result.stdout)
-
-
 class ShippedStore(unittest.TestCase):
     """The memory that actually ships in this repository."""
 
@@ -1545,6 +1506,477 @@ class V3LinkEvidence(V3WriteFixture):
         self.assertIn("informational", line)
         self.assertIn("not a backlog", line)
         self.assertIn("not a measure", line)
+
+
+class V3RetrievalFixture(V3WriteFixture):
+    """A disposable v3 store placed claim by claim, for reading rather than writing.
+
+    The claims go in through the fixture's file writer rather than through
+    `add`, because retrieval reads whatever parses and never validates: a
+    ranking test needs to place exactly the claims it means to rank, in the
+    order it means to place them, without admission deciding anything first.
+    """
+
+    def claim_id(self, suffix: str) -> str:
+        """A distinct, structurally valid claim id.
+
+        The suffix is a spelling device for the test author. Nothing in
+        retrieval reads any part of an id except by exact equality, which is
+        what `test_ids_are_matched_by_equality_and_nothing_else` holds.
+        """
+        return "SE_MEM_" + suffix.upper().rjust(memory_tool.CLAIM_ID_TAIL_LENGTH, "0")
+
+    def claim(self, suffix: str, **changes: object) -> dict:
+        return base_claim(id=self.claim_id(suffix), **changes)
+
+    def contradiction_pair(self) -> list[dict]:
+        """The §6.3 shape: two current claims, symmetric `contradicts`, neither
+        demoted, held together by the marker alone."""
+        first, second = self.claim_id("A"), self.claim_id("B")
+        return [
+            base_claim(
+                id=first,
+                claim="Compressing resolution steps before adding consequence keeps a "
+                      "subsystem teachable.",
+                scope="subsystem_pacing",
+                retrieval_cues=["compress before consequence"],
+                contradicts=[second],
+            ),
+            base_claim(
+                id=second,
+                claim="Consequence layers carry attention further than step count does.",
+                scope="subsystem_pacing",
+                confidence="provisional",
+                retrieval_cues=["consequence over step count"],
+                contradicts=[first],
+            ),
+        ]
+
+    def query(self, *args: object) -> subprocess.CompletedProcess[str]:
+        result = self.tool("query", *args)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        return result
+
+    def receipt(self, result: subprocess.CompletedProcess[str]) -> str:
+        lines = [l for l in result.stdout.splitlines() if l.startswith("retrieved:")]
+        self.assertEqual(len(lines), 1, f"expected exactly one receipt:\n{result.stdout}")
+        return lines[0]
+
+    def returned(self, result: subprocess.CompletedProcess[str]) -> list[str]:
+        """The ids the receipt names as the bounded, ranked result.
+
+        A contradiction counterpart is not one of these: it arrives in the
+        receipt's own segment precisely so it cannot be mistaken for a claim
+        that spent one of the caller's slots.
+        """
+        body = self.receipt(result).split("retrieved: ", 1)[1].split(";", 1)[0].strip()
+        return [] if body == "(none)" else [part.strip() for part in body.split(",")]
+
+    def counterparts(self, result: subprocess.CompletedProcess[str]) -> list[str]:
+        receipt = self.receipt(result)
+        if ";" not in receipt:
+            return []
+        segment = receipt.split(":")[-1]
+        return [part.strip() for part in segment.split(",")]
+
+
+class RetrievalContract(V3RetrievalFixture):
+    """Retrieval is bounded, and it reports what it actually returned.
+
+    Re-pointed at schema 3 by T07. The legacy `score_entry`/`query_store` path
+    still serves an unmigrated store and is deleted with the rest of the legacy
+    reader at T21; what carries over here is the contract, not the field names.
+    """
+
+    def test_query_returns_only_matching_claims(self) -> None:
+        self.write([
+            self.claim("A", scope="hands", retrieval_cues=["hand", "grip"]),
+            self.claim("B", scope="landscape", retrieval_cues=["terrain"]),
+        ])
+        result = self.query("--cues", "grip")
+        self.assertEqual(self.returned(result), [self.claim_id("A")])
+        self.assertNotIn(self.claim_id("B"), result.stdout)
+
+    def test_query_respects_the_limit(self) -> None:
+        self.write([
+            self.claim(f"{n:02d}", scope=f"topic_{n}", retrieval_cues=["shared cue"])
+            for n in range(1, 6)
+        ])
+        result = self.query("--cues", "shared cue", "--limit", "2")
+        self.assertEqual(len(self.returned(result)), 2)
+
+    def test_a_retired_claim_is_absent_from_the_store(self) -> None:
+        """What survives of `test_resolved_entries_stop_being_retrieved`.
+
+        Legacy retrieval filtered a `resolved` entry out of a store that still
+        held it. Schema 3 has no retrievability status, because retirement
+        physically removes the claim (R2.5 §1.4): the guarantee moved to the
+        writer, and retrieval simply cannot see what is not there.
+        """
+        self.write([])
+        kept = self.add(scope="kept_topic", retrieval_cues=["hand"])
+        gone = self.add(scope="gone_topic", retrieval_cues=["hand"])
+        retired = self.tool("retire", "--id", gone, "--reason", "replaced by a wider claim")
+        self.assertEqual(retired.returncode, 0, retired.stdout + retired.stderr)
+        result = self.query("--cues", "hand")
+        self.assertEqual(self.returned(result), [kept])
+        self.assertNotIn(gone, result.stdout)
+
+    def test_query_reports_an_empty_retrieval_honestly(self) -> None:
+        self.write([self.claim("A", retrieval_cues=["hand"])])
+        result = self.query("--cues", "nothing in this store")
+        self.assertEqual(self.receipt(result), "retrieved: (none)")
+
+
+class V3Retrieval(V3RetrievalFixture):
+    """R2.5 §9.2: what ranks above what, what always comes back in pairs, and
+    what an unanswerable request is allowed to return."""
+
+    CARD = "PAT_state_the_lifetime_contract_at_the_interface"
+
+    def test_every_result_set_is_bounded_by_the_limit(self) -> None:
+        """Criterion 29, across every request shape including the empty one."""
+        self.write([
+            self.claim(f"{n:02d}", scope="lifetime_contracts", retrieval_cues=["shared cue"])
+            for n in range(1, 13)
+        ])
+        requests = (
+            (),
+            ("--cues", "shared cue"),
+            ("--scope", "lifetime_contracts"),
+            ("--scope", "lifetime_contracts", "--cues", "shared cue"),
+            ("--canon", self.CARD),
+        )
+        for limit in (0, 1, 3, 5):
+            for request in requests:
+                with self.subTest(limit=limit, request=request):
+                    result = self.query(*request, "--limit", str(limit))
+                    self.assertLessEqual(len(self.returned(result)), limit)
+
+    def test_an_exact_scope_match_outranks_a_cue_match(self) -> None:
+        self.write([
+            self.claim("A", scope="cue_only_topic", retrieval_cues=["shared cue"]),
+            self.claim("B", scope="ranked_topic", retrieval_cues=["shared cue"]),
+        ])
+        result = self.query("--scope", "ranked_topic", "--cues", "shared cue")
+        self.assertEqual(self.returned(result), [self.claim_id("B"), self.claim_id("A")])
+
+    def test_canon_id_match_outranks_a_cue_match(self) -> None:
+        self.write([
+            self.claim("A", scope="cue_only_topic", retrieval_cues=["shared cue"]),
+            self.claim("B", scope="canon_topic", retrieval_cues=["shared cue"], canon=[self.CARD]),
+        ])
+        result = self.query("--canon", self.CARD, "--cues", "shared cue")
+        self.assertEqual(self.returned(result), [self.claim_id("B"), self.claim_id("A")])
+
+    def test_a_cue_matches_the_claim_text_as_well_as_the_cues(self) -> None:
+        self.write([self.claim("A", retrieval_cues=["nothing like the request"])])
+        result = self.query("--cues", "const safety")
+        self.assertEqual(self.returned(result), [self.claim_id("A")])
+
+    def test_a_reach_claim_with_a_matching_canon_id_is_returned(self) -> None:
+        """Criterion 13, second half. A reach claim may carry a Canon link and
+        be found by it; what it may never do is route, which is held by the
+        caller supplying the ids rather than Memory proposing them."""
+        self.write([self.claim(
+            "A",
+            claim_class="reach",
+            claim_kind="stochastic",
+            confidence="provisional",
+            delta={"kinds": ["posture"], "statement": "Decline to claim demonstrated capability."},
+            canon=[self.CARD],
+        )])
+        result = self.query("--canon", self.CARD)
+        self.assertEqual(self.returned(result), [self.claim_id("A")])
+
+    def test_a_canon_id_the_caller_did_not_supply_matches_nothing(self) -> None:
+        self.write([self.claim("A", canon=[self.CARD])])
+        result = self.query("--canon", "PAT_some_other_card")
+        self.assertEqual(self.returned(result), [])
+
+    def test_the_output_names_no_canon_object(self) -> None:
+        """Criterion 9, from the outside. Canon is already selected when
+        retrieval runs, so printing the links of everything returned would hand
+        the caller a list of Canon objects that Memory assembled - the backwards
+        authority §9.2 forbids. Nothing is lost: the caller supplied the ids."""
+        self.write([self.claim("A", canon=[self.CARD])])
+        result = self.query("--canon", self.CARD)
+        self.assertEqual(self.returned(result), [self.claim_id("A")])
+        self.assertNotIn(self.CARD, result.stdout)
+
+    def test_the_contradiction_fixture_is_a_store_the_validator_accepts(self) -> None:
+        """Retrieval reads whatever parses, so the co-return tests would pass
+        just as happily over a store that could never exist. This is what says
+        they are about a real one."""
+        self.write(self.contradiction_pair())
+        result = self.validate_tool()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_a_contradicted_claim_arrives_with_its_counterpart(self) -> None:
+        self.write(self.contradiction_pair())
+        result = self.query("--cues", "compress before consequence")
+        self.assertEqual(self.returned(result), [self.claim_id("A")])
+        self.assertEqual(
+            self.counterparts(result), [f"{self.claim_id('B')} with {self.claim_id('A')}"],
+        )
+        self.assertIn(self.claim_id("B"), result.stdout)
+
+    def test_a_contradiction_counterpart_does_not_consume_the_limit(self) -> None:
+        self.write(self.contradiction_pair() + [base_claim(
+            id=self.claim_id("C"),
+            claim="Running a subsystem once before tuning it tells you which half is slow.",
+            scope="subsystem_pacing",
+            retrieval_cues=["compress before consequence"],
+        )])
+        result = self.query("--cues", "compress before consequence", "--limit", "2")
+        self.assertEqual(self.returned(result), [self.claim_id("A"), self.claim_id("C")])
+        self.assertEqual(
+            self.counterparts(result), [f"{self.claim_id('B')} with {self.claim_id('A')}"],
+        )
+
+    def test_a_counterpart_that_is_itself_a_hit_is_not_relabelled(self) -> None:
+        """Both sides matched and both fit, so neither arrived as the other's
+        passenger and the receipt says so."""
+        self.write(self.contradiction_pair())
+        result = self.query("--scope", "subsystem_pacing")
+        self.assertEqual(self.returned(result), [self.claim_id("A"), self.claim_id("B")])
+        self.assertEqual(self.counterparts(result), [])
+
+    def test_revalidate_after_does_not_change_retrieval(self) -> None:
+        """Criterion 19. Past due is T08's listing and nothing else: no
+        suppression, no penalty, no reordering, no confidence touched."""
+        current = [
+            self.claim("A", scope="first_topic", retrieval_cues=["shared cue"]),
+            self.claim("B", scope="second_topic", confidence="strong", retrieval_cues=["shared cue"]),
+        ]
+        self.write(current)
+        before = self.query("--cues", "shared cue").stdout
+        self.write([
+            dict(claim, last_verified="2024-01-01", revalidate_after="2024-06-01")
+            for claim in current
+        ])
+        self.assertEqual(self.query("--cues", "shared cue").stdout, before)
+
+    def test_confidence_ranks_last_and_the_store_is_not_written(self) -> None:
+        """F3. Confidence breaks a tie between equally specific matches and
+        loses to every signal above it, and ranking leaves the file alone."""
+        self.write([
+            self.claim("A", scope="cue_only_topic", confidence="strong", retrieval_cues=["shared cue"]),
+            self.claim("B", scope="ranked_topic", confidence="provisional", retrieval_cues=["shared cue"]),
+            self.claim("C", scope="other_topic", confidence="provisional", retrieval_cues=["shared cue"]),
+        ])
+        before = self.store()
+        result = self.query("--scope", "ranked_topic", "--cues", "shared cue")
+        self.assertEqual(
+            self.returned(result),
+            [self.claim_id("B"), self.claim_id("A"), self.claim_id("C")],
+        )
+        self.assertEqual(self.store(), before)
+
+    def test_ids_are_matched_by_equality_and_nothing_else(self) -> None:
+        """Criterion 7l, from the outside. Two claims that differ only in their
+        ids rank identically, so what orders them is the store, not the id. An
+        implementation that sorted by id would put the second one first."""
+        self.write([
+            self.claim("Z", scope="first_topic", retrieval_cues=["shared cue"]),
+            self.claim("A", scope="second_topic", retrieval_cues=["shared cue"]),
+        ])
+        result = self.query("--cues", "shared cue")
+        self.assertEqual(self.returned(result), [self.claim_id("Z"), self.claim_id("A")])
+
+    def test_a_missing_root_a_missing_domain_or_an_empty_store_retrieves_nothing(self) -> None:
+        """Criterion 32. Retrieval fails open with an honest receipt: nothing in
+        PASS is allowed to stop because Memory is absent."""
+        self.write([])
+        cases = {
+            "empty store": (self.tmp, ("--domain", self.DOMAIN)),
+            "missing domain": (self.tmp, ("--domain", "art")),
+            "missing root": (self.tmp / "no-such-root", ()),
+        }
+        for label, (memory, args) in cases.items():
+            with self.subTest(case=label):
+                result = run_tool("query", "--cues", "hand", *args, memory=memory)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(self.receipt(result), "retrieved: (none)")
+
+    def test_exactly_one_receipt_is_printed(self) -> None:
+        """Criterion 33, in one format, over every shape of answer."""
+        self.write(self.contradiction_pair())
+        for request in (
+            ("--cues", "compress before consequence"),
+            ("--cues", "nothing in this store"),
+            ("--scope", "subsystem_pacing"),
+            ("--canon", self.CARD),
+            (),
+        ):
+            with self.subTest(request=request):
+                result = self.query(*request)
+                receipts = [
+                    line for line in result.stdout.splitlines()
+                    if line.startswith("retrieved:")
+                ]
+                self.assertEqual(len(receipts), 1, result.stdout)
+
+    def test_empty_query_is_reported_as_not_a_strategy(self) -> None:
+        """An empty scope with no cues and no Canon ids asks nothing, so it is
+        answered as nothing and said out loud. The alternative - returning the
+        first N claims - is a store dump wearing a limit."""
+        self.write([self.claim("A"), self.claim("B", scope="other_topic")])
+        result = self.query()
+        self.assertEqual(self.returned(result), [])
+        self.assertIn("not a retrieval strategy", result.stdout)
+        self.assertNotIn(self.claim_id("A"), result.stdout)
+
+
+class V3RetrievalSurface(unittest.TestCase):
+    """What v3 retrieval is allowed to reach for: criteria 7l, 9 and F3 read off
+    the syntax tree rather than the behavior.
+
+    The same instrument `ClaimIdentity` uses on id generation, for the same
+    reason. A denylist only catches the shapes somebody already thought of, and
+    scanning raw text would match the comments that explain what retrieval
+    refuses to do.
+    """
+
+    # The ranking and selection path, where an id may only be compared. Display
+    # is surveyed separately and less strictly, because §9.2 permits reading an
+    # id for display and whitespace-normalising prose needs `.split`.
+    RANKING_FUNCTIONS = ("score_claim", "query_v3_store")
+    RETRIEVAL_FUNCTIONS = RANKING_FUNCTIONS + ("print_v3_claim",)
+
+    # Everything v3 retrieval may load. Anything new fails here until somebody
+    # justifies it in this list - which is the point, because id parsing, Canon
+    # enumeration and a confidence write all have to reach for something.
+    RETRIEVAL_ALLOWED_NAMES = frozenset({
+        "load_memory", "score_claim",      # reading the store, scoring one claim
+        "CONFIDENCE_RANK",                 # confidence, read last and read only
+        "Any", "Path", "bool", "dict", "isinstance", "list", "print", "set",
+        "str", "sum", "tuple",             # builtins and typing
+    })
+
+    # Every method v3 retrieval calls, on anything. Flat rather than dotted,
+    # because the interesting reach is `.split` on an id however it was spelled
+    # - `str(claim.get("id")).split(...)` roots at a call, not at a name.
+    RETRIEVAL_ALLOWED_ATTRIBUTES = frozenset({
+        "get",                 # claim fields, and the exact-equality counterpart lookup
+        "sort",                # the rank tuple; nothing sorts on a claim or an id
+        "append", "add", "pop",  # the co-return walk, over local collections
+        "lower", "join",       # case-folding and assembling the cue haystack
+    })
+
+    def retrieval_functions(self, names: tuple[str, ...]) -> list[ast.FunctionDef]:
+        """The named v3 retrieval functions, with their type annotations stripped.
+
+        An annotation names `int` and `str` without using them, and leaving it
+        in the tree would force both onto the allowlist - where `int` is one of
+        the few names that would actually betray an id being parsed.
+        """
+        tree = ast.parse((ROOT / "PASS/tools/memory.py").read_text(encoding="utf-8"))
+        functions = [
+            node for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name in names
+        ]
+        self.assertEqual(
+            sorted(f.name for f in functions), sorted(names),
+            "v3 retrieval is not where this test expects it",
+        )
+        for function in functions:
+            function.returns = None
+            for argument in function.args.args:
+                argument.annotation = None
+            for node in ast.walk(function):
+                if isinstance(node, ast.AnnAssign):
+                    node.annotation = ast.Constant(value=None)
+        return functions
+
+    def test_retrieval_reaches_for_nothing_that_could_parse_an_id(self) -> None:
+        names: set[str] = set()
+        attributes: set[str] = set()
+        for function in self.retrieval_functions(self.RANKING_FUNCTIONS):
+            local = {argument.arg for argument in function.args.args}
+            for node in ast.walk(function):
+                if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Store):
+                    local.add(node.id)
+                elif isinstance(node, ast.comprehension) and isinstance(node.target, ast.Name):
+                    local.add(node.target.id)
+                elif isinstance(node, (ast.FunctionDef, ast.Lambda)):
+                    local.update(argument.arg for argument in node.args.args)
+            for node in ast.walk(function):
+                if isinstance(node, ast.Attribute):
+                    attributes.add(node.attr)
+                elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+                    if node.id not in local:
+                        names.add(node.id)
+        unexpected = sorted(
+            (names - self.RETRIEVAL_ALLOWED_NAMES)
+            | (attributes - self.RETRIEVAL_ALLOWED_ATTRIBUTES)
+        )
+        self.assertEqual(
+            unexpected, [],
+            "v3 retrieval reached for something new; if it does not parse an id, "
+            "enumerate Canon, or write confidence, add it to the allowlists above "
+            f"deliberately: {unexpected}",
+        )
+
+    def test_retrieval_assigns_into_nothing_it_was_given(self) -> None:
+        """F3 structurally: ranking cannot write `confidence`, or any other
+        field, because it never stores into a subscript or an attribute - which
+        covers the augmented forms too, since their target is also a store. A
+        mutating *method* on a claim would be caught by the allowlist above
+        instead, and that a query leaves the file byte-identical is held
+        behaviorally by `V3Retrieval`.
+        """
+        for function in self.retrieval_functions(self.RETRIEVAL_FUNCTIONS):
+            for node in ast.walk(function):
+                if isinstance(node, (ast.Subscript, ast.Attribute)):
+                    self.assertNotIsInstance(
+                        node.ctx, ast.Store, f"{function.name} assigns into a loaded object",
+                    )
+
+    def test_no_path_enumerates_canon_links(self) -> None:
+        """Criterion 9. Every read of a claim's `canon` key anywhere under
+        `PASS/`, with the reason it is allowed to exist. A new reader fails
+        here, which is where somebody has to say out loud whether Memory just
+        started selecting Canon.
+        """
+        allowed = {
+            # S9: the member cap. Reads the list's length, never its members.
+            "validate_claim",
+            # I1/I2: member shape, and resolution against a Library that is
+            # already there. Validation, not selection, and it proposes nothing.
+            "validate_v3_references",
+            # Exact equality against ids Canon selection already pinned and the
+            # caller supplied. The only reader on the retrieval path.
+            "score_claim",
+        }
+        readers: set[str] = set()
+        sources = [
+            path for path in (ROOT / "PASS").rglob("*.py")
+            if "__pycache__" not in path.parts
+        ]
+        self.assertIn(ROOT / "PASS/tools/memory.py", sources)
+        for source in sources:
+            tree = ast.parse(source.read_text(encoding="utf-8"))
+            for function in ast.walk(tree):
+                if not isinstance(function, ast.FunctionDef):
+                    continue
+                for node in ast.walk(function):
+                    reads_canon = (
+                        isinstance(node, ast.Call)
+                        and isinstance(node.func, ast.Attribute)
+                        and node.func.attr == "get"
+                        and any(
+                            isinstance(argument, ast.Constant) and argument.value == "canon"
+                            for argument in node.args
+                        )
+                    ) or (
+                        isinstance(node, ast.Subscript)
+                        and isinstance(node.slice, ast.Constant)
+                        and node.slice.value == "canon"
+                    )
+                    if reads_canon:
+                        readers.add(function.name)
+        self.assertEqual(readers, allowed)
 
 
 class V3WriterSurface(unittest.TestCase):
@@ -2832,6 +3264,31 @@ class SchemaDispatch(unittest.TestCase):
         self.assertIn("art: memory_schema_version 1\n", result.stdout)
         self.assertIn("software-engineering: memory_schema_version 3\n", result.stdout)
         self.assertIn("PASS: 2 store(s), 1 entr(ies), 1 event(s) validated", result.stdout)
+
+    def test_one_query_answers_a_mixed_corpus_with_one_receipt(self) -> None:
+        """T07 routes `query` the way T04 routed `validate`. The legacy store
+        keeps its own output and its own matching; what it cannot do is honour
+        `--canon`, and it says so rather than letting a dropped filter read as
+        a filter that matched nothing."""
+        root = self.temp_root("pass-memory-query-dispatch-")
+        self.write_store(
+            root,
+            "art",
+            {
+                "memory_schema_version": 1,
+                "skillset": "art",
+                "memory_version": 1,
+                "entries": [dict(VALID_ENTRY, retrieval_cues=["shared cue"])],
+            },
+            [VALID_EVENT],
+        )
+        claim = base_claim(retrieval_cues=["shared cue"], canon=["PAT_a_card"])
+        self.write_store(root, "software-engineering", v3_store([claim]), None)
+        result = run_tool("query", "--cues", "shared cue", "--canon", "PAT_a_card", memory=root)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        receipts = [l for l in result.stdout.splitlines() if l.startswith("retrieved:")]
+        self.assertEqual(receipts, [f"retrieved: {VALID_ENTRY['id']}, {claim['id']}"])
+        self.assertIn("--canon does not apply to a store below schema 3", result.stdout)
 
     def test_review_flags_print_without_failing_the_run(self) -> None:
         root = self.temp_root("pass-memory-flags-")

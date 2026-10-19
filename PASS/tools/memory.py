@@ -1394,6 +1394,157 @@ def query_store(domain_dir: Path, scope_id: str | None, cues: list[str], limit: 
     return candidates[:limit]
 
 
+# ---------------------------------------------------------------- v3 query
+
+# Confidence is the last thing that ranks, so it is the last position in the
+# rank tuple rather than a small number added to a score. A weight would make
+# "last" an arithmetic accident that enough cue hits could overturn; a tuple
+# compared left to right makes it structural.
+CONFIDENCE_RANK = {"strong": 3, "repeated": 2, "provisional": 1}
+
+V3_CONTRADICTION_NOTE = (
+    "; contradiction counterparts, returned as a pair and not counted against the limit: "
+)
+
+EMPTY_V3_QUERY_NOTE = (
+    "note: an empty scope with no cues and no canon ids is not a retrieval strategy; "
+    "a schema-3 store answers it with nothing rather than dumping itself."
+)
+
+
+def score_claim(
+    claim: dict[str, Any],
+    scope: str | None,
+    canon_ids: list[str],
+    cues: list[str],
+) -> tuple[bool, tuple[int, int, int, int]]:
+    """Return `(matched, rank)` for one v3 claim (R2.5 §9.2).
+
+    `matched` is what bounds retrieval. `rank` only orders claims that already
+    matched the request, so a broad claim cannot score points on every task and
+    quietly turn the bounded set into the whole file.
+
+    The rank is a tuple compared left to right - exact `scope`, then exact
+    `canon` id, then cue substrings, then `confidence` - so no number of cue
+    hits can outrank an exact match and `confidence` can outrank nothing. Every
+    field is read; none is written, `confidence` included (F3).
+
+    `canon_ids` are ids Canon selection has **already** pinned and the caller
+    supplied. The claim's own `canon` list is read for exact equality against
+    them and nothing else: proposing, ranking or discovering a Canon object
+    from it would run the authority backwards and let Memory reach into
+    selection (R2.5 §9.2).
+
+    The `id` is not read here at all. It is an opaque key, matched by exact
+    equality where a caller supplies one and never parsed, ranked or ordered by.
+    """
+    scope_hit = 1 if scope and claim.get("scope") == scope else 0
+    linked = [member for member in claim.get("canon") or [] if isinstance(member, str)]
+    canon_hits = sum(1 for canon_id in canon_ids if canon_id in linked)
+    haystack = " ".join(
+        [str(claim.get("claim") or "")]
+        + [str(cue) for cue in claim.get("retrieval_cues") or [] if isinstance(cue, str)]
+    ).lower()
+    cue_hits = sum(1 for cue in cues if cue and cue.lower() in haystack)
+    rank = (
+        scope_hit,
+        canon_hits,
+        cue_hits,
+        CONFIDENCE_RANK.get(str(claim.get("confidence")), 0),
+    )
+    return bool(scope_hit or canon_hits or cue_hits), rank
+
+
+def query_v3_store(
+    domain_dir: Path,
+    scope: str | None,
+    canon_ids: list[str],
+    cues: list[str],
+    limit: int,
+) -> list[tuple[dict[str, Any], str | None]]:
+    """A bounded, ranked read of one schema-3 store.
+
+    Returns `(claim, paired_with)` pairs: `paired_with` is `None` for a claim
+    the request ranked into the limit, and otherwise the id of the claim that
+    pulled this one in as its contradiction counterpart. A counterpart is not
+    charged against the limit, because a reader shown one side of a dispute
+    alone has been told something the store does not say (R2.5 §4.8).
+
+    Co-return follows the whole contradiction component, not one hop: a
+    counterpart that is itself contradicted would otherwise arrive alone, which
+    is the thing being forbidden. A target that resolves to nothing is skipped
+    rather than raised - I6 already makes that store invalid, and retrieval
+    reports the store it has.
+
+    Claims of equal rank keep the order the file gives them. That is the only
+    deterministic order available, because sorting by id is exactly what an
+    opaque key forbids.
+    """
+    memory = load_memory(domain_dir)
+    claims = [claim for claim in memory.get("claims") or [] if isinstance(claim, dict)]
+    if not (scope or canon_ids or cues):
+        return []
+
+    scored = [(score_claim(claim, scope, canon_ids, cues), claim) for claim in claims]
+    hits = [(rank, claim) for (matched, rank), claim in scored if matched]
+    hits.sort(key=lambda pair: pair[0], reverse=True)
+    selected = [claim for _rank, claim in hits[:limit]]
+
+    by_id = {claim["id"]: claim for claim in claims if isinstance(claim.get("id"), str)}
+    ranked_ids = {claim["id"] for claim in selected if isinstance(claim.get("id"), str)}
+    returned: list[tuple[dict[str, Any], str | None]] = []
+    emitted: set[str] = set()
+    for claim in selected:
+        claim_id = claim.get("id")
+        if isinstance(claim_id, str):
+            if claim_id in emitted:
+                continue
+            emitted.add(claim_id)
+        returned.append((claim, None))
+        frontier = [claim]
+        while frontier:
+            current = frontier.pop(0)
+            for target in current.get("contradicts") or []:
+                if not isinstance(target, str) or target in emitted or target in ranked_ids:
+                    continue
+                counterpart = by_id.get(target)
+                if counterpart is None:
+                    continue
+                emitted.add(target)
+                returned.append((counterpart, str(current.get("id"))))
+                frontier.append(counterpart)
+    return returned
+
+
+def print_v3_claim(claim: dict[str, Any], paired_with: str | None) -> None:
+    """One retrieved claim, as a reader needs it in order to act.
+
+    The `canon` list is deliberately not printed. Canon is already selected
+    before retrieval runs, so the caller supplied the ids and loses nothing;
+    printing the links of everything returned would hand back a list of Canon
+    objects that Memory assembled, which is the backwards authority R2.5 §9.2
+    forbids.
+    """
+    header = (
+        f"[{claim.get('id')}] {claim.get('scope')} "
+        f"({claim.get('claim_class')}/{claim.get('claim_kind')}, {claim.get('confidence')})"
+    )
+    if paired_with:
+        header += f" - contradiction counterpart of {paired_with}"
+    print(header)
+    print(f"    {' '.join(str(claim.get('claim') or '').split())}")
+    delta = claim.get("delta")
+    if isinstance(delta, dict) and delta.get("statement"):
+        print(f"    delta: {' '.join(str(delta.get('statement')).split())}")
+    envelope = claim.get("envelope")
+    if isinstance(envelope, dict):
+        for key in ("holds_in", "not_shown_in", "conditions"):
+            items = envelope.get(key)
+            if isinstance(items, list) and items:
+                rendered = "; ".join(" ".join(str(item).split()) for item in items)
+                print(f"    {key}: {rendered}")
+
+
 # ---------------------------------------------------------------- append
 
 
@@ -1996,21 +2147,67 @@ def cmd_validate(args: argparse.Namespace) -> int:
 
 
 def cmd_query(args: argparse.Namespace) -> int:
-    dirs = domain_dirs(args.memory, args.domain)
+    """Retrieve a bounded set, and say exactly what came back.
+
+    Each store is routed by its own `memory_schema_version`, so a corpus part
+    way through migration answers one request: a schema-3 store takes the v3
+    path, and an unmigrated store keeps the legacy one until T21 deletes it.
+
+    An absent store is not a failure. A missing root or a missing domain exits
+    0 with an empty receipt (R2.5 §9.2, criterion 32), because nothing in PASS
+    may stop because Memory is not there. A store that is present but
+    unreadable still fails loudly: that is a broken file, not an absent one.
+    """
+    try:
+        dirs = domain_dirs(args.memory, args.domain)
+    except MemoryError_ as absent:
+        print(f"note: {absent}")
+        print("retrieved: (none)")
+        return 0
+    scope = args.scope if args.scope is not None else args.scope_id
     cues = [c.strip() for c in (args.cues or "").split(",") if c.strip()]
+    canon_ids = [c.strip() for c in (args.canon or "").split(",") if c.strip()]
+    limit = max(0, args.limit)
     returned: list[str] = []
+    pairs: list[str] = []
+    empty_request = not (scope or cues or canon_ids)
+    noted: set[str] = set()
     for domain_dir in dirs:
-        results = query_store(domain_dir, args.scope_id, cues, args.limit)
-        for entry in results:
+        if load_memory(domain_dir).get("memory_schema_version") == V3_SCHEMA_VERSION:
+            if empty_request and "empty" not in noted:
+                print(EMPTY_V3_QUERY_NOTE)
+                noted.add("empty")
+            for claim, paired_with in query_v3_store(domain_dir, scope, canon_ids, cues, limit):
+                if paired_with:
+                    pairs.append(f"{claim.get('id')} with {paired_with}")
+                else:
+                    returned.append(str(claim.get("id")))
+                print_v3_claim(claim, paired_with)
+            continue
+        # A legacy store has no `canon` field, so a Canon-id request cannot be
+        # honoured there. Said out loud rather than dropped: a filter that is
+        # silently ignored reads as a filter that matched nothing.
+        if canon_ids and "legacy-canon" not in noted:
+            print(
+                f"note: --canon does not apply to a store below schema "
+                f"{V3_SCHEMA_VERSION}; it was not used to match."
+            )
+            noted.add("legacy-canon")
+        for entry in query_store(domain_dir, scope, cues, limit):
             returned.append(str(entry.get("id")))
             print(f"[{entry.get('id')}] {entry.get('scope_type')}:{entry.get('scope_id')} "
                   f"({entry.get('type')}, {entry.get('confidence')}, {entry.get('status')})")
             print(f"    {' '.join(str(entry.get('observation', '')).split())}")
             if entry.get("boundary"):
                 print(f"    boundary: {' '.join(str(entry['boundary']).split())}")
-    # A retrieval receipt. Consultation cannot be proven by a memory file
-    # existing; it can be recorded by naming what was actually returned.
-    print(f"retrieved: {', '.join(returned) if returned else '(none)'}")
+    # One retrieval receipt, in one format, on every query. Consultation cannot
+    # be proven by a memory file existing; it can be recorded by naming what was
+    # actually returned. A contradiction counterpart is named in its own segment
+    # so it can never be read as a claim that spent one of the caller's slots.
+    receipt = f"retrieved: {', '.join(returned) if returned else '(none)'}"
+    if pairs:
+        receipt += V3_CONTRADICTION_NOTE + ", ".join(pairs)
+    print(receipt)
     return 0
 
 
@@ -2168,10 +2365,30 @@ def main() -> int:
         help="Check shape, closed vocabularies, and evidence admissibility.",
     )
 
-    query = sub.add_parser("query", parents=[common], help="Retrieve a bounded set of active entries.")
-    query.add_argument("--scope-id", default=None)
+    query = sub.add_parser(
+        "query", parents=[common],
+        help="Retrieve a bounded, ranked set of current claims.",
+        description=(
+            "Ranks by match specificity - exact scope, then exact canon id, then cue and "
+            "claim substrings - and by confidence last. A contradicted claim always comes "
+            "back with its counterpart, which is not charged against the limit. One "
+            "receipt names everything returned."
+        ),
+    )
+    query.add_argument("--scope", default=None, help="One topic slug, matched exactly.")
     query.add_argument("--cues", default=None, help="Comma-separated retrieval cues.")
+    query.add_argument(
+        "--canon", default=None,
+        help="Comma-separated Canon object ids that selection has ALREADY pinned, matched "
+             "exactly. Memory never selects Canon: these ids come from the caller, and no "
+             "query proposes, ranks or discovers one.",
+    )
     query.add_argument("--limit", type=int, default=5)
+    query.add_argument(
+        "--scope-id", default=None,
+        help="The legacy spelling of --scope, for a store that has not migrated yet. "
+             "Deleted with the rest of the legacy reader.",
+    )
 
     append = sub.add_parser("append", parents=[common], help="Append one high-signal event, verified by readback.")
     append.add_argument("--task")

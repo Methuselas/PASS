@@ -25,6 +25,14 @@ anything. The short version:
 - **Presence is not consultation.** Nothing here guarantees an entry is read.
   `memory.py query` prints what it returned so a run can record what was
   actually consulted; absent that, consultation is unproven.
+- **Retrieval is bounded, and it never selects Canon.** A query ranks by match
+  specificity - exact scope, then exact `canon` id, then cue and claim
+  substrings - with `confidence` last and never written. The `--canon` ids are
+  ones Canon selection has already pinned: Memory matches them and never
+  proposes, ranks or discovers a card. A contradicted claim always comes back
+  with its counterpart, which is not charged against the limit, and an empty
+  scope with no cues and no canon ids is answered as nothing rather than as a
+  store dump.
 - **A write is not persisted until the target is reopened and confirmed.**
   Every write reads back and fails loudly if the state is not there.
 - **Temporary state is not memory.** Workflow position, reading progress,
@@ -35,7 +43,7 @@ anything. The short version:
 
 ```bash
 python PASS/tools/memory.py validate                          # shape, vocabularies, admissibility
-python PASS/tools/memory.py query --domain art --cues hand    # bounded retrieval
+python PASS/tools/memory.py query --domain <domain> --scope <topic> --cues a,b --canon <card id>   # bounded retrieval
 python PASS/tools/memory.py append --domain art --task "..."  # one event, verified by readback
 python PASS/tools/memory.py link-evidence --domain art --claim <claim id> --events E1,E2   # one to three events behind a claim
 python PASS/tools/memory.py review --domain art               # what needs revalidating

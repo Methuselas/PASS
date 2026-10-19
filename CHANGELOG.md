@@ -6,6 +6,84 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.117 - 2026-10-18
+
+### Added
+
+- Added the schema-3 retrieval path to `PASS/tools/memory.py`:
+  `score_claim(claim, scope, canon_ids, cues)`, `query_v3_store` and
+  `print_v3_claim`. `query` now routes each store by its own
+  `memory_schema_version`, so a corpus part way through migration answers one
+  request (R2.5 §9.2, criteria 29-33, 7l, 13, 19).
+- `query` takes `--scope` (one topic slug, matched exactly) and `--canon`
+  (comma-separated Canon object ids, matched exactly). `--scope-id` remains as
+  the legacy spelling of `--scope` and is deleted with the rest of the legacy
+  reader.
+
+### Changed
+
+- **Ranking is a tuple compared left to right, not a weighted score.** Exact
+  `scope`, then exact `canon` id, then cue and claim substrings, then
+  `confidence`. A weight would make "confidence ranks last" an arithmetic
+  accident that enough cue hits could overturn; the tuple makes it structural.
+  Ranking reads `confidence` and never writes it, and a query leaves the store
+  byte-identical (F3).
+- **`canon` ids are matched against what the caller already pinned.** Canon
+  selection runs before Memory retrieval and the ids come in from the caller.
+  No path enumerates a claim's `canon` links to propose, rank or discover a
+  Canon object, and the query output deliberately prints no card id: returning
+  the links of everything retrieved would hand back a list of Canon objects
+  that Memory assembled. A `reach` claim carrying a `canon` link is therefore
+  retrievable by it and still cannot route (R2.5 §9.2, §4.4).
+- **A contradicted claim never comes back alone.** A returned claim's
+  `contradicts` counterparts are returned with it, following the whole
+  contradiction component rather than one hop, and they are not charged
+  against the caller's limit. The single receipt names them in their own
+  segment so a counterpart can never be read as a claim that spent a slot
+  (R2.5 §4.8).
+- **An empty scope with no cues and no canon ids is reported as not a
+  retrieval strategy** and answered with nothing. Returning the first N claims
+  would be a store dump wearing a limit.
+- A `--canon` request against a store below schema 3 prints a note saying it
+  could not be used to match, rather than dropping the filter silently - a
+  dropped filter reads as a filter that matched nothing.
+- **`query` fails open.** A missing memory root or a missing domain now exits 0
+  with a `note:` line and an honest empty receipt instead of exiting 1, because
+  nothing in PASS may stop because Memory is absent. A store that is present
+  but unreadable still fails loudly: that is a broken file, not an absent one.
+- Claims of equal rank keep the order the file gives them. Sorting by id is
+  exactly what an opaque key forbids, and the file's order is the only other
+  deterministic order available.
+- `revalidate_after` being past changes nothing about retrieval: no
+  suppression, no penalty, no reordering. T08 owns review-time visibility.
+- `memory/README.md` now states the retrieval contract and shows the v3 query
+  surface.
+
+### Unchanged
+
+- The legacy `score_entry` / `query_store` path and its output are untouched
+  and keep serving v1/v2 stores until T21 deletes them. The live corpus is
+  still legacy and is byte-untouched by this commit.
+
+### Tests
+
+- `tests/test_memory.py::RetrievalContract` is re-pointed at schema 3;
+  `test_resolved_entries_stop_being_retrieved` becomes
+  `test_a_retired_claim_is_absent_from_the_store`, because v3 has no
+  retrievability status - retirement removes the claim (R2.5 §1.4).
+- New `V3Retrieval` covers bounding across every request shape and limit,
+  scope and canon outranking a cue match, claim-text substring matching, a
+  reach claim found by its Canon id, contradiction co-return and its
+  non-consumption of the limit, `revalidate_after` changing nothing,
+  confidence ranking last without a write, id opacity from the outside,
+  missing root / missing domain / empty store, exactly one receipt, and the
+  empty-request report.
+- New `V3RetrievalSurface` reads criteria 7l, 9 and F3 off the syntax tree: an
+  allowlist of every name and method the ranking path may reach for, a check
+  that retrieval stores into nothing it was given, and the exact set of
+  functions in the tool that read a claim's `canon` key, each with the reason
+  it is allowed to.
+
 ## 1.0.0-beta.116 - 2026-10-18
 
 ### Added

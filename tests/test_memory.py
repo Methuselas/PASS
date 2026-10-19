@@ -18,6 +18,7 @@ task. It can only show that the tooling reports honestly what it retrieved.
 from __future__ import annotations
 
 import ast
+from datetime import date
 import importlib.util
 import json
 import re
@@ -166,71 +167,6 @@ class AdmissibilityContract(MemoryStoreFixture):
         self.assertEqual(result.returncode, 1)
         self.assertIn("does not match", result.stdout)
 
-    def test_compact_refuses_to_link_an_invalid_event(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT, INVALID_EVENT])
-        result = run_tool(
-            "compact", "--domain", "art", "--entry", "TST_MEM_001",
-            "--events", "TST_EV_0002", memory=self.tmp,
-        )
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("refusing invalid event", result.stderr)
-
-    def test_compact_links_valid_evidence_and_confirms_it(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT])
-        result = run_tool(
-            "compact", "--domain", "art", "--entry", "TST_MEM_001",
-            "--events", "TST_EV_0001", memory=self.tmp,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        stored = yaml.safe_load((self.domain / "skill_memory.yaml").read_text(encoding="utf-8"))
-        self.assertEqual(stored["entries"][0]["evidence_events"], ["TST_EV_0001"])
-        self.assertEqual(stored["entries"][0]["evidence_count"], 1)
-
-    def test_compact_refuses_to_drop_evidence_the_entry_already_cites(self) -> None:
-        """--events is the final list, which reads like "add these". It must not lose one silently."""
-        second = dict(VALID_EVENT, event_id="TST_EV_0003")
-        cited = dict(VALID_ENTRY, evidence_events=["TST_EV_0001"], evidence_count=1)
-        self.write([cited], [VALID_EVENT, second])
-
-        result = run_tool(
-            "compact", "--domain", "art", "--entry", "TST_MEM_001",
-            "--events", "TST_EV_0003", memory=self.tmp,
-        )
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("TST_EV_0001", result.stderr)
-        stored = yaml.safe_load((self.domain / "skill_memory.yaml").read_text(encoding="utf-8"))
-        self.assertEqual(stored["entries"][0]["evidence_events"], ["TST_EV_0001"])
-
-    def test_compact_drops_evidence_when_the_loss_is_confirmed(self) -> None:
-        """Dropping a citation is sometimes right, so the refusal is a confirmation, not a wall."""
-        second = dict(VALID_EVENT, event_id="TST_EV_0003")
-        cited = dict(VALID_ENTRY, evidence_events=["TST_EV_0001"], evidence_count=1)
-        self.write([cited], [VALID_EVENT, second])
-
-        result = run_tool(
-            "compact", "--domain", "art", "--entry", "TST_MEM_001",
-            "--events", "TST_EV_0003", "--replace", memory=self.tmp,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        stored = yaml.safe_load((self.domain / "skill_memory.yaml").read_text(encoding="utf-8"))
-        self.assertEqual(stored["entries"][0]["evidence_events"], ["TST_EV_0003"])
-        self.assertEqual(stored["entries"][0]["evidence_count"], 1)
-
-    def test_compact_adds_alongside_existing_evidence_when_all_are_named(self) -> None:
-        """The safe path stays unchanged: name everything and nothing is refused."""
-        second = dict(VALID_EVENT, event_id="TST_EV_0003")
-        cited = dict(VALID_ENTRY, evidence_events=["TST_EV_0001"], evidence_count=1)
-        self.write([cited], [VALID_EVENT, second])
-
-        result = run_tool(
-            "compact", "--domain", "art", "--entry", "TST_MEM_001",
-            "--events", "TST_EV_0001,TST_EV_0003", memory=self.tmp,
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        stored = yaml.safe_load((self.domain / "skill_memory.yaml").read_text(encoding="utf-8"))
-        self.assertEqual(stored["entries"][0]["evidence_events"], ["TST_EV_0001", "TST_EV_0003"])
-        self.assertEqual(stored["entries"][0]["evidence_count"], 2)
-
     def test_metadata_correction_is_valid_history_but_not_evidence(self) -> None:
         self.write([], [VALID_EVENT, CORRECTION_EVENT])
         self.assertEqual(self.validate().returncode, 0)
@@ -273,15 +209,6 @@ class AdmissibilityContract(MemoryStoreFixture):
         result = self.validate()
         self.assertEqual(result.returncode, 1)
         self.assertIn("cites quarantined event", result.stdout)
-
-    def test_compact_refuses_to_link_a_quarantined_event(self) -> None:
-        self.write([VALID_ENTRY], [VALID_EVENT, EVIDENCE_CORRECTION_EVENT])
-        result = run_tool(
-            "compact", "--domain", "art", "--entry", "TST_MEM_001",
-            "--events", "TST_EV_0001", memory=self.tmp,
-        )
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("refusing quarantined event", result.stderr)
 
     def test_evidence_correction_requires_a_reason_and_closed_outcome(self) -> None:
         correction = dict(EVIDENCE_CORRECTION_EVENT)
@@ -1142,7 +1069,8 @@ class V3WriteConfidence(V3WriteFixture):
     # Every function a write passes through. The confidence rules are negative
     # requirements, so the lock is over this exact set rather than over prose.
     WRITE_FUNCTIONS = (
-        "add_claim", "update_claim", "retire_claim", "change_claims", "ordered_claim",
+        "add_claim", "update_claim", "retire_claim", "link_evidence", "change_claims",
+        "ordered_claim",
     )
 
     def write_path_functions(self) -> list[ast.FunctionDef]:
@@ -1338,6 +1266,12 @@ class V3WriteSafety(V3WriteFixture):
         result = run_tool("add", "--domain", "art", "--json", "{}", memory=self.tmp)
         self.assertEqual(result.returncode, 1)
         self.assertIn("writes schema 3 only", result.stderr)
+        linked = run_tool(
+            "link-evidence", "--domain", "art", "--claim", "TST_MEM_001",
+            "--events", "TST_EV_0001", memory=self.tmp,
+        )
+        self.assertEqual(linked.returncode, 1)
+        self.assertIn("writes schema 3 only", linked.stderr)
         self.assertEqual((legacy / "skill_memory.yaml").read_bytes(), before)
 
     def test_an_already_invalid_store_must_be_repaired_first(self) -> None:
@@ -1443,6 +1377,174 @@ class V3WriteSafety(V3WriteFixture):
         result = run_tool("add", "--json", self.new_claim(), memory=self.tmp)
         self.assertEqual(result.returncode, 1)
         self.assertIn("requires exactly one --domain", result.stderr)
+        linked = run_tool(
+            "link-evidence", "--claim", "SE_MEM_01M55WJVKRKX5ZNTWCWARDTT8N",
+            "--events", "SE_EV_0001", memory=self.tmp,
+        )
+        self.assertEqual(linked.returncode, 1)
+        self.assertIn("requires exactly one --domain", linked.stderr)
+
+
+class V3LinkEvidence(V3WriteFixture):
+    """R2.5 A3.5 / A8.3 / A8.4: evidence reaches a claim through one bounded
+    command. One to three representative events, no count field, no backlog -
+    the number of linked ids is never a measure of support."""
+
+    def events(self, *ids: str) -> list[dict]:
+        return [dict(V3_VALID_EVENT, event_id=event_id) for event_id in ids]
+
+    def link(
+        self, claim_id: str, events: list[str], *flags: str,
+    ) -> subprocess.CompletedProcess[str]:
+        return self.tool(
+            "link-evidence", "--claim", claim_id, "--events", ",".join(events), *flags,
+        )
+
+    def test_link_evidence_accepts_three_ids_and_confirms_the_write(self) -> None:
+        claim = base_claim()
+        self.write([claim], self.events("SE_EV_0001", "SE_EV_0005", "SE_EV_0006"))
+        result = self.link(claim["id"], ["SE_EV_0001", "SE_EV_0005", "SE_EV_0006"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        stored = self.claims()[claim["id"]]
+        self.assertEqual(stored["evidence"], ["SE_EV_0001", "SE_EV_0005", "SE_EV_0006"])
+        self.assertEqual(str(stored["last_verified"]), date.today().isoformat())
+        self.assertEqual(self.version(), 2)
+        self.assertIn(claim["id"], result.stdout)
+        self.assertIn("confirmed on readback", result.stdout)
+
+    def test_link_evidence_refuses_a_fourth_id(self) -> None:
+        """Criterion 15: the cap is closed at three at the write seam, so a
+        fourth id never reaches the store to be caught by S9 after the fact."""
+        claim = base_claim()
+        self.write([claim], self.events("SE_EV_0001", "SE_EV_0005", "SE_EV_0006", "SE_EV_0007"))
+        before = self.store()
+        result = self.link(
+            claim["id"], ["SE_EV_0001", "SE_EV_0005", "SE_EV_0006", "SE_EV_0007"],
+        )
+        self.assert_refused(result, before, "capped at 3")
+
+    def test_link_evidence_refuses_an_invalid_event(self) -> None:
+        claim = base_claim()
+        self.write([claim], [V3_VALID_EVENT, V3_INVALID_EVENT])
+        before = self.store()
+        result = self.link(claim["id"], ["SE_EV_0002"])
+        self.assert_refused(result, before, "never evidence about a capability")
+        self.assertIn("invalid event", result.stderr)
+
+    def test_link_evidence_refuses_a_correction_event(self) -> None:
+        claim = base_claim()
+        self.write([claim], [V3_VALID_EVENT, V3_METADATA_CORRECTION])
+        before = self.store()
+        result = self.link(claim["id"], ["SE_EV_0003"])
+        self.assert_refused(result, before, "correction is not capability evidence")
+
+    def test_link_evidence_refuses_a_quarantined_event(self) -> None:
+        claim = base_claim()
+        self.write([claim], [V3_VALID_EVENT, V3_EVIDENCE_CORRECTION])
+        before = self.store()
+        result = self.link(claim["id"], ["SE_EV_0001"])
+        self.assert_refused(result, before, "quarantined event")
+
+    def test_link_evidence_refuses_to_drop_a_cited_event_without_replace(self) -> None:
+        """`--events` is the claim's final evidence, which reads like "add these".
+        It must not lose an id silently."""
+        claim = base_claim(evidence=["SE_EV_0001"])
+        self.write([claim], self.events("SE_EV_0001", "SE_EV_0005"))
+        before = self.store()
+        result = self.link(claim["id"], ["SE_EV_0005"])
+        self.assert_refused(result, before, "SE_EV_0001")
+        self.assertIn("--replace", result.stderr)
+
+    def test_link_evidence_drops_and_reports_the_loss_with_replace(self) -> None:
+        """Dropping a citation is sometimes right, so `--replace` turns the
+        refusal into a confirmation - and the loss is reported, not swallowed."""
+        claim = base_claim(evidence=["SE_EV_0001"])
+        self.write([claim], self.events("SE_EV_0001", "SE_EV_0005"))
+        result = self.link(claim["id"], ["SE_EV_0005"], "--replace")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.claims()[claim["id"]]["evidence"], ["SE_EV_0005"])
+        self.assertIn("dropped", result.stdout)
+        self.assertIn("SE_EV_0001", result.stdout)
+
+    def test_link_evidence_keeps_everything_that_is_still_named(self) -> None:
+        """The safe path: name the whole final list and nothing is refused or
+        needs confirming."""
+        claim = base_claim(evidence=["SE_EV_0001"])
+        self.write([claim], self.events("SE_EV_0001", "SE_EV_0005", "SE_EV_0006"))
+        result = self.link(claim["id"], ["SE_EV_0001", "SE_EV_0005", "SE_EV_0006"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(
+            self.claims()[claim["id"]]["evidence"],
+            ["SE_EV_0001", "SE_EV_0005", "SE_EV_0006"],
+        )
+        self.assertNotIn("dropped", result.stdout)
+
+    def test_link_evidence_writes_no_count(self) -> None:
+        claim = base_claim()
+        self.write([claim], self.events("SE_EV_0001", "SE_EV_0005"))
+        result = self.link(claim["id"], ["SE_EV_0001", "SE_EV_0005"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("evidence_count", self.claims()[claim["id"]])
+        self.assertNotIn("evidence_count", self.tool("link-evidence", "--help").stdout)
+        # The writer never assigns a count or confidence key. Checked on the
+        # syntax tree so a docstring explaining the refusal cannot trip it.
+        tree = ast.parse(TOOL.read_text(encoding="utf-8"))
+        writer = next(
+            node for node in tree.body
+            if isinstance(node, ast.FunctionDef) and node.name == "link_evidence"
+        )
+        for node in ast.walk(writer):
+            if (
+                isinstance(node, ast.Subscript)
+                and isinstance(node.ctx, ast.Store)
+                and isinstance(node.slice, ast.Constant)
+                and node.slice.value in {"evidence_count", "confidence"}
+            ):
+                self.fail(f"link_evidence assigns {node.slice.value}")
+
+    def test_link_evidence_never_changes_or_prints_a_confidence(self) -> None:
+        claim = base_claim(confidence="provisional")
+        self.write([claim], self.events("SE_EV_0001", "SE_EV_0005"))
+        result = self.link(claim["id"], ["SE_EV_0001", "SE_EV_0005"])
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.claims()[claim["id"]]["confidence"], "provisional")
+        for value in memory_tool.CONFIDENCE_VALUES:
+            self.assertNotIn(
+                value, result.stdout + result.stderr,
+                f"link-evidence printed confidence '{value}'",
+            )
+
+    def test_compact_is_gone_and_link_evidence_took_its_place(self) -> None:
+        """Criterion 5: the compaction command is removed rather than kept
+        beside its replacement."""
+        help_text = run_tool("--help").stdout
+        self.assertIn("link-evidence", help_text)
+        self.assertNotIn("compact", help_text)
+        self.assertEqual(
+            run_tool("compact", "--domain", self.DOMAIN, memory=self.tmp).returncode, 2,
+        )
+        source = TOOL.read_text(encoding="utf-8")
+        for token in ('"compact"', "'compact'", "cmd_compact", "compact_link"):
+            self.assertNotIn(token, source, f"{token} survived T06")
+
+    def test_uncited_events_are_reported_as_informational_not_a_backlog(self) -> None:
+        """A8.4: with the cap at three, the uncited list is a view of History no
+        claim mentions - not a queue to drain, and not a measure of support."""
+        claim = base_claim(evidence=["SE_EV_0001"])
+        self.write([claim], self.events("SE_EV_0001", "SE_EV_0005", "SE_EV_0006"))
+        result = self.tool("review")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        line = next(
+            (line for line in result.stdout.splitlines() if "valid event(s)" in line),
+            "",
+        )
+        self.assertTrue(line, result.stdout)
+        self.assertIn("SE_EV_0005", line)
+        self.assertIn("SE_EV_0006", line)
+        self.assertNotIn("SE_EV_0001", line)
+        self.assertIn("informational", line)
+        self.assertIn("not a backlog", line)
+        self.assertIn("not a measure", line)
 
 
 class V3WriterSurface(unittest.TestCase):

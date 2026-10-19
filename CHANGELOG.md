@@ -6,6 +6,66 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.116 - 2026-10-18
+
+### Added
+
+- Added `link-evidence` to `PASS/tools/memory.py`:
+  `link_evidence(domain_dir, claim_id, event_ids, replace=False)` makes one to
+  three admissible events a claim's complete `evidence`, sets `last_verified`
+  to today, and runs through the existing `change_claims` path — whole-store
+  validation, per-domain lock, atomic replace, `memory_version` +1, readback
+  confirmation, and a refusal that leaves the file byte-identical. A fourth
+  id, an empty list, or a repeated id is refused at the write seam; S9 holds
+  the same cap of three for any other path (R2.5 §3.5, §8.3, criterion 15).
+
+### Changed
+
+- **Evidence admissibility at the link seam is now the shared helper T03
+  owns.** `link_evidence` calls `evidence_admissibility_problem` instead of
+  a private copy of the rules, so unknown, invalid, correction, quarantined and
+  non-performance events are refused with exactly the message `validate` would
+  raise inside the store. A store with no `training_history.jsonl` refuses
+  rather than linking evidence it cannot verify. Admissibility semantics are
+  unchanged.
+- `--events` stays the claim's complete evidence after the call. Dropping an id
+  the claim already cites is refused without `--replace`; with `--replace` the
+  write succeeds and the dropped ids are reported on stdout instead of being
+  lost silently.
+- The uncited-events line from `review` is relabelled informational (R2.5
+  §8.4): it states that it is not a backlog and not a measure of support, and
+  it now counts citations from v3 claims' `evidence` alongside legacy entries'
+  `evidence_events`. Under a cap of three the number is a view of History
+  nothing has linked yet, not a queue to drain.
+- `memory/README.md` and the pass-authoring command block —
+  `.claude/skills/pass-authoring/SKILL.md` and its `.agents` mirror — now name
+  `link-evidence`.
+
+### Removed
+
+- **Removed `compact`** from the tool, the help, and the source, with it
+  `compact_link`, `_compact_link`, `cmd_compact`, and the report mode that
+  called uncited events "awaiting consolidation". `link-evidence` replaces it.
+- No write path ever writes `evidence_count`, and `link_evidence` never reads,
+  writes, or prints a `confidence` (F1): representative evidence is
+  illustrative, never a measure, and the linked ids never influence any
+  ranking, note, or output ordering.
+
+### Tests
+
+- New `tests/test_memory.py::V3LinkEvidence`: three ids accepted, a fourth
+  refused; invalid, correction and quarantined events refused through the
+  shared helper; a drop refused without `--replace` and reported with it; no
+  `evidence_count` in the store and none assigned on the write path (checked on
+  the syntax tree); no confidence mutated or printed; `compact` absent from
+  `--help` and the source; and the uncited line asserting "informational",
+  "not a backlog" and "not a measure". The six legacy-fixture `compact` tests
+  re-point here as `link-evidence` tests: linking is schema-3 only since T05,
+  so they cannot stay on v1 fixtures.
+- `V3WriteConfidence.WRITE_FUNCTIONS` now covers `link_evidence`;
+  `test_a_legacy_store_is_not_writable` and
+  `test_a_write_needs_exactly_one_domain` cover the new command.
+
 ## 1.0.0-beta.115 - 2026-10-18
 
 ### Added

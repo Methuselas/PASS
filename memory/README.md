@@ -37,7 +37,7 @@ anything. The short version:
 python PASS/tools/memory.py validate                          # shape, vocabularies, admissibility
 python PASS/tools/memory.py query --domain art --cues hand    # bounded retrieval
 python PASS/tools/memory.py append --domain art --task "..."  # one event, verified by readback
-python PASS/tools/memory.py compact --domain art              # events awaiting consolidation
+python PASS/tools/memory.py link-evidence --domain art --claim <claim id> --events E1,E2   # one to three events behind a claim
 python PASS/tools/memory.py review --domain art               # what needs revalidating
 python PASS/tools/memory.py add --domain <domain> --json claim.json              # new claim, generated id
 python PASS/tools/memory.py update --domain <domain> --id <claim id> --json '{"confidence": "strong"}'
@@ -74,10 +74,10 @@ and validated as it stands; the way to change one is to migrate the domain, not
 to edit it in place.
 
 The tool is mechanical. It checks shape, retrieves a bounded set, appends an
-event, links evidence, and reports what looks stale. It never judges whether an
-artifact was good and never writes an observation for you: consolidating several
-events into one honest sentence is a judgment, and a script that guessed at it
-would be inventing empirical claims.
+event, links one to three representative events behind a claim, and reports what
+looks stale. It never judges whether an artifact was good and never writes an
+observation for you: consolidating several events into one honest sentence is a
+judgment, and a script that guessed at it would be inventing empirical claims.
 
 ## Releases
 

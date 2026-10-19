@@ -9,7 +9,7 @@ store-level check from file-level keys through evidence admissibility. It is a
 reader for migration and mixed-state validation only — the dispatch inside
 `PASS/tools/memory.py` is its sole importer (the migrator of T13 becomes the
 second), which `tests/test_memory.py::SchemaDispatch` enforces as text. It must
-never be re-exported, wrapped, or reached from `query`, `append`, `compact`,
+never be re-exported, wrapped, or reached from `query`, `append`, `link-evidence`,
 `review`, or any other command. There is no legacy write path left to reach it:
 T05 made `memory.py` a schema-3 writer, so a legacy store is read until its
 domain migrates and is changed by migrating it.

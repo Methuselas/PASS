@@ -125,7 +125,7 @@ weakness; attribute it to the tool, controller, or package that actually failed.
 ```bash
 python PASS/tools/memory.py validate
 python PASS/tools/memory.py review --domain <domain>
-python PASS/tools/memory.py compact --domain <domain>
+python PASS/tools/memory.py link-evidence --domain <domain> --claim <claim id> --events <event ids>
 python PASS/tools/memory.py add|update|retire|show --domain <domain> ...
 ```
 

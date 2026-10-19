@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Skillset Memory tooling: validate, query, append, compact, review, add, update,
-retire, show.
+"""Skillset Memory tooling: validate, query, append, link-evidence, review,
+add, update, retire, show.
 
 Memory is the portable compact current state of a skill: learned principles are
 kept distinct from empirical training results. Training history is the event
@@ -1453,7 +1453,7 @@ def _append_event(domain_dir: Path, event: dict[str, Any]) -> tuple[bool, list[s
     return True, []
 
 
-# ---------------------------------------------------------------- compact
+# ----------------------------------------------------------- persistence
 
 
 def dump(data: Any) -> str:
@@ -1778,100 +1778,112 @@ def retire_claim(domain_dir: Path, claim_id: str, reason: str | None) -> tuple[b
     return ok, problems
 
 
-def compact_link(domain_dir: Path, entry_id: str, event_ids: list[str], allow_drop: bool = False) -> tuple[bool, list[str]]:
-    with store_lock(domain_dir):
-        return _compact_link(domain_dir, entry_id, event_ids, allow_drop)
+# R2.5 §3.5: representative evidence is illustrative, never a measure of
+# support, so the writer links at most three ids, refuses a count field, and
+# never lets the number of linked ids become an output of its own.
+LINK_EVIDENCE_CAP = 3
 
 
-def _compact_link(
+def link_evidence(
     domain_dir: Path,
-    entry_id: str,
+    claim_id: str,
     event_ids: list[str],
-    allow_drop: bool = False,
-) -> tuple[bool, list[str]]:
-    """Link an entry to the valid events that support it, then read it back.
+    replace: bool = False,
+) -> tuple[bool, list[str], list[str]]:
+    """Make `event_ids` (one to three) a claim's complete `evidence`, today's date its `last_verified`.
 
-    This is deliberately mechanical. It does not write the observation prose —
-    consolidating five events into one honest sentence is a judgment, and a
-    script that guessed at it would be inventing empirical claims.
-
-    `event_ids` is the entry's complete evidence after the call, not an
-    addition to it. That is a reasonable contract and an easy one to misread as
-    "add these", so a call that would drop an event already cited is refused
-    unless `allow_drop` says the loss is intended. The readback below cannot
-    catch this on its own: it compares the stored list against what was passed,
-    so it confirms the overwrite rather than noticing what the overwrite
-    removed. Dropping a citation is sometimes right — an event later found
-    invalid, or attributed to the wrong entry — which is why this is a
+    Returns `(ok, problems, dropped)`. `event_ids` replaces the claim's
+    evidence rather than adding to it - a contract that reads like "add these"
+    and loses a citation just as easily, so a call that would silently drop an
+    id the claim already cites is refused unless `replace` says the loss is
+    intended, and when it is intended the dropped ids come back to the caller
+    to report honestly. Dropping a citation is sometimes right (an event later
+    found invalid, or attributed to the wrong claim), which is why this is a
     confirmation rather than a prohibition.
+
+    Admissibility is the shared helper T03 owns, called by both claim sides -
+    not a private copy: unknown, invalid, correction, quarantined and
+    non-performance events are refused here exactly as `validate` would refuse
+    them in the store. Answering that question needs History beside the store,
+    so a store with no `training_history.jsonl` refuses rather than linking
+    evidence it cannot verify.
+
+    `confidence` is never read, written, or suggested (F1), and no count field
+    is ever written (R2.5 §3.5): how many events are linked is not a measure of
+    support and nothing here presents it as one. The cap is enforced here so a
+    fourth id is refused before it can reach the store; S9 holds the same bound
+    for a claim written any other way.
     """
-    memory = load_memory(domain_dir)
-    entries = [e for e in memory.get("entries") or [] if isinstance(e, dict)]
-    entry = next((e for e in entries if e.get("id") == entry_id), None)
-    if entry is None:
-        return False, [f"no entry '{entry_id}' in {domain_dir.name}"]
+    ids = [str(event_id) for event_id in event_ids] if isinstance(event_ids, list) else []
+    problems: list[str] = []
+    if not ids:
+        problems.append("linking evidence requires at least one event id")
+    elif len(ids) > LINK_EVIDENCE_CAP:
+        problems.append(
+            f"refusing {len(ids)} event ids; representative evidence is capped at "
+            f"{LINK_EVIDENCE_CAP} members (S9): evidence is illustrative, never a measure"
+        )
+    if len(set(ids)) != len(ids):
+        problems.append("evidence members are distinct; the same event id is named twice")
+    if problems:
+        return False, problems, []
 
     events, load_errors = load_events(domain_dir)
     if load_errors:
-        return False, load_errors
-    by_id = {e.get("event_id"): e for e in events}
-    quarantined = {
-        str(target)
-        for event in events
-        if event.get("event_kind") == "evidence_correction"
-        and (event.get("corrections") or {}).get("disposition") == "quarantined"
-        for target in (event.get("supersedes_events") or [])
-    }
+        return False, load_errors, []
+    by_id = {str(event.get("event_id")): event for event in events}
+    quarantined = quarantined_event_ids(events)
+    refused: list[str] = []
+    for event_id in ids:
+        problem = evidence_admissibility_problem(
+            claim_id, "evidence", event_id, by_id.get(event_id), quarantined,
+        )
+        if problem:
+            refused.append(problem)
+    if refused:
+        return False, refused, []
 
-    problems: list[str] = []
-    for event_id in event_ids:
-        event = by_id.get(event_id)
-        if event is None:
-            problems.append(f"unknown event '{event_id}'")
-        elif event.get("validity") == "invalid":
-            problems.append(
-                f"refusing invalid event '{event_id}' "
-                f"({event.get('invalid_reason', 'no reason recorded')})"
-            )
-        elif event.get("event_kind") in {"metadata_correction", "evidence_correction"}:
-            problems.append(
-                f"refusing correction '{event_id}'; a correction is not capability evidence"
-            )
-        elif event_id in quarantined:
-            problems.append(
-                f"refusing quarantined event '{event_id}'; a superseding evidence correction "
-                "removed it from capability evidence"
-            )
-    if problems:
-        return False, problems
+    dropped: list[str] = []
 
-    already_cited = [str(e) for e in entry.get("evidence_events") or []]
-    dropped = [e for e in already_cited if e not in event_ids]
-    if dropped and not allow_drop:
-        return False, [
-            f"'{entry_id}' already cites {', '.join(dropped)}, which this call would remove: "
-            f"pass every event the entry should end up citing, or --replace if the loss is intended"
-        ]
+    def change(claims: list[dict[str, Any]]) -> list[str]:
+        claim = find_claim(claims, claim_id)
+        if claim is None:
+            return [f"no claim '{claim_id}'"]
+        already_cited = [str(member) for member in claim.get("evidence") or []]
+        lost = [member for member in already_cited if member not in ids]
+        if lost and not replace:
+            return [
+                f"'{claim_id}' already cites {', '.join(lost)}, which this call would "
+                "remove: pass every event the claim should end up citing, or --replace "
+                "if the loss is intended"
+            ]
+        dropped.extend(lost)
+        claim["evidence"] = list(ids)
+        claim["last_verified"] = date.today()
+        return []
 
-    entry["evidence_events"] = list(event_ids)
-    entry["evidence_count"] = len(event_ids)
-    entry["last_verified"] = date.today()
-    memory["memory_version"] = int(memory.get("memory_version", 0)) + 1
-    write_memory(domain_dir, memory)
-
-    reread = load_memory(domain_dir)
-    fresh = next((e for e in reread.get("entries") or [] if isinstance(e, dict) and e.get("id") == entry_id), None)
-    if fresh is None or fresh.get("evidence_events") != list(event_ids):
-        return False, [f"readback failed: '{entry_id}' does not carry the expected evidence after write"]
-    return True, []
+    ok, problems, _ = change_claims(domain_dir, change)
+    # `dropped` is only reported for a write that actually landed; a change
+    # refused by validation never removed anything.
+    return (ok, problems, dropped) if ok else (False, problems, [])
 
 
 def uncited_valid_events(domain_dir: Path) -> list[str]:
+    """Valid performance events no claim and no legacy entry cites.
+
+    Informational only (R2.5 §8.4): with representative evidence capped at
+    three, this list is a view of History nothing has linked yet - not a
+    backlog to drain, not a queue of pending work, and not a measure of
+    support.
+    """
     memory = load_memory(domain_dir)
     cited: set[str] = set()
     for entry in memory.get("entries") or []:
         if isinstance(entry, dict) and isinstance(entry.get("evidence_events"), list):
             cited.update(str(e) for e in entry["evidence_events"])
+    for claim in memory.get("claims") or []:
+        if isinstance(claim, dict) and isinstance(claim.get("evidence"), list):
+            cited.update(str(member) for member in claim["evidence"])
     events, _ = load_events(domain_dir)
     quarantined = {
         str(target)
@@ -1938,7 +1950,11 @@ def review_store(domain_dir: Path, library_root: Path | None) -> list[str]:
                     notes.append(f"{label}: likely_owner '{owner}' no longer exists in the library")
     uncited = uncited_valid_events(domain_dir)
     if uncited:
-        notes.append(f"{len(uncited)} valid event(s) not yet cited by any entry: {', '.join(uncited[:8])}")
+        notes.append(
+            f"{len(uncited)} valid event(s) are not cited by any claim or entry: "
+            f"{', '.join(uncited[:8])} - informational only, not a backlog: under the "
+            "cap of three representative events this is not a measure of support"
+        )
     return notes
 
 
@@ -2033,35 +2049,28 @@ def cmd_append(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_compact(args: argparse.Namespace) -> int:
+def cmd_link_evidence(args: argparse.Namespace) -> int:
+    """`link-evidence`: one to three admissible events behind one claim."""
     dirs = domain_dirs(args.memory, args.domain)
-    if args.entry:
-        if len(dirs) != 1:
-            print("FAIL: linking evidence requires exactly one --domain", file=sys.stderr)
-            return 1
-        event_ids = [e.strip() for e in (args.events or "").split(",") if e.strip()]
-        if not event_ids:
-            print("FAIL: --events is required with --entry", file=sys.stderr)
-            return 1
-        ok, problems = compact_link(dirs[0], args.entry, event_ids, allow_drop=args.replace)
-        if not ok:
-            for problem in problems:
-                print(f"{dirs[0].name}: {problem}", file=sys.stderr)
-            print("FAIL: evidence not linked", file=sys.stderr)
-            return 1
-        print(
-            f"PASS: {args.entry} now cites {', '.join(event_ids)} "
-            f"({len(event_ids)} event(s)), confirmed on readback"
-        )
-        return 0
-    for domain_dir in dirs:
-        uncited = uncited_valid_events(domain_dir)
-        if uncited:
-            print(f"{domain_dir.name}: {len(uncited)} valid event(s) awaiting consolidation:")
-            for event_id in uncited:
-                print(f"    {event_id}")
-        else:
-            print(f"{domain_dir.name}: no valid events awaiting consolidation")
+    if not args.domain or len(dirs) != 1:
+        print("FAIL: link-evidence requires exactly one --domain", file=sys.stderr)
+        return 1
+    domain_dir = dirs[0]
+    event_ids = [e.strip() for e in (args.events or "").split(",") if e.strip()]
+    if not event_ids:
+        print("FAIL: --events is required with --claim", file=sys.stderr)
+        return 1
+    ok, problems, dropped = link_evidence(
+        domain_dir, args.claim, event_ids, replace=args.replace,
+    )
+    if not ok:
+        for problem in problems:
+            print(f"{domain_dir.name}: {problem}", file=sys.stderr)
+        print("FAIL: memory unchanged", file=sys.stderr)
+        return 1
+    print(f"PASS: {args.claim} now cites {', '.join(event_ids)}; confirmed on readback")
+    if dropped:
+        print(f"dropped by --replace: {', '.join(dropped)}")
     return 0
 
 
@@ -2174,13 +2183,26 @@ def main() -> int:
     append.add_argument("--note", default=None)
     append.add_argument("--json", default=None, help="Path to, or literal, JSON event.")
 
-    compact = sub.add_parser("compact", parents=[common], help="Report or link the evidence behind an entry.")
-    compact.add_argument("--entry", default=None)
-    compact.add_argument("--events", default=None, help="Comma-separated event ids.")
-    compact.add_argument(
+    link = sub.add_parser(
+        "link-evidence", parents=[common],
+        help="Link one to three admissible events behind a claim.",
+        description=(
+            "`--events` is the claim's complete evidence after the call: one to three "
+            "admissible events replace it and `last_verified` becomes today. A cited id "
+            "the new list omits is refused unless `--replace` confirms the loss, and the "
+            "dropped ids are reported. The number of linked ids is representative only - "
+            "never a count field, never a measure of support, and never a confidence."
+        ),
+    )
+    link.add_argument("--claim", required=True, help="The claim id to link evidence behind.")
+    link.add_argument(
+        "--events", required=True,
+        help="Comma-separated event ids; one to three, each one admissible.",
+    )
+    link.add_argument(
         "--replace",
         action="store_true",
-        help="Confirm that events the entry already cites and --events omits should be dropped.",
+        help="Confirm that events the claim already cites and --events omits should be dropped.",
     )
 
     review = sub.add_parser("review", parents=[common], help="List entries that need revalidation.")
@@ -2217,7 +2239,7 @@ def main() -> int:
     args = parser.parse_args()
     handlers = {
         "validate": cmd_validate, "query": cmd_query, "append": cmd_append,
-        "compact": cmd_compact, "review": cmd_review,
+        "link-evidence": cmd_link_evidence, "review": cmd_review,
         "add": cmd_claim, "update": cmd_claim, "retire": cmd_claim, "show": cmd_claim,
     }
     try:

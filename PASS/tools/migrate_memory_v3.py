@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """One-time R2.5 migration tooling for legacy Skillset Memory stores: FREEZE,
-hash verification, the sentence inventory, and the A1–A10 accounting checker,
+hash verification, the sentence inventory, the A1–A10 accounting checker, the
+three migration reports with item-by-item loss signoff, and the VERIFY gate,
 deleted by ticket T21.
 
 `freeze` is step 0 of the R2.5 migration algorithm (§7.4), and only step 0.
@@ -28,6 +29,24 @@ closed-set non-propositional reason, and every entry the ledger declares in
 record. The script records and checks those marks; it never attempts the
 second reading.
 
+`report` (still pass 4) derives the three §7.5 reports from the ledger alone —
+survival, loss, and re-homing — into the same purpose directory, and the loss
+report is the signoff artifact: every loss item carries its own `signed_off`
+field and reviewer note, there is no document-level approval key, and
+regeneration refuses while existing reports would be overwritten so a signoff
+is never silently destroyed. Reports are derived, never hand-maintained
+duplicates: a REJECT already in `dispositions` becomes a loss row, never a
+second record that could disagree with the accounting.
+
+`gate` (pass 5, VERIFY) is the single verification entry point: it re-runs
+A1–A10 through `account`'s checker — so A2 source drift and A7 HOLDs refuse,
+never warn — requires the loss report's items to equal the ledger's own loss
+set with every item individually signed, runs the repository's actual v3
+validator on the candidate store (ERRORs refuse), and requires every FLAG to
+be cleared or individually accepted with a note in the review artifact. It
+writes nothing, generates no reason or note, refuses an unsigned item rather
+than filling one in, and has no bulk-approval path to accept-all.
+
 `sentence coverage` has a fixed boundary. A complete map proves every source
 sentence was consciously accounted for — nothing more (§7.5). The checker
 never reads what a sentence means, never decides whether it carries a
@@ -41,20 +60,24 @@ with `validate.py`'s SENTENCE_RE — the repository's one sentence splitter,
 imported so segmentation stays a single deterministic implementation. Emission
 only: nothing is attributed, decomposed, or written.
 
-The ledger lands in the task's workspace purpose directory and nowhere else. It
-is a one-time artifact, never a permanent ledger, a state sidecar, or a Memory
-field: `memory/` is read and never written — not the store, not Training History,
-not line endings, not metadata. Legacy stores remain read-only migration inputs
-until their domain's migration is signed off.
+The ledger and the three reports land in the task's workspace purpose
+directory and nowhere else. They are one-time artifacts, never a permanent
+ledger, a state sidecar, or a Memory field: `memory/` is read and never
+written — not the store, not Training History, not line endings, not metadata.
+Legacy stores remain read-only migration inputs until their domain's
+migration is signed off.
 
 Judgment surfaces are deliberately absent. This tool records and re-checks
 mechanical truth only: it never decomposes an entry, never classifies, never
 attributes a sentence to a proposition, never chooses a non-propositional
 reason, never authors a vNext claim, never invents a proposition id, never
-assigns, proposes, or suggests a disposition, and never computes a confidence.
-The accounting checker proves completeness and referential integrity of
-recorded judgments, never semantic fidelity (§7.5). No runtime path may depend
-on this module; T21 deletes it together with the legacy input reader.
+assigns, proposes, or suggests a disposition, never computes a confidence,
+never generates a loss reason or a reviewer's note, and never decides whether
+a recorded loss is acceptable — `gate` proves each loss item carries its own
+signoff and nothing more. The accounting checker proves completeness and
+referential integrity of recorded judgments, never semantic fidelity (§7.5).
+No runtime path may depend on this module; T21 deletes it together with the
+legacy input reader.
 """
 
 from __future__ import annotations
@@ -77,6 +100,7 @@ from memory import (
     load_memory,
     quarantined_event_ids,
     validate_store,
+    validate_v3_contents,
 )
 from paths import default_memory_root
 from validate import SENTENCE_RE
@@ -232,9 +256,9 @@ def ledger_file(ledger_dir: Path, domain: str) -> Path:
     return Path(ledger_dir) / f"ledger-{domain}.yaml"
 
 
-def write_ledger(path: Path, ledger: dict[str, Any]) -> None:
-    """Write the ledger atomically. The only file this tool ever writes."""
-    text = yaml.safe_dump(ledger, sort_keys=False, default_flow_style=False)
+def write_yaml_atomic(path: Path, document: dict[str, Any]) -> None:
+    """Write one YAML artifact atomically. The only writer in this tool."""
+    text = yaml.safe_dump(document, sort_keys=False, default_flow_style=False)
     temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     try:
         temporary.write_text(text, encoding="utf-8", newline="\n")
@@ -1260,6 +1284,391 @@ def account_problems(
     return failures, a8_report, a9_report
 
 
+# --- T16: the three reports, item-by-item loss signoff, and the VERIFY gate ---
+#
+# `report` derives the three §7.5 reports from the ledger alone: survival
+# (every CARRY / REWRITE / SPLIT / CONDENSE / EXTRACT proposition and the
+# target claim(s) it survives as), loss (every REJECT, every REHOME, and every
+# proposition shed inside a CONDENSE, with its reason — the anti-silent-drop
+# report), and re-homing (everything sent to another authority, with its
+# destination and complete-or-owed hand-off status). The loss report is the
+# signoff artifact: each item carries its own `signed_off` field and reviewer
+# note, the schema has no document-level approval key, and regeneration
+# refuses while existing reports would be overwritten so a signoff is never
+# silently destroyed. `gate` is the single VERIFY-step entry point: it re-runs
+# A1-A10 through the existing accounting checker (A2 source drift and A7
+# HOLDs remain failures, never warnings), requires the loss artifact to equal
+# the ledger's own loss set item by item with every item signed, runs the
+# repository's actual v3 validator on the candidate store, and requires every
+# FLAG to be cleared or individually accepted with a note. Nothing here writes
+# under memory/, generates a reason or a note, decides whether a loss is
+# acceptable, or offers a bulk-approval path: mechanical tooling proves each
+# loss carries its signoff; whether the loss was right stays review judgment
+# (R2.5 §7.5, criterion 45).
+
+SURVIVING_REPORT_CLASSES = ("CARRY", "REWRITE", "SPLIT", "CONDENSE", "EXTRACT")
+REPORT_FILENAMES = {
+    "survival": "survival-{domain}.yaml",
+    "loss": "loss-{domain}.yaml",
+    "re-homing": "re-homing-{domain}.yaml",
+}
+REVIEW_FILENAME = "review-{domain}.yaml"
+REPORT_ARTIFACT_KEYS = frozenset({"domain", "items"})
+REVIEW_ARTIFACT_KEYS = frozenset({"domain", "flags"})
+LOSS_SIGNOFF_KEYS = frozenset({"signed_off", "reviewer_note"})
+FLAG_ROW_KEYS = frozenset({"flag", "accepted", "note"})
+HAND_OFF_COMPLETE = "complete"
+HAND_OFF_OWED = "owed"
+
+
+def _present(mapping: dict[str, Any], key: str) -> dict[str, Any]:
+    """Only the keys actually recorded, so a report row mirrors the ledger."""
+    return {key: mapping[key]} if key in mapping else {}
+
+
+def loss_items(ledger: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every loss-bearing disposition, one row per lost proposition (§7.5).
+
+    Three populations, kept distinct: every REJECT (nothing survives anywhere
+    under that disposition), every REHOME (content survives under another
+    authority but leaves current Memory), and every proposition shed inside a
+    CONDENSE (the condensed target survives; the shed material does not, and
+    a surviving target never excuses its omission). An EXTRACT is not a loss:
+    its residue survives as its target and its episode is routed, so it
+    appears in the survival and re-homing reports instead. Derived from
+    `dispositions` alone — never a second hand-maintained record — so the
+    report cannot drift from the accounting the gate re-checks. Rows sort by
+    item id, and the item id is the lost proposition's id, which A3 proved
+    unique across dispositions and sheds.
+    """
+    rows: list[dict[str, Any]] = []
+    for record in ledger["dispositions"]:
+        cls = record.get("class")
+        if cls == "REJECT":
+            rows.append({
+                "item": record["proposition"],
+                "class": "REJECT",
+                "reason_kind": record["reason_kind"],
+                "reason": record["reason"],
+                **_present(record, "duplicate_of"),
+                **_present(record, "note"),
+            })
+        elif cls == "REHOME":
+            rows.append({
+                "item": record["proposition"],
+                "class": "REHOME",
+                "destination": record["destination"],
+                **_present(record, "pointer"),
+                **_present(record, "hand_off"),
+                **_present(record, "note"),
+            })
+        elif cls == "CONDENSE":
+            for shed_item in record.get("shed") or []:
+                rows.append({
+                    "item": shed_item["proposition"],
+                    "class": "CONDENSE",
+                    "via": record["proposition"],
+                    "shed_reason": shed_item["shed_reason"],
+                    **_present(record, "note"),
+                })
+    rows.sort(key=lambda row: row["item"])
+    return rows
+
+
+def survival_report_document(ledger: dict[str, Any]) -> dict[str, Any]:
+    """Every surviving proposition and the target claim(s) it survives as.
+
+    CARRY, REWRITE, SPLIT, CONDENSE, and EXTRACT — the five classes whose
+    dispositions name Memory targets. A SPLIT row carries its full target
+    list; a CONDENSE row carries the one target its proposition condenses
+    into (its sheds are loss rows, not survival rows); an EXTRACT row carries
+    the residue target and the episode's destination. No one-to-one shape is
+    imposed: a merge's shared target appears on each surviving proposition,
+    and a split's targets appear together, exactly as the ledger records them
+    (§7.3, §7.5).
+    """
+    items: list[dict[str, Any]] = []
+    for record in ledger["dispositions"]:
+        cls = record.get("class")
+        if cls not in SURVIVING_REPORT_CLASSES:
+            continue
+        row: dict[str, Any] = {
+            "proposition": record["proposition"],
+            "class": cls,
+            "targets": list(record["targets"]),
+        }
+        if cls == "REWRITE":
+            row["rewrite_reason"] = record["rewrite_reason"]
+        if cls == "EXTRACT":
+            row["destination"] = record["destination"]
+        if "note" in record:
+            row["note"] = record["note"]
+        items.append(row)
+    items.sort(key=lambda row: row["proposition"])
+    return {"domain": ledger["domain"], "items": items}
+
+
+def loss_report_document(ledger: dict[str, Any]) -> dict[str, Any]:
+    """The loss report: derived items, each with an empty per-item signoff.
+
+    The signoff scaffold is fields, never content: `signed_off` starts false
+    and `reviewer_note` starts empty, and this tool never fills either — the
+    script refuses an unsigned item at the gate; it never generates the
+    signoff. There is no document-level approval key in the artifact schema,
+    so the only way to approve a loss is to sign its own row (criterion 45).
+    """
+    items = [
+        {**row, "signed_off": False, "reviewer_note": ""}
+        for row in loss_items(ledger)
+    ]
+    return {"domain": ledger["domain"], "items": items}
+
+
+def rehoming_report_document(ledger: dict[str, Any]) -> dict[str, Any]:
+    """Everything sent to another authority, with destination and status.
+
+    REHOME rows leave current Memory entirely; EXTRACT rows route the episode
+    while the distilled residue survives as the disposition's target, so the
+    two never blur and a REJECT never appears here — a rejected proposition
+    survives under no authority. The status is derived from the ledger's own
+    obligation vocabulary, never judged: A4 accepts a REHOME with a pointer
+    or a stated hand-off, and the difference is exactly named-vs-stated — a
+    recorded `hand_off` is complete, a pointer-only REHOME is owed — while an
+    EXTRACT's destination is A4-mandatory, so its routing decision is
+    recorded and therefore complete.
+    """
+    rows: list[dict[str, Any]] = []
+    for record in ledger["dispositions"]:
+        cls = record.get("class")
+        if cls == "REHOME":
+            rows.append({
+                "proposition": record["proposition"],
+                "class": "REHOME",
+                "destination": record["destination"],
+                **_present(record, "pointer"),
+                **_present(record, "hand_off"),
+                **_present(record, "note"),
+                "hand_off_status": (
+                    HAND_OFF_COMPLETE if "hand_off" in record else HAND_OFF_OWED
+                ),
+            })
+        elif cls == "EXTRACT":
+            rows.append({
+                "proposition": record["proposition"],
+                "class": "EXTRACT",
+                "destination": record["destination"],
+                "targets": list(record["targets"]),
+                **_present(record, "note"),
+                "hand_off_status": HAND_OFF_COMPLETE,
+            })
+    rows.sort(key=lambda row: row["proposition"])
+    return {"domain": ledger["domain"], "items": rows}
+
+
+def report_path(ledger_dir: Path, kind: str, domain: str) -> Path:
+    return Path(ledger_dir) / REPORT_FILENAMES[kind].format(domain=domain)
+
+
+def review_path(ledger_dir: Path, domain: str) -> Path:
+    return Path(ledger_dir) / REVIEW_FILENAME.format(domain=domain)
+
+
+def write_report_set(
+    ledger_dir: Path, ledger: dict[str, Any]
+) -> list[tuple[str, Path, int]]:
+    """Derive and write all three reports, or none of them.
+
+    Inputs are schema-checked by the caller and every document is derived
+    before the first write; an existing artifact refuses the whole set, so a
+    regeneration can never silently destroy a reviewer's signoffs — the
+    operator removes the existing reports explicitly, re-reports, and re-signs.
+    Each file is written atomically, the same pattern the ledger uses.
+    """
+    domain = ledger["domain"]
+    order = ("survival", "loss", "re-homing")
+    documents: dict[str, dict[str, Any]] = {
+        "survival": survival_report_document(ledger),
+        "loss": loss_report_document(ledger),
+        "re-homing": rehoming_report_document(ledger),
+    }
+    paths = {kind: report_path(ledger_dir, kind, domain) for kind in order}
+    existing = [paths[kind] for kind in order if paths[kind].exists()]
+    if existing:
+        raise MigrateError_(
+            "refused: "
+            + ", ".join(path.as_posix() for path in existing)
+            + " already exists; regenerating reports replaces signoff state, so "
+            "the operator removes the existing artifacts first"
+        )
+    written: list[tuple[str, Path, int]] = []
+    for kind in order:
+        write_yaml_atomic(paths[kind], documents[kind])
+        written.append((kind, paths[kind], len(documents[kind]["items"])))
+    return written
+
+
+def _load_yaml_mapping(path: Path, what: str) -> dict[str, Any]:
+    if not path.is_file():
+        raise MigrateError_(f"no {what} at {path.as_posix()}")
+    data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise MigrateError_(f"{path.as_posix()}: {what} must be a mapping")
+    return data
+
+
+def loss_artifact_problems(
+    document: dict[str, Any],
+    domain: str,
+    derived: list[dict[str, Any]],
+    path: Path,
+) -> list[str]:
+    """Every way the signed loss artifact disagrees with the ledger.
+
+    Exact-set equality in both directions: every derived loss item appears
+    exactly once with its ledger fields unchanged and its own signoff, and no
+    row exists for a proposition the ledger does not loss. A row whose reason
+    was edited after derivation, a row naming something that is not a loss, a
+    missing row, a duplicate row, an extra top-level approval key, a
+    `signed_off` that is not the literal true, or an empty reviewer note —
+    each refuses. The script never decides whether a loss is acceptable; it
+    only proves the reviewer signed the exact losses the ledger records, item
+    by item (criterion 45).
+    """
+    problems: list[str] = []
+    label = path.as_posix()
+    for key in sorted(set(document) - REPORT_ARTIFACT_KEYS):
+        problems.append(
+            f"{label}: unknown top-level key '{key}'; there is no "
+            "document-level approval, only per-item signoff"
+        )
+    if document.get("domain") != domain:
+        problems.append(
+            f"{label}: domain {document.get('domain')!r} does not match '{domain}'"
+        )
+    items = document.get("items")
+    if not isinstance(items, list):
+        problems.append(f"{label}: items must be a list")
+        return problems
+    derived_by_id = {row["item"]: row for row in derived}
+    seen: set[str] = set()
+    for position, row in enumerate(items):
+        where = f"{label}: items[{position}]"
+        if not isinstance(row, dict):
+            problems.append(f"{where}: must be a mapping")
+            continue
+        item_id = row.get("item")
+        if not _non_empty_str(item_id):
+            problems.append(f"{where}: item must be a non-empty proposition id")
+            continue
+        if item_id in seen:
+            problems.append(
+                f"{where}: duplicate signoff row for '{item_id}'; one row per "
+                "loss item"
+            )
+            continue
+        seen.add(item_id)
+        expected = derived_by_id.get(item_id)
+        if expected is None:
+            problems.append(
+                f"{where}: '{item_id}' is not a loss item of this ledger; a "
+                "signoff must name exactly one real loss"
+            )
+            continue
+        allowed = set(expected) | LOSS_SIGNOFF_KEYS
+        for key in sorted(set(row) - allowed):
+            problems.append(f"{where}: unknown key '{key}'")
+        for key in sorted(set(expected) - set(row)):
+            problems.append(f"{where}: required key '{key}' is missing")
+        for key in sorted(set(expected) & set(row)):
+            if row[key] != expected[key]:
+                problems.append(
+                    f"{where}: '{key}' no longer matches the ledger; the report "
+                    "was mutated after derivation and its signoff no longer "
+                    "covers this content"
+                )
+        if row.get("signed_off") is not True:
+            problems.append(
+                f"{where}: '{item_id}' is unsigned; every loss item carries "
+                "its own signoff and no bulk approval exists"
+            )
+        if not _non_empty_str(row.get("reviewer_note")):
+            problems.append(f"{where}: '{item_id}' has no reviewer note")
+    for row in derived:
+        if row["item"] not in seen:
+            problems.append(
+                f"{label}: loss item '{row['item']}' has no signoff row; every "
+                "REJECT, REHOME, and CONDENSE shed is signed item by item"
+            )
+    return problems
+
+
+def review_artifact_problems(
+    document: dict[str, Any] | None,
+    domain: str,
+    flags: list[str],
+    path: Path,
+) -> list[str]:
+    """Every way the FLAG review artifact disagrees with the validator.
+
+    A FLAG is cleared by no longer firing, or accepted here with a note — one
+    row per exact flag text, `accepted` literal true, note non-empty. A stale
+    row refuses: an acceptance that no longer names a live FLAG is residue,
+    not a record. An absent artifact is fine exactly when the validator emits
+    no FLAGs. Nothing here edits the candidate store to silence a flag;
+    acceptance is recorded beside the ledger, never inside Memory.
+    """
+    label = path.as_posix()
+    if document is None:
+        if not flags:
+            return []
+        return [
+            f"{label}: no review artifact; every FLAG must be individually "
+            "accepted with a note or cleared in the candidate store: "
+            + " | ".join(flags)
+        ]
+    problems: list[str] = []
+    for key in sorted(set(document) - REVIEW_ARTIFACT_KEYS):
+        problems.append(f"{label}: unknown top-level key '{key}'")
+    if document.get("domain") != domain:
+        problems.append(
+            f"{label}: domain {document.get('domain')!r} does not match '{domain}'"
+        )
+    rows = document.get("flags")
+    if not isinstance(rows, list):
+        problems.append(f"{label}: flags must be a list")
+        return problems
+    seen: set[str] = set()
+    for position, row in enumerate(rows):
+        where = f"{label}: flags[{position}]"
+        if not isinstance(row, dict):
+            problems.append(f"{where}: must be a mapping")
+            continue
+        for key in sorted(set(row) - FLAG_ROW_KEYS):
+            problems.append(f"{where}: unknown key '{key}'")
+        for key in sorted(FLAG_ROW_KEYS - set(row)):
+            problems.append(f"{where}: required key '{key}' is missing")
+        text = row.get("flag")
+        if not _non_empty_str(text):
+            problems.append(f"{where}: flag must be non-empty text")
+            continue
+        if text in seen:
+            problems.append(f"{where}: duplicate row for this flag")
+            continue
+        seen.add(text)
+        if text not in flags:
+            problems.append(
+                f"{where}: acknowledges a flag the validator no longer emits; "
+                "remove the stale row"
+            )
+        if row.get("accepted") is not True:
+            problems.append(f"{where}: FLAG '{text}' is not accepted")
+        if not _non_empty_str(row.get("note")):
+            problems.append(f"{where}: FLAG '{text}' has no acceptance note")
+    for text in flags:
+        if text not in seen:
+            problems.append(f"{label}: FLAG neither cleared nor annotated: {text}")
+    return problems
+
 
 def one_domain(args: argparse.Namespace) -> Path:
     dirs = domain_dirs(args.memory, args.domain)
@@ -1280,7 +1689,7 @@ def cmd_freeze(args: argparse.Namespace) -> int:
             "action that removes the existing ledger first"
         )
     legacy = legacy_freeze_block(domain_dir)
-    write_ledger(target, {"domain": domain, "legacy": legacy})
+    write_yaml_atomic(target, {"domain": domain, "legacy": legacy})
     print(
         f"frozen: {domain} schema {legacy['memory_schema_version']} "
         f"memory_version {legacy['memory_version']}, {legacy['entry_count']} "
@@ -1383,6 +1792,162 @@ def cmd_account(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_report(args: argparse.Namespace) -> int:
+    domain = args.domain
+    ledger_dir = purpose_directory(args.ledger_dir, args.memory)
+    ledger = load_ledger_document(ledger_file(ledger_dir, domain), domain)
+    schema_problems = ledger_schema_problems(ledger)
+    if schema_problems:
+        for problem in schema_problems:
+            print(f"ledger schema: {problem}", file=sys.stderr)
+        print(
+            "FAIL: reports are not derived from a malformed ledger; the A1-A10 "
+            "checks do not run on it either"
+        )
+        return 1
+    for kind, path, count in write_report_set(ledger_dir, ledger):
+        print(f"report: {kind}: {count} item(s): {path.as_posix()}")
+    print(
+        f"PASS: report: {domain} survival, loss, and re-homing derived from "
+        "the ledger; loss items await item-by-item signoff"
+    )
+    return 0
+
+
+def cmd_gate(args: argparse.Namespace) -> int:
+    domain_dir = one_domain(args)
+    domain = domain_dir.name
+    ledger_dir = purpose_directory(args.ledger_dir, args.memory)
+    ledger = load_ledger_document(ledger_file(ledger_dir, domain), domain)
+    schema_problems = ledger_schema_problems(ledger)
+    if schema_problems:
+        for problem in schema_problems:
+            print(f"ledger schema: {problem}", file=sys.stderr)
+        print("FAIL: gate: the A1-A10 checks do not run on a malformed ledger")
+        return 1
+    failed = False
+
+    # Loss sign-off: exact-set equality against the ledger's own losses, every
+    # item individually signed. This is the anti-laundering control: a loss
+    # that vanished from the artifact, an item that is not a loss, an edited
+    # reason, a duplicate row, a truthy-but-not-true `signed_off`, an empty
+    # note, or a document-level approval key each refuse.
+    derived = loss_items(ledger)
+    loss_file = report_path(ledger_dir, "loss", domain)
+    try:
+        loss_document = _load_yaml_mapping(loss_file, "loss report")
+    except MigrateError_ as exc:
+        print(f"FAIL: gate: {exc}", file=sys.stderr)
+        failed = True
+    else:
+        problems = loss_artifact_problems(loss_document, domain, derived, loss_file)
+        if problems:
+            for problem in problems:
+                print(f"loss signoff: {problem}", file=sys.stderr)
+            print(f"loss signoff: FAIL ({len(problems)} problem(s))")
+            failed = True
+        else:
+            print(
+                f"loss signoff: PASS ({len(derived)} item(s) signed "
+                "individually, none in bulk)"
+            )
+
+    # A1-A10 through the existing checker, zero HOLDs among them (A7): gate
+    # adds no parallel accounting and no bypass. Source drift (A2) and a
+    # remaining HOLD refuse here exactly as they do under `account`.
+    try:
+        store_claim_ids = candidate_store_claim_ids(args.store)
+    except MigrateError_ as exc:
+        print(f"FAIL: gate: {exc}", file=sys.stderr)
+        return 1
+    failures, a8_report, a9_report = account_problems(
+        ledger, domain_dir, store_claim_ids
+    )
+    problems_by_check: dict[str, list[str]] = {check: [] for check in ACCOUNT_CHECKS}
+    for check, message in failures:
+        problems_by_check[check].append(message)
+    for check in ACCOUNT_CHECKS:
+        problems = problems_by_check[check]
+        if problems:
+            print(f"{check}: FAIL")
+            for message in problems:
+                print(f"  {check}: {message}", file=sys.stderr)
+            failed = True
+        elif check == "A8":
+            print(f"A8: PASS: {a8_report}")
+        elif check == "A9":
+            print(f"A9: PASS: {a9_report}")
+        else:
+            print(f"{check}: PASS")
+    if not problems_by_check["A7"]:
+        print("zero HOLDs: PASS (A7)")
+
+    # The candidate goes through the repository's actual v3 validator — the
+    # same `validate_v3_contents` `memory.py validate` dispatches to for a
+    # schema-3 store — with the migration domain rather than a directory name,
+    # because a candidate has not been installed under memory/ yet. Errors
+    # refuse; a History file beside the candidate resolves evidence, its
+    # absence does not (I5). Nothing is silently repaired.
+    candidate_path = Path(args.store)
+    try:
+        candidate = yaml.safe_load(candidate_path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        print(f"FAIL: gate: candidate store does not load: {exc}", file=sys.stderr)
+        return 1
+    if not isinstance(candidate, dict):
+        print(
+            f"FAIL: gate: {candidate_path.as_posix()}: candidate store must be "
+            "a mapping",
+            file=sys.stderr,
+        )
+        return 1
+    events: list[dict[str, Any]] | None = None
+    event_errors: list[str] | None = None
+    if (candidate_path.parent / "training_history.jsonl").is_file():
+        events, event_errors = load_events(candidate_path.parent)
+    errors, flags = validate_v3_contents(
+        domain, candidate, events=events, event_errors=event_errors
+    )
+    if errors:
+        for error in errors:
+            print(f"candidate: {error}", file=sys.stderr)
+        print(f"candidate validation: FAIL ({len(errors)} error(s))")
+        failed = True
+    else:
+        print("candidate validation: PASS (every section-4 ERROR rule)")
+
+    # FLAG review: cleared (no longer emitted) or individually accepted with a
+    # note beside the ledger. An unreviewed FLAG refuses; acceptance never
+    # mutates the candidate store.
+    review_file = review_path(ledger_dir, domain)
+    review_document: dict[str, Any] | None = None
+    if review_file.is_file():
+        try:
+            review_document = _load_yaml_mapping(review_file, "review artifact")
+        except MigrateError_ as exc:
+            print(f"FAIL: gate: {exc}", file=sys.stderr)
+            return 1
+    flag_problems = review_artifact_problems(
+        review_document, domain, flags, review_file
+    )
+    if flag_problems:
+        for problem in flag_problems:
+            print(f"flag review: {problem}", file=sys.stderr)
+        print(f"flag review: FAIL ({len(flag_problems)} problem(s))")
+        failed = True
+    else:
+        print(f"flag review: PASS ({len(flags)} FLAG(s) cleared or accepted)")
+
+    if failed:
+        print(f"FAIL: gate: {domain} is not verified; the legacy store stays", file=sys.stderr)
+        return 1
+    print(
+        f"PASS: gate: {domain} — A1-A10 hold, zero HOLDs, FLAGs reviewed, "
+        f"{len(derived)} loss item(s) signed individually, candidate validates"
+    )
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -1458,6 +2023,42 @@ def main() -> int:
         help="The candidate v3 store (skill_memory.yaml) whose claim ids the "
              "ledger's targets must resolve into (A5, A6, A8).",
     )
+    report = sub.add_parser(
+        "report", parents=[common],
+        help="Derive the survival, loss, and re-homing reports from the ledger.",
+        description=(
+            "Pass 4's report surface (§7.5): three artifacts derived "
+            "deterministically from the ledger's recorded dispositions - "
+            "survival (every CARRY/REWRITE/SPLIT/CONDENSE/EXTRACT proposition "
+            "and its target claim), loss (every REJECT, REHOME, and CONDENSE "
+            "shed with its reason, each row carrying an empty per-item "
+            "signoff), and re-homing (everything sent to another authority, "
+            "with destination and complete-or-owed status). Nothing is "
+            "inferred, no reason or note is generated, existing reports "
+            "refuse regeneration so a signoff is never silently destroyed, "
+            "and the artifacts land beside the ledger - never under memory/."
+        ),
+    )
+    gate = sub.add_parser(
+        "gate", parents=[common],
+        help="The VERIFY-step entry point: A1-A10, zero HOLDs, reviewed "
+             "FLAGs, signed loss items, valid candidate.",
+        description=(
+            "Pass 5 of the R2.5 migration (§7.4): re-runs the A1-A10 "
+            "accounting through the existing checker (A2 source drift and A7 "
+            "HOLDs refuse, never warn), requires the loss report's items to "
+            "equal the ledger's own loss set with every item individually "
+            "signed and no document-level approval, runs the repository's v3 "
+            "validator on the candidate store (ERRORs refuse), and requires "
+            "every FLAG cleared or individually accepted with a note in the "
+            "review artifact. Writes nothing, judges nothing semantic, and "
+            "has no bulk-approval path."
+        ),
+    )
+    gate.add_argument(
+        "--store", type=Path, required=True,
+        help="The candidate v3 store (skill_memory.yaml) the gate validates.",
+    )
 
     args = parser.parse_args()
     handlers = {
@@ -1465,6 +2066,8 @@ def main() -> int:
         "verify-hashes": cmd_verify_hashes,
         "sentences": cmd_sentences,
         "account": cmd_account,
+        "report": cmd_report,
+        "gate": cmd_gate,
     }
     try:
         return handlers[args.command](args)

@@ -1,9 +1,10 @@
-"""R2.5 migration tooling, tickets T13-T15: FREEZE, hash verification, the
-sentence inventory, and the A1-A10 accounting checker.
+"""R2.5 migration tooling, tickets T13-T16: FREEZE, hash verification, the
+sentence inventory, the A1-A10 accounting checker, the three migration reports
+with item-by-item loss signoff, and the VERIFY gate.
 
 The mechanical half of the migration contract, and only that half. FREEZE
 records one legacy store's exact input state — schema version, store version,
-entry count, a sha256 per entry's serialized bytes, and the admissible event id
+entry count, a sha256 per entry's serialized bytes, and the admissible event
 set — into a one-time workspace ledger, and refuses any store that does not
 pass the existing Memory validator. `verify-hashes` (check A2) detects a store
 edited after FREEZE. `sentences` (T15) emits the numbered sentence inventory A9
@@ -13,7 +14,13 @@ and split with `validate.py`'s SENTENCE_RE, the repository's one splitter.
 then checks the recorded decompositions, propositions, dispositions, and
 sentence maps against the ten completeness rules of R2.5 §7.5, naming every
 failure's check — A9 proving sentence coverage and the second-reader mark, not
-the truth of any attribution.
+the truth of any attribution. `report` (T16) derives the survival, loss, and
+re-homing reports from those same dispositions, the loss report carrying an
+empty per-item signoff on every REJECT, REHOME, and CONDENSE shed.
+`gate` (T16) is the VERIFY-step entry point: A1-A10 re-run, zero HOLDs, the
+candidate through the real v3 validator, every FLAG cleared or accepted with a
+note, and every loss item individually signed — a bulk approval does not exist
+as a field, a flag, or an environment variable.
 
 What this suite must never do is migrate a domain: no proposition is
 decomposed, no disposition is invented, no sentence is attributed by the tool
@@ -1573,6 +1580,623 @@ class SentenceCoverage(AccountLedgerFixture):
         ]
         self.assertIn("SENTENCE_RE", imported)
         self.assertNotIn(r"(?<=[.!?])", source, "the splitter pattern was copied")
+
+
+class Reports(AccountLedgerFixture):
+    """T16: the three §7.5 reports derived from one judgment-filled ledger,
+    and the VERIFY gate that refuses anything short of the full set.
+
+    The fixture ledger covers every report-bearing class in one domain: a
+    SPLIT, a REWRITE, a CONDENSE with one shed proposition, a REHOME with a
+    stated hand-off, a REJECT, and an EXTRACT — so survival, loss, and
+    re-homing each have real rows, and the boundaries between them (an EXTRACT
+    is not a loss; a REJECT never re-homes; a shed is a loss even when its
+    condensation target survives) are pinned by assertion rather than by
+    prose. The candidate store is a structurally valid v3 store, because the
+    gate — unlike `account` — runs the repository's real v3 validator on it.
+    Signoffs here are the reviewer's own act performed by the test: one
+    literal true and one note per item, never one shared approval.
+    """
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.write_v3_candidate([
+            self.v3_claim(self.STORE_T1),
+            self.v3_claim(self.STORE_T2),
+            self.v3_claim(self.STORE_T3),
+        ])
+        self.ledger_path().write_bytes(
+            yaml.safe_dump(self.reports_ledger(), sort_keys=False).encode("utf-8")
+        )
+
+    @staticmethod
+    def v3_claim(claim_id: str) -> dict:
+        """A minimal structurally valid v3 claim; the gate validates it for
+        real, so it carries every required key and trips no rule."""
+        return {
+            "id": claim_id,
+            "claim": "Checking the boundary before reusing a claim keeps "
+                     "migration accounting honest.",
+            "claim_class": "conduct",
+            "claim_kind": "deterministic",
+            "confidence": "repeated",
+            "delta": {
+                "kinds": ["judgment"],
+                "statement": "Check the boundary before reuse.",
+            },
+            "envelope": {
+                "holds_in": ["migration accounting over derived reports"],
+                "not_shown_in": ["runtime retrieval paths"],
+            },
+            "provenance": ["runtime_self_audit"],
+            "scope": "migration_accounting",
+            "retrieval_cues": ["migration accounting"],
+            "last_verified": "2026-10-20",
+        }
+
+    def write_v3_candidate(self, claims: list[dict]) -> None:
+        self.candidate.parent.mkdir(parents=True, exist_ok=True)
+        self.candidate.write_bytes(
+            yaml.safe_dump(
+                {
+                    "memory_schema_version": 3,
+                    "skillset": self.DOMAIN,
+                    "memory_version": 1,
+                    "claims": claims,
+                },
+                sort_keys=False,
+            ).encode("utf-8")
+        )
+
+    def reports_ledger(self) -> dict:
+        """One ledger exercising every report-bearing class (T16 fixture)."""
+        return {
+            "domain": self.DOMAIN,
+            "legacy": self.legacy_block,
+            "vnext": {"memory_schema_version": 3, "claim_count": 3},
+            "accretion_entries": [],
+            "decompositions": [
+                {
+                    "legacy_entry": "ART_MEM_001",
+                    "legacy_sha256": self.hashes["ART_MEM_001"],
+                    "propositions": [
+                        {"id": "ART_MEM_001#p1", "text": "A proposition that splits in two."},
+                        {"id": "ART_MEM_001#p2", "text": "A proposition rewritten to neutral voice."},
+                        {"id": "ART_MEM_001#p3", "text": "A proposition condensed into one claim."},
+                        {"id": "ART_MEM_001#p4", "text": "A proposition shed by the condensation."},
+                    ],
+                    "sentence_map": [
+                        {"sentence": 1, "propositions": ["ART_MEM_001#p1"]},
+                        {"sentence": 2, "propositions": ["ART_MEM_001#p2"]},
+                        {"sentence": 3, "propositions": ["ART_MEM_001#p3"]},
+                        {"sentence": 4, "propositions": ["ART_MEM_001#p4"]},
+                    ],
+                },
+                {
+                    "legacy_entry": "ART_MEM_002",
+                    "legacy_sha256": self.hashes["ART_MEM_002"],
+                    "propositions": [
+                        {"id": "ART_MEM_002#p1", "text": "A proposition re-homed to training history."},
+                        {"id": "ART_MEM_002#p2", "text": "A rejected duplicate proposition."},
+                        {"id": "ART_MEM_002#p3", "text": "An extracted episode with a distilled residue."},
+                    ],
+                    "sentence_map": [
+                        {
+                            "sentence": 1,
+                            "propositions": [
+                                "ART_MEM_002#p1", "ART_MEM_002#p2", "ART_MEM_002#p3",
+                            ],
+                        },
+                    ],
+                },
+            ],
+            "dispositions": [
+                {
+                    "proposition": "ART_MEM_001#p1",
+                    "class": "SPLIT",
+                    "targets": [self.STORE_T1, self.STORE_T2],
+                },
+                {
+                    "proposition": "ART_MEM_001#p2",
+                    "class": "REWRITE",
+                    "targets": [self.STORE_T3],
+                    "rewrite_reason": "voice",
+                },
+                {
+                    "proposition": "ART_MEM_001#p3",
+                    "class": "CONDENSE",
+                    "targets": [self.STORE_T1],
+                    "shed": [
+                        {
+                            "proposition": "ART_MEM_001#p4",
+                            "shed_reason": "Restates the condensed claim without adding an obligation.",
+                        }
+                    ],
+                },
+                {
+                    "proposition": "ART_MEM_002#p1",
+                    "class": "REHOME",
+                    "destination": "training_history",
+                    "hand_off": "Moved into the training tranche; presence verified in the destination.",
+                },
+                {
+                    "proposition": "ART_MEM_002#p2",
+                    "class": "REJECT",
+                    "reason_kind": "duplicate_of",
+                    "reason": "Duplicates the surviving claim; the card holds without it.",
+                    "duplicate_of": self.STORE_T3,
+                },
+                {
+                    "proposition": "ART_MEM_002#p3",
+                    "class": "EXTRACT",
+                    "targets": [self.STORE_T2],
+                    "destination": "regression",
+                    "note": "Episode routed to regression; the residue is the target claim.",
+                },
+            ],
+            "holds": [],
+        }
+
+    def write_ledger(self, ledger: dict) -> None:
+        self.ledger_path().write_bytes(
+            yaml.safe_dump(ledger, sort_keys=False).encode("utf-8")
+        )
+
+    def report(self) -> subprocess.CompletedProcess[str]:
+        return run_migrator(
+            "report", "--domain", self.DOMAIN,
+            "--ledger-dir", self.ledger_dir,
+            memory=self.memory_root,
+        )
+
+    def gate(self) -> subprocess.CompletedProcess[str]:
+        return run_migrator(
+            "gate", "--domain", self.DOMAIN,
+            "--ledger-dir", self.ledger_dir,
+            "--store", self.candidate,
+            memory=self.memory_root,
+        )
+
+    def artifact_path(self, kind: str) -> Path:
+        return self.ledger_dir / f"{kind}-{self.DOMAIN}.yaml"
+
+    def artifact(self, kind: str) -> dict:
+        return yaml.safe_load(self.artifact_path(kind).read_bytes().decode("utf-8"))
+
+    def write_artifact(self, kind: str, document: dict) -> None:
+        self.artifact_path(kind).write_bytes(
+            yaml.safe_dump(document, sort_keys=False).encode("utf-8")
+        )
+
+    def sign_all_loss_items(self) -> None:
+        document = self.artifact("loss")
+        for row in document["items"]:
+            row["signed_off"] = True
+            row["reviewer_note"] = f"Reviewed and accepted {row['item']}."
+        self.write_artifact("loss", document)
+
+    def test_three_reports_are_generated_and_trace_to_propositions(self) -> None:
+        """T16 acceptance criterion 1: three artifacts from the fixture ledger,
+        every item tracing to its proposition, and the report boundaries held:
+        an EXTRACT is survival + re-homing, never a loss; a REJECT never
+        re-homes; a shed is a loss even though its condensation target
+        survives; a SPLIT carries its full target list."""
+        result = self.report()
+        self.assertEqual(result.returncode, 0, self.output(result))
+
+        survival = self.artifact("survival")
+        self.assertEqual(survival["domain"], self.DOMAIN)
+        survival_by_prop = {row["proposition"]: row for row in survival["items"]}
+        self.assertEqual(
+            sorted(survival_by_prop),
+            ["ART_MEM_001#p1", "ART_MEM_001#p2", "ART_MEM_001#p3", "ART_MEM_002#p3"],
+        )
+        self.assertEqual(survival_by_prop["ART_MEM_001#p1"]["class"], "SPLIT")
+        self.assertEqual(
+            survival_by_prop["ART_MEM_001#p1"]["targets"],
+            [self.STORE_T1, self.STORE_T2],
+        )
+        self.assertEqual(survival_by_prop["ART_MEM_001#p2"]["rewrite_reason"], "voice")
+        self.assertEqual(survival_by_prop["ART_MEM_001#p3"]["targets"], [self.STORE_T1])
+        self.assertEqual(survival_by_prop["ART_MEM_002#p3"]["class"], "EXTRACT")
+        self.assertEqual(survival_by_prop["ART_MEM_002#p3"]["destination"], "regression")
+
+        loss = self.artifact("loss")
+        loss_by_item = {row["item"]: row for row in loss["items"]}
+        self.assertEqual(
+            sorted(loss_by_item),
+            ["ART_MEM_001#p4", "ART_MEM_002#p1", "ART_MEM_002#p2"],
+        )
+        shed = loss_by_item["ART_MEM_001#p4"]
+        self.assertEqual(shed["class"], "CONDENSE")
+        self.assertEqual(shed["via"], "ART_MEM_001#p3")
+        self.assertIn("obligation", shed["shed_reason"])
+        rehome = loss_by_item["ART_MEM_002#p1"]
+        self.assertEqual(rehome["destination"], "training_history")
+        self.assertIn("hand_off", rehome)
+        reject = loss_by_item["ART_MEM_002#p2"]
+        self.assertEqual(reject["reason_kind"], "duplicate_of")
+        self.assertEqual(reject["duplicate_of"], self.STORE_T3)
+        self.assertTrue(reject["reason"])
+        for row in loss["items"]:
+            self.assertIs(row["signed_off"], False)
+            self.assertEqual(row["reviewer_note"], "")
+
+        rehoming = self.artifact("re-homing")
+        rehoming_by_prop = {row["proposition"]: row for row in rehoming["items"]}
+        self.assertEqual(sorted(rehoming_by_prop), ["ART_MEM_002#p1", "ART_MEM_002#p3"])
+        self.assertEqual(rehoming_by_prop["ART_MEM_002#p1"]["hand_off_status"], "complete")
+        self.assertEqual(rehoming_by_prop["ART_MEM_002#p3"]["class"], "EXTRACT")
+        self.assertEqual(rehoming_by_prop["ART_MEM_002#p3"]["targets"], [self.STORE_T2])
+        self.assertNotIn("ART_MEM_002#p3", loss_by_item)
+        self.assertNotIn("ART_MEM_002#p2", rehoming_by_prop)
+        self.assertNotIn("ART_MEM_001#p4", survival_by_prop)
+        universe = {
+            proposition["id"]
+            for item in self.reports_ledger()["decompositions"]
+            for proposition in item["propositions"]
+        }
+        for row in survival["items"]:
+            self.assertIn(row["proposition"], universe)
+        for row in loss["items"]:
+            self.assertIn(row["item"], universe)
+        for row in rehoming["items"]:
+            self.assertIn(row["proposition"], universe)
+
+    def test_a_pointer_only_rehome_is_owed(self) -> None:
+        """The hand-off status is the ledger's own vocabulary, derived not
+        judged: a stated hand_off is complete; a pointer-only REHOME is owed."""
+        ledger = self.reports_ledger()
+        rehome = next(
+            row for row in ledger["dispositions"] if row["class"] == "REHOME"
+        )
+        del rehome["hand_off"]
+        rehome["pointer"] = "training_history tranche store"
+        self.write_ledger(ledger)
+        self.assertEqual(self.report().returncode, 0)
+        rehoming = self.artifact("re-homing")
+        row = next(
+            r for r in rehoming["items"] if r["proposition"] == "ART_MEM_002#p1"
+        )
+        self.assertEqual(row["hand_off_status"], "owed")
+        loss_row = next(
+            r for r in self.artifact("loss")["items"] if r["item"] == "ART_MEM_002#p1"
+        )
+        self.assertEqual(loss_row["pointer"], "training_history tranche store")
+        self.assertNotIn("hand_off", loss_row)
+
+    def test_the_reports_are_deterministic(self) -> None:
+        """Unchanged ledger, unchanged bytes: the derivation is sorted and
+        pure, so a second generation into a fresh purpose directory is
+        byte-identical."""
+        self.assertEqual(self.report().returncode, 0)
+        other = self.tmp / "workspace" / "t16-report-again"
+        other.mkdir(parents=True)
+        (other / f"ledger-{self.DOMAIN}.yaml").write_bytes(
+            self.ledger_path().read_bytes()
+        )
+        result = run_migrator(
+            "report", "--domain", self.DOMAIN, "--ledger-dir", other,
+            memory=self.memory_root,
+        )
+        self.assertEqual(result.returncode, 0, self.output(result))
+        for kind in ("survival", "loss", "re-homing"):
+            with self.subTest(kind=kind):
+                self.assertEqual(
+                    self.artifact_path(kind).read_bytes(),
+                    (other / f"{kind}-{self.DOMAIN}.yaml").read_bytes(),
+                )
+
+    def test_report_refuses_to_overwrite_existing_reports(self) -> None:
+        """Regeneration replaces signoff state; the operator removes the old
+        artifacts explicitly rather than losing a reviewer's work silently."""
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        before = self.artifact_path("loss").read_bytes()
+        second = self.report()
+        self.assertEqual(second.returncode, 1)
+        self.assertIn("already exists", self.output(second))
+        self.assertIn("signoff", self.output(second))
+        self.assertEqual(self.artifact_path("loss").read_bytes(), before)
+
+    def test_gate_refuses_an_unsigned_loss_item(self) -> None:
+        """T16 acceptance criterion 3: the gate refuses while any loss item is
+        unsigned and names each one; partial signing still refuses; signing
+        every item individually flips it to pass."""
+        self.assertEqual(self.report().returncode, 0)
+        unsigned = self.gate()
+        self.assertEqual(unsigned.returncode, 1)
+        for item in ("ART_MEM_001#p4", "ART_MEM_002#p1", "ART_MEM_002#p2"):
+            self.assertIn(item, unsigned.stderr)
+        self.assertIn("unsigned", unsigned.stderr)
+        self.assertIn("loss signoff: FAIL", unsigned.stdout)
+        document = self.artifact("loss")
+        document["items"][0]["signed_off"] = True
+        document["items"][0]["reviewer_note"] = "Reviewed."
+        self.write_artifact("loss", document)
+        partial = self.gate()
+        self.assertEqual(partial.returncode, 1)
+        self.assertIn("unsigned", partial.stderr)
+        self.sign_all_loss_items()
+        signed = self.gate()
+        self.assertEqual(signed.returncode, 0, self.output(signed))
+        self.assertIn("loss signoff: PASS (3 item(s) signed individually", signed.stdout)
+
+    def test_there_is_no_bulk_approval_path(self) -> None:
+        """T16 acceptance criterion 4 (grep) plus the structural refusals: no
+        force, yes, accept_all, or skip anywhere in the migrator; no
+        document-level approval key; a truthy string is not a signoff; a
+        duplicate row cannot cover a second loss."""
+        source = TOOL.read_text(encoding="utf-8")
+        for word in ("force", "yes", "accept_all", "skip"):
+            with self.subTest(word=word):
+                self.assertIsNone(
+                    re.search(rf"(?i)\b{word}\b", source),
+                    f"the migrator names '{word}'; bulk approval must have no "
+                    "field, flag, or environment variable to set",
+                )
+        self.assertEqual(self.report().returncode, 0)
+        document = self.artifact("loss")
+        document["approved"] = True
+        self.write_artifact("loss", document)
+        bulk = self.gate()
+        self.assertEqual(bulk.returncode, 1)
+        self.assertIn("no document-level approval", bulk.stderr)
+        self.sign_all_loss_items()
+        document = self.artifact("loss")
+        document["items"][0]["signed_off"] = "true"
+        self.write_artifact("loss", document)
+        truthy = self.gate()
+        self.assertEqual(truthy.returncode, 1)
+        self.assertIn("unsigned", truthy.stderr)
+        self.sign_all_loss_items()
+        document = self.artifact("loss")
+        document["items"].append(dict(document["items"][0]))
+        self.write_artifact("loss", document)
+        duplicate = self.gate()
+        self.assertEqual(duplicate.returncode, 1)
+        self.assertIn("duplicate signoff row", duplicate.stderr)
+
+    def test_gate_refuses_a_signoff_for_an_unknown_or_moved_item(self) -> None:
+        """An approval must name exactly one real loss: a row for a
+        proposition that is not a loss, the loss that row displaced, a reason
+        edited after signing — each refuses. Set equality runs both ways."""
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        document = self.artifact("loss")
+        document["items"][0]["item"] = "ART_MEM_001#p1"  # a surviving proposition
+        self.write_artifact("loss", document)
+        unknown = self.gate()
+        self.assertEqual(unknown.returncode, 1)
+        self.assertIn("not a loss item of this ledger", unknown.stderr)
+        self.assertIn("no signoff row", unknown.stderr)
+        self.sign_all_loss_items()
+        document = self.artifact("loss")
+        reject = next(
+            row for row in document["items"] if row["item"] == "ART_MEM_002#p2"
+        )
+        reject["reason"] = "A different reason written after signing."
+        self.write_artifact("loss", document)
+        mutated = self.gate()
+        self.assertEqual(mutated.returncode, 1)
+        self.assertIn("no longer matches the ledger", mutated.stderr)
+
+    def test_gate_refuses_a_hold(self) -> None:
+        """T16 acceptance criterion 5 (criterion 43, A7): one HOLD present and
+        the gate refuses; the HOLD is a failure, never a warning, and every
+        other gate stays green so A7 alone owns the refusal."""
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        ledger = self.reports_ledger()
+        ledger["holds"] = [
+            {
+                "question": "Does the shed proposition carry an obligation after all?",
+                "must_answer": "the migration reviewer",
+            }
+        ]
+        self.write_ledger(ledger)
+        result = self.gate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A7: FAIL", result.stdout)
+        self.assertIn("1 hold(s) remain", result.stderr)
+        self.assertNotIn("zero HOLDs: PASS", result.stdout)
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A8", "A9", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+        self.assertIn("loss signoff: PASS", result.stdout)
+        self.assertIn("candidate validation: PASS", result.stdout)
+
+    def test_gate_refuses_an_unreviewed_flag(self) -> None:
+        """T16 acceptance criterion 6: a v3 FLAG neither cleared nor annotated
+        refuses; accepting it with a note beside the ledger — never inside
+        Memory — passes; a stale acknowledgment refuses in turn. The FLAG is
+        the real C5 three-kind fusion smell from the v3 validator."""
+        claims = [
+            self.v3_claim(self.STORE_T1),
+            self.v3_claim(self.STORE_T2),
+            self.v3_claim(self.STORE_T3),
+        ]
+        claims[2]["delta"]["kinds"] = ["action", "judgment", "verification"]
+        self.write_v3_candidate(claims)
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        unreviewed = self.gate()
+        self.assertEqual(unreviewed.returncode, 1)
+        self.assertIn("flag review: FAIL", unreviewed.stdout)
+        self.assertIn("fusion smell (C5)", unreviewed.stderr)
+        self.assertIn("no review artifact", unreviewed.stderr)
+        marker = (
+            "no review artifact; every FLAG must be individually accepted with "
+            "a note or cleared in the candidate store: "
+        )
+        flag_text = unreviewed.stderr.split(marker, 1)[1].splitlines()[0].strip()
+        self.assertIn("fusion smell (C5)", flag_text)
+        (self.ledger_dir / f"review-{self.DOMAIN}.yaml").write_bytes(
+            yaml.safe_dump(
+                {
+                    "domain": self.DOMAIN,
+                    "flags": [
+                        {
+                            "flag": flag_text,
+                            "accepted": True,
+                            "note": "Three kinds are intentional here.",
+                        }
+                    ],
+                },
+                sort_keys=False,
+            ).encode("utf-8")
+        )
+        accepted = self.gate()
+        self.assertEqual(accepted.returncode, 0, self.output(accepted))
+        self.assertIn(
+            "flag review: PASS (1 FLAG(s) cleared or accepted)", accepted.stdout
+        )
+        self.write_v3_candidate([
+            self.v3_claim(self.STORE_T1),
+            self.v3_claim(self.STORE_T2),
+            self.v3_claim(self.STORE_T3),
+        ])
+        stale = self.gate()
+        self.assertEqual(stale.returncode, 1)
+        self.assertIn("no longer emits", stale.stderr)
+
+    def test_gate_passes_only_on_the_full_set(self) -> None:
+        """T16 acceptance criterion 7 (criterion 50): the gate passes only
+        when A1-A10 hold, HOLDs are zero, FLAGs are reviewed, every loss item
+        is signed, and the candidate passes the real v3 validator — and a
+        single accounting break refuses at its own check."""
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        full = self.gate()
+        self.assertEqual(full.returncode, 0, self.output(full))
+        self.assertIn("loss signoff: PASS (3 item(s) signed individually", full.stdout)
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"):
+            self.assertIn(f"{check}: PASS", full.stdout)
+        self.assertIn("zero HOLDs: PASS (A7)", full.stdout)
+        self.assertIn("candidate validation: PASS", full.stdout)
+        self.assertIn("flag review: PASS (0 FLAG(s) cleared or accepted)", full.stdout)
+        self.assertIn("PASS: gate: art", full.stdout)
+        self.write_v3_candidate([self.v3_claim(self.STORE_T1)])
+        ledger = self.reports_ledger()
+        ledger["vnext"]["claim_count"] = 1
+        self.write_ledger(ledger)
+        broken = self.gate()
+        self.assertEqual(broken.returncode, 1)
+        self.assertIn("A5: FAIL", broken.stdout)
+        self.assertIn("candidate validation: PASS", broken.stdout)
+
+    def test_gate_refuses_a_candidate_schema_error(self) -> None:
+        """The candidate goes through the actual v3 validator: a schema ERROR
+        refuses even when every accounting check is green, and nothing is
+        silently repaired."""
+        claims = [
+            self.v3_claim(self.STORE_T1),
+            self.v3_claim(self.STORE_T2),
+            self.v3_claim(self.STORE_T3),
+        ]
+        del claims[0]["delta"]  # S3: a required key disappears
+        self.write_v3_candidate(claims)
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        result = self.gate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("candidate validation: FAIL", result.stdout)
+        self.assertIn("missing required keys", result.stderr)
+        self.assertIn("delta", result.stderr)
+        for check in ("A5", "A6", "A8"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_gate_refuses_an_unsourced_v3_claim(self) -> None:
+        """A6 through the gate: a claim injected into the candidate store
+        without a source proposition refuses (criterion 42)."""
+        claims = [
+            self.v3_claim(self.STORE_T1),
+            self.v3_claim(self.STORE_T2),
+            self.v3_claim(self.STORE_T3),
+            self.v3_claim("ART_MEM_01M55WJVKRW7PNYGV6P3XR8ZQH"),
+        ]
+        self.write_v3_candidate(claims)
+        ledger = self.reports_ledger()
+        ledger["vnext"]["claim_count"] = 4
+        self.write_ledger(ledger)
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        result = self.gate()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("A6: FAIL", result.stdout)
+        self.assertIn("named by no disposition", result.stderr)
+        self.assertIn("ART_MEM_01M55WJVKRW7PNYGV6P3XR8ZQH", result.stderr)
+
+    def test_gate_reuses_a2_when_the_source_store_drifts(self) -> None:
+        """Source drift must still fail the migration gate (criterion 46): the
+        gate re-runs A2 through the existing checker, never refreshes a hash,
+        and treats drift as a failure rather than a note. The edit keeps the
+        sentence count, so A2 alone owns the refusal."""
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        self.assertEqual(self.gate().returncode, 0)
+        text = self.store_text()
+        self.write_store_text(
+            text.replace(
+                "An entry carrying two independently evaluable propositions.",
+                "An entry edited after FREEZE entirely.",
+                1,
+            )
+        )
+        drifted = self.gate()
+        self.assertEqual(drifted.returncode, 1)
+        self.assertIn("A2: FAIL", drifted.stdout)
+        self.assertIn("changed after FREEZE", drifted.stderr)
+        self.assertIn("loss signoff: PASS", drifted.stdout)
+
+    def test_a_zero_loss_ledger_needs_no_signatures(self) -> None:
+        """A migration with no REJECT, no REHOME, and no shed has an empty
+        loss report; the gate passes with nothing to sign rather than
+        demanding a phantom approval."""
+        ledger = self.base_ledger()
+        ledger["dispositions"][2] = {
+            "proposition": "ART_MEM_002#p1",
+            "class": "CARRY",
+            "targets": [self.STORE_T2],
+        }
+        self.write_ledger(ledger)
+        self.write_v3_candidate([
+            self.v3_claim(self.STORE_T1),
+            self.v3_claim(self.STORE_T2),
+        ])
+        self.assertEqual(self.report().returncode, 0)
+        self.assertEqual(self.artifact("loss")["items"], [])
+        result = self.gate()
+        self.assertEqual(result.returncode, 0, self.output(result))
+        self.assertIn("loss signoff: PASS (0 item(s) signed individually", result.stdout)
+
+    def test_the_reports_and_gate_write_only_their_artifacts(self) -> None:
+        """Read-only boundaries (criterion 33): the memory tree, the ledger,
+        and the candidate store are byte-identical through report and gate;
+        the only new files are the three reports in the purpose directory."""
+        self.assertEqual(self.report().returncode, 0)
+        self.sign_all_loss_items()
+        before_tree = self.tree_bytes()
+        ledger_bytes = self.ledger_path().read_bytes()
+        candidate_bytes = self.candidate.read_bytes()
+        signed_loss_bytes = self.artifact_path("loss").read_bytes()
+        result = self.gate()
+        self.assertEqual(result.returncode, 0, self.output(result))
+        self.assertEqual(self.tree_bytes(), before_tree)
+        self.assertEqual(self.ledger_path().read_bytes(), ledger_bytes)
+        self.assertEqual(self.candidate.read_bytes(), candidate_bytes)
+        self.assertEqual(self.artifact_path("loss").read_bytes(), signed_loss_bytes)
+        written = sorted(
+            path.name for path in self.ledger_dir.iterdir() if path.is_file()
+        )
+        self.assertEqual(
+            written,
+            [
+                f"ledger-{self.DOMAIN}.yaml",
+                f"loss-{self.DOMAIN}.yaml",
+                f"re-homing-{self.DOMAIN}.yaml",
+                f"survival-{self.DOMAIN}.yaml",
+            ],
+        )
 
 
 CLAIM_TAILS = (

@@ -6,6 +6,48 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.124 - 2026-10-20
+
+### Added
+
+- **The migration ledger now produces the three R2.5 §7.5 reports, and the
+  loss report cannot be approved in bulk — it is signed item by item, and
+  `gate` is the single VERIFY-step entry point (criterion 45).**
+  `migrate_memory_v3.py report --domain <d>` derives three artifacts from the
+  ledger's recorded dispositions, deterministically and never from a second
+  hand-maintained record: **survival** (every CARRY, REWRITE, SPLIT, CONDENSE,
+  and EXTRACT proposition and the target claim(s) it survives as, with a
+  SPLIT's full target list and a merge's shared target shown exactly as
+  recorded), **loss** (every REJECT with its reason kind, prose reason, and
+  any `duplicate_of` obligation; every REHOME with its destination and
+  pointer-or-hand-off; and every proposition shed inside a CONDENSE with its
+  `shed_reason` and the condensation it was shed from — the anti-silent-drop
+  report), and **re-homing** (every REHOME and EXTRACT with destination,
+  residue targets where they exist, and a complete-or-owed hand-off status
+  derived from the ledger's own pointer-vs-hand-off vocabulary). The loss
+  report is the signoff artifact: each item carries its own `signed_off`
+  field and reviewer note, the schema has no document-level approval key, and
+  regeneration refuses while existing reports would be overwritten so a
+  reviewer's signoffs are never silently destroyed. Reports land in the
+  task's purpose directory beside the ledger, never under `memory/`.
+- **`migrate_memory_v3.py gate --domain <d> --store <path>` is the VERIFY
+  gate: A1–A10 re-run, zero HOLDs, the candidate through the real v3
+  validator, every FLAG reviewed, every loss item signed.**
+  The gate re-runs the existing accounting checker rather than forking it —
+  A2 source drift and a remaining HOLD refuse exactly as under `account`,
+  never warn — and requires the loss artifact to equal the ledger's own loss
+  set in both directions: a missing row, a row naming something that is not a
+  loss, a duplicate row, a reason edited after signing, a `signed_off` that
+  is not the literal `true`, or an empty reviewer note each refuse. The
+  candidate store goes through `memory.py`'s actual v3 validator (ERRORs
+  refuse; a History file beside the candidate resolves evidence, its absence
+  does not), and every FLAG must be cleared or individually accepted with a
+  note in a `review-<domain>.yaml` artifact beside the ledger — a stale
+  acknowledgment refuses, and acceptance never mutates Memory. There is no
+  bulk-approval field, flag, or environment variable, asserted by grep and by
+  structural refusal; the gate writes nothing and decides nothing semantic —
+  whether a loss was right stays review judgment.
+
 ## 1.0.0-beta.123 - 2026-10-19
 
 ### Added

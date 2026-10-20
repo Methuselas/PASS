@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """One-time R2.5 migration tooling for legacy Skillset Memory stores: FREEZE,
-hash verification, and the A1–A10 accounting checker, deleted by ticket T21.
+hash verification, the sentence inventory, and the A1–A10 accounting checker,
+deleted by ticket T21.
 
 `freeze` is step 0 of the R2.5 migration algorithm (§7.4), and only step 0.
 It records the mechanical facts a later migration needs in order to detect
@@ -15,11 +16,30 @@ every recorded hash against the file (check A2), for use at the VERIFY gate.
 `account` (step 4, pass 4 of §7.4) checks a judgment-filled ledger against the
 ten mechanical completeness rules of §7.5: the ledger's schema and closed
 vocabularies first (required blocks, disposition classes, rewrite reasons,
-rejection reason kinds, destination authorities, proposition id shape), then
+rejection reason kinds, destination authorities, proposition id shape, the
+sentence map's row shape and its closed non-propositional reason set), then
 A1–A10 against the frozen `legacy:` block, the ledger's own decompositions and
 dispositions, and the candidate v3 store the targets must resolve into. Every
-failure names its check. A9 is delegated to the T15 sentence-coverage checker
-and is reported as such; this command owns no sentence map.
+failure names its check. A9 proves sentence coverage: every sentence of every
+frozen entry must appear exactly once in that entry's `sentence_map`,
+attributed to a proposition id recorded in that entry's decomposition or to a
+closed-set non-propositional reason, and every entry the ledger declares in
+`accretion_entries` must carry the second-reader mark on its decomposition
+record. The script records and checks those marks; it never attempts the
+second reading.
+
+`sentence coverage` has a fixed boundary. A complete map proves every source
+sentence was consciously accounted for — nothing more (§7.5). The checker
+never reads what a sentence means, never decides whether it carries a
+proposition, and never judges whether the recorded attribution is true.
+
+`sentences --domain <d> --entry <id>` emits the numbered sentence inventory A9
+runs against: the entry's `observation`, `boundary`, and `diagnosis.hypothesis`
+concatenated as one text in that order (§7.4 step 1 reads the three fields
+together as one semantic source; per-field extraction is forbidden) and split
+with `validate.py`'s SENTENCE_RE — the repository's one sentence splitter,
+imported so segmentation stays a single deterministic implementation. Emission
+only: nothing is attributed, decomposed, or written.
 
 The ledger lands in the task's workspace purpose directory and nowhere else. It
 is a one-time artifact, never a permanent ledger, a state sidecar, or a Memory
@@ -29,11 +49,12 @@ until their domain's migration is signed off.
 
 Judgment surfaces are deliberately absent. This tool records and re-checks
 mechanical truth only: it never decomposes an entry, never classifies, never
-authors a vNext claim, never invents a proposition id, never assigns, proposes,
-or suggests a disposition, and never computes a confidence. The accounting
-checker proves completeness and referential integrity of recorded judgments,
-never semantic fidelity (§7.5). No runtime path may depend on this module; T21
-deletes it together with the legacy input reader.
+attributes a sentence to a proposition, never chooses a non-propositional
+reason, never authors a vNext claim, never invents a proposition id, never
+assigns, proposes, or suggests a disposition, and never computes a confidence.
+The accounting checker proves completeness and referential integrity of
+recorded judgments, never semantic fidelity (§7.5). No runtime path may depend
+on this module; T21 deletes it together with the legacy input reader.
 """
 
 from __future__ import annotations
@@ -58,6 +79,7 @@ from memory import (
     validate_store,
 )
 from paths import default_memory_root
+from validate import SENTENCE_RE
 
 
 class MigrateError_(Exception):
@@ -311,13 +333,29 @@ REHOME_DESTINATIONS = frozenset({"training_history", "canon_workflow", "regressi
 EXTRACT_DESTINATIONS = REHOME_DESTINATIONS
 LEDGER_KEYS = frozenset({
     "domain", "legacy", "vnext", "decompositions", "dispositions", "holds",
+    "accretion_entries",
 })
 LEGACY_BLOCK_KEYS = frozenset({
     "memory_schema_version", "memory_version", "entry_count",
     "entry_hashes", "admissible_event_ids",
 })
 VNEXT_BLOCK_KEYS = frozenset({"memory_schema_version", "claim_count"})
-DECOMPOSITION_KEYS = frozenset({"legacy_entry", "legacy_sha256", "propositions"})
+DECOMPOSITION_KEYS = frozenset({
+    "legacy_entry", "legacy_sha256", "propositions", "sentence_map",
+    "second_reader",
+})
+# `second_reader` is presence-only and appears only where accretion_entries
+# declares the entry an accretion narrative; every other key is required.
+DECOMPOSITION_REQUIRED_KEYS = DECOMPOSITION_KEYS - {"second_reader"}
+SENTENCE_ROW_KEYS = frozenset({"sentence", "propositions", "non_propositional"})
+# The closed non-propositional reason set of R2.5 §7.2, in the specification's
+# own order. Closed here, never extended: a sentence that fits no reason is a
+# decomposition problem for judgment, not permission to widen the vocabulary.
+NON_PROPOSITIONAL_REASONS = (
+    "evidence_recitation", "episode_narrative", "restatement",
+    "environment_context", "canon_restatement",
+)
+NON_PROPOSITIONAL_REASON_SET = frozenset(NON_PROPOSITIONAL_REASONS)
 PROPOSITION_KEYS = frozenset({"id", "text"})
 HOLD_KEYS = frozenset({"question", "must_answer"})
 SHED_KEYS = frozenset({"proposition", "shed_reason"})
@@ -434,13 +472,80 @@ def ledger_schema_problems(ledger: dict[str, Any]) -> list[str]:
             if not isinstance(item, dict):
                 problems.append(f"{where}: must be a mapping")
                 continue
-            require_keys(item, DECOMPOSITION_KEYS, DECOMPOSITION_KEYS, where)
+            require_keys(item, DECOMPOSITION_KEYS, DECOMPOSITION_REQUIRED_KEYS, where)
             entry_id = item.get("legacy_entry")
             if not _non_empty_str(entry_id):
                 problems.append(f"{where}: legacy_entry must be a non-empty string")
             digest = item.get("legacy_sha256")
             if not isinstance(digest, str) or not SHA256_RE.fullmatch(digest):
                 problems.append(f"{where}: legacy_sha256 is not a lowercase sha256 digest")
+            sentence_map = item.get("sentence_map")
+            if not isinstance(sentence_map, list):
+                problems.append(
+                    f"{where}: sentence_map must be a list carrying one record "
+                    "per source sentence"
+                )
+            else:
+                for s_position, row in enumerate(sentence_map):
+                    s_where = f"{where}.sentence_map[{s_position}]"
+                    if not isinstance(row, dict):
+                        problems.append(f"{s_where}: must be a mapping")
+                        continue
+                    require_keys(row, SENTENCE_ROW_KEYS, frozenset({"sentence"}), s_where)
+                    number = row.get("sentence")
+                    if (
+                        not isinstance(number, int)
+                        or isinstance(number, bool)
+                        or number < 1
+                    ):
+                        problems.append(
+                            f"{s_where}: sentence must be a positive integer "
+                            "sentence number"
+                        )
+                    has_propositions = "propositions" in row
+                    has_reason = "non_propositional" in row
+                    if has_propositions and has_reason:
+                        problems.append(
+                            f"{s_where}: carries both propositions and "
+                            "non_propositional; a sentence is attributed to one "
+                            "mode or the other, never both"
+                        )
+                    elif not has_propositions and not has_reason:
+                        problems.append(
+                            f"{s_where}: carries neither propositions nor "
+                            "non_propositional; every sentence is attributed"
+                        )
+                    if has_propositions:
+                        references = row["propositions"]
+                        if not isinstance(references, list) or not references:
+                            problems.append(
+                                f"{s_where}: propositions must be a non-empty "
+                                "list of proposition ids"
+                            )
+                        elif any(not _non_empty_str(ref) for ref in references):
+                            problems.append(
+                                f"{s_where}: propositions must be a list of "
+                                "non-empty strings"
+                            )
+                        elif len(set(references)) != len(references):
+                            problems.append(
+                                f"{s_where}: propositions repeats an id; each "
+                                "reference is recorded once"
+                            )
+                    if has_reason and (
+                        not _non_empty_str(row["non_propositional"])
+                        or row["non_propositional"] not in NON_PROPOSITIONAL_REASON_SET
+                    ):
+                        problems.append(
+                            f"{s_where}: non_propositional "
+                            f"{row['non_propositional']!r} is not in the closed "
+                            f"set {list(NON_PROPOSITIONAL_REASONS)}"
+                        )
+            if "second_reader" in item and item["second_reader"] is not True:
+                problems.append(
+                    f"{where}: second_reader must be `true`; the mark is "
+                    "presence-only and the script reads no second decomposition"
+                )
             propositions = item.get("propositions")
             if not isinstance(propositions, list) or not propositions:
                 problems.append(
@@ -577,6 +682,28 @@ def ledger_schema_problems(ledger: dict[str, Any]) -> list[str]:
                 if key in item and not _non_empty_str(item[key]):
                     problems.append(f"{where}: {key} must be a non-empty string")
 
+    # The ledger's record of which entries require a second independent
+    # decomposition (R2.5 §7.2). Which entries those are is judgment; the
+    # schema accepts only the declaration's shape, and A9 checks the
+    # per-entry marks against it.
+    accretion = ledger.get("accretion_entries")
+    if not isinstance(accretion, list):
+        problems.append("ledger: accretion_entries must be a list")
+    else:
+        seen_accretion: set[str] = set()
+        for position, entry_id in enumerate(accretion):
+            if not _non_empty_str(entry_id):
+                problems.append(
+                    f"ledger.accretion_entries[{position}] must be a non-empty "
+                    "legacy entry id"
+                )
+            elif entry_id in seen_accretion:
+                problems.append(
+                    f"ledger: accretion_entries names '{entry_id}' more than once"
+                )
+            else:
+                seen_accretion.add(entry_id)
+
     return problems
 
 
@@ -626,17 +753,219 @@ def candidate_store_claim_ids(store_path: Path) -> list[str]:
     return ids
 
 
+# --- T15: the sentence inventory and the A9 under-decomposition check --------
+#
+# A9 is coverage, not comprehension. A1-A8 are airtight downstream of
+# decomposition and have no purchase on it: an entry that actually makes three
+# propositions but records two fails nothing, because the lost proposition was
+# never written down. The sentence map is the counter — every source sentence
+# must be attributed, mechanically — and this section checks that map against
+# the frozen entry bytes. It never decides what a sentence means, which
+# proposition it belongs to, or whether a recorded reason is honest: those are
+# judgment, and the check exists to make an omission reviewable, not to prove
+# a decomposition right (R2.5 §7.2, §7.5).
+
+def entry_fields(block: bytes) -> dict[str, Any] | None:
+    """One frozen entry block parsed back into its fields, or nothing.
+
+    The same cut `freeze` hashes (the entry's serialized bytes at its YAML
+    node boundaries), so the sentence inventory A9 derives here and the hash
+    A2 re-verifies there cover the same bytes: source drift cannot move one
+    without moving the other.
+    """
+    parsed = yaml.safe_load(block.decode("utf-8"))
+    entry = parsed[0] if isinstance(parsed, list) else parsed
+    return entry if isinstance(entry, dict) else None
+
+
+def entry_sentence_texts(entry: dict[str, Any]) -> list[str]:
+    """The entry's source sentences, numbered from 1 in the ticket's order.
+
+    `observation`, `boundary`, and `diagnosis.hypothesis` are concatenated as
+    one text in that order — §7.4 step 1 reads the three fields together as
+    one semantic source, so the inventory keeps no field provenance and never
+    slices per field — then split with `validate.py`'s SENTENCE_RE: the
+    repository's one sentence splitter, imported so segmentation has a single
+    deterministic implementation. Each segment is stripped and empty segments
+    are dropped; everything else is kept verbatim. Unchanged bytes therefore
+    yield an identical inventory on every run, in every locale, with no model
+    call, tokenizer, or host-specific parsing in the path.
+    """
+    parts: list[str] = []
+    for value in (entry.get("observation"), entry.get("boundary")):
+        if isinstance(value, str) and value:
+            parts.append(value)
+    diagnosis = entry.get("diagnosis")
+    if isinstance(diagnosis, dict):
+        hypothesis = diagnosis.get("hypothesis")
+        if isinstance(hypothesis, str) and hypothesis:
+            parts.append(hypothesis)
+    texts: list[str] = []
+    for segment in SENTENCE_RE.split("\n".join(parts)):
+        sentence = segment.strip()
+        if sentence:
+            texts.append(sentence)
+    return texts
+
+
+def sentence_coverage_problems(
+    ledger: dict[str, Any],
+    domain_dir: Path,
+    all_proposition_ids: set[str],
+) -> tuple[list[str], str]:
+    """Every A9 failure for one ledger, plus the report `account` prints.
+
+    Three properties, all mechanical:
+
+    * every sentence of every frozen entry appears exactly once in that
+      entry's `sentence_map` — no omission, no duplicate row, no index
+      outside the inventory the frozen bytes yield;
+    * every proposition reference resolves to a proposition id recorded in
+      that same decomposition, never another entry's and never an unrecorded
+      one;
+    * every entry declared in `accretion_entries` carries `second_reader` on
+      its decomposition record, and no undeclared record carries the mark —
+      the script records and checks the mark's presence and never attempts
+      the second reading itself.
+
+    Nothing here reads a sentence's meaning. An attribution the checker
+    accepts can still be wrong; that is precisely why it stays reviewable
+    rather than proved (§7.5).
+    """
+    entry_hashes = ledger["legacy"]["entry_hashes"]
+    decompositions = ledger["decompositions"]
+    declared_ids = set(ledger["accretion_entries"])
+    problems: list[str] = []
+    sentences_total = 0
+    entries_checked = 0
+
+    try:
+        blocks = entry_serialized_blocks(domain_dir / "skill_memory.yaml")
+    except (MigrateError_, OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
+        return (
+            [
+                "the frozen legacy entries no longer load, so no sentence "
+                f"inventory can be derived: {exc}"
+            ],
+            "sentence inventory unavailable",
+        )
+
+    for entry_id in sorted(entry_hashes):
+        block = blocks.get(entry_id)
+        entry = entry_fields(block) if block is not None else None
+        if entry is None:
+            # Absent or unparseable bytes are source drift, and A2 owns that
+            # detector. A9 never substitutes an inventory it did not derive
+            # from the frozen store.
+            continue
+        records = [
+            item for item in decompositions if item.get("legacy_entry") == entry_id
+        ]
+        sentences = entry_sentence_texts(entry)
+        entries_checked += 1
+        sentences_total += len(sentences)
+        expected = set(range(1, len(sentences) + 1))
+        if not records:
+            problems.append(
+                f"legacy entry '{entry_id}' has no decomposition carrying a "
+                f"sentence map; {len(sentences)} sentence(s) are unaccounted"
+            )
+            continue
+        for record in records:
+            recorded_ids = {
+                proposition["id"] for proposition in record["propositions"]
+            }
+            counted: dict[int, int] = {}
+            for row in record["sentence_map"]:
+                number = row["sentence"]
+                counted[number] = counted.get(number, 0) + 1
+                for proposition_id in row.get("propositions") or []:
+                    if proposition_id in recorded_ids:
+                        continue
+                    if proposition_id not in all_proposition_ids:
+                        problems.append(
+                            f"legacy entry '{entry_id}' sentence {number} "
+                            f"references unknown proposition '{proposition_id}'"
+                        )
+                    elif proposition_id.split("#", 1)[0] != entry_id:
+                        problems.append(
+                            f"legacy entry '{entry_id}' sentence {number} "
+                            f"references proposition '{proposition_id}', which "
+                            "belongs to another entry's decomposition"
+                        )
+                    else:
+                        problems.append(
+                            f"legacy entry '{entry_id}' sentence {number} "
+                            f"references proposition '{proposition_id}', which "
+                            "is not recorded in this decomposition record"
+                        )
+            for number in sorted(counted):
+                if counted[number] > 1:
+                    problems.append(
+                        f"legacy entry '{entry_id}' sentence {number} appears "
+                        "more than once in its sentence map"
+                    )
+                if number not in expected:
+                    problems.append(
+                        f"legacy entry '{entry_id}' sentence {number} is out of "
+                        f"range; the entry has {len(sentences)} sentence(s)"
+                    )
+            for number in sorted(expected - set(counted)):
+                problems.append(
+                    f"legacy entry '{entry_id}' sentence {number} is not "
+                    "accounted for"
+                )
+
+    marks = 0
+    for record in decompositions:
+        if "second_reader" not in record:
+            continue
+        marks += 1
+        entry_id = record.get("legacy_entry")
+        if entry_id not in declared_ids:
+            problems.append(
+                f"decomposition record '{entry_id}' carries the second-reader "
+                "mark, but accretion_entries does not declare it an accretion "
+                "entry"
+            )
+    for entry_id in sorted(declared_ids):
+        if entry_id not in entry_hashes:
+            problems.append(
+                f"accretion_entries names '{entry_id}', which is not a legacy "
+                "entry recorded at FREEZE"
+            )
+            continue
+        records = [
+            item for item in decompositions if item.get("legacy_entry") == entry_id
+        ]
+        if not records or any("second_reader" not in record for record in records):
+            problems.append(
+                f"legacy entry '{entry_id}' requires a second independent "
+                "decomposition, but its ledger record lacks the second-reader "
+                "mark"
+            )
+
+    report = (
+        f"{sentences_total} sentence(s) in {entries_checked} entr(ies) each "
+        f"accounted exactly once; {len(declared_ids)} accretion entr(ies) "
+        f"declared, {marks} second-reader mark(s) recorded"
+    )
+    return problems, report
+
+
 def account_problems(
     ledger: dict[str, Any],
     domain_dir: Path,
     store_claim_ids: list[str],
-) -> tuple[list[tuple[str, str]], str]:
-    """Every A1-A10 failure as (check, message), plus the A8 report line.
+) -> tuple[list[tuple[str, str]], str, str]:
+    """Every A1-A10 failure as (check, message), plus the A8 and A9 reports.
 
     Each check is reported independently; one broken fixture names the checks
     it actually breaks. Nothing here infers a disposition, compares a shared
-    target against any source id, or reads any numeric or lexical relationship
-    between a legacy id and a target id (§7.5 traceability note).
+    target against any source id, reads any numeric or lexical relationship
+    between a legacy id and a target id (§7.5 traceability note), or reads
+    any sentence's meaning: A9 checks coverage and references against the
+    frozen bytes, never the truth of an attribution.
     """
     domain = domain_dir.name
     legacy = ledger["legacy"]
@@ -894,6 +1223,16 @@ def account_problems(
             f"{len(store_claim_ids)} claim(s) in the candidate store",
         )
 
+    # A9 — every sentence of every frozen entry accounted exactly once in
+    # that entry's sentence_map, proposition references resolving inside the
+    # same decomposition, and the second-reader mark present on every entry
+    # declared accretion (T15). Coverage against the frozen bytes only.
+    a9_problems, a9_report = sentence_coverage_problems(
+        ledger, domain_dir, universe
+    )
+    for message in a9_problems:
+        fail("A9", message)
+
     # A10 — every disposition target id is a well-formed vNext id for this
     # domain and equals no legacy entry id and no proposition id in this
     # ledger: no legacy id survives as a live claim id.
@@ -918,7 +1257,7 @@ def account_problems(
                     f"{where}: '{claim_id}' equals a proposition id in this ledger",
                 )
 
-    return failures, a8_report
+    return failures, a8_report, a9_report
 
 
 
@@ -975,6 +1314,32 @@ def cmd_verify_hashes(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_sentences(args: argparse.Namespace) -> int:
+    domain_dir = one_domain(args)
+    domain = domain_dir.name
+    try:
+        blocks = entry_serialized_blocks(domain_dir / "skill_memory.yaml")
+    except (MigrateError_, OSError, UnicodeDecodeError, yaml.YAMLError) as exc:
+        raise MigrateError_(
+            f"cannot read the {domain} legacy store: {exc}"
+        ) from exc
+    block = blocks.get(args.entry)
+    if block is None:
+        raise MigrateError_(
+            f"'{args.entry}' is not an entry of the {domain} legacy store"
+        )
+    entry = entry_fields(block)
+    if entry is None:
+        raise MigrateError_(
+            f"{domain}: entry '{args.entry}' does not parse as a mapping"
+        )
+    sentences = entry_sentence_texts(entry)
+    print(f"{args.entry}: {len(sentences)} sentence(s)")
+    for number, sentence in enumerate(sentences, start=1):
+        print(f"{number}: {sentence}")
+    return 0
+
+
 def cmd_account(args: argparse.Namespace) -> int:
     domain_dir = one_domain(args)
     domain = domain_dir.name
@@ -990,24 +1355,22 @@ def cmd_account(args: argparse.Namespace) -> int:
         )
         return 1
     store_claim_ids = candidate_store_claim_ids(args.store)
-    failures, a8_report = account_problems(ledger, domain_dir, store_claim_ids)
+    failures, a8_report, a9_report = account_problems(
+        ledger, domain_dir, store_claim_ids
+    )
     problems_by_check: dict[str, list[str]] = {check: [] for check in ACCOUNT_CHECKS}
     for check, message in failures:
         problems_by_check[check].append(message)
     for check in ACCOUNT_CHECKS:
         problems = problems_by_check[check]
-        if check == "A9":
-            print(
-                "A9: delegated to the T15 sentence-coverage checker; not owned "
-                "by this command"
-            )
-            continue
         if problems:
             print(f"{check}: FAIL")
             for message in problems:
                 print(f"  {check}: {message}", file=sys.stderr)
         elif check == "A8":
             print(f"A8: PASS: {a8_report}")
+        elif check == "A9":
+            print(f"A9: PASS: {a9_report}")
         else:
             print(f"{check}: PASS")
     if failures:
@@ -1016,10 +1379,7 @@ def cmd_account(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 1
-    print(
-        f"PASS: account: A1-A10 accounting holds for {domain} "
-        "(A9 delegated to T15)"
-    )
+    print(f"PASS: account: A1-A10 accounting holds for {domain}")
     return 0
 
 
@@ -1057,6 +1417,26 @@ def main() -> int:
             "edited, removed, or added entry fails."
         ),
     )
+    sentences = sub.add_parser(
+        "sentences",
+        help="Emit the numbered sentence inventory of one legacy entry (A9's source).",
+        description=(
+            "Segmentation of the jointly-read legacy text: observation, "
+            "boundary, and diagnosis.hypothesis concatenated in that order "
+            "and split with validate.py's SENTENCE_RE - the repository's one "
+            "sentence splitter, imported rather than copied. Emission only: "
+            "nothing is attributed, decomposed, classified, or written, and "
+            "no ledger is read or touched."
+        ),
+    )
+    sentences.add_argument("--memory", type=Path, default=default_memory_root())
+    sentences.add_argument(
+        "--domain", required=True, help="Exactly one domain (e.g. software-engineering)."
+    )
+    sentences.add_argument(
+        "--entry", required=True,
+        help="One legacy entry id of that domain (e.g. SE_MEM_001).",
+    )
     account = sub.add_parser(
         "account", parents=[common],
         help="Run the A1-A10 completeness checks against a judgment-filled "
@@ -1065,9 +1445,12 @@ def main() -> int:
             "Pass 4 of the R2.5 migration (§7.4): the ledger's schema and "
             "closed vocabularies are validated, then checks A1-A10 run against "
             "the frozen legacy block, the recorded decompositions and "
-            "dispositions, and the candidate v3 store. Every failure names its "
-            "check. The checker never assigns, proposes, or suggests a "
-            "disposition, never judges semantic fidelity, and writes nothing."
+            "dispositions, and the candidate v3 store. A9 proves sentence "
+            "coverage against the frozen entry bytes and the second-reader "
+            "mark's presence on declared accretion entries - never the truth "
+            "of an attribution. Every failure names its check. The checker "
+            "never assigns, proposes, or suggests a disposition, never judges "
+            "semantic fidelity, and writes nothing."
         ),
     )
     account.add_argument(
@@ -1080,6 +1463,7 @@ def main() -> int:
     handlers = {
         "freeze": cmd_freeze,
         "verify-hashes": cmd_verify_hashes,
+        "sentences": cmd_sentences,
         "account": cmd_account,
     }
     try:

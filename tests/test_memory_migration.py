@@ -1,21 +1,25 @@
-"""R2.5 migration tooling, tickets T13-T14: FREEZE, hash verification, and the
-A1-A10 accounting checker.
+"""R2.5 migration tooling, tickets T13-T15: FREEZE, hash verification, the
+sentence inventory, and the A1-A10 accounting checker.
 
 The mechanical half of the migration contract, and only that half. FREEZE
 records one legacy store's exact input state — schema version, store version,
 entry count, a sha256 per entry's serialized bytes, and the admissible event id
 set — into a one-time workspace ledger, and refuses any store that does not
 pass the existing Memory validator. `verify-hashes` (check A2) detects a store
-edited after FREEZE. `account` (T14) validates the ledger's schema and closed
-vocabularies, then checks the recorded decompositions, propositions, and
-dispositions against the ten completeness rules of R2.5 §7.5, naming every
-failure's check.
+edited after FREEZE. `sentences` (T15) emits the numbered sentence inventory A9
+runs against: the three jointly-read fields concatenated in the ticket's order
+and split with `validate.py`'s SENTENCE_RE, the repository's one splitter.
+`account` (T14-T15) validates the ledger's schema and closed vocabularies,
+then checks the recorded decompositions, propositions, dispositions, and
+sentence maps against the ten completeness rules of R2.5 §7.5, naming every
+failure's check — A9 proving sentence coverage and the second-reader mark, not
+the truth of any attribution.
 
 What this suite must never do is migrate a domain: no proposition is
-decomposed, no disposition is invented, no vNext claim is authored, no live
-store or History file is written, and every live-corpus interaction here is a
-read. Judgment stays with models and humans; these tests pin the mechanical
-boundary around it.
+decomposed, no disposition is invented, no sentence is attributed by the tool
+under test, no vNext claim is authored, no live store or History file is
+written, and every live-corpus interaction here is a read. Judgment stays with
+models and humans; these tests pin the mechanical boundary around it.
 """
 
 from __future__ import annotations
@@ -23,6 +27,7 @@ from __future__ import annotations
 import ast
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -36,6 +41,11 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 MEMORY = ROOT / "memory"
 TOOL = ROOT / "PASS/tools/migrate_memory_v3.py"
+TOOLS = ROOT / "PASS/tools"
+if str(TOOLS) not in sys.path:
+    sys.path.insert(0, str(TOOLS))
+
+from validate import SENTENCE_RE  # noqa: E402  the splitter under test, imported
 
 
 def run_migrator(
@@ -44,8 +54,13 @@ def run_migrator(
     command = [sys.executable, str(TOOL), *map(str, args)]
     if memory is not None:
         command += ["--memory", str(memory)]
+    # The migrator's own output must survive the trip: a legacy store may
+    # carry non-ASCII bytes (a quoted name, a smart apostrophe), and a child
+    # Python writing to a pipe in the console's codepage would emit them
+    # un-decodable. Same contract as build_release's subprocess calls.
     return subprocess.run(
         command, capture_output=True, text=True, encoding="utf-8", cwd=ROOT,
+        env={**os.environ, "PYTHONIOENCODING": "utf-8"},
     )
 
 
@@ -89,6 +104,34 @@ def entry_block_lines(text: str, entry_id: str) -> str:
             end = starts[position + 1] if position + 1 < len(starts) else len(lines)
             return "".join(lines[start:end])
     raise AssertionError(f"no serialized block for {entry_id}")
+
+
+def reference_inventory(store_path: Path, entry_id: str) -> list[str]:
+    """The sentence inventory recomputed from store bytes with SENTENCE_RE.
+
+    An independent second implementation of the rule under test: read the
+    entry, concatenate `observation`, `boundary`, and `diagnosis.hypothesis`
+    in that order (§7.4 step 1 — one text, no per-field slicing), split with
+    the repository's one imported splitter, strip, drop empties. The migrator
+    derives its inventory through its own code path; if the two ever disagree,
+    the emitted sequence comparison in the T15 tests fails.
+    """
+    store = yaml.safe_load(store_path.read_bytes().decode("utf-8"))
+    entry = next(item for item in store["entries"] if item.get("id") == entry_id)
+    parts: list[str] = []
+    for value in (entry.get("observation"), entry.get("boundary")):
+        if isinstance(value, str) and value:
+            parts.append(value)
+    diagnosis = entry.get("diagnosis")
+    if isinstance(diagnosis, dict):
+        hypothesis = diagnosis.get("hypothesis")
+        if isinstance(hypothesis, str) and hypothesis:
+            parts.append(hypothesis)
+    return [
+        segment.strip()
+        for segment in SENTENCE_RE.split("\n".join(parts))
+        if segment.strip()
+    ]
 
 
 class MigrationFixture(unittest.TestCase):
@@ -480,8 +523,8 @@ class MemoryTreeFirewall(MigrationFixture):
     )
     def test_the_migrator_never_writes_to_the_memory_tree(self) -> None:
         """Acceptance criterion 5: a byte-identity check across all four live
-        stores and both of each domain's files, through freeze and
-        verify-hashes on every domain."""
+        stores and both of each domain's files, through freeze,
+        verify-hashes, and the sentence inventory (T15) on every domain."""
         before = self.tree_bytes(MEMORY)
         stores = [name for name in before if name.endswith("skill_memory.yaml")]
         histories = [name for name in before if name.endswith("training_history.jsonl")]
@@ -499,6 +542,15 @@ class MemoryTreeFirewall(MigrationFixture):
                     "--ledger-dir", self.ledger_dir, memory=MEMORY,
                 )
                 self.assertEqual(verified.returncode, 0, verified.stdout + verified.stderr)
+                store = yaml.safe_load(
+                    (MEMORY / domain / "skill_memory.yaml").read_bytes()
+                )
+                first_entry = store["entries"][0]["id"]
+                emitted = run_migrator(
+                    "sentences", "--domain", domain, "--entry", first_entry,
+                    memory=MEMORY,
+                )
+                self.assertEqual(emitted.returncode, 0, emitted.stdout + emitted.stderr)
         self.assertEqual(self.tree_bytes(MEMORY), before)
 
     def test_the_migrator_source_names_no_memory_write_and_no_version_control(self) -> None:
@@ -560,11 +612,18 @@ class AccountLedgerFixture(MigrationFixture):
 
     def setUp(self) -> None:
         super().setUp()
+        # ART_MEM_001 deliberately reads across all three jointly-read fields
+        # (two observation sentences, one boundary, one hypothesis), so the
+        # fixture's sentence inventory has provenance-free numbering 1..4 in
+        # the ticket's order: observation, boundary, diagnosis.hypothesis.
         self.write_store(
             [
                 valid_entry(
                     "ART_MEM_001",
-                    "An entry carrying two independently evaluable propositions.",
+                    "An entry carrying two independently evaluable propositions. "
+                    "Its second sentence carries the second proposition.",
+                    boundary="A boundary sentence naming where the entry holds.",
+                    diagnosis={"hypothesis": "A hypothesis sentence naming the cause."},
                 ),
                 valid_entry(
                     "ART_MEM_002",
@@ -602,11 +661,19 @@ class AccountLedgerFixture(MigrationFixture):
         )
 
     def base_ledger(self) -> dict:
-        """A fully consistent hand-built ledger: every check passes on it."""
+        """A fully consistent hand-built ledger: every check passes on it.
+
+        The sentence maps are complete for the fixture's four-sentence and
+        one-sentence inventories, one record per source sentence, each
+        attributed to exactly one mode. `accretion_entries` is empty: no
+        fixture entry is declared an accretion narrative unless a test says
+        so.
+        """
         return {
             "domain": self.DOMAIN,
             "legacy": self.legacy_block,
             "vnext": {"memory_schema_version": 3, "claim_count": 2},
+            "accretion_entries": [],
             "decompositions": [
                 {
                     "legacy_entry": "ART_MEM_001",
@@ -621,6 +688,12 @@ class AccountLedgerFixture(MigrationFixture):
                             "text": "The second proposition of the first entry.",
                         },
                     ],
+                    "sentence_map": [
+                        {"sentence": 1, "propositions": ["ART_MEM_001#p1"]},
+                        {"sentence": 2, "propositions": ["ART_MEM_001#p2"]},
+                        {"sentence": 3, "non_propositional": "environment_context"},
+                        {"sentence": 4, "non_propositional": "restatement"},
+                    ],
                 },
                 {
                     "legacy_entry": "ART_MEM_002",
@@ -630,6 +703,9 @@ class AccountLedgerFixture(MigrationFixture):
                             "id": "ART_MEM_002#p1",
                             "text": "The single proposition of the second entry.",
                         },
+                    ],
+                    "sentence_map": [
+                        {"sentence": 1, "propositions": ["ART_MEM_002#p1"]},
                     ],
                 },
             ],
@@ -673,18 +749,56 @@ class AccountLedgerFixture(MigrationFixture):
     def output(self, result: subprocess.CompletedProcess[str]) -> str:
         return result.stdout + result.stderr
 
+    def assert_schema_refusal(self, ledger: dict, *expected: str) -> None:
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("ledger schema:", result.stderr)
+        self.assertIn("checks do not run", result.stdout)
+        for fragment in expected:
+            self.assertIn(fragment, result.stderr)
+
+    def sentences(
+        self, entry_id: str, domain: str | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        return run_migrator(
+            "sentences", "--domain", domain or self.DOMAIN, "--entry", entry_id,
+            memory=self.memory_root,
+        )
+
+    @staticmethod
+    def sentence_lines(stdout: str) -> list[str]:
+        """The emitted inventory with its `N: ` prefixes stripped.
+
+        Numbered lines are reassembled by prefix rather than by line, so a
+        segment that legitimately spans a newline survives the parse intact.
+        """
+        sentences: dict[int, str] = {}
+        current: int | None = None
+        for line in stdout.splitlines():
+            match = re.match(r"^(\d+): (.*)$", line)
+            if match:
+                current = int(match.group(1))
+                sentences[current] = match.group(2)
+            elif current is not None:
+                sentences[current] += "\n" + line
+        return [sentences[number] for number in sorted(sentences)]
+
 
 class Accounting(AccountLedgerFixture):
-    """T14: one test per completeness check, each fixture breaking exactly it."""
+    """T14: one test per completeness check A1-A8 and A10, each fixture
+    breaking exactly its own; the baseline ledger then proves all ten, A9
+    included. A9's dedicated failure fixtures live under SentenceCoverage."""
 
     def test_a_hand_built_ledger_passes_all_ten_checks(self) -> None:
-        """Acceptance criterion 1: the baseline ledger holds, and A9 is
-        honestly reported as delegated rather than silently skipped."""
+        """Acceptance criterion 1 (T14) and criterion 2 (T15): the baseline
+        ledger holds, and A9 reports real sentence coverage rather than a
+        delegation stub."""
         result = self.account(self.base_ledger())
         self.assertEqual(result.returncode, 0, self.output(result))
-        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A10"):
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"):
             self.assertIn(f"{check}: PASS", result.stdout)
-        self.assertIn("A9: delegated", result.stdout)
+        self.assertIn("5 sentence(s) in 2 entr(ies) each accounted exactly once", result.stdout)
+        self.assertIn("0 accretion entr(ies) declared", result.stdout)
         self.assertIn("PASS: account", result.stdout)
 
     def test_a1_fails_on_a_missing_or_duplicate_decomposition(self) -> None:
@@ -693,8 +807,9 @@ class Accounting(AccountLedgerFixture):
         # is replaced by a second decomposition of ART_MEM_001, so the entry
         # count still matches A8 while A1 alone reports the duplicate and the
         # omission. The duplicate carries a fresh proposition id (with its own
-        # disposition) so the ledger stays schema-valid, A3 stays green, and
-        # every failure here is A1's.
+        # disposition) and a complete sentence map, so the ledger stays
+        # schema-valid, A3 stays green, and A1 owns the duplicate; A9 mirrors
+        # only the unmapped entry's unaccounted sentence.
         ledger["decompositions"][1] = {
             "legacy_entry": "ART_MEM_001",
             "legacy_sha256": self.hashes["ART_MEM_001"],
@@ -703,6 +818,12 @@ class Accounting(AccountLedgerFixture):
                     "id": "ART_MEM_001#p3",
                     "text": "A proposition recorded under the wrong entry.",
                 },
+            ],
+            # A complete map for the same four source sentences, so A9 stays
+            # green and every failure here remains A1's.
+            "sentence_map": [
+                {"sentence": number, "propositions": ["ART_MEM_001#p3"]}
+                for number in (1, 2, 3, 4)
             ],
         }
         ledger["dispositions"] = ledger["dispositions"][:2] + [
@@ -720,7 +841,15 @@ class Accounting(AccountLedgerFixture):
         self.assertIn("ART_MEM_002", self.output(result))
         self.assertIn("no decomposition", self.output(result))
         self.assertIn("A8: PASS", result.stdout)
-        for check in ("A3", "A4", "A5", "A6", "A7", "A10"):
+        # A9 reports the same omission from its own side — the unmapped
+        # entry's sentence is unaccounted — and every other check stays green.
+        self.assertIn("A9: FAIL", result.stdout)
+        self.assertIn(
+            "legacy entry 'ART_MEM_002' has no decomposition carrying a "
+            "sentence map",
+            self.output(result),
+        )
+        for check in ("A3", "A4", "A5", "A6", "A7", "A8", "A10"):
             self.assertIn(f"{check}: PASS", result.stdout)
 
     def test_a3_fails_when_a_proposition_loses_its_disposition(self) -> None:
@@ -855,12 +984,21 @@ class Accounting(AccountLedgerFixture):
                     {"id": "ART_MEM_001#p2", "text": "Second merged proposition."},
                     {"id": "ART_MEM_001#p3", "text": "Third merged proposition."},
                 ],
+                "sentence_map": [
+                    {"sentence": 1, "propositions": ["ART_MEM_001#p1"]},
+                    {"sentence": 2, "propositions": ["ART_MEM_001#p2"]},
+                    {"sentence": 3, "propositions": ["ART_MEM_001#p3"]},
+                    {"sentence": 4, "non_propositional": "restatement"},
+                ],
             },
             {
                 "legacy_entry": "ART_MEM_002",
                 "legacy_sha256": self.hashes["ART_MEM_002"],
                 "propositions": [
                     {"id": "ART_MEM_002#p1", "text": "The other entry's claim."},
+                ],
+                "sentence_map": [
+                    {"sentence": 1, "propositions": ["ART_MEM_002#p1"]},
                 ],
             },
         ]
@@ -948,16 +1086,9 @@ class Accounting(AccountLedgerFixture):
 
 
 class LedgerSchema(AccountLedgerFixture):
-    """The ledger schema validator: closed vocabularies, required blocks, and
-    proposition identity format, fail-closed before any accounting runs."""
-
-    def assert_schema_refusal(self, ledger: dict, *expected: str) -> None:
-        result = self.account(ledger)
-        self.assertEqual(result.returncode, 1, self.output(result))
-        self.assertIn("ledger schema:", result.stderr)
-        self.assertIn("checks do not run", result.stdout)
-        for fragment in expected:
-            self.assertIn(fragment, result.stderr)
+    """The ledger schema validator: closed vocabularies, required blocks,
+    sentence-map row shape, and proposition identity format, fail-closed
+    before any accounting runs."""
 
     def test_an_unknown_top_level_key_is_rejected(self) -> None:
         ledger = self.base_ledger()
@@ -1014,6 +1145,62 @@ class LedgerSchema(AccountLedgerFixture):
         ledger["holds"] = [{"question": "An open question."}]
         self.assert_schema_refusal(ledger, "required key 'must_answer' is missing")
 
+    def test_a_decomposition_requires_a_sentence_map(self) -> None:
+        ledger = self.base_ledger()
+        del ledger["decompositions"][0]["sentence_map"]
+        self.assert_schema_refusal(ledger, "sentence_map must be a list")
+
+    def test_an_unknown_sentence_map_row_key_is_rejected(self) -> None:
+        ledger = self.base_ledger()
+        ledger["decompositions"][0]["sentence_map"][0]["field"] = "observation"
+        self.assert_schema_refusal(ledger, "unknown key 'field'")
+
+    def test_a_sentence_map_row_cannot_carry_both_modes(self) -> None:
+        ledger = self.base_ledger()
+        row = ledger["decompositions"][0]["sentence_map"][0]
+        row["non_propositional"] = "restatement"
+        self.assert_schema_refusal(
+            ledger, "carries both propositions and non_propositional"
+        )
+
+    def test_a_sentence_map_row_cannot_carry_neither_mode(self) -> None:
+        ledger = self.base_ledger()
+        del ledger["decompositions"][0]["sentence_map"][0]["propositions"]
+        self.assert_schema_refusal(
+            ledger, "carries neither propositions nor non_propositional"
+        )
+
+    def test_a_sentence_map_reference_list_is_non_empty_and_unique(self) -> None:
+        empty = self.base_ledger()
+        empty["decompositions"][0]["sentence_map"][0]["propositions"] = []
+        self.assert_schema_refusal(empty, "propositions must be a non-empty list")
+        repeated = self.base_ledger()
+        repeated["decompositions"][0]["sentence_map"][0]["propositions"] = [
+            "ART_MEM_001#p1",
+            "ART_MEM_001#p1",
+        ]
+        self.assert_schema_refusal(repeated, "repeats an id")
+
+    def test_a_sentence_number_must_be_a_positive_integer(self) -> None:
+        for bad in (0, -1, "1", True, 1.5):
+            with self.subTest(sentence=bad):
+                ledger = self.base_ledger()
+                ledger["decompositions"][0]["sentence_map"][0]["sentence"] = bad
+                self.assert_schema_refusal(ledger, "positive integer")
+
+    def test_second_reader_must_be_the_literal_mark(self) -> None:
+        ledger = self.base_ledger()
+        ledger["decompositions"][0]["second_reader"] = "yes"
+        self.assert_schema_refusal(ledger, "second_reader must be `true`")
+
+    def test_accretion_entries_shape_is_checked(self) -> None:
+        not_a_list = self.base_ledger()
+        not_a_list["accretion_entries"] = "ART_MEM_001"
+        self.assert_schema_refusal(not_a_list, "accretion_entries must be a list")
+        duplicated = self.base_ledger()
+        duplicated["accretion_entries"] = ["ART_MEM_001", "ART_MEM_001"]
+        self.assert_schema_refusal(duplicated, "more than once")
+
     def test_the_schema_validator_accepts_the_whole_closed_class_set(self) -> None:
         """Every member of every closed vocabulary is accepted, not just the
         members the baseline fixture happens to use."""
@@ -1031,6 +1218,9 @@ class LedgerSchema(AccountLedgerFixture):
                     {"id": "ART_MEM_002#p5", "text": "Five."},
                     {"id": "ART_MEM_002#p6", "text": "Six."},
                     {"id": "ART_MEM_002#p7", "text": "Seven."},
+                ],
+                "sentence_map": [
+                    {"sentence": 1, "propositions": ["ART_MEM_002#p1"]},
                 ],
             }
         ]
@@ -1097,6 +1287,476 @@ class LedgerSchema(AccountLedgerFixture):
         self.assertIn("A7: FAIL", result.stdout)
         for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A8", "A10"):
             self.assertIn(f"{check}: PASS", result.stdout)
+
+
+class SentenceCoverage(AccountLedgerFixture):
+    """T15: the sentence inventory, A9's under-decomposition check, and the
+    second-reader mark. Coverage and presence only — the checker never reads
+    what a sentence means, so an accepted attribution can still be wrong;
+    that is the point (R2.5 §7.2, §7.5)."""
+
+    def test_segmentation_is_stable_and_matches_the_frozen_bytes(self) -> None:
+        """Acceptance criteria 1 and 2: two emissions are byte-identical, the
+        header count equals the numbered lines, and the emitted sequence
+        equals an independent recompute of the frozen entry's fields through
+        the imported SENTENCE_RE.
+
+        The sequence comparison also pins the §7.4 step-1 order — observation,
+        boundary, diagnosis.hypothesis as one text: a per-field slicer or a
+        reordered join cannot reproduce it.
+        """
+        expected = reference_inventory(
+            self.memory_root / self.DOMAIN / "skill_memory.yaml", "ART_MEM_001"
+        )
+        self.assertEqual(
+            expected,
+            [
+                "An entry carrying two independently evaluable propositions.",
+                "Its second sentence carries the second proposition.",
+                "A boundary sentence naming where the entry holds.",
+                "A hypothesis sentence naming the cause.",
+            ],
+        )
+        first = self.sentences("ART_MEM_001")
+        second = self.sentences("ART_MEM_001")
+        self.assertEqual(first.returncode, 0, self.output(first))
+        self.assertEqual(first.stdout, second.stdout, "emission is not stable")
+        header = re.fullmatch(
+            r"ART_MEM_001: (\d+) sentence\(s\)", first.stdout.splitlines()[0]
+        )
+        self.assertIsNotNone(header, first.stdout)
+        count = int(header.group(1))
+        emitted = self.sentence_lines(first.stdout)
+        self.assertEqual(count, len(emitted))
+        self.assertEqual(emitted, expected)
+
+    @unittest.skipUnless(
+        (MEMORY / "software-engineering" / "skill_memory.yaml").is_file(),
+        "no software-engineering store in this checkout",
+    )
+    def test_the_live_se_entry_inventory_is_stable_across_runs(self) -> None:
+        """Acceptance criterion 1 against the live entry the ticket names:
+        `sentences --domain software-engineering --entry SE_MEM_001` is stable
+        across runs and equals the recompute from the live store's bytes (a
+        read of the corpus; the tree is asserted unchanged by the firewall
+        test)."""
+        store_path = MEMORY / "software-engineering" / "skill_memory.yaml"
+        expected = reference_inventory(store_path, "SE_MEM_001")
+        self.assertTrue(expected)
+        first = run_migrator(
+            "sentences", "--domain", "software-engineering",
+            "--entry", "SE_MEM_001", memory=MEMORY,
+        )
+        second = run_migrator(
+            "sentences", "--domain", "software-engineering",
+            "--entry", "SE_MEM_001", memory=MEMORY,
+        )
+        self.assertEqual(first.returncode, 0, self.output(first))
+        self.assertEqual(first.stdout, second.stdout, "emission is not stable")
+        header = re.fullmatch(
+            r"SE_MEM_001: (\d+) sentence\(s\)", first.stdout.splitlines()[0]
+        )
+        self.assertIsNotNone(header, first.stdout)
+        self.assertEqual(int(header.group(1)), len(expected))
+        self.assertEqual(self.sentence_lines(first.stdout), expected)
+
+    def test_the_sentences_command_takes_no_ledger_flag(self) -> None:
+        """Emission only: the subcommand can neither read nor write a ledger —
+        it is not even in its argument parser — and the fixture ledger's bytes
+        are untouched by a run."""
+        ledger_bytes = self.ledger_path().read_bytes()
+        result = self.sentences("ART_MEM_001")
+        self.assertEqual(result.returncode, 0, self.output(result))
+        self.assertEqual(self.ledger_path().read_bytes(), ledger_bytes)
+        help_result = run_migrator("sentences", "--help", memory=self.memory_root)
+        self.assertEqual(help_result.returncode, 0, self.output(help_result))
+        self.assertNotIn("--ledger-dir", help_result.stdout)
+
+    def test_a9_passes_on_a_complete_fixture_map(self) -> None:
+        """Acceptance criterion 2: the baseline ledger's complete maps pass
+        A9, with the report stating the exact coverage and mark counts."""
+        result = self.account(self.base_ledger())
+        self.assertEqual(result.returncode, 0, self.output(result))
+        self.assertIn(
+            "A9: PASS: 5 sentence(s) in 2 entr(ies) each accounted exactly "
+            "once; 0 accretion entr(ies) declared, 0 second-reader mark(s) "
+            "recorded",
+            result.stdout,
+        )
+
+    def test_an_unattributed_sentence_fails_a9(self) -> None:
+        """Acceptance criterion 3 (44a): a dropped row fails A9, naming the
+        legacy entry and the sentence number, and no other check trips."""
+        ledger = self.base_ledger()
+        del ledger["decompositions"][0]["sentence_map"][1]  # sentence 2 loses its row
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("A9: FAIL", result.stdout)
+        self.assertIn(
+            "legacy entry 'ART_MEM_001' sentence 2 is not accounted for",
+            self.output(result),
+        )
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a_doubly_attributed_sentence_fails_a9(self) -> None:
+        """Acceptance criterion 4: a second row for a counted sentence fails
+        A9 — exactly once, not at least once."""
+        ledger = self.base_ledger()
+        ledger["decompositions"][0]["sentence_map"].append(
+            {"sentence": 1, "non_propositional": "restatement"}
+        )
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("A9: FAIL", result.stdout)
+        self.assertIn(
+            "legacy entry 'ART_MEM_001' sentence 1 appears more than once in "
+            "its sentence map",
+            self.output(result),
+        )
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a_proposition_absent_from_the_decomposition_fails_a9(self) -> None:
+        """Acceptance criterion 5: a reference to a proposition id that is not
+        recorded in that entry's decomposition fails A9 by name."""
+        ledger = self.base_ledger()
+        ledger["decompositions"][0]["sentence_map"][0]["propositions"] = [
+            "ART_MEM_001#p9"
+        ]
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("A9: FAIL", result.stdout)
+        self.assertIn(
+            "legacy entry 'ART_MEM_001' sentence 1 references unknown "
+            "proposition 'ART_MEM_001#p9'",
+            self.output(result),
+        )
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_a_sentence_cannot_reference_another_entry_s_proposition(self) -> None:
+        """The neighbouring direction of criterion 5: the id exists in the
+        ledger, but belongs to a different legacy entry's decomposition."""
+        ledger = self.base_ledger()
+        ledger["decompositions"][0]["sentence_map"][0]["propositions"] = [
+            "ART_MEM_002#p1"
+        ]
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("A9: FAIL", result.stdout)
+        self.assertIn(
+            "references proposition 'ART_MEM_002#p1', which belongs to "
+            "another entry's decomposition",
+            self.output(result),
+        )
+
+    def test_an_out_of_range_sentence_number_fails_a9(self) -> None:
+        """A row for a sentence the frozen bytes never yielded is an
+        invented sentence, not coverage."""
+        ledger = self.base_ledger()
+        ledger["decompositions"][0]["sentence_map"].append(
+            {"sentence": 99, "non_propositional": "restatement"}
+        )
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("A9: FAIL", result.stdout)
+        self.assertIn(
+            "legacy entry 'ART_MEM_001' sentence 99 is out of range; the "
+            "entry has 4 sentence(s)",
+            self.output(result),
+        )
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+    def test_an_unknown_non_propositional_reason_fails(self) -> None:
+        """Acceptance criterion 6: the reason set is closed at the schema, so
+        a non-member is refused before any check runs — and the refusal shows
+        the whole closed set."""
+        ledger = self.base_ledger()
+        ledger["decompositions"][0]["sentence_map"][2]["non_propositional"] = (
+            "sounds_about_right"
+        )
+        result = self.account(ledger)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("ledger schema:", result.stderr)
+        self.assertIn("'sounds_about_right'", result.stderr)
+        self.assertIn("evidence_recitation", result.stderr)
+        self.assertIn("checks do not run", result.stdout)
+
+    def test_an_accretion_entry_requires_the_second_reader_mark(self) -> None:
+        """Acceptance criterion 7, both directions, and the passing pair: the
+        script records and checks the mark's presence — never the reading."""
+        declared = self.base_ledger()
+        declared["accretion_entries"] = ["ART_MEM_001"]
+        result = self.account(declared)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("A9: FAIL", result.stdout)
+        self.assertIn(
+            "legacy entry 'ART_MEM_001' requires a second independent "
+            "decomposition, but its ledger record lacks the second-reader mark",
+            self.output(result),
+        )
+        for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A10"):
+            self.assertIn(f"{check}: PASS", result.stdout)
+
+        stray = self.base_ledger()
+        stray["decompositions"][1]["second_reader"] = True
+        result = self.account(stray)
+        self.assertEqual(result.returncode, 1, self.output(result))
+        self.assertIn("A9: FAIL", result.stdout)
+        self.assertIn(
+            "decomposition record 'ART_MEM_002' carries the second-reader "
+            "mark, but accretion_entries does not declare it an accretion entry",
+            self.output(result),
+        )
+
+        marked = self.base_ledger()
+        marked["accretion_entries"] = ["ART_MEM_001"]
+        marked["decompositions"][0]["second_reader"] = True
+        result = self.account(marked)
+        self.assertEqual(result.returncode, 0, self.output(result))
+        self.assertIn(
+            "A9: PASS: 5 sentence(s) in 2 entr(ies) each accounted exactly "
+            "once; 1 accretion entr(ies) declared, 1 second-reader mark(s) "
+            "recorded",
+            result.stdout,
+        )
+
+    def test_a9_accepts_any_attribution_of_the_same_sentences(self) -> None:
+        """The firewall proof: A9 proves coverage, not judgment. Swapping
+        every row to the other mode — all non-propositional, then all one
+        proposition — leaves the check green, because which proposition a
+        sentence belongs to (and whether `restatement` is honest) is review
+        judgment, never the script's (§7.2, §7.5)."""
+        everything_recited = self.base_ledger()
+        for record in everything_recited["decompositions"]:
+            record["sentence_map"] = [
+                {"sentence": row["sentence"], "non_propositional": "evidence_recitation"}
+                for row in record["sentence_map"]
+            ]
+        result = self.account(everything_recited)
+        self.assertEqual(result.returncode, 0, self.output(result))
+        self.assertIn("A9: PASS", result.stdout)
+
+        everything_attributed = self.base_ledger()
+        for record in everything_attributed["decompositions"]:
+            first_proposition = record["propositions"][0]["id"]
+            record["sentence_map"] = [
+                {"sentence": row["sentence"], "propositions": [first_proposition]}
+                for row in record["sentence_map"]
+            ]
+        result = self.account(everything_attributed)
+        self.assertEqual(result.returncode, 0, self.output(result))
+        self.assertIn("A9: PASS", result.stdout)
+
+    def test_there_is_one_sentence_splitter_in_the_repository(self) -> None:
+        """Acceptance criterion 8: one SENTENCE_RE definition in the whole
+        repository, in validate.py; the migrator imports it and never copies
+        the pattern."""
+        defined_at: list[str] = []
+        for path in sorted(ROOT.rglob("*.py")):
+            if "__pycache__" in path.parts or ".git" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if re.search(r"^SENTENCE_RE\s*=", text, re.MULTILINE):
+                defined_at.append(path.relative_to(ROOT).as_posix())
+        self.assertEqual(defined_at, ["PASS/tools/validate.py"])
+
+        source = TOOL.read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        imported = [
+            alias.name
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module == "validate"
+            for alias in node.names
+        ]
+        self.assertIn("SENTENCE_RE", imported)
+        self.assertNotIn(r"(?<=[.!?])", source, "the splitter pattern was copied")
+
+
+CLAIM_TAILS = (
+    "01M55WJVKRMGS6KTMQ5TSXRQDC",
+    "01M55WJVKRFNJW5TVAPVTVSM7T",
+    "01M55WJVKRTZQ3EHK6RJP8XWVY",
+)
+
+
+@unittest.skipUnless(
+    (MEMORY / "software-engineering" / "skill_memory.yaml").is_file()
+    and (MEMORY / "game-design" / "skill_memory.yaml").is_file(),
+    "no software-engineering and game-design stores in this checkout",
+)
+class SpecificationExamples(MigrationFixture):
+    """T15 completion evidence: the specification's own example decompositions
+    (R2.5 §7.2) carry complete sentence maps that pass A9 end to end.
+
+    Each live entry is read into a disposable single-entry store beside a copy
+    of its domain's history — a read of the corpus, never a write to it, and
+    never a migration input for the live tree. GAMEDESIGN_MEM_001's
+    propositions are the specification's example verbatim; SE_MEM_001 records
+    the three propositions R2.1 counts for it, with text labelled as
+    placeholder. Every map row is coverage-only: rows are built from the
+    tool's own emission so A9's independent derivation must agree with them,
+    and no row asserts what a sentence means — decomposition is judgment
+    (§7.2) and this suite never exercises it. Both entries are declared
+    accretion with the second-reader mark, per R2.1's ~16 accretion
+    narratives (which name SE_MEM_001 and GD_MEM_001)."""
+
+    def frozen_single_entry(self, domain: str, entry_id: str) -> dict:
+        store = yaml.safe_load((MEMORY / domain / "skill_memory.yaml").read_bytes())
+        matches = [
+            entry for entry in store["entries"] if entry.get("id") == entry_id
+        ]
+        self.assertEqual(
+            len(matches), 1, f"the live {domain} store must carry {entry_id}"
+        )
+        domain_dir = self.memory_root / domain
+        domain_dir.mkdir(parents=True)
+        single = dict(store)
+        single["entries"] = matches
+        (domain_dir / "skill_memory.yaml").write_bytes(
+            yaml.safe_dump(single, sort_keys=False).encode("utf-8")
+        )
+        shutil.copyfile(
+            MEMORY / domain / "training_history.jsonl",
+            domain_dir / "training_history.jsonl",
+        )
+        frozen = run_migrator(
+            "freeze", "--domain", domain,
+            "--ledger-dir", self.ledger_dir, memory=self.memory_root,
+        )
+        self.assertEqual(frozen.returncode, 0, frozen.stdout + frozen.stderr)
+        return self.ledger(domain=domain)["legacy"]
+
+    def account_example(
+        self,
+        domain: str,
+        entry_id: str,
+        token: str,
+        propositions: list[dict],
+        spec_rows: dict[int, dict],
+    ) -> tuple[subprocess.CompletedProcess[str], int]:
+        """One complete migration-shaped run over one live entry; returns the
+        `account` result and the emitted sentence count."""
+        legacy = self.frozen_single_entry(domain, entry_id)
+        emitted = run_migrator(
+            "sentences", "--domain", domain, "--entry", entry_id,
+            memory=self.memory_root,
+        )
+        self.assertEqual(emitted.returncode, 0, emitted.stdout + emitted.stderr)
+        header = re.fullmatch(
+            rf"{re.escape(entry_id)}: (\d+) sentence\(s\)",
+            emitted.stdout.splitlines()[0],
+        )
+        self.assertIsNotNone(header, emitted.stdout)
+        count = int(header.group(1))
+        rows: list[dict] = []
+        for number in range(1, count + 1):
+            if number in spec_rows:
+                rows.append({"sentence": number, **spec_rows[number]})
+            else:
+                rows.append(
+                    {"sentence": number, "propositions": [propositions[0]["id"]]}
+                )
+        claim_ids = [
+            f"{token}_MEM_{tail}" for tail in CLAIM_TAILS[: len(propositions)]
+        ]
+        ledger = {
+            "domain": domain,
+            "legacy": legacy,
+            "vnext": {"memory_schema_version": 3, "claim_count": len(claim_ids)},
+            "accretion_entries": [entry_id],
+            "decompositions": [
+                {
+                    "legacy_entry": entry_id,
+                    "legacy_sha256": legacy["entry_hashes"][entry_id],
+                    "propositions": propositions,
+                    "sentence_map": rows,
+                    "second_reader": True,
+                }
+            ],
+            "dispositions": [
+                {
+                    "proposition": proposition["id"],
+                    "class": "CARRY",
+                    "targets": [claim_id],
+                }
+                for proposition, claim_id in zip(propositions, claim_ids)
+            ],
+            "holds": [],
+        }
+        candidate = self.tmp / "candidate" / f"{domain}.yaml"
+        candidate.parent.mkdir(parents=True, exist_ok=True)
+        candidate.write_bytes(
+            yaml.safe_dump(
+                {
+                    "memory_schema_version": 3,
+                    "skillset": domain,
+                    "memory_version": 1,
+                    "claims": [
+                        {"id": claim_id, "claim": "A candidate claim standing in the new store."}
+                        for claim_id in claim_ids
+                    ],
+                },
+                sort_keys=False,
+            ).encode("utf-8")
+        )
+        self.ledger_path(self.ledger_dir, domain).write_bytes(
+            yaml.safe_dump(ledger, sort_keys=False).encode("utf-8")
+        )
+        result = run_migrator(
+            "account", "--domain", domain,
+            "--ledger-dir", self.ledger_dir, "--store", candidate,
+            memory=self.memory_root,
+        )
+        return result, count
+
+    def test_the_specification_example_sentence_maps_pass_a9(self) -> None:
+        """Completion evidence: both named entries pass the whole A1-A10 run,
+        A9 reporting their exact sentence and second-reader counts."""
+        cases = [
+            (
+                "software-engineering",
+                "SE_MEM_001",
+                "SE",
+                [
+                    {"id": "SE_MEM_001#p1", "text": "Placeholder for the first of the three roughly 24-word claims R2.1 counts in this entry; no text is authored here."},
+                    {"id": "SE_MEM_001#p2", "text": "Placeholder for the second of the three roughly 24-word claims R2.1 counts in this entry; no text is authored here."},
+                    {"id": "SE_MEM_001#p3", "text": "Placeholder for the third of the three roughly 24-word claims R2.1 counts in this entry; no text is authored here."},
+                ],
+                {},
+            ),
+            (
+                "game-design",
+                "GAMEDESIGN_MEM_001",
+                "GD",
+                [
+                    {"id": "GAMEDESIGN_MEM_001#p1", "text": "Designs reusing a small mechanical vocabulary across many situations are easier to explain, compare, and extend."},
+                    {"id": "GAMEDESIGN_MEM_001#p2", "text": "A shared randomizer can sit above several operational grammars that still require different interpretation procedures."},
+                    {"id": "GAMEDESIGN_MEM_001#p3", "text": "Programmed actions that replace the attribute half of a pool preserve common resolution while changing competence architecture."},
+                ],
+                {
+                    1: {"propositions": ["GAMEDESIGN_MEM_001#p1"]},
+                    4: {"non_propositional": "evidence_recitation"},
+                    7: {"non_propositional": "episode_narrative"},
+                },
+            ),
+        ]
+        for domain, entry_id, token, propositions, spec_rows in cases:
+            with self.subTest(entry=entry_id):
+                result, count = self.account_example(
+                    domain, entry_id, token, propositions, spec_rows,
+                )
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                for check in ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"):
+                    self.assertIn(f"{check}: PASS", result.stdout)
+                self.assertIn(
+                    f"A9: PASS: {count} sentence(s) in 1 entr(ies) each "
+                    "accounted exactly once; 1 accretion entr(ies) declared, "
+                    "1 second-reader mark(s) recorded",
+                    result.stdout,
+                )
 
 
 if __name__ == "__main__":

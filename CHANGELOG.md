@@ -6,6 +6,37 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.123 - 2026-10-19
+
+### Added
+
+- **A9 now proves sentence coverage: every source sentence of a decomposed
+  entry is attributed exactly once, or the ledger fails (R2.5 §7.2, §7.5,
+  criterion 44a).**
+  Each decomposition carries a `sentence_map` — one record per source sentence
+  number, attributing it to at least one proposition id recorded in that
+  entry's decomposition or to a closed non-propositional reason
+  (`evidence_recitation`, `episode_narrative`, `restatement`,
+  `environment_context`, `canon_restatement`). `account` re-derives each
+  frozen entry's inventory from the frozen bytes — `observation`, `boundary`,
+  and `diagnosis.hypothesis` concatenated in that order (§7.4 step 1, no
+  per-field slicing) and split with `validate.py`'s `SENTENCE_RE` — so A9,
+  reported as delegated since beta.122, is now the real check and names every
+  failure: a sentence with no row, a sentence counted twice, a row outside the
+  inventory, or a reference to a proposition id absent from that entry's
+  decomposition. The ledger also declares which entries are accretion
+  narratives (`accretion_entries`), and A9 checks each declared entry's
+  decomposition record for the presence-only `second_reader: true` mark, in
+  both directions — the mark's presence, never the reading. Coverage, never
+  comprehension: the checker does not read what a sentence means and never
+  judges whether an attribution is honest.
+- **`migrate_memory_v3.py sentences --domain <d> --entry <id>` emits the
+  numbered sentence inventory of one legacy entry — A9's source text.**
+  Emission only: nothing is attributed, decomposed, classified, or written,
+  and the subcommand has no ledger flag, so it cannot read or touch a ledger.
+  Segmentation is the repository's one sentence splitter, imported rather
+  than copied, so unchanged bytes yield an identical list on every run.
+
 ## 1.0.0-beta.122 - 2026-10-19
 
 ### Added

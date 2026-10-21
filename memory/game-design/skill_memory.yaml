@@ -1,1603 +1,866 @@
-memory_schema_version: 1
+memory_schema_version: 3
 skillset: game-design
-memory_version: 19
-entries:
-- id: GAMEDESIGN_MEM_001
-  scope_type: topic
-  scope_id: mechanical_architecture
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: 'Across multiple system teardowns, designs that reused a small mechanical vocabulary
-    across many situations were easier to explain, compare, and extend than designs that required
-    unrelated resolution families or conversion rules between subsystems. In established systems,
-    preserving a familiar high-frequency resolution grammar also reduced migration and relearning
-    cost. GURPS further showed that shared primitives can reduce fragmentation while increasing
-    interaction density when many conditional modules feed the same resources and derived
-    values, and that a later edition can substantially improve that architecture without materially
-    repositioning the underlying play experience. Rolemaster further showed that a shared
-    percentile randomizer can sit above several operational grammars: static maneuvers, moving
-    maneuvers, attacks, criticals, resistance, casting, and recovery may share d100 while
-    still requiring different interpretation procedures and table paths. Cyberpunk 2020 further
-    showed that a large professional skill and equipment vocabulary can remain cheap at runtime
-    when ordinary tasks and combat entry points reuse a shallow common resolver while genre
-    specificity lives in roles, access, persistent state, costs, and consequences. Shadowrun
-    Third Edition further corroborated that Combat, Magic, Matrix, and Rigging can reuse one
-    d6 success-count grammar while still differing sharply in state, verbs, participation
-    structure, and operator load. Shadowrun Fourth Edition then showed a stronger version
-    of the same principle: a fixed-TN Attribute + Skill grammar could unify most action resolution
-    while specialist identity remained in world interfaces, persistent state, equipment, and
-    subsystem access. The Matrix also exposed a useful boundary because many programmed actions
-    replaced the normal Attribute half of the pool with software rating, preserving common
-    hit-count resolution while changing competence architecture.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Reusable primitives reduce interface cost between subsystems while still allowing
-      local specialization.
-  boundary: Verified across Palladium Fantasy, Rifts, Star Frontiers, FrontierSpace, Zebulon’s
-    Guide, a historical Star Frontiers redesign prototype, GURPS Fourth Edition Basic Set,
-    and the Rolemaster SS-to-FRP comparison; not yet tested through original system construction
-    from a blank foundation.
-  evidence_count: 10
-  evidence_events:
-  - GAMEDESIGN_EV_0001
-  - GAMEDESIGN_EV_0002
-  - GAMEDESIGN_EV_0003
-  - GAMEDESIGN_EV_0005
-  - GAMEDESIGN_EV_0006
-  - GAMEDESIGN_EV_0007
-  - GAMEDESIGN_EV_0009
-  - GAMEDESIGN_EV_0012
-  - GAMEDESIGN_EV_0013
-  - GAMEDESIGN_EV_0014
-  evidence_origin:
+memory_version: 20
+claims:
+- id: GD_MEM_01M5DYG7Y20W0EXZ86NFF91E8F
+  claim: 'Campaign continuity can create durable retrospective value beyond a session''s immediate utility:
+    players keep and revisit records of their own play, so history earns its cost partly after the sessions
+    that produced it.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - judgment
+    statement: Count retrospective value when deciding whether continuity detail earns its cost, instead
+      of judging every element only by what it changes in the next encounter.
+  envelope:
+    holds_in:
+    - long campaigns whose players record or retell their own history
+    not_shown_in:
+    - one-shot or short-arc play with no accumulated history
+    conditions:
+    - it does not establish that all background detail earns its cost
+  provenance:
   - human_teaching
-  - training_benchmark
-  - user_feedback
-  likely_owners:
-  - PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
-  - DRILL_reverse_engineer_a_game_through_play
-  interventions:
-  - training: Reverse-engineer contrasting rulesets by mapping resolution families and subsystem
-      interfaces.
-    isolation_result: improved
-    retention_result: partial
-    transfer_result: improved
+  scope: campaign_retrospective_value
   retrieval_cues:
-  - mechanical architecture
-  - resolution families
-  - shared primitives
-  - subsystem integration
-  - migration cost
-  - installed play architecture
-  - resolution replacement
-  - shared state
-  - interaction density
-  - concurrent modules
-  - architectural improvement
-  - experiential repositioning
-  - shared die different grammar
-  - table-driven resolution
-  - deep vocabulary shallow resolver
-  runtime_scope: generic
-  last_verified: '2026-09-04'
-- id: GAMEDESIGN_MEM_002
-  scope_type: topic
-  scope_id: complexity_value
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: 'Complexity was most defensible in the analyzed systems when an added rule
-    created a meaningful decision, useful consequence, or reusable capability. Placement and
-    frequency materially changed that value: substantial opt-in complexity attached to new
-    capabilities could be welcomed, while smaller mandatory complexity inserted into already-satisfactory
-    high-frequency procedures was experienced as friction. GURPS added two further pressures:
-    several individually conditional rules can become expensive when they activate together,
-    and coherent simulation can still overtax humans when much of the work is arithmetic,
-    lookup, dependency propagation, or state maintenance rather than decision-making. Rolemaster
-    added a table-level scaling pressure: individually defensible choices and lookups became
-    expensive when common-path procedures repeated serially across all actors, and rich critical
-    outcomes continued to impose future state-maintenance and recovery work after the initial
-    resolution ended. Twilight: 2000 added a further cadence boundary: genre-common automatic
-    fire can be too expensive even when labeled a specialist mode, and one player decision
-    can become a procedural hotspot when work scales per projectile rather than per decision.
-    Cyberpunk 2020 added participation coverage as another complexity dimension: a subsystem
-    can have excellent internal decision density yet impose excessive table cost when one
-    specialist owns most decisions, and a good per-hit procedure can become expensive when
-    automatic fire multiplies the consequence cadence. Shadowrun 4E added complexity relocation
-    as a further distinction: frequent resolution could be made cheaper through a shared grammar,
-    Device Rating, grunt compression, abstract chase ranges, and routine-action omission while
-    the same design preserved rich consequence state. It also showed that cleaner interoperable
-    subsystems can increase global integration work because more states cross domain boundaries
-    even when each local procedure becomes easier.'
+  - campaign journal
+  - retrospective value
+  - setting history
+  - revisited play
+  - value after the session
+  last_verified: '2026-09-08'
+  canon:
+  - PAT_spend_worldbuilding_detail_where_it_changes_play
+  - PAT_build_stake_weight_through_player_investment_before_threatening_it
+  evidence:
+  - GAMEDESIGN_EV_0025
+- id: GD_MEM_01M5DYG7Y22K5CMC5KNJEQJP7W
+  claim: Detail too burdensome for manual operation can become attractive in a medium that performs dependency
+    propagation, modifier stacking, timers, and state maintenance, because decision complexity and operator
+    complexity are separable and only the second one moves.
+  claim_class: conduct
+  claim_kind: stochastic
   confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Asking what each layer of complexity buys in play is a productive diagnostic
-      for healthy versus unhealthy crunch.
-  boundary: 'Verified in comparative analysis of active defense, vehicle rules, FrontierSpace
-    action economy, legacy subsystem accretion, Zebulon’s resolution replacement versus additive
-    equipment, historical Star Frontiers playtests, GURPS Fourth Edition, and Rolemaster SS/FRP
-    common-path combat, maneuvers, magic, injury, and advancement; not yet calibrated against
-    a new game designed from scratch; additionally verified against Twilight: 2000 1E/Version
-    2.2 survival, combat, vehicle, and medical procedures.'
-  evidence_count: 10
-  evidence_events:
-  - GAMEDESIGN_EV_0001
-  - GAMEDESIGN_EV_0002
-  - GAMEDESIGN_EV_0003
-  - GAMEDESIGN_EV_0005
-  - GAMEDESIGN_EV_0006
-  - GAMEDESIGN_EV_0007
-  - GAMEDESIGN_EV_0009
-  - GAMEDESIGN_EV_0011
-  - GAMEDESIGN_EV_0012
-  - GAMEDESIGN_EV_0014
-  evidence_origin:
+  delta:
+    kinds:
+    - judgment
+    - action
+    statement: Separate the decisions a rule creates from the servicing work it demands, then decide per
+      target medium whether to preserve, collapse, or automate the servicing half.
+  envelope:
+    holds_in:
+    - simulation-heavy subsystems evaluated against both manual and software operation
+    not_shown_in:
+    - implemented software execution or direct cross-medium testing
+  provenance:
   - training_benchmark
-  - user_feedback
   - human_teaching
-  likely_owners:
-  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-  - DRILL_audit_specialist_subsystem_participation
-  - PAT_expand_resolution_detail_only_after_consequential_state_change
-  interventions:
-  - training: For each analyzed rule, name the player decision or consequence purchased by
-      its execution cost.
-    isolation_result: improved
-    retention_result: partial
-    transfer_result: improved
+  - user_feedback
+  scope: operator_complexity_and_medium
   retrieval_cues:
-  - crunch
-  - complexity
-  - bookkeeping
-  - meaningful decisions
-  - complexity placement
-  - opt-in complexity
-  - high-frequency friction
   - operator complexity
-  - concurrent activation
-  - shared-state cascade
-  - simulation burden
-  - serial friction
-  - state persistence cost
-  - table throughput
-  - projectile-count scaling
-  - genre-common specialist complexity
-  - purposeful friction
-  - participation coverage
-  - cadence multiplication
-  runtime_scope: generic
-  last_verified: '2026-09-04'
-- id: GAMEDESIGN_MEM_003
-  scope_type: topic
-  scope_id: construction_system_breadth
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: A construction system can present many legal configuration choices while producing
-    little meaningful build differentiation when a small set of parent variables determines
-    most downstream capabilities and optimal choices converge.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Configuration count is a poor proxy for conceptual breadth; same-class role-divergence
-      tests expose false breadth more directly.
-  boundary: Verified in the Knight Hawks versus FrontierSpace starship-design comparison;
-    needs testing on additional construction-heavy games before broad promotion.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0004
-  evidence_origin:
-  - training_benchmark
-  - user_feedback
-  likely_owners:
-  - future construction-system owner
-  - DRILL_reverse_engineer_a_game_through_play
-  interventions:
-  - drill: Build the same broad object class for three distinct intended roles and compare
-      whether the resulting play identities meaningfully diverge.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - construction system
-  - build variety
-  - false choice
-  - configuration breadth
-  runtime_scope: generic
-  last_verified: '2026-08-30'
-- id: GAMEDESIGN_MEM_004
-  scope_type: topic
-  scope_id: extension_and_refactoring
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: 'When a new requirement could be expressed through an existing mechanical vocabulary,
-    extension stayed more coherent; repeated need for adapters, bespoke resolution rules,
-    or exception chains correlated with designs that had grown beyond their original architecture.
-    Comparative review also showed that replacing an established answer to an already-solved
-    question can create migration cost even when the replacement is mechanically sound, while
-    new mechanics are easier to justify when they answer genuinely new questions. GURPS edition
-    evolution further showed a productive refactoring cycle: genre or supplement mechanics
-    can function as laboratories, prove broadly reusable, become shared grammar, and then
-    make older duplicate subsystems removable while preserving their important fictional and
-    experiential affordances. Rolemaster FRP supplied a second refactoring example: it preserved
-    the underlying combat identity while consolidating many specialized attack and maneuver
-    tables into shared family structures plus compact differentiating data, reducing retrieval
-    fragmentation without erasing the meaningful output differences.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Testing existing primitives before adding a new mechanic is a practical refactoring
-      trigger rather than a demand for one universal mechanic.
-  boundary: Verified while contrasting Rifts subsystem accretion, FrontierSpace reuse, Alpha
-    Dawn with Zebulon’s replacement architecture, a historical Star Frontiers redesign prototype,
-    GURPS Fourth Edition refactoring, and Rolemaster SS-to-FRP table consolidation; not yet
-    tested during live refactoring of a current original game.
-  evidence_count: 7
-  evidence_events:
-  - GAMEDESIGN_EV_0002
-  - GAMEDESIGN_EV_0003
-  - GAMEDESIGN_EV_0005
-  - GAMEDESIGN_EV_0006
-  - GAMEDESIGN_EV_0007
-  - GAMEDESIGN_EV_0008
-  - GAMEDESIGN_EV_0009
-  evidence_origin:
-  - training_benchmark
-  - human_teaching
-  - user_feedback
-  likely_owners:
-  - PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
-  interventions:
-  - training: Before accepting a new subsystem, attempt to express the requirement through
-      current primitives and document where that attempt fails.
-    isolation_result: improved
-    retention_result: partial
-    transfer_result: improved
-  retrieval_cues:
-  - refactor
-  - add a new rule
-  - adapter rule
-  - exception chain
-  - existing question new mechanic
-  - migration cost
-  - compatibility
-  - power source
-  - capability grammar
-  - source modifier
-  - genre supplement laboratory
-  - shared table plus parameters
-  - lookup consolidation
-  runtime_scope: generic
-  last_verified: '2026-09-02'
-- id: GAMEDESIGN_MEM_005
-  scope_type: topic
-  scope_id: mixed_revision_isolation
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: A bundled redesign was rejected in play while some components inside the same
-    test package were explicitly welcomed and retained as useful ideas. Package-level failure
-    therefore did not establish that every bundled change had failed.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: When several variables change at once, decomposing mixed feedback into retained,
-      rejected, and unresolved components preserves valid evidence that would be lost by treating
-      the whole build as one result.
-  boundary: Observed in one retrospective Star Frontiers playtest case where a core-resolution
-    redesign was rejected after one session while expanded skills were liked and a separate
-    detailed robot-construction subsystem was welcomed; needs transfer testing on additional
-    bundled revisions.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0006
-  evidence_origin:
-  - human_teaching
-  - user_feedback
-  - training_benchmark
-  likely_owners:
-  - AP_run_an_evidence_driven_playtest_revision_cycle
-  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-  interventions:
-  - training: When a test build changes several variables, record which components testers
-      reject, accept, or leave unresolved before choosing what to revert or retain.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - bundled revision
-  - mixed playtest result
-  - partial rejection
-  - revert redesign
-  - retain successful component
-  runtime_scope: generic
-  last_verified: '2026-09-01'
-- id: GAMEDESIGN_MEM_006
-  scope_type: topic
-  scope_id: onboarding_and_curation
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: 'Large modular toolkits can remain intimidating to first-time facilitators
-    even when most subsystems are technically optional. The GURPS lineage showed that consolidation
-    and indexing can make a mature edition more useful to experienced users while simultaneously
-    removing or weakening executable teaching support for newcomers. Fourth Edition character
-    templates demonstrate that curated starting structures can successfully hide a large option
-    space from novice players, whereas GM setup still depended heavily on prior knowledge
-    of the rules corpus. The final comparison therefore treats expert reference quality and
-    first-campaign guidance as different usability dimensions rather than expecting one to
-    substitute for the other. Rolemaster independently corroborated the distinction: SS could
-    be organized for expert reference while still forcing novices to discover cross-book dependency
-    paths, whereas FRP materially improved onboarding and retrieval by making the advertised
-    core executable and consolidating frequently used tables locally.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Optionality reduces execution cost only after the user can identify dependencies,
-      safe omissions, and expansion triggers; a curated sufficient starting configuration
-      lowers that curation burden.
-  boundary: Verified in the GURPS Fourth Edition core and lineage reviews and independently
-    in the Rolemaster SS-to-FRP edition transition; not yet tested against a newly authored
-    edition transition.
-  evidence_origin:
-  - training_benchmark
-  - human_teaching
-  - user_feedback
-  likely_owners:
-  - PAT_make_the_game_operable_without_hidden_designer_knowledge
-  interventions:
-  - training: During novice handoff, require the facilitator to identify a sufficient first-campaign
-      rule set and the triggers for adding optional modules without surveying the entire corpus.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - onboarding
-  - optional rules
-  - curation burden
-  - first-time GM
-  - toolkit
-  - rules mastery before play
-  - edition consolidation
-  - learning architecture
-  - reference architecture
-  - handoff
-  - presets
-  - campaign templates
-  - progressive disclosure
-  - veteran reference
-  - novice facilitator
-  - core executability
-  - cross-book dependency
-  - novice retrieval
-  - human cache
-  runtime_scope: generic
-  last_verified: '2026-09-02'
-  evidence_events:
-  - GAMEDESIGN_EV_0007
-  - GAMEDESIGN_EV_0008
-  - GAMEDESIGN_EV_0009
-  evidence_count: 3
-- id: GAMEDESIGN_MEM_007
-  scope_type: topic
-  scope_id: operator_complexity_and_medium
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: 'Detailed simulation that felt too burdensome for manual tabletop operation
-    was judged attractive in a computer implementation when software could perform dependency
-    propagation, modifier stacking, timers, and state maintenance while leaving tactical and
-    character decisions visible. The value depended on preserving inspectable causality rather
-    than hiding why automated results changed. Rolemaster provided independent cross-system
-    corroboration: detailed attack, injury, casting, XP, and state procedures retained attractive
-    fictional output while manual lookup, arithmetic, branching, and maintenance dominated
-    tabletop cost; transparent software execution would preserve more of the output while
-    removing human servicing work.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Separating decision complexity from operator complexity helps determine which
-      simulation detail should be preserved, collapsed, or automated for a target medium.
-  boundary: Observed independently through GURPS Fourth Edition and Rolemaster SS/FRP analysis
-    plus practitioner comparison between tabletop operation and hypothetical software execution;
-    still needs implementation or direct cross-medium testing.
-  evidence_origin:
-  - training_benchmark
-  - human_teaching
-  - user_feedback
-  likely_owners:
-  - PAT_account_for_the_intended_play_environment_before_freezing_the_design
-  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-  interventions:
-  - training: For a state-heavy mechanic, compare manual and automated execution while holding
-      player choices constant and verify that the automated result remains explainable.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
+  - decision complexity
   - automation
-  - computer game
   - bookkeeping
-  - operator complexity
-  - transparent automation
   - digital implementation
-  - HOPR
-  - TBMD
+  - target medium
   - operator servicing
-  runtime_scope: generic
   last_verified: '2026-09-02'
-  evidence_events:
+  canon:
+  - PAT_account_for_the_intended_play_environment_before_freezing_the_design
+  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  evidence:
   - GAMEDESIGN_EV_0007
   - GAMEDESIGN_EV_0009
-  evidence_count: 2
-- id: GAMEDESIGN_MEM_008
-  scope_type: topic
-  scope_id: persistent_capability_dependencies
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: Related-skill defaults supported useful runtime competence transfer, but persistent
-    advancement became difficult to maintain when purchased investment had to be reinterpreted
-    against a changing default source. Edition comparison showed this burden survived major
-    Fourth Edition skill refactoring even while Techniques adopted a cleaner one-way parent
-    relationship, demonstrating that one retained legacy dependency can dominate usability
-    inside an otherwise improved subsystem.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Persistent character state is easier to maintain when dependencies are local
-      and explicit, while temporary competence transfer remains a runtime rule instead of
-      a mutable accounting baseline.
-  boundary: Verified in the GURPS Fourth Edition standalone skill review and Third-to-Fourth
-    Edition skill comparison; not yet tested in an original character system built around
-    reversible defaults.
-  evidence_origin:
-  - training_benchmark
-  - human_teaching
-  - user_feedback
-  likely_owners:
-  - PAT_keep_persistent_capability_dependencies_local_and_explicit
-  - PAT_derive_character_capabilities_from_expected_play
-  interventions:
-  - training: Raise each parent value in a dependency-heavy character build, reverse which
-      related capability is strongest, and count every persistent entry that must be recomputed
-      or audited.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - skill defaults
-  - advancement bookkeeping
-  - dependency graph
-  - dynamic rebaselining
-  - character sheet audit
-  - local state
-  runtime_scope: generic
-  last_verified: '2026-09-01'
-  evidence_events:
-  - GAMEDESIGN_EV_0007
-  - GAMEDESIGN_EV_0008
-  evidence_count: 2
-- id: GAMEDESIGN_MEM_009
-  scope_type: topic
-  scope_id: character_option_economics
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: 'GURPS edition evolution showed that character-option prices need to reflect
-    actual mechanical leverage and constraint rather than conceptual symmetry. Repricing DX,
-    adding intermediate Talents, separating secondary characteristics, and parameterizing
-    disadvantage severity improved differentiation, while disadvantage refunds still created
-    pressure to consume the allowed negative budget. Fourth Edition also removed the older
-    double-cost surcharge for post-creation attribute improvement, showing that build-lifecycle
-    pricing can create optimization pressure when the same persistent capability has different
-    prices solely because of purchase timing. Cyberpunk 2020 showed that option costs and
-    drawbacks are build-dependent: REF gained compounding value through initiative, offense,
-    skill breadth, and feedback, while Humanity/EMP, encumbrance, and other drawbacks were
-    only real tradeoffs when the affected domain remained valuable to the character and campaign.
-    Shadowrun 4E corroborated lifecycle and multi-currency pressure in a new point-buy system:
-    flat or bundled Build Point costs fed into progressively priced Karma advancement while
-    gear moved to nuyen, augmentation added Essence, and contacts/access changed acquisition
-    mode. This created a rational build-order incentive to buy expensive depth early and cheaper
-    breadth later, while ware grade, cyber/bioware mixing, cyberlimb Capacity, and capital-versus-Karma
-    substitution rewarded catalog mastery.'
+- id: GD_MEM_01M5DYG7Y2391H78XQ1JWS622A
+  claim: 'Causal social and institutional response changes behaviour more than reward-currency adjustment
+    does when players act in public: the consequence lands in the fiction they are standing in, while
+    a currency penalty lands on a sheet.'
+  claim_class: conduct
+  claim_kind: stochastic
   confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Auditing breadth, downstream effects, substitution economics, and actual loss
-      of choice produces more stable character pricing than equal-cost symmetry or label-based
-      valuation.
-  boundary: Verified in GURPS Third-to-Fourth Edition character-economy comparison and independently
-    corroborated in Shadowrun 4E point-buy / Karma / nuyen / Essence character economics.
-    Exact exchange-rate failure depends on the currencies and campaign acquisition ecology.
-  evidence_count: 3
-  evidence_events:
-  - GAMEDESIGN_EV_0008
-  - GAMEDESIGN_EV_0012
-  - GAMEDESIGN_EV_0014
-  evidence_origin:
+  delta:
+    kinds:
+    - action
+    - judgment
+    statement: Shape unwanted behaviour with in-world consequence rather than by adjusting the reward
+      currency, where the behaviour happens somewhere the world can respond.
+  envelope:
+    holds_in:
+    - city and settlement play with combat-oriented parties
+    not_shown_in:
+    - behaviour occurring where no in-world party can observe or respond
+  provenance:
   - human_teaching
-  - training_benchmark
-  - user_feedback
-  likely_owners:
-  - PAT_price_character_options_by_mechanical_leverage_and_constraint
-  - PAT_derive_character_capabilities_from_expected_play
-  - DRILL_map_attribute_dependency_density
-  - PAT_attach_persistent_costs_to_capability_gains
-  interventions:
-  - training: Audit a character option by comparing its actual downstream leverage or constraint
-      with legal substitutes that cost the same currency.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
+  scope: social_consequence_vs_reward_currency
   retrieval_cues:
-  - point economy
-  - attribute pricing
-  - disadvantages
-  - Talents
-  - bundle efficiency
-  - mechanical leverage
-  - self-control
-  - negative points
-  - lifecycle pricing
-  - advancement cost
-  - build order
-  - dependency density
-  - drawback elasticity
-  runtime_scope: generic
-  last_verified: '2026-09-04'
-- id: GAMEDESIGN_MEM_010
-  scope_type: topic
-  scope_id: causal_advancement
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: 'GURPS preserved a useful separation between mechanical advancement value and
-    fictional change: social traits, learned capabilities, and disadvantages often require
-    an in-world cause or opportunity in addition to points, while fiction can also grant or
-    remove traits without conserving point total. The same causal model can become administrative
-    overhead if the facilitator must audit every hour, exposure, teacher, or action rather
-    than tracking only the evidence the campaign actually values.'
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Separating advancement price, permission, and fictional cause preserves believable
-      development without forcing build currency to manufacture fiction or requiring exhaustive
-      causal surveillance.
-  boundary: Verified in GURPS Third-to-Fourth Edition advancement comparison; not yet corroborated
-    across another advancement system with causal purchase restrictions.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0008
-  evidence_origin:
-  - human_teaching
-  - training_benchmark
-  - user_feedback
-  likely_owners:
-  - PAT_derive_character_capabilities_from_expected_play
-  - PAT_price_character_options_by_mechanical_leverage_and_constraint
-  interventions:
-  - training: For each advancement option, record its price, current permission gate, fictional
-      cause, and the minimum evidence needed to verify that cause without turning play history
-      into an audit log.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - advancement
-  - training
-  - fictional cause
-  - purchase permission
-  - trait gained in play
-  - study
-  - GM bookkeeping
-  - causal tracking
-  runtime_scope: generic
-  last_verified: '2026-09-01'
-- id: GAMEDESIGN_MEM_011
-  scope_type: topic
-  scope_id: serial_resolution_latency
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: 'A Rolemaster case study exposed a table-level burden that single-action analysis
-    can miss: when each actor must serially perform several rolls, lookups, branches, and
-    state updates, individually tolerable resolutions can multiply into long periods in which
-    a player has no meaningful decision. Practitioner evidence from one four-player-plus-GM
-    session reported roughly ten minutes between an early completed action and the next opportunity
-    to act, which is useful evidence of possible round latency but not a universal timing
-    claim about the system. Twilight: 2000 Version 2.2 added a within-action variant: automatic-fire
-    work can multiply by burst or projectile count even when the player made only one attack
-    decision, so serial latency must also be checked inside one actor''s action. Cyberpunk
-    2020 Netrunning showed that serial latency can come from procedural isolation as well
-    as actor count: one specialist may receive several meaningful decision cycles while others
-    merely watch, and accelerated fictional time can increase rather than decrease real attention
-    time.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Measuring Human Operations Per Resolution together with Time Between Meaningful
-      Decisions across a complete representative round will expose serial throughput problems
-      that isolated resolution tests miss.
-  boundary: 'Observed in the Rolemaster SS review using source-grounded procedure tracing
-    and one practitioner session report; needs timed transfer testing on additional systems
-    and groups; transfer evidence now also includes Twilight: 2000 Version 2.2 automatic fire.'
-  evidence_count: 3
-  evidence_events:
-  - GAMEDESIGN_EV_0009
-  - GAMEDESIGN_EV_0011
-  - GAMEDESIGN_EV_0012
-  evidence_origin:
-  - training_benchmark
-  - human_teaching
-  - user_feedback
-  likely_owners:
-  - DRILL_profile_serial_resolution_latency
-  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-  - DRILL_audit_specialist_subsystem_participation
-  interventions:
-  - training: Time one complete multi-actor round, count human-facing operations per resolution,
-      and measure the anchor player’s interval between consequential decisions before and
-      after one interface or procedure simplification.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - round latency
-  - player downtime
-  - serial resolution
-  - HOPR
-  - TBMD
-  - table throughput
-  - actor count
-  - facilitator bottleneck
-  - within-action scaling
-  - per-projectile work
-  - fictional time
-  - attention time
-  - spectatorship
-  runtime_scope: generic
-  last_verified: '2026-09-03'
-- id: GAMEDESIGN_MEM_012
-  scope_type: topic
-  scope_id: consequence_duration_and_campaign_cadence
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: Rolemaster injury and spell-failure review showed that a mechanically coherent
-    consequence can become a participation problem when its fictional recovery duration exceeds
-    the campaign’s active cadence. Severe wounds can remain meaningful and specific without
-    requiring full anatomical recovery time to equal total player inactivity; the relevant
-    design question is when meaningful participation returns and what campaign infrastructure
-    makes that consequence playable. Cyberpunk 2020 medical recovery corroborated that long
-    fictional consequences can create useful time and economic pressure while still becoming
-    player-level TBMD when one character is sidelined; stabilization, recovery, and player
-    participation therefore need separate evaluation.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Separating full fictional recovery from functional participation recovery
-      allows serious long-term consequences to persist without accidentally removing a high-investment
-      character from multiple expected sessions unless that absence is itself intended play.
-  boundary: Observed in Rolemaster SS/FRP injury, healing, and spell-failure procedures and
-    corroborated by practitioner rejection of campaign-disrupting recovery times; needs transfer
-    testing in campaigns with deliberately different downtime cadences.
-  evidence_count: 2
-  evidence_events:
-  - GAMEDESIGN_EV_0009
-  - GAMEDESIGN_EV_0012
-  evidence_origin:
-  - training_benchmark
-  - human_teaching
-  - user_feedback
-  likely_owners:
-  - PAT_match_the_cost_of_failure_to_the_players_prior_investment
-  - PAT_account_for_the_intended_play_environment_before_freezing_the_design
-  - PAT_separate_stabilization_from_recovery
-  interventions:
-  - training: For each long-duration setback, compare full fictional recovery time with expected
-      session cadence and record when the affected player regains meaningful agency, including
-      any healing, downtime, replacement, or alternate participation assumptions.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - long-term injury
-  - campaign cadence
-  - functional recovery
-  - player participation
-  - downtime
-  - healing infrastructure
-  - campaign-scale consequence
-  - stabilization vs healing
-  - campaign time
-  runtime_scope: generic
-  last_verified: '2026-09-03'
-- id: GAMEDESIGN_MEM_013
-  scope_type: topic
-  scope_id: state_granularity_vs_process_granularity
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: 'Twilight: 2000 1E and Version 2.2 produced comparable decision-relevant vehicle
-    component states through very different procedures. 1E traced penetrating energy through
-    internal components, while Version 2.2 mapped penetration margin into categorical minor/major
-    component results. The later procedure retained differentiated persistent state with substantially
-    less causal-resolution work. Cyberpunk 2020 FNFF corroborated that useful output detail
-    need not require equivalent state depth: hit location can route armor and limb consequences
-    while a global wound track carries overall injury, yet multi-hit automatic fire can still
-    multiply the consequence procedure beyond the efficient single-hit case. Shadowrun 4E
-    transferred the principle across unrelated subsystems: burst fire compressed many bullets
-    into one attack while preserving armor, damage type, wounds, knockdown, and healing state;
-    chase combat compressed continuous geometry into engagement ranges while preserving ramming,
-    escape, and passenger decisions; Device Rating compressed unimportant networked electronics
-    while leaving important nodes fully specified. The recurring lesson is to compress process
-    before consequence when consequence state drives later play.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Separating output-state granularity from causal-procedure granularity helps
-      preserve simulation consequences while reducing operator burden.
-  boundary: 'Observed in Twilight: 2000 vehicle damage, Cyberpunk 2020 personal combat, and
-    Shadowrun 4E firearm, chase, Matrix-device, and healing architecture. The exact safe compression
-    point depends on which final states remain decision-relevant.'
-  evidence_count: 3
-  evidence_events:
-  - GAMEDESIGN_EV_0011
-  - GAMEDESIGN_EV_0012
-  - GAMEDESIGN_EV_0014
-  evidence_origin:
-  - book_close_training
-  - human_teaching
-  likely_owners:
-  - PAT_preserve_decision_relevant_state_while_compressing_resolution_procedure
-  - DRILL_compare_state_detail_to_resolution_cost
-  - PAT_expand_resolution_detail_only_after_consequential_state_change
-  interventions:
-  - training: Hold final state distinctions constant while comparing a literal causal procedure
-      with a categorical mapping.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - state granularity
-  - process granularity
-  - vehicle damage
-  - categorical compression
-  - persistent consequence
-  - success-triggered resolution expansion
-  runtime_scope: generic
-  last_verified: '2026-09-04'
-- id: GAMEDESIGN_MEM_014
-  scope_type: topic
-  scope_id: stress_decision_throughput
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: 'Twilight: 2000 1E Coolness Under Fire demonstrated a stress model that reduces
-    adaptive decision throughput while allowing simple repetitive or precommitted behavior
-    to continue. The user preferred this behavioral model over Version 2.2 Initiative/Panic,
-    which was faster to operate but mainly modeled combat tempo and acute shock.'
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Stress can preserve trained competence and player agency by limiting reassessment
-      opportunities rather than applying only numeric performance penalties.
-  boundary: 'Observed in the Twilight: 2000 edition comparison; not yet transfer-tested against
-    other morale, panic, or cognitive-load systems.'
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0011
-  evidence_origin:
-  - book_close_training
-  - human_teaching
-  - user_feedback
-  likely_owners:
-  - PAT_model_stress_through_adaptive_decision_throughput
-  interventions:
-  - training: Compare a continuous stress-through-decision mechanic with an acute-shock or
-      flat-penalty alternative and record which player behaviors disappear.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - combat stress
-  - decision throughput
-  - hesitation
-  - Coolness Under Fire
-  - acute panic
-  - player agency
-  runtime_scope: generic
-  last_verified: '2026-09-03'
-- id: GAMEDESIGN_MEM_015
-  scope_type: topic
-  scope_id: participation_coverage
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: 'Cyberpunk 2020 Netrunning first showed that a specialist subsystem can have
-    strong internal decisions and important shared-world consequences while still creating
-    long non-specialist spectator time. Shadowrun Third Edition transferred the diagnostic
-    across three contrasting specialist structures: Matrix play remained a parallel specialist
-    game with strong shared-state outputs but weak shared-decision coupling; most Magic operated
-    as a specialist superstructure with teammate-facing decisions such as Spell Defense; and
-    Rigging was usually better integrated because privileged control operated through a shared
-    physical platform. Shared-state coupling therefore cannot be used as a proxy for shared-decision
-    coupling. Shadowrun 4E sharpened the distinction further: wireless AR materially integrated
-    hacking into shared physical state and a common initiative clock, while optimized VR still
-    concentrated live decisions in the specialist despite synchronization. Vehicle rigging
-    again succeeded through shared-platform control, whereas drone, spirit, and sprite fleets
-    showed the opposite failure mode—specialist over-participation through autonomous actor
-    multiplication. Synchronization, shared state, and shared decision ownership must therefore
-    be audited separately.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: orchestration
-    hypothesis: Specialist-system complexity must be budgeted partly by how many participants
-      can make consequential decisions while the subsystem is active.
-  boundary: Verified across Cyberpunk 2020 Netrunning and Shadowrun 3E/4E Matrix, Magic, astral,
-    vehicle, drone, spirit, and sprite play. Specialist systems are not inherently bad; participation
-    depends on exclusive state, verbs, cadence, optimized mode, shared-platform structure,
-    and whether one specialist also controls multiple autonomous actors.
-  evidence_count: 3
-  evidence_events:
-  - GAMEDESIGN_EV_0012
-  - GAMEDESIGN_EV_0013
-  - GAMEDESIGN_EV_0014
-  evidence_origin:
-  - training_benchmark
-  likely_owners:
-  - DRILL_audit_specialist_subsystem_participation
-  - PAT_define_roles_by_distinct_world_interfaces
-  interventions:
-  - training: Audit specialist sequences from the perspective of both the specialist and the
-      waiting participants.
-    isolation_result: improved
-    retention_result: partial
-    transfer_result: improved
-  retrieval_cues:
-  - participation coverage
-  - specialist subsystem
-  - someone-else test
-  - spectatorship
-  - procedural isolation
-  - fictional time
-  - attention time
-  - synchronization is not participation
-  - shared platform
-  - actor inflation
-  runtime_scope: generic
-  last_verified: '2026-09-04'
-- id: GAMEDESIGN_MEM_016
-  scope_type: topic
-  scope_id: capability_dependency
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: Cyberpunk 2020 repeatedly tied major capability gains to ongoing dependencies
-    or vulnerabilities through financed cyberware, Humanity loss, medical dependence, drugs,
-    and institutional leverage. Shadowrun 3E corroborated the broader pattern through Essence/Magic
-    incompatibility, harder magical healing for heavily cybered bodies, black-market acquisition
-    and legality, foci/signatures, contact favors, vehicle repair, and specialist equipment
-    that created support or exposure requirements. Shadowrun 4E further corroborated the pattern
-    through wireless connectivity that simultaneously created remote capability, attack surface,
-    and datatrails; augmentation that traded nuyen against irreversible Essence capacity and
-    magical healing compatibility; sustaining, hot-sim, and jumped-in control that exchanged
-    superior performance for ongoing penalties or neurological risk; contacts that converted
-    immediate access into favors; and lifestyle that converted stability into recurring economic
-    pressure. Greater power can therefore increase future obligations and interfaces rather
-    than simply remove constraints.
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Persistent costs create more campaign output than one-time prices when the
-      intended experience treats power as compromising or dependent.
-  boundary: Verified in two cyberpunk systems with different implementations. The principle
-    does not require every upgrade in every genre to carry a persistent cost; apply it where
-    dependence, compromise, maintenance, or exposure is part of the intended experience.
-  evidence_count: 3
-  evidence_events:
-  - GAMEDESIGN_EV_0012
-  - GAMEDESIGN_EV_0013
-  - GAMEDESIGN_EV_0014
-  evidence_origin:
-  - training_benchmark
-  likely_owners:
-  - PAT_attach_persistent_costs_to_capability_gains
-  - PAT_price_character_options_by_mechanical_leverage_and_constraint
-  interventions:
-  - training: Trace what persistent state remains after a character gains a major capability.
-    isolation_result: improved
-    retention_result: partial
-    transfer_result: improved
-  retrieval_cues:
-  - capability creates dependency
-  - persistent cost
-  - power cost
-  - augmentation
-  - obligation
-  - vulnerability
-  runtime_scope: generic
-  last_verified: '2026-09-04'
-- id: GAMEDESIGN_MEM_017
-  scope_type: topic
-  scope_id: scenario_addressable_character_state
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: Structured background generation and repeated practitioner campaign experience
-    both showed that character history becomes campaign machinery when relationships, enemies,
-    debts, mistakes, obligations, reputations, and other unresolved state can return in later
-    situations. The useful output is not biography length but persistent addresses where future
-    play can attach.
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Backstory complexity earns its cost when generated history leaves unresolved
-      state that future play can query.
-  boundary: Verified through one structured background system and independent practitioner reports
-    of recurring campaign use. This does not require every background detail to return; retain
-    unresolved state only where later activation can create meaningful play.
-  evidence_count: 2
-  evidence_events:
-  - GAMEDESIGN_EV_0012
-  - GAMEDESIGN_EV_0026
-  evidence_origin:
-  - training_benchmark
-  - human_teaching
-  likely_owners:
-  - PAT_turn_character_history_into_scenario_addressable_state
-  - PAT_generate_sandbox_situations_from_world_state_and_player_needs
-  interventions:
-  - training: Rewrite background outputs as unresolved state with motives, leverage, and response
-      capacity.
-    isolation_result: improved
-    retention_result: partial
-    transfer_result: untested
-  retrieval_cues:
-  - lifepath
-  - backstory hooks
-  - scenario-addressable state
-  - unresolved relationships
-  runtime_scope: generic
+  - XP penalty
+  - reward currency
+  - in-world consequence
+  - behaviour shaping
+  - public action
+  - causal response
   last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_018
-  scope_type: topic
-  scope_id: setting_action_topology
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: Playable setting detail repeatedly became most operational when locations,
-    organizations, and information exposed concrete verbs, resources, access conditions,
-    and preparation routes. Across multiple system analyses, information and access were
-    especially valuable when they removed, rerouted, or transformed later obstacles rather
-    than merely adding bonuses against an unchanged sequence. A non-blind original adventure
-    construction probe then applied the same principle in from-scratch creation through hub
-    services, social consequences, route choice, scouting, negotiation, danger, and safe-camp
-    decisions. Practitioner expedition play further showed that resource scarcity, support
-    access, reputation, and environment-specific rule behavior can make a place alter which
-    capabilities matter and how normally reliable options function.
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Playable setting detail is strongest when geography, factions, information,
-      resources, and local operating conditions create reusable action interfaces rather than
-      only descriptive lore.
-  boundary: Verified across several distinct system analyses, one original adventure construction
-    probe, and independent practitioner expedition experience. The original build demonstrated
-    application in creation, but its hub remained comparatively shallow in competing interests,
-    evolving local consequences, and return-visit state. The production probe was not blind
-    or controlled, and dynamic campaign evolution still requires further construction and
-    playtest evidence.
-  evidence_count: 5
-  evidence_events:
-  - GAMEDESIGN_EV_0012
-  - GAMEDESIGN_EV_0013
-  - GAMEDESIGN_EV_0014
-  - GAMEDESIGN_EV_0015
-  - GAMEDESIGN_EV_0027
-  evidence_origin:
-  - training_benchmark
-  - user_feedback
-  - human_teaching
-  likely_owners:
-  - PAT_build_playable_settings_as_action_topologies
-  - PAT_design_shared_problems_with_multiple_solution_interfaces
-  - PAT_use_in_world_information_as_a_scenario_interface
-  - PAT_express_faction_power_as_deployable_response_capacity
-  interventions:
-  - training: Audit locations, factions, and scenario hooks by the actions and solution interfaces
-      they expose.
-    isolation_result: improved
-    retention_result: partial
-    transfer_result: improved
-  retrieval_cues:
-  - action topology
-  - location affordance
-  - shared problem multiple interfaces
-  - in-world information
-  - deployable faction power
-  - original adventure construction
-  - town hub
-  - wilderness routes
-  - resource scarcity
-  - support access
-  - environmental rules
-  - local rule behavior
-  runtime_scope: generic
-  last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_019
-  scope_type: topic
-  scope_id: action_economy_multipliers
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: 'Shadowrun 3E showed that initiative advantages must be traced as action-economy
-    multipliers rather than ordinary sequencing bonuses. High Initiative could produce several
-    full Combat Phases in one three-second turn, each capable of invoking complete attack
-    and consequence procedures; early wounds could then reduce or remove an opponent''s later
-    actions, creating positive-feedback tempo dominance and unequal decision cadence. Shadowrun
-    4E independently retained the problem as an engine-wide power currency: augmentation,
-    magic, adepts, VR, astral play, drones, sprites, and other autonomous actors could grant
-    additional full Initiative Passes. The drone rules exposed a second multiplier: one cheap
-    command could activate several independently resolving three-pass actors, proving that
-    control bandwidth and actor bandwidth must be audited separately.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Action-count increases require multiplicative auditing because each extra
-      action can invoke full downstream procedure and can become self-reinforcing when early
-      success suppresses enemy future actions.
-  boundary: Repeated across Shadowrun 3E and 4E, including reflex enhancement, magical speed,
-    VR/astral modes, drones, spirits, sprites, and other autonomous actors. Transfer to unrelated
-    engines remains useful, but the multiplier diagnosis is no longer dependent on one edition's
-    initiative implementation.
-  evidence_count: 2
-  evidence_events:
-  - GAMEDESIGN_EV_0013
-  - GAMEDESIGN_EV_0014
-  evidence_origin:
-  - training_benchmark
-  likely_owners:
-  - DRILL_audit_action_economy_multipliers
-  - DRILL_profile_serial_resolution_latency
-  - DRILL_map_attribute_dependency_density
-  interventions:
-  - training: Compare a baseline cycle with a legal extra-action build and expand every additional
-      action through its downstream procedures and feedback.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - action economy
-  - initiative
-  - extra actions
-  - positive feedback
-  - first strike
-  - spotlight
-  - cadence multiplier
-  - control bandwidth
-  - actor bandwidth
-  - purchased action streams
-  runtime_scope: generic
-  last_verified: '2026-09-04'
-- id: GAMEDESIGN_MEM_020
-  scope_type: topic
-  scope_id: renewable_reserve_allocation
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: Shadowrun 3E Dice Pools demonstrated that a renewable reserve gains tactical
-    value when one finite pool can be spent across several uncertain demands before refresh.
-    Combat Pool forced offense versus Dodge versus damage-resistance decisions; Spell Pool
-    similarly traded effect, team defense, and Drain protection. Refreshing once per larger
-    cycle rather than per action preserved the opportunity cost even for characters with multiple
-    actions.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Temporary resources create meaningful risk budgeting when current expenditure
-      changes vulnerability to plausible later demands before the resource refreshes.
-  boundary: Observed in Shadowrun 3E Combat and Spell Pool architecture; other pool/resource
-    systems still require transfer testing.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0013
-  evidence_origin:
-  - training_benchmark
-  likely_owners:
-  - PAT_budget_renewable_reserves_against_future_demands
-  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
-  interventions:
-  - training: Run the same reserve with one known demand and with several uncertain demands
-      before refresh, then compare allocation diversity.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - dice pool
-  - renewable reserve
-  - resource allocation
-  - future demand
-  - offense defense tradeoff
-  - refresh cadence
-  runtime_scope: generic
-  last_verified: '2026-09-03'
-- id: GAMEDESIGN_MEM_021
-  scope_type: topic
-  scope_id: aggregate_justified_complexity
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: 'Shadowrun 3E contained relatively few major rules whose local purpose was
-    obviously empty: gear fields changed access/exposure, Magic produced Force/Drain decisions,
-    Matrix security modeled escalating detection, and vehicle state changed shared tactics.
-    Even so, the total human operating budget remained high because many individually justified
-    domains could converge in one session and one gamemaster had to integrate all of them.
-    Local justification therefore did not guarantee acceptable aggregate complexity. Shadowrun
-    4E then reduced many local costs through fixed-TN unification, Device Rating, grunt compression,
-    routine-action omission, abstract chase ranges, and shared timing, yet global integration
-    remained high because physical, Matrix, magical, vehicle, social, economic, legal, and
-    reputational states interacted more directly. The redesign therefore showed that interoperability
-    can improve local coherence while moving work into cross-domain state integration, and
-    that actor/event throughput must be budgeted separately from per-resolution complexity.'
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Complexity needs both local output justification and an aggregate concurrency/integration
-      budget, especially when player specialization distributes learning but facilitator responsibility
-      remains centralized.
-  boundary: Repeated across Shadowrun 3E and 4E. The exact global budget depends on table
-    size, domain concurrency, actor count, facilitator expertise, and how aggressively the
-    design compresses low-value state and routine procedures.
-  evidence_count: 2
-  evidence_events:
-  - GAMEDESIGN_EV_0013
-  - GAMEDESIGN_EV_0014
-  evidence_origin:
-  - training_benchmark
-  likely_owners:
-  - AP_run_a_simulation_budget_audit
-  - PAT_account_for_the_intended_play_environment_before_freezing_the_design
-  interventions:
-  - training: After local subsystem audits pass, sum simultaneously relevant procedure, state,
-      retrieval, and facilitator integration costs in one representative session.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - aggregate complexity
-  - justified complexity
-  - GM burden
-  - facilitator integration
-  - specialist domains
-  - complexity budget
-  - local versus global cost
-  - interoperability cost
-  - event throughput
-  runtime_scope: generic
-  last_verified: '2026-09-04'
-- id: GAMEDESIGN_MEM_022
-  scope_type: topic
-  scope_id: integrated_adventure_production
-  type: training_result
-  evidence_class: stochastic_performance
-  observation: In one non-blind low-level fantasy adventure production probe, applying the
-    Game Design canon coordinated many relevant decisions inside a single coherent artifact
-    without requiring card-by-card decomposition. The resulting adventure successfully combined
-    a bounded entry premise, redundant progress-critical information, setting action interfaces,
-    noncombat encounter responses, deliberate danger progression, telegraphed optional extreme
-    risk, accumulated-state changes to the climax, multiple executable outcomes, exploration-aligned
-    rewards, and referee-facing retrieval support. Structural design was stronger than professional
-    module prose, hub depth, and cartographic presentation. Prose and cartographic presentation
-    were not backed by auxiliary Writing or Cartography skills during the run; the comparatively
-    shallow hub remained a Game Design weakness.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Integrated production probes can test whether many Game Design owners coordinate
-      inside one coherent problem state, without proving causal improvement over an unassisted
-      run or isolating the effect of individual cards.
-  boundary: Observed once in an original Basic-era D&D level 1-3 adventure with a maximum
-    length of 30 pages. This was a non-blind skillset production probe, not a formal canonical
-    Drill or treatment/control comparison. The artifact was runnable on paper but not table-playtested,
-    so encounter lethality, advancement pace, live faction negotiation, and at-table retrieval
-    remain unverified. Baseline, isolation, retention, and transfer were not tested. Professional
-    writing and cartographic quality were not isolated Game Design tests because those auxiliary
-    skills were absent.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0015
-  evidence_origin:
-  - training_benchmark
-  - user_feedback
-  likely_owners:
-  - AP_design_a_playable_adventure
-  - PAT_build_playable_settings_as_action_topologies
-  - PAT_keep_progress_critical_information_from_becoming_a_single_failure_point
-  - PAT_define_encounter_response_space_by_intended_challenge
-  - PAT_shape_adventure_challenge_progression_deliberately
-  - PAT_make_climaxes_converge_accumulated_play_state
-  - PAT_prepare_executable_adventure_outcome_states
+  canon:
   - PAT_align_repeated_and_rewarded_behavior_with_intended_outcomes
-  interventions:
-  - training: Repeat the same production brief after adventure-module study and compare structural,
-      operational, and presentation quality without changing the underlying task constraints.
-    isolation_result: untested
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - integrated adventure production
-  - original adventure construction
-  - production brief
-  - multi-pattern application
-  - coherent artifact
-  - module benchmark
-  - town hub
-  - wilderness procedures
-  - morale reactions
-  runtime_scope: generic
-  last_verified: '2026-09-07'
-- id: GAMEDESIGN_MEM_023
-  scope_type: topic
-  scope_id: adventure_playtest_validation
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: Pre-play confidence and stakeholder approval did not reliably predict player-facing
-    adventure success. Direct play exposed failures in clue recoverability, challenge calibration,
-    map operability, recognizable challenge patterns, progression, and reward accessibility
-    that were not apparent during authoring or from prior experience running published adventures.
+  - PAT_build_playable_settings_as_action_topologies
+  evidence:
+  - GAMEDESIGN_EV_0024
+- id: GD_MEM_01M5DYG7Y23D38C7DR59X20NZY
+  claim: Experience operating finished adventures does not by itself train the prediction skills authoring
+    needs; running published material and anticipating how players will meet a new structure are different
+    competences.
+  claim_class: reach
+  claim_kind: stochastic
   confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Adventure authorship remains provisional until players interact with the designed
-      information, challenge, spatial, and reward structures; operating finished modules does
-      not automatically train the prediction skills needed to author new ones.
-  boundary: Observed through practitioner comparison of published-module experience and an
-    early home-authored adventure that required live intervention after multiple design assumptions
-    failed. Broader controlled adventure playtests remain needed.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0016
-  evidence_origin:
+  delta:
+    kinds:
+    - posture
+    - verification
+    statement: Do not let fluency at running published adventures stand in for authoring confidence; verify
+      a new structure against play rather than against operating experience.
+  envelope:
+    holds_in:
+    - the transition from running published adventures to authoring original ones
+    not_shown_in:
+    - broader controlled adventure playtests
+  provenance:
   - human_teaching
-  likely_owners:
-  - AP_run_an_evidence_driven_playtest_revision_cycle
+  scope: adventure_authoring_reach
+  retrieval_cues:
+  - running versus authoring
+  - transfer of competence
+  - published module experience
+  - prediction skill
+  - authoring reach
+  last_verified: '2026-09-08'
+  canon:
   - AP_design_a_playable_adventure
-  interventions:
-  - training: Treat a written adventure as provisional and playtest clue recovery, challenge
-      severity, map use, progression, and reward reachability before treating the design as
-      closed.
-    isolation_result: untested
-    retention_result: untested
-    transfer_result: untested
+  evidence:
+  - GAMEDESIGN_EV_0016
+- id: GD_MEM_01M5DYG7Y24G41AGXDR1MZR82Y
+  claim: 'Substitution breadth in a multi-currency character economy rewards mastery of the option catalog
+    itself: grade, mixing, capacity, and capital-versus-advancement exchanges let a player who knows the
+    whole catalog assemble the same capability more cheaply than one who knows only the obvious path,
+    with no timing advantage involved.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - verification
+    - judgment
+    statement: Price a capability along every legal substitution route the catalog allows, not just the
+      obvious one, and decide whether rewarding catalog knowledge is a skill this game wants to sell -
+      separately from any decision about purchase timing.
+  envelope:
+    holds_in:
+    - character systems whose capabilities can be assembled through several substitutable grades, components,
+      or capacity budgets
+    not_shown_in:
+    - an original character economy designed and played from scratch
+    conditions:
+    - exact substitution failures depend on the currencies and the campaign acquisition ecology
+  provenance:
+  - training_benchmark
+  scope: multi_currency_substitution
+  retrieval_cues:
+  - substitution economics
+  - catalog mastery
+  - ware grade
+  - capacity budget
+  - capital versus advancement
+  - same capability cheaper route
+  last_verified: '2026-09-04'
+  canon:
+  - PAT_price_character_options_by_mechanical_leverage_and_constraint
+  - PAT_attach_persistent_costs_to_capability_gains
+  evidence:
+  - GAMEDESIGN_EV_0014
+- id: GD_MEM_01M5DYG7Y2DVKMC0KKCMGCGCS2
+  claim: 'A shared randomizer is not a shared subsystem: several operational grammars can sit above one
+    die while still requiring different interpretation procedures, and substituting the competence half
+    of a pool changes what the roll measures while common resolution survives.'
+  claim_class: conduct
+  claim_kind: deterministic
+  confidence: repeated
+  delta:
+    kinds:
+    - verification
+    - judgment
+    statement: Audit interpretation procedure and competence source separately from the randomizer; a
+      shared die is not evidence that two subsystems share a procedure or an operator cost.
+  envelope:
+    holds_in:
+    - percentile, success-count, and fixed-target engines whose subsystems share one randomizer
+    not_shown_in:
+    - original system construction from a blank foundation
+  provenance:
+  - training_benchmark
+  - human_teaching
+  - user_feedback
+  scope: resolution_grammar_boundaries
+  retrieval_cues:
+  - shared die different grammar
+  - resolution grammar
+  - interpretation procedure
+  - competence architecture
+  - pool substitution
+  - unified resolution
+  last_verified: '2026-09-04'
+  canon:
+  - PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
+  evidence:
+  - GAMEDESIGN_EV_0009
+  - GAMEDESIGN_EV_0013
+  - GAMEDESIGN_EV_0014
+- id: GD_MEM_01M5DYG7Y2FJVEFHTWV6KTGE92
+  claim: Removing a rule is a legitimate repair when both the operator and the players reject it, but
+    that does not establish that every disliked element should be cut.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - action
+    - application_limit
+    statement: Treat removal as an available repair where operator and players agree the rule fails, and
+      look for the smallest correct owner of the defect before cutting anything else.
+  envelope:
+    holds_in:
+    - revision of a rule both the operator and the table reject in play
+    not_shown_in:
+    - elements disliked by only one side of the table
+  provenance:
+  - human_teaching
+  scope: rule_removal_repair
+  retrieval_cues:
+  - remove a rule
+  - removal as repair
+  - disliked element
+  - smallest correct owner
+  - cut or fix
+  last_verified: '2026-09-08'
+  canon:
+  - PAT_repair_the_smallest_correct_owner_of_a_confirmed_defect
+  - AP_run_an_evidence_driven_playtest_revision_cycle
+  evidence:
+  - GAMEDESIGN_EV_0028
+- id: GD_MEM_01M5DYG7Y2G85V5XWKYVB1NW1X
+  claim: 'Adventure hub construction is the shallowest part of this skill''s demonstrated adventure work:
+    competing interests, evolving local consequences, and return-visit state stay thin even where the
+    surrounding structure is strong.'
+  claim_class: reach
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - verification
+    - posture
+    statement: Treat a hub as unfinished until competing interests, evolving consequences, and return-visit
+      state are explicit, and claim no more for hub depth than the rest of the structure earns.
+  envelope:
+    holds_in:
+    - original adventure construction with a settlement or base of operations
+    not_shown_in:
+    - table play of a constructed hub across repeated return visits
+    - campaign-scale evolution of a constructed setting across a sequence of adventures
+  provenance:
+  - training_benchmark
+  - user_feedback
+  scope: adventure_hub_depth
+  retrieval_cues:
+  - hub depth
+  - town hub
+  - competing interests
+  - return-visit state
+  - shallow hub
+  - known weakness
+  last_verified: '2026-09-08'
+  canon:
+  - PAT_build_adventure_hubs_around_the_return_loop
+  - PAT_build_playable_settings_as_action_topologies
+  evidence:
+  - GAMEDESIGN_EV_0015
+- id: GD_MEM_01M5DYG7Y2H8P2EZ0C2511ECN8
+  claim: Once additional actions are purchasable they become an engine-wide power currency every subsystem
+    can sell, so augmentation, magic, alternate operating modes, and autonomous actors all become action-economy
+    vendors at once.
+  claim_class: conduct
+  claim_kind: deterministic
+  confidence: repeated
+  delta:
+    kinds:
+    - verification
+    - judgment
+    statement: Enumerate every subsystem that can grant an extra action before pricing any of them, and
+      treat the action economy as one shared budget rather than each grant locally.
+  envelope:
+    holds_in:
+    - engines where several unrelated subsystems can grant additional actions or passes
+    not_shown_in:
+    - engines unrelated to the two editions this was traced through
+  provenance:
+  - training_benchmark
+  scope: action_currency_sources
+  retrieval_cues:
+  - purchased action streams
+  - extra passes
+  - power currency
+  - action economy vendors
+  - cross-subsystem grants
+  last_verified: '2026-09-04'
+  canon:
+  - DRILL_audit_action_economy_multipliers
+  - PAT_price_character_options_by_mechanical_leverage_and_constraint
+  evidence:
+  - GAMEDESIGN_EV_0014
+- id: GD_MEM_01M5DYG7Y2H9DV3ZKKHSBQWDFN
+  claim: A single retained legacy dependency can dominate usability inside an otherwise improved subsystem,
+    so a refactor that cleans most of a structure but preserves one old coupling can leave the original
+    maintenance burden intact.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - verification
+    statement: After a subsystem refactor, re-walk the worst original maintenance path to see whether
+      it survived; improved surroundings do not prove the burden is gone.
+  envelope:
+    holds_in:
+    - edition-scale refactoring of character and skill subsystems
+    not_shown_in:
+    - an original character system built around reversible defaults
+  provenance:
+  - training_benchmark
+  - human_teaching
+  scope: legacy_dependency_drag
+  retrieval_cues:
+  - legacy dependency
+  - partial refactor
+  - retained coupling
+  - improved subsystem same burden
+  - usability bottleneck
+  last_verified: '2026-09-01'
+  canon:
+  - PAT_keep_persistent_capability_dependencies_local_and_explicit
+  evidence:
+  - GAMEDESIGN_EV_0008
+- id: GD_MEM_01M5DYG7Y2HF4XRH7CNCC6BJTM
+  claim: 'A rich consequence keeps costing after the roll that produced it: state maintenance, tracking,
+    and recovery work continue once the resolution itself has ended.'
+  claim_class: conduct
+  claim_kind: deterministic
+  confidence: repeated
+  delta:
+    kinds:
+    - verification
+    - judgment
+    statement: Cost a consequence across the sessions it persists rather than at the moment it resolves,
+      and count the tracking it leaves behind as part of its price.
+  envelope:
+    holds_in:
+    - critical-hit, injury, and status subsystems whose outcomes persist past resolution
+    not_shown_in:
+    - calibration against a new game designed from scratch
+  provenance:
+  - training_benchmark
+  - human_teaching
+  scope: consequence_maintenance_tail
+  retrieval_cues:
+  - state persistence cost
+  - post-resolution bookkeeping
+  - critical outcome tail
+  - tracking cost
+  - recovery work
+  - consequence price
+  last_verified: '2026-09-04'
+  canon:
+  - PAT_expand_resolution_detail_only_after_consequential_state_change
+  - AP_run_a_simulation_budget_audit
+  evidence:
+  - GAMEDESIGN_EV_0009
+- id: GD_MEM_01M5DYG7Y2K422MWJ8NNGRDYBG
+  claim: 'Pre-play confidence and stakeholder approval do not predict player-facing adventure success:
+    direct play exposes failures in clue recoverability, challenge calibration, map operability, progression,
+    and reward accessibility that are invisible during authoring.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - verification
+    - posture
+    statement: Hold an adventure's information, challenge, spatial, and reward structures as unvalidated
+      until players have interacted with them, however confident the author and reviewers are.
+  envelope:
+    holds_in:
+    - original adventure authoring taken to live play
+    not_shown_in:
+    - broader controlled adventure playtests
+  provenance:
+  - human_teaching
+  scope: adventure_playtest_validation
   retrieval_cues:
   - adventure playtest
   - author prediction
   - clue usability
   - encounter calibration
   - map operability
-  - player reception
-  runtime_scope: generic
+  - approval is not validation
   last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_024
-  scope_type: topic
-  scope_id: creative_completion_boundary
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: Continued refinement was not automatically improvement, and loss of enthusiasm was not reliable evidence that a design was bad. Composition-based creative work required a deliberate stopping criterion after consequential defects were addressed; burnout could reduce motivation independently of design quality.
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Revision needs persistence through consequential repair and explicit completion criteria; subjective motivation is a separate signal and should not substitute for evidence about design quality or completion.
-  boundary: Practitioner generalization across writing and other art forms, plus direct experience of burnout reducing enthusiasm independently of design quality. Rule-removal experience supports removal as a legitimate repair when both operator and players reject a rule, but does not establish that every disliked element should be cut.
-  evidence_count: 2
-  evidence_events:
-  - GAMEDESIGN_EV_0017
-  - GAMEDESIGN_EV_0028
-  evidence_origin:
-  - human_teaching
-  likely_owners:
-  - PAT_define_completion_against_a_living_game_design_document
+  canon:
   - AP_run_an_evidence_driven_playtest_revision_cycle
-  - PAT_repair_the_smallest_correct_owner_of_a_confirmed_defect
-  interventions:
-  - training: After consequential defects are addressed, apply an explicit completion criterion instead of continuing revision merely because more changes remain possible; distinguish burnout or motivation loss from evidence that the design itself has failed.
-    isolation_result: untested
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - completion
-  - endless refinement
-  - stopping rule
-  - revision boundary
-  - done enough
-  - burnout
-  - motivation loss
-  - design quality
-  - remove a rule
-  runtime_scope: generic
-  last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_025
-  scope_type: topic
-  scope_id: realism_expectation_varies_by_audience
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: Fantasy realism was not a universal audience requirement in practitioner experience.
-    Entering a fantastical premise could support broad suspension of disbelief without evaluating
-    the game by real-world plausibility.
+  - AP_design_a_playable_adventure
+  evidence:
+  - GAMEDESIGN_EV_0016
+- id: GD_MEM_01M5DYG7Y2PTA5GCVYY7JET0FD
+  claim: A construction system can offer many legal configuration choices while producing little meaningful
+    build differentiation, because a few parent variables determine most downstream capability and the
+    optimal choices converge; configuration count is a poor proxy for breadth.
+  claim_class: conduct
+  claim_kind: deterministic
   confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Realism and plausibility should be treated as audience- and genre-dependent
-      requirements rather than universal quality gates.
-  boundary: Observed in one practitioner's long-running fantasy play preference; other audiences
-    may value realism or causal plausibility much more strongly.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0018
-  evidence_origin:
-  - human_teaching
-  likely_owners:
-  - PAT_define_the_intended_player_before_designing_for_them
-  - PAT_translate_genre_into_play_requirements
-  interventions:
-  - training: Before enforcing realism as a setting requirement, establish whether the intended
-      audience and genre actually value it.
-    isolation_result: untested
-    retention_result: untested
-    transfer_result: untested
+  delta:
+    kinds:
+    - verification
+    statement: Test a construction system by building two same-class characters or craft and comparing
+      how far their roles actually diverge, rather than by counting the legal options.
+  envelope:
+    holds_in:
+    - point- or component-based construction subsystems for characters, vehicles, or craft
+    not_shown_in:
+    - construction-heavy games beyond the one comparison that produced this
+  provenance:
+  - training_benchmark
+  - user_feedback
+  scope: construction_system_breadth
   retrieval_cues:
-  - realism
-  - plausibility
-  - suspension of disbelief
-  - fantasy audience
-  - genre expectation
-  runtime_scope: generic
-  last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_026
-  scope_type: topic
-  scope_id: fictional_delay_as_pacing_pressure
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: When characters remained idle in a dangerous location without maintaining vigilance,
-    letting fictional time and exposure produce wandering threats made delay consequential
-    and usually refocused play. The encounter functioned as world response rather than neutral
-    filler.
+  - construction system
+  - build variety
+  - false choice
+  - configuration breadth
+  - same-class divergence
+  - parent variable
+  last_verified: '2026-08-30'
+  canon:
+  - DRILL_reverse_engineer_a_game_through_play
+  evidence:
+  - GAMEDESIGN_EV_0004
+- id: GD_MEM_01M5DYG7Y2PYCSWTSX5NJHZVNS
+  claim: Complexity is defensible where the added rule creates a meaningful decision, a useful consequence,
+    or a reusable capability, and indefensible where it produces none of the three.
+  claim_class: conduct
+  claim_kind: stochastic
   confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Pacing pressure is stronger when delay costs emerge from established world
-      activity, exposure, deadlines, or resource use than when extra encounters are inserted
-      only to create motion.
-  boundary: Repeated in practitioner-run sessions where the party remained exposed in unsafe
-    locations. It does not justify punishing out-of-character socializing when no in-fiction
-    time or risk has accrued.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0019
-  evidence_origin:
+  delta:
+    kinds:
+    - judgment
+    statement: Ask what each layer of complexity buys in play before keeping it, and treat a rule that
+      buys no decision, consequence, or capability as removable rather than as neutral detail.
+  envelope:
+    holds_in:
+    - comparative analysis of crunch-heavy rulesets across several unrelated engines
+    not_shown_in:
+    - calibration against a new game designed from scratch
+  provenance:
+  - training_benchmark
+  - user_feedback
   - human_teaching
-  likely_owners:
-  - PAT_shape_adventure_pace_through_consequential_state_change
-  - PAT_anchor_high_impact_content_before_randomizing_the_remainder
-  interventions:
-  - training: When fictional delay matters, attach consequences to established exposure, vigilance,
-      deadlines, resources, or moving threats instead of adding arbitrary activity.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
+  scope: complexity_value
   retrieval_cues:
-  - pacing
-  - wandering encounter
-  - delay cost
-  - idle party
-  - vigilance
-  - world keeps moving
-  runtime_scope: generic
-  last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_027
-  scope_type: topic
-  scope_id: misdirection_information_trust
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: Direct facilitator deception could serve engagement or story progression, but
-    deception-dense play could train players to distrust nearly every observation. Once broad
-    distrust became rational, selective investigation gave way to exhaustive suspicion and
-    pacing suffered.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Misdirection needs a trustworthy-enough surrounding information environment
-      and a meaningful later interaction or payoff; the design problem is not simply whether
-      the facilitator ever states something false.
-  boundary: Supported by practitioner experience with direct deception and with an extremely
-    deception-dense published dungeon. Different genres may intentionally sustain higher uncertainty.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0020
-  evidence_origin:
+  - crunch
+  - complexity
+  - meaningful decisions
+  - what does this rule buy
+  - healthy complexity
+  - remove a rule
+  last_verified: '2026-09-04'
+  canon:
+  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  - PAT_expand_resolution_detail_only_after_consequential_state_change
+  evidence:
+  - GAMEDESIGN_EV_0001
+  - GAMEDESIGN_EV_0014
+- id: GD_MEM_01M5DYG7Y2QFR3EHW559K0GGFN
+  claim: A mechanically coherent consequence becomes a participation problem once its fictional recovery
+    duration exceeds the campaign's active cadence; a wound can stay severe and specific without full
+    anatomical recovery time equalling total player inactivity.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - judgment
+    - action
+    statement: Set when meaningful participation returns separately from when the fiction says healing
+      completes, and name the campaign infrastructure that makes the gap playable.
+  envelope:
+    holds_in:
+    - long-duration injury, trauma, and failure consequences in campaign play
+    not_shown_in:
+    - campaigns with deliberately different downtime cadences
+    conditions:
+    - unless the character's absence is itself the intended play
+  provenance:
+  - training_benchmark
   - human_teaching
-  likely_owners:
-  - PAT_make_misdirection_playable_rather_than_arbitrary
-  - PAT_give_high_consequence_risks_a_learnable_information_basis
-  interventions:
-  - training: Audit deceptive information for play function, challenge routes, later understanding,
-      and the remaining baseline of ordinary trust.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
+  - user_feedback
+  scope: consequence_duration_and_campaign_cadence
   retrieval_cues:
-  - misdirection
-  - deception
-  - information trust
-  - paranoia
-  - investigation
-  - GM lie
-  runtime_scope: generic
-  last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_028
-  scope_type: pattern
-  scope_id: PAT_compress_repeated_minor_actors_into_shared_state
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: A very large combat became materially slower when many NPCs required full individual
-    resolution. The runtime problem came from repeated low-decision actor servicing rather
-    than from the fictional scale itself.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Mass encounters benefit from choosing representation fidelity by scene function
-      and decision value before committing to independent actor cycles.
-  boundary: Observed in practitioner play with a very large published battle; exact compression
-    techniques remain system- and scene-dependent.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0021
-  evidence_origin:
+  - long-term injury
+  - campaign cadence
+  - functional recovery
+  - downtime
+  - player participation
+  - healing infrastructure
+  - sidelined character
+  last_verified: '2026-09-03'
+  canon:
+  - PAT_match_the_cost_of_failure_to_the_players_prior_investment
+  - PAT_account_for_the_intended_play_environment_before_freezing_the_design
+  evidence:
+  - GAMEDESIGN_EV_0009
+  - GAMEDESIGN_EV_0012
+- id: GD_MEM_01M5DYG7Y2QT51M97F7VYZHK18
+  claim: A large content vocabulary stays cheap at runtime when ordinary entry points reuse one shallow
+    common resolver and specificity lives in roles, access, persistent state, costs, and consequences
+    rather than in resolution procedure.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - action
+    - judgment
+    statement: Spend breadth on content and specificity on world interfaces, and keep the common resolver
+      shallow instead of adding a resolution procedure per content domain.
+  envelope:
+    holds_in:
+    - skill- and equipment-heavy systems carrying many professional roles
+    not_shown_in:
+    - original system construction from a blank foundation
+  provenance:
+  - training_benchmark
   - human_teaching
-  likely_owners:
-  - PAT_compress_repeated_minor_actors_into_shared_state
-  - PAT_preserve_decision_relevant_state_while_compressing_resolution_procedure
-  interventions:
-  - training: Before resolving a mass encounter, identify which actor distinctions create
-      decisions and compress repeated low-value state or procedure.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
+  scope: content_breadth_runtime_cost
   retrieval_cues:
-  - mass combat
-  - horde
-  - many NPCs
-  - bookkeeping
-  - actor compression
-  - table drag
-  runtime_scope: generic
-  last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_029
-  scope_type: topic
-  scope_id: force_visibility_and_surprise
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: Advance knowledge of the full opposing force was not universally preferable.
-    Surprise reinforcements could be enjoyable, while visible force size could support informed
-    commitment; the useful treatment depended on genre, situation, and the decision the encounter
-    was meant to test.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Force visibility is an information-design choice rather than a universal fairness
-      rule. Reveal enough for the intended decision, while preserving uncertainty when surprise
-      is part of the experience.
-  boundary: Practitioner judgment across multiple encounter types; not an isolated comparison
-    of otherwise identical encounters.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0021
-  evidence_origin:
+  - deep vocabulary shallow resolver
+  - content breadth
+  - runtime cost
+  - role specificity
+  - world interfaces
+  - large skill list
+  last_verified: '2026-09-04'
+  canon:
+  - PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
+  - PAT_define_roles_by_distinct_world_interfaces
+  evidence:
+  - GAMEDESIGN_EV_0012
+  - GAMEDESIGN_EV_0014
+- id: GD_MEM_01M5DYG7Y2R1FDHAR771WNE042
+  claim: 'Local operating conditions make a place change which capabilities matter: resource scarcity,
+    support access, reputation, and environment-specific rule behaviour alter how normally reliable options
+    function.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - action
+    - judgment
+    statement: Give a region one or two operating conditions that change how reliable options behave there,
+      rather than differentiating it only by description or encounter list.
+  envelope:
+    holds_in:
+    - hostile-territory, wilderness, and expedition play
+    not_shown_in:
+    - dynamic campaign-scale evolution of a setting over long play
+  provenance:
+  - training_benchmark
   - human_teaching
-  likely_owners:
-  - PAT_give_high_consequence_risks_a_learnable_information_basis
+  scope: local_operating_conditions
+  retrieval_cues:
+  - resource scarcity
+  - support access
+  - environmental rules
+  - local rule behavior
+  - expedition
+  - hostile territory
+  last_verified: '2026-09-08'
+  canon:
+  - PAT_build_playable_settings_as_action_topologies
+  - PAT_account_for_the_intended_play_environment_before_freezing_the_design
+  evidence:
+  - GAMEDESIGN_EV_0027
+- id: GD_MEM_01M5DYG7Y2R41AHTXEFVS7CX3B
+  claim: Replacing an established answer to an already-solved question carries migration and relearning
+    cost even when the replacement is mechanically sound, while a new mechanic is easier to justify when
+    it answers a genuinely new question.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - judgment
+    statement: Before replacing a working high-frequency answer, price the relearning it forces on existing
+      users, and prefer spending a new mechanic on a question nothing already answers.
+  envelope:
+    holds_in:
+    - revision of installed systems with an existing audience and play history
+    not_shown_in:
+    - original system construction from a blank foundation
+    - systems with no installed audience to migrate
+  provenance:
+  - training_benchmark
+  - human_teaching
+  - user_feedback
+  scope: migration_cost
+  retrieval_cues:
+  - migration cost
+  - relearning cost
+  - resolution replacement
+  - installed audience
+  - already-solved question
+  - compatibility
+  last_verified: '2026-09-02'
+  canon:
+  - PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
+  evidence:
+  - GAMEDESIGN_EV_0005
+  - GAMEDESIGN_EV_0008
+- id: GD_MEM_01M5DYG7Y2SADDHJG0MNRBK250
+  claim: 'Individually conditional rules become expensive in combination: several separately cheap conditional
+    modules that can fire together cost far more than their isolated costs suggest.'
+  claim_class: conduct
+  claim_kind: deterministic
+  confidence: repeated
+  delta:
+    kinds:
+    - verification
+    - judgment
+    statement: Cost a conditional rule by what it costs when it fires alongside the other conditionals
+      it can co-activate with, never by its cost in isolation.
+  envelope:
+    holds_in:
+    - modular systems with many conditional modifiers feeding shared resources or derived values
+    not_shown_in:
+    - calibration against a new game designed from scratch
+  provenance:
+  - training_benchmark
+  - human_teaching
+  scope: concurrent_rule_activation
+  retrieval_cues:
+  - concurrent activation
+  - conditional rules
+  - combined cost
+  - modifier stacking
+  - co-activation
+  - interaction density
+  last_verified: '2026-09-04'
+  canon:
+  - AP_run_a_simulation_budget_audit
+  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  evidence:
+  - GAMEDESIGN_EV_0007
+  - GAMEDESIGN_EV_0009
+- id: GD_MEM_01M5DYG7Y2SSYV5RRR9EKHK87V
+  claim: Information and access are most valuable when they remove, reroute, or transform a later obstacle
+    rather than adding a bonus against an unchanged sequence.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - judgment
+    - action
+    statement: Spend a clue or an access grant on changing which obstacle comes next, not on a modifier
+      applied to the obstacle that was always coming.
+  envelope:
+    holds_in:
+    - scenario information design across several system analyses and one original build
+    not_shown_in:
+    - dynamic campaign-scale evolution of a setting over long play
+  provenance:
+  - training_benchmark
+  - human_teaching
+  scope: scenario_information_design
+  retrieval_cues:
+  - in-world information
+  - clue value
+  - reroute the obstacle
+  - access as a key
+  - information interface
+  - scouting
+  last_verified: '2026-09-08'
+  canon:
+  - PAT_use_in_world_information_as_a_scenario_interface
   - PAT_layer_adventure_information_by_how_players_can_access_it
-  interventions:
-  - training: Choose force visibility according to the commitment players are expected to
-      make and whether uncertainty or surprise is part of the intended challenge.
-    isolation_result: untested
-    retention_result: untested
-    transfer_result: untested
+  evidence:
+  - GAMEDESIGN_EV_0013
+  - GAMEDESIGN_EV_0015
+- id: GD_MEM_01M5DYG7Y2T3PZNS60328XQ23K
+  claim: 'Advancement price, advancement permission, and fictional cause are three separable things: a
+    trait can need an in-world cause as well as points, and fiction can grant or remove a trait without
+    the point total being conserved.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - action
+    - judgment
+    statement: Decide separately what a capability costs, what permits its purchase, and what in the fiction
+      caused it, instead of making build currency manufacture the fiction.
+  envelope:
+    holds_in:
+    - advancement systems with causal purchase restrictions on learned and social traits
+    not_shown_in:
+    - another advancement system with causal purchase restrictions
+  provenance:
+  - human_teaching
+  - training_benchmark
+  - user_feedback
+  scope: causal_advancement
+  retrieval_cues:
+  - advancement
+  - fictional cause
+  - purchase permission
+  - trait gained in play
+  - training
+  - price permission cause
+  last_verified: '2026-09-01'
+  canon:
+  - PAT_derive_character_capabilities_from_expected_play
+  - PAT_price_character_options_by_mechanical_leverage_and_constraint
+  evidence:
+  - GAMEDESIGN_EV_0008
+- id: GD_MEM_01M5DYG7Y2T8NE80TD3YRE8YR6
+  claim: 'Force visibility is an information-design choice rather than a universal fairness rule: surprise
+    reinforcements can be enjoyable while visible force size supports informed commitment, so reveal what
+    the encounter''s intended decision needs.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - judgment
+    - action
+    statement: Name the decision an encounter is meant to test, then reveal exactly the force information
+      that decision requires and keep the rest uncertain where surprise is the point.
+  envelope:
+    holds_in:
+    - encounter design across combat, negotiation, and avoidance situations
+    not_shown_in:
+    - controlled comparison of otherwise identical encounters
+  provenance:
+  - human_teaching
+  scope: force_visibility
   retrieval_cues:
   - reinforcements
   - surprise
   - enemy force size
   - telegraphing
   - informed commitment
-  runtime_scope: generic
+  - information design
   last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_030
-  scope_type: topic
-  scope_id: dramatic_structure_as_optional_engagement
-  type: known_boundary
-  evidence_class: stochastic_performance
-  observation: Playable flashbacks or temporary-character scenes were viable in practitioner
-    experience, but narrative drama was not required for engagement. Exploration, tactical
-    challenge, puzzles, dungeon-crawl play, and mechanics could also carry satisfying adventures.
-  confidence: provisional
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Dramatic structure is one engagement architecture among several; use it when
-      it supports the intended experience instead of importing screenplay structure as a universal
-      adventure skeleton.
-  boundary: Practitioner experience spans both story-driven and challenge/exploration-driven
-    play; individual groups may strongly prefer one mode.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0022
-  evidence_origin:
-  - human_teaching
-  likely_owners:
-  - PAT_structure_adventure_narratives_with_milestones_plot_beats_and_player_agency
-  - PAT_define_the_intended_player_before_designing_for_them
-  interventions:
-  - training: Choose dramatic beats, playable flashbacks, exploration structure, tactical
-      challenge, or other engagement forms according to the intended play rather than a universal
-      narrative template.
-    isolation_result: untested
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - dramatic structure
-  - flashback
-  - temporary character
-  - exploration
-  - puzzle
-  - story optional
-  runtime_scope: generic
-  last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_031
-  scope_type: pattern
-  scope_id: PAT_build_adventure_hubs_around_the_return_loop
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: Recurring NPCs and local lore could become stronger motives for returning to
-    a campaign hub than practical services alone. Players repeatedly remembered and voluntarily
-    sought familiar local people, who could become informal contacts and information nodes
-    without facilitator prompting.
+  canon:
+  - PAT_give_high_consequence_risks_a_learnable_information_basis
+  - PAT_layer_adventure_information_by_how_players_can_access_it
+  evidence:
+  - GAMEDESIGN_EV_0021
+- id: GD_MEM_01M5DYG7Y2W1EEZ98YJN3X68P3
+  claim: 'Where complexity sits changes its value: substantial opt-in complexity attached to a new capability
+    can be welcomed, while small mandatory complexity inserted into an already satisfactory high-frequency
+    procedure is experienced as friction.'
+  claim_class: conduct
+  claim_kind: stochastic
   confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Recurring hubs can accumulate social continuity and attachment in parallel
-      with logistics; remembered people and local concerns create a persistent social-information
-      network that supports later play.
-  boundary: Repeated across practitioner-run campaigns with familiar settlements and recurring
-    local NPCs. Temporary staging points may not need the same social depth.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0023
-  evidence_origin:
+  delta:
+    kinds:
+    - judgment
+    - action
+    statement: Attach new complexity to opt-in capability rather than to a working high-frequency procedure,
+      and weight a rule's cost by how often play is forced through it.
+  envelope:
+    holds_in:
+    - revision and extension of established rulesets with satisfactory core procedures
+    not_shown_in:
+    - calibration against a new game designed from scratch
+  provenance:
+  - training_benchmark
+  - user_feedback
   - human_teaching
-  likely_owners:
-  - PAT_build_adventure_hubs_around_the_return_loop
-  - PAT_run_consequential_npcs_from_executable_social_state
-  interventions:
-  - training: When a hub is meant to recur, track whether players remember and voluntarily
-      seek specific people, places, relationships, or local concerns across visits.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
+  scope: complexity_placement
+  retrieval_cues:
+  - complexity placement
+  - opt-in complexity
+  - high-frequency friction
+  - mandatory complexity
+  - where to put a rule
+  - purposeful friction
+  last_verified: '2026-09-04'
+  canon:
+  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  - PAT_expand_resolution_detail_only_after_consequential_state_change
+  evidence:
+  - GAMEDESIGN_EV_0005
+  - GAMEDESIGN_EV_0006
+- id: GD_MEM_01M5DYG7Y2W3JE3TR4Q8QNSJYZ
+  claim: 'Realism and plausibility are audience- and genre-dependent requirements rather than universal
+    quality gates: entering a fantastical premise can support broad suspension of disbelief without the
+    game being evaluated against real-world plausibility.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - judgment
+    statement: Establish how much plausibility the intended audience actually requires before treating
+      a realism objection as a defect.
+  envelope:
+    holds_in:
+    - fantastical-premise games with an audience that accepts the premise
+    not_shown_in:
+    - audiences that value realism or causal plausibility strongly
+  provenance:
+  - human_teaching
+  scope: realism_expectation
+  retrieval_cues:
+  - realism
+  - plausibility
+  - suspension of disbelief
+  - fantasy audience
+  - genre expectation
+  - universal quality gate
+  last_verified: '2026-09-08'
+  canon:
+  - PAT_define_the_intended_player_before_designing_for_them
+  - PAT_translate_genre_into_play_requirements
+  evidence:
+  - GAMEDESIGN_EV_0018
+- id: GD_MEM_01M5DYG7Y2WXAD6RYN9VJ2VSTZ
+  claim: Recurring people and local concerns become a stronger motive for returning to a hub than services
+    alone, accumulating a persistent social-information network that players seek out without prompting.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - action
+    statement: Give a recurring hub named people with their own concerns alongside its services, and let
+      them accumulate into contacts and information nodes across visits.
+  envelope:
+    holds_in:
+    - recurring campaign hubs and familiar settlements across repeated visits
+    not_shown_in:
+    - temporary staging points visited once
+  provenance:
+  - human_teaching
+  scope: campaign_hub_continuity
   retrieval_cues:
   - hub
   - recurring NPC
@@ -1605,94 +868,249 @@ entries:
   - local lore
   - return motive
   - social continuity
-  runtime_scope: generic
+  - information node
   last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_032
-  scope_type: pattern
-  scope_id: PAT_build_playable_settings_as_action_topologies
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: Populated settlements materially changed party behavior through weapon restrictions,
-    guard intervention, witnesses, and reputation effects. Causal social and institutional
-    response mattered more in practitioner experience than abstract XP manipulation when combat-oriented
-    players acted in public spaces.
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: 'Functioning social environments are active action topologies: laws, institutions,
-      witnesses, routines, and reputation change the practical consequences of otherwise available
-      capabilities.'
-  boundary: Repeated across practitioner city and settlement play. The intensity and form
-    of social response depend on setting, genre, authority, and the visibility of the action.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0024
-  evidence_origin:
-  - human_teaching
-  likely_owners:
-  - PAT_build_playable_settings_as_action_topologies
-  - PAT_align_repeated_and_rewarded_behavior_with_intended_outcomes
-  interventions:
-  - training: When designing populated play spaces, test how laws, witnesses, institutions,
-      reputation, and ordinary routines alter the consequences of common player actions.
-    isolation_result: improved
-    retention_result: untested
-    transfer_result: untested
-  retrieval_cues:
-  - city adventure
-  - law
-  - guards
-  - peace tie
-  - reputation
-  - witnesses
-  - public combat
-  runtime_scope: generic
-  last_verified: '2026-09-08'
-- id: GAMEDESIGN_MEM_033
-  scope_type: topic
-  scope_id: campaign_accumulated_attachment_and_retrospective_value
-  type: successful_tendency
-  evidence_class: stochastic_performance
-  observation: Recurring people, places, lore, and prior events could accumulate meaning across
-    sessions until later consequences carried emotional weight that isolated plot events would
-    not. Some players also kept and reread journals of their parties’ adventures, indicating
-    that campaign continuity can create durable retrospective narrative value beyond immediate
-    session utility.
-  confidence: repeated
-  status: active
-  diagnosis:
-    failure_layer: training
-    hypothesis: Worldbuilding and campaign continuity can create stored emotional and retrospective
-      value through familiarity, history, and remembered relationships even when individual
-      details do not immediately change mechanics or the next encounter.
-  boundary: Observed through practitioner experience with recurring campaign NPCs, familiar
-    locations, accumulated lore, later emotional consequences, and multiple players who journaled
-    and reread campaign histories. It does not establish that every campaign benefits from
-    dense lore or that all background detail earns its cost.
-  evidence_count: 1
-  evidence_events:
-  - GAMEDESIGN_EV_0025
-  evidence_origin:
-  - human_teaching
-  likely_owners:
+  canon:
   - PAT_build_adventure_hubs_around_the_return_loop
-  - PAT_build_stake_weight_through_player_investment_before_threatening_it
-  - PAT_spend_worldbuilding_detail_where_it_changes_play
-  interventions:
-  - training: When evaluating recurring setting detail, test not only immediate action utility
-      but also whether people, places, history, and lore accumulate attachment, future story
-      leverage, or retrospective value across play.
-    isolation_result: untested
-    retention_result: untested
-    transfer_result: untested
+  - PAT_run_consequential_npcs_from_executable_social_state
+  evidence:
+  - GAMEDESIGN_EV_0023
+- id: GD_MEM_01M5DYG7Y2XDQDNYX08JBABE26
+  claim: 'Loss of enthusiasm is not evidence that a design is bad: burnout reduces motivation independently
+    of quality, so subjective motivation is a separate signal from evidence about the work.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - judgment
+    statement: When motivation drops, read it as a state of the author rather than a verdict on the design,
+      and seek evidence about quality separately before cutting anything.
+  envelope:
+    holds_in:
+    - long composition-based creative projects where enthusiasm declines over time
+    not_shown_in:
+    - work with an externally imposed completion standard rather than an authored one
+  provenance:
+  - human_teaching
+  scope: design_motivation_signals
   retrieval_cues:
-  - campaign continuity
-  - lore
-  - recurring NPC
-  - attachment
-  - campaign journal
-  - retrospective value
-  - setting history
-  runtime_scope: generic
+  - burnout
+  - motivation loss
+  - design quality
+  - enthusiasm is not evidence
+  - author state
   last_verified: '2026-09-08'
+  canon:
+  - PAT_define_completion_against_a_living_game_design_document
+  evidence:
+  - GAMEDESIGN_EV_0028
+- id: GD_MEM_01M5DYG7Y2XQHA1WTXZAEJZYQZ
+  claim: A genre or supplement mechanic can serve as a laboratory, prove broadly reusable, become shared
+    grammar, and then make older duplicate subsystems removable; consolidating many specialized tables
+    into shared structures plus compact differentiating data cuts retrieval fragmentation without erasing
+    the output differences that mattered.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - action
+    - judgment
+    statement: Promote a proven local mechanic to shared grammar and then retire what it duplicates, keeping
+      the differentiating data rather than the duplicate procedure.
+  envelope:
+    holds_in:
+    - mature rulesets carrying several specialized subsystems that answer the same question
+    not_shown_in:
+    - live refactoring of a current original game
+    conditions:
+    - the local mechanic has already been exercised widely enough to show it generalizes
+  provenance:
+  - training_benchmark
+  - human_teaching
+  scope: subsystem_consolidation
+  retrieval_cues:
+  - genre supplement laboratory
+  - shared table plus parameters
+  - lookup consolidation
+  - retire a duplicate subsystem
+  - retrieval fragmentation
+  last_verified: '2026-09-02'
+  canon:
+  - PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
+  evidence:
+  - GAMEDESIGN_EV_0008
+  - GAMEDESIGN_EV_0009
+- id: GD_MEM_01M5DYG7Y2Y611X2KY85RYF930
+  claim: Consolidating a mature rules corpus improves novice onboarding as well as veteran retrieval only
+    when the advertised core can actually be executed and high-frequency tables sit where they are used;
+    reindexing a corpus whose common path still crosses books serves only readers who already know it.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - verification
+    - action
+    statement: Before counting a consolidation as an onboarding improvement, run one ordinary procedure
+      to a terminal result using only the declared core, and move the tables that procedure needed next
+      to it; a better index is not an onboarding repair.
+  envelope:
+    holds_in:
+    - edition transitions that reorganize a large existing rules corpus
+    not_shown_in:
+    - a newly authored edition transition
+    conditions:
+    - the corpus is large enough that the common path can cross volumes at all
+  provenance:
+  - training_benchmark
+  - human_teaching
+  scope: consolidation_that_serves_both_audiences
+  retrieval_cues:
+  - executable core
+  - advertised core
+  - table locality
+  - reference locality
+  - cross-book dependency
+  - consolidation onboarding
+  - reindex a corpus
+  last_verified: '2026-09-02'
+  canon:
+  - PAT_keep_common_path_procedures_inside_the_declared_playable_core
+  - PAT_design_rules_artifacts_for_learning_and_retrieval
+  evidence:
+  - GAMEDESIGN_EV_0009
+- id: GD_MEM_01M5DYG7Y2YZDRBMHNK87REMZJ
+  claim: Extension stays coherent while a new requirement can be expressed through the existing mechanical
+    vocabulary; repeated need for adapters, bespoke resolution rules, or exception chains marks a design
+    that has grown past its original architecture.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - verification
+    - judgment
+    statement: Test the existing primitives against the new requirement first, and treat a third adapter
+      or exception chain as the refactoring trigger rather than as one more local fix.
+  envelope:
+    holds_in:
+    - extension and accretion review of established rulesets
+    not_shown_in:
+    - live refactoring of a current original game
+  provenance:
+  - training_benchmark
+  - human_teaching
+  - user_feedback
+  scope: extension_and_refactoring
+  retrieval_cues:
+  - refactor
+  - add a new rule
+  - adapter rule
+  - exception chain
+  - subsystem accretion
+  - refactoring trigger
+  last_verified: '2026-09-02'
+  canon:
+  - PAT_reuse_core_resolution_grammar_before_adding_new_mechanics
+  evidence:
+  - GAMEDESIGN_EV_0002
+  - GAMEDESIGN_EV_0005
+- id: GD_MEM_01M5DYG7Y2Z8HNSXQ9VMZRNTFC
+  claim: 'Labelling a procedure a specialist or optional mode does not make its cost acceptable when the
+    genre makes it common: a genre-defining action gets taken often however the rulebook files it.'
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - judgment
+    statement: Price a procedure by how often the genre will invoke it, not by the section it sits in
+      or the label attached to it.
+  envelope:
+    holds_in:
+    - genre-defining procedures filed as optional or specialist modes
+    not_shown_in:
+    - calibration against a new game designed from scratch
+  provenance:
+  - training_benchmark
+  - human_teaching
+  scope: specialist_mode_labelling
+  retrieval_cues:
+  - genre-common specialist complexity
+  - optional in name only
+  - labelled specialist
+  - expected frequency
+  - section is not frequency
+  last_verified: '2026-09-04'
+  canon:
+  - PAT_evaluate_mechanics_by_the_decisions_and_agency_they_create
+  - PAT_translate_genre_into_play_requirements
+  evidence:
+  - GAMEDESIGN_EV_0011
+- id: GD_MEM_01M5DYG7Y2ZSF5XKW269D1KZGN
+  claim: Automating simulation detail keeps its value only while causality stays inspectable; hiding why
+    an automated result changed costs more than the servicing work the automation saved.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - verification
+    statement: When moving servicing work into the medium, check that a player can still see why a result
+      changed, and treat an opaque automated outcome as a defect rather than a convenience.
+  envelope:
+    holds_in:
+    - simulation detail proposed for automated execution
+    not_shown_in:
+    - implemented software execution or direct cross-medium testing
+  provenance:
+  - training_benchmark
+  - human_teaching
+  - user_feedback
+  scope: automation_transparency
+  retrieval_cues:
+  - transparent automation
+  - inspectable causality
+  - hidden computation
+  - why did that change
+  - automation trust
+  last_verified: '2026-09-02'
+  canon:
+  - PAT_account_for_the_intended_play_environment_before_freezing_the_design
+  evidence:
+  - GAMEDESIGN_EV_0007
+  - GAMEDESIGN_EV_0009
+- id: GD_MEM_01M5DYG7Y2ZSMHYDS4RCGJYXQN
+  claim: A causal advancement model becomes administrative overhead once the facilitator must audit every
+    hour, exposure, teacher, or action rather than only the evidence the campaign already cares about.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - action
+    statement: Require fictional cause only for the capabilities whose origin the campaign already tracks,
+      and let the rest pass on points alone.
+  envelope:
+    holds_in:
+    - advancement systems that require in-world cause for purchases
+    not_shown_in:
+    - another advancement system with causal purchase restrictions
+  provenance:
+  - human_teaching
+  - training_benchmark
+  - user_feedback
+  scope: advancement_bookkeeping
+  retrieval_cues:
+  - causal tracking
+  - GM bookkeeping
+  - study hours
+  - advancement audit
+  - surveillance overhead
+  last_verified: '2026-09-01'
+  canon:
+  - PAT_derive_character_capabilities_from_expected_play
+  evidence:
+  - GAMEDESIGN_EV_0008

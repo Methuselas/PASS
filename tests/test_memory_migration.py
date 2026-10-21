@@ -539,19 +539,33 @@ class MemoryTreeFirewall(MigrationFixture):
         self.assertEqual(len(histories), 4, "expected four live histories")
         for domain in ("art", "game-design", "software-engineering", "writing"):
             with self.subTest(domain=domain):
+                store = yaml.safe_load(
+                    (MEMORY / domain / "skill_memory.yaml").read_bytes()
+                )
                 frozen = run_migrator(
                     "freeze", "--domain", domain,
                     "--ledger-dir", self.ledger_dir, memory=MEMORY,
                 )
+                if store.get("memory_schema_version") == 3:
+                    # From T17 the live corpus is mixed until T20. A migrated
+                    # store is a migration output, so freeze and the sentence
+                    # inventory both refuse it - and the firewall has to hold
+                    # on the refusal path exactly as it does on the success
+                    # path, which the byte-identity check below proves.
+                    self.assertEqual(frozen.returncode, 1, frozen.stdout + frozen.stderr)
+                    self.assertIn("migration input", frozen.stderr)
+                    emitted = run_migrator(
+                        "sentences", "--domain", domain,
+                        "--entry", store["claims"][0]["id"], memory=MEMORY,
+                    )
+                    self.assertEqual(emitted.returncode, 1, emitted.stdout + emitted.stderr)
+                    continue
                 self.assertEqual(frozen.returncode, 0, frozen.stdout + frozen.stderr)
                 verified = run_migrator(
                     "verify-hashes", "--domain", domain,
                     "--ledger-dir", self.ledger_dir, memory=MEMORY,
                 )
                 self.assertEqual(verified.returncode, 0, verified.stdout + verified.stderr)
-                store = yaml.safe_load(
-                    (MEMORY / domain / "skill_memory.yaml").read_bytes()
-                )
                 first_entry = store["entries"][0]["id"]
                 emitted = run_migrator(
                     "sentences", "--domain", domain, "--entry", first_entry,
@@ -2229,6 +2243,15 @@ class SpecificationExamples(MigrationFixture):
 
     def frozen_single_entry(self, domain: str, entry_id: str) -> dict:
         store = yaml.safe_load((MEMORY / domain / "skill_memory.yaml").read_bytes())
+        if store.get("memory_schema_version") == 3:
+            # This domain has been migrated, so the legacy entry this example
+            # reads no longer exists in the live tree. The A9 machinery stays
+            # covered by the examples from domains still awaiting migration;
+            # when the last one migrates, T21 removes this suite.
+            raise unittest.SkipTest(
+                f"{domain} is schema 3; its legacy example entry {entry_id} "
+                "was consumed by its migration"
+            )
         matches = [
             entry for entry in store["entries"] if entry.get("id") == entry_id
         ]

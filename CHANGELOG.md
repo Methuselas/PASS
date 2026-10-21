@@ -6,6 +6,86 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.125 - 2026-10-20
+
+### Changed
+
+- **`memory/game-design/skill_memory.yaml` is a schema-3 store: the first live
+  Memory vNext semantic migration (T17).** Thirty-three legacy v1 entries were
+  frozen, decomposed into 90 propositions with a complete 197-sentence coverage
+  map, dispositioned one by one, and replaced by 32 authored v3 claims. Every
+  claim carries a freshly generated `GD_MEM_` identity, a newly authored
+  `delta`, an independently re-derived `confidence`, and an envelope
+  restructured into `holds_in` / `not_shown_in` / `conditions`; no legacy id,
+  sequence number, or migration record survives in the store. The legacy
+  `type`, `scope_type`, `status`, `evidence_count`, `interventions`,
+  `runtime_scope`, and `diagnosis` fields are gone with the schema, and the
+  three legacy card-id scopes became topic scopes with the card moved to
+  `canon`. `memory.py validate` now reports a mixed corpus - one v3 store and
+  three legacy stores - and Training History is untouched at 28 events.
+- **The dominant migration finding: 35 of the 67 claims authored from this
+  domain were rejected on the Canon-only baseline.** Each was compared against
+  the normative text of every card that could own it, not only the cards the
+  legacy entry nominated, and each rejection names the Pattern Rule, AP
+  objective, or Drill instruction that already states both the proposition and
+  its delta. Thirteen of the thirty-three legacy entries contribute no claim.
+  The reason is structural rather than a defect in the legacy store:
+  game-design's cards and its Memory were authored from the same source study,
+  so an entry recording that a system behaved as its card predicts is a verdict
+  on the card. This is R2.4's named failure mode found at scale, and it
+  diverges sharply from R2.1's estimate of three card-verdict entries across
+  the whole corpus - an owner-visible judgment the independent review can
+  overturn item by item from the signed loss report.
+- **The thirteen accretion entries' second-reader requirement is satisfied by
+  an independent agent, and reconciling its findings changed the result.** The
+  requirement was first executed by re-reading the same text myself, which this
+  migration's own artifact recorded as insufficient. A separate agent then
+  performed a blind decomposition from the frozen text, declared 66 independent
+  propositions against the ledger's 53 for those entries, and returned
+  *reconciliation required*: four under-decompositions, six substantive
+  boundary disagreements, and five meanings absent from the proposition texts.
+  Reconciling them added eight propositions, removed four claims, added one,
+  and rewrote two. Four results are worth naming. One recovered proposition is
+  now the only thing `GAMEDESIGN_MEM_006` contributes to Memory at all - the
+  criterion separating a consolidation that also helps novices from one that
+  serves experts only. Three fused propositions in the character-economy entry
+  were joining assertions with *different* Canon owners, so one half of each
+  escaped the baseline; split and tested, the drawback and lifecycle material
+  is Canon's and the substitution-mastery axis is not. The production-probe
+  entry had extended one sentence's "not table-playtested, so" over a second
+  sentence's untested baseline, isolation, retention, and transfer, which table
+  play would not have established either; that causal strengthening is removed.
+  And two claims that named `AP_run_a_simulation_budget_audit` as their own
+  Canon were restating it.
+- **`tests/test_memory_migration.py` handles a mixed-schema live corpus.** The
+  Memory-tree firewall test now proves the migrator writes nothing under
+  `memory/` on the refusal path a schema-3 store takes, as well as on the
+  success path a legacy store takes, and the specification-example suite skips
+  a domain whose legacy example entry its own migration has consumed. Neither
+  assertion is weakened; T21 removes the suite when the last domain migrates.
+
+### Notes
+
+- A-2 is answered on the first domain migrated, as R2.5 §11 asks, with the
+  recommendation to **change** the representative-evidence default: it is
+  specified per legacy entry but every claim comes from a proposition, so on a
+  split - the normal case - it has no defined meaning, and 18 of the 32
+  surviving claims carry evidence it would not have produced. The finding and
+  its two concrete constraints are in the migration task's workspace.
+- T17 introduced no `contradicts` pair. The one known same-scope pair in the
+  corpus is `SE_MEM_003`/`SE_MEM_016`, in software-engineering, so the
+  disputed-pair writer question stays open for T20 rather than being forced
+  here. The T17 ticket's rationale attributes that pair to game-design; it does
+  not hold, and the ticket's third acceptance criterion is inapplicable rather
+  than satisfied.
+- One weakness is carried forward rather than repaired here. The Canon-only
+  baseline's *rejections* each name an owning clause and can be audited; its
+  *admissions* cannot be shown to have been tested against the cards that might
+  own them, because the overlap check was driven by each claim's own `canon`
+  list. Four of the five restatements found during reconciliation were found by
+  reading a card the claim had not nominated. T18-T20 should drive the baseline
+  from the domain's whole card set.
+
 ## 1.0.0-beta.124 - 2026-10-20
 
 ### Added

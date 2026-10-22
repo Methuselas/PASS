@@ -1237,13 +1237,34 @@ class ReleaseMemoryTests(unittest.TestCase):
 
     @unittest.skipUnless(ART_STORE.is_file(), "no Art memory store in this checkout")
     def test_release_ships_the_memory_of_the_domains_it_bundles(self) -> None:
+        # What "its memory" means follows the store's declared schema, because
+        # this test reads the real art store rather than a fixture. The
+        # schema-3 branch is SR6, T09's named reversal, which came due when
+        # T18 migrated that store: a v3 store ships as a current-state
+        # projection, so the event record stays behind and no claim carries
+        # `evidence` (R2.5 section 8.5). The legacy branch goes with the
+        # legacy reader in T21.
+        schema = yaml.safe_load(
+            self.ART_STORE.read_text(encoding="utf-8")
+        ).get("memory_schema_version")
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
             self.assertEqual(run("build", ART_RECIPE, out).returncode, 0)
             manifest = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["memory_domains"], ["art"])
             self.assertTrue((out / "memory/art/skill_memory.yaml").is_file())
-            self.assertTrue((out / "memory/art/training_history.jsonl").is_file())
+            history = out / "memory/art/training_history.jsonl"
+            if schema == 3:
+                self.assertFalse(history.is_file())
+                staged = yaml.safe_load(
+                    (out / "memory/art/skill_memory.yaml").read_text(encoding="utf-8")
+                )
+                self.assertTrue(staged["claims"])
+                for claim in staged["claims"]:
+                    with self.subTest(claim=claim["id"]):
+                        self.assertNotIn("evidence", claim)
+            else:
+                self.assertTrue(history.is_file())
             self.assertEqual(manifest["quality_gates"]["memory_validation"], "passed")
             self.assertIn("## Skillset Memory", (out / "SKILL.md").read_text(encoding="utf-8"))
             self.assertEqual(run("check", out).returncode, 0)

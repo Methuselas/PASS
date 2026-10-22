@@ -6,6 +6,93 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.127 - 2026-10-22
+
+### Changed
+
+- **The art Skillset Memory store is migrated to schema 3: 20 legacy entries
+  become 8 live claims (T18).** The second domain migration, run with the T17
+  correction applied from the start. Accounting, with the three units kept
+  distinct because conflating them was T17's accounting defect: **20 legacy
+  entries** decomposed into **72 propositions**, of which **17 surviving
+  dispositions** name **8 distinct live claims** - six of those claims are
+  merges, where more than one source proposition shares one target id, and no
+  disposition is a split. Dispositions: CARRY 2, REWRITE 10, EXTRACT 5,
+  REHOME 1, REJECT 54. The **144** sentences of the twenty entries'
+  `observation`, `boundary`, and `diagnosis.hypothesis` are each accounted
+  exactly once. The store declares `memory_schema_version: 3` and
+  `memory_version: 23`; no v1 store remains for the domain. `memory/art/
+  training_history.jsonl` is untouched at **80 events**.
+- **The Canon-only baseline was the whole art Canon from the first pass, not the
+  nominated links.** T17 failed its final review on exactly that defect, so T18
+  built the baseline over all **645** Canon objects - 640 under `library/art`
+  and 5 under `library/metaskills`, counting one object as one markdown file
+  whose basename begins `AP_`, `PAT_`, or `DRILL_`, excluding `INDEX.md` and
+  `README.md` and not counting variants separately. `metaskills` is in the
+  baseline because every art release ships it, and excluding it would have
+  produced two false survivors. Of the 54 rejections, **46** are
+  `fails_canon_only_baseline`, and **20 of those name an owning card the legacy
+  entry never nominated** - a nomination-driven check would have admitted all
+  twenty. The remaining rejections are `not_portable` 5, `belongs_to_canon_
+  workflow` 2, and `not_craft_scope` 1. Each rejection records its owning Canon
+  object and the normative clause actually read; search identified candidates
+  and decided nothing.
+- **The eleven accretion entries received a genuinely independent blind second
+  decomposition, and it changed the result.** An independent reader worked from
+  the frozen `observation` / `boundary` / `hypothesis` text and §7.2 alone,
+  launched before the first decomposition existed in any file so that
+  independence ran in both directions. It was finer on all eleven entries - 51
+  propositions against 35 - and its reading was adopted wholesale after
+  reconciliation. Two of the eight surviving claims exist because of it: the
+  insufficient-delta failure of a reduction pass, which the first reading had
+  folded into its sibling leakage proposition, and the reach claim calibrating
+  demonstrated against undemonstrated regions, which the first reading had
+  labelled evidence recitation. The mark was earned by that reading, not written
+  mechanically.
+- **The single `resolved` entry and the single invalid event are both disposed
+  of explicitly.** `ART_MEM_004` left current Memory with all six of its
+  propositions rejected against the repaired Stage 4 Action Protocol, which now
+  states each of them; no graveyard was created. No surviving claim cites
+  `ART_EV_0003`, the one invalid event, and every cited event exists, is valid,
+  is admissible, and belongs to its source entry's own cited set.
+- **Four of the eight claims carry reviewer-selected evidence rather than the
+  mechanical default**, which the specification permits. In every case the
+  default was unrepresentative for the same structural reason: a tranche-rollup
+  source or a merged claim makes "first and last cited event" a function of
+  ordering or set union rather than of relevance. A-2 is not reopened and no
+  specification change is proposed.
+- **One Canon defect is re-homed rather than rejected, with the hand-off
+  recorded as owed.** `DRILL_hold_one_head_type_across_expression_set` still
+  requires observing facial tissue in a mirror, a premise that is not literally
+  executable; the card was re-read to confirm the defect is current. Opening the
+  Canon-quality item is left as an owner decision, since T18's blast radius is
+  one memory store and one ledger.
+- **T09's deferred test reversal (SR6) came due and is performed.**
+  `tests/test_architecture.py::ReleaseMemoryTests::test_release_ships_the_memory_of_the_domains_it_bundles`
+  reads the real art store rather than a fixture, and it asserted
+  unconditionally that a release ships `memory/art/training_history.jsonl`.
+  That was correct while the store was v1 and became false the moment T18
+  migrated it, because a schema-3 store ships as a current-state projection.
+  The assertion now follows the store's declared schema: for v3 it requires no
+  shipped History and no `evidence` key on any staged claim, and the legacy
+  branch remains for the pre-v3 stores until T21 deletes the legacy reader.
+  T09 had already built the v3 behaviour and covered it against a fixture in
+  `ReleaseV3MemoryTests`; only this real-store assertion was left inverted, by
+  design, because inverting it before a real store was v3 would have broken the
+  suite. A release built from the real art store was inspected as the ticket's
+  completion evidence: one YAML per memory domain, no History, no `evidence`
+  key, all eight claim ids byte-identical to the live store, and all four
+  quality gates `passed`.
+- **Known cosmetic reporting gap, left for T21.** `memory.py validate`'s summary
+  line sums each store's `entries` key, so a schema-3 store contributes zero to
+  that tally: the corpus now reports 83 entries, which is the legacy stores
+  alone (software-engineering 46 plus writing 37). Every claim is validated -
+  only the printed count excludes v3 - and T21 deletes the legacy branch that
+  makes the line ambiguous. No acceptance criterion reads that number.
+- **Stale README version statement repaired.** The versioning section had read
+  "the current version is `1.0.0-beta.105`" since that release; it now tracks
+  `VERSION` alongside the project-status line.
+
 ## 1.0.0-beta.126 - 2026-10-21
 
 ### Changed

@@ -6,6 +6,79 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.126 - 2026-10-21
+
+### Changed
+
+- **The game-design Canon-only baseline is corrected to a whole-Canon audit,
+  and the live store falls from 32 claims to 15 (T17 correction).** T17's final
+  independent review failed the ticket on one defect: the baseline had been
+  applied claim -> nominated Canon instead of claim -> whole Canon. The evidence
+  file proved it - `canon-overlap-check.txt` printed, for each claim, only the
+  cards that claim's own `canon` field already named. That is adequate for a
+  rejection, which names its owning clause and can be re-checked, and worthless
+  for an admission, because the owner that matters is usually a card the claim
+  never nominated. The reviewer audited all 32 survivors against the whole card
+  set and found 13 confirmed restatements, one borderline case, and four more to
+  inspect. Nineteen propositions moved to REJECT. Final accounting: 33 legacy
+  entries, 90 propositions, 197 sentences each covered exactly once, 15 live
+  claims, dispositions CARRY 8 / REWRITE 6 / EXTRACT 2 / REHOME 4 / REJECT 70,
+  with 69 of those rejections on the Canon-only baseline and one as
+  `not_craft_scope`.
+- **`duplicate_of` is now unused in this migration.** The last two such
+  rejections, `GAMEDESIGN_MEM_001#p5` and `002#p4`, both named claims the
+  correction rejected. Both were re-pointed at the Canon object that actually
+  owns the lesson, so no rejection in the domain now defers to another Memory
+  claim - every one names a card clause or a non-craft authority.
+- **One fused claim was de-merged rather than rejected whole.**
+  `GAMEDESIGN_MEM_001#p2` and `#p3` had been merged onto one claim, which forced
+  one Canon-baseline result onto two assertions with different owners. `p2` - a
+  shared randomizer is not a shared grammar - is the reuse-grammar Pattern's
+  Don't outright. `p3` is not any card's: that the competence term of a pool is a
+  separable axis, so the resolution can survive unchanged while what it measures
+  changes. It survives as a new claim with its evidence narrowed to the one
+  event that demonstrates it. Proposition boundaries did not move, so sentence
+  coverage is untouched.
+- **Four rejections go beyond the review's confirmed list, and two of its
+  flagged claims were preserved.** `complexity_value`, `complexity_placement`,
+  `operator_complexity_and_medium` and `campaign_hub_continuity` are Canon
+  restatements - the operating-cost Pattern's Notes state the placement lesson
+  with the claim's own rare-but-rich versus small-but-every-attack contrast, and
+  the hub Pattern scored the highest single overlap in the audit at 0.568.
+  `rule_removal_repair` and `force_visibility` were preserved on inspection:
+  the first adds a confirmation criterion (operator and players independently
+  rejecting the rule) that no card names, the second reconciles two cards that
+  pull in opposite directions on withholding information.
+
+### Notes
+
+- The audit evidence is replaced, not patched. `WHOLE_CANON_ADMISSION_AUDIT.md`
+  records a verdict and an owning clause for every one of the 32 claims, and
+  `t17_canon_search.py` proves all 181 game-design cards were searched for every
+  one and ranks the cards worth reading. The ranking is reading order only: no
+  similarity threshold admits or rejects anything, and every classification was
+  made by reading normative text. `canon-overlap-check.txt` is retired as
+  `.SUPERSEDED`. Both artifacts stay untracked migration evidence; no runtime
+  Canon-baseline engine was added.
+- The borderline claim is decided explicitly. `local_operating_conditions` fails
+  the baseline whole. Three of its four mechanisms are in the action-topology
+  Pattern's Notes; the fourth, environment-specific rule behaviour, is one item
+  in a four-item source list, carries no delta the card lacks, and has no
+  surviving claim to qualify as an envelope condition. The decisive point is
+  consistency: the same card had already rejected `018#p1`.
+- A-2 remains a nonblocking specification finding, remeasured on the corrected
+  set: 8 of the 15 surviving claims carry evidence the entry-level default would
+  not have produced. Every surviving claim's evidence was re-checked as
+  admissible and drawn from its own legacy entry.
+- The independent Codex second-reader pass is unaffected and was not re-run.
+  This correction changed dispositions and one claim-level merge, not any
+  decomposition the second reading produced. Two propositions that reading
+  recovered from silent folds, `002#p10` and `002#p11`, are now rejected as
+  Canon restatements; recovering them was still right, because an accounted
+  rejection is not the same outcome as a silent fold.
+- Still T20's: the only same-scope contradiction pair in the corpus is
+  `SE_MEM_003`/`SE_MEM_016` in software-engineering. None was invented here.
+
 ## 1.0.0-beta.125 - 2026-10-20
 
 ### Changed
@@ -23,8 +96,14 @@ skillsets may evolve independently.
   three legacy card-id scopes became topic scopes with the card moved to
   `canon`. `memory.py validate` now reports a mixed corpus - one v3 store and
   three legacy stores - and Training History is untouched at 28 events.
-- **The dominant migration finding: 35 of the 67 claims authored from this
-  domain were rejected on the Canon-only baseline.** Each was compared against
+- **The dominant migration finding: 48 of this domain's 90 propositions were
+  rejected on the Canon-only baseline, leaving 32 live claims out of 67 authored
+  claim bodies.** (This bullet originally read "35 of the 67 claims authored from
+  this domain were rejected on the Canon-only baseline", which labelled dropped
+  claim bodies as Canon-baseline rejections and conflated bodies with
+  propositions: of the 35 bodies dropped, 2 went as `duplicate_of` and 1 as
+  `not_craft_scope`. Corrected in beta.126, which also corrects the baseline
+  itself.) Each was compared against
   the normative text of every card that could own it, not only the cards the
   legacy entry nominated, and each rejection names the Pattern Rule, AP
   objective, or Drill instruction that already states both the proposition and
@@ -84,7 +163,8 @@ skillsets may evolve independently.
   own them, because the overlap check was driven by each claim's own `canon`
   list. Four of the five restatements found during reconciliation were found by
   reading a card the claim had not nominated. T18-T20 should drive the baseline
-  from the domain's whole card set.
+  from the domain's whole card set. **Carrying this forward instead of resolving
+  it is what failed T17's final independent review; beta.126 resolves it.**
 
 ## 1.0.0-beta.124 - 2026-10-20
 

@@ -6,6 +6,108 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.130 - 2026-10-23
+
+### Changed
+
+- **The software-engineering Skillset Memory store is migrated to schema 3,
+  completing the four-domain migration (T20).** All four domains now declare
+  `memory_schema_version: 3`; no legacy store remains in the corpus. The
+  migration was gated on an empirical requirement the three earlier domains did
+  not carry: every surviving claim had to be put against a fixture exercising
+  real code or repository behaviour, not a prose fixture.
+- **Accounting.** **46 legacy entries** decomposed into **146 propositions**,
+  which received **146 dispositions** - REWRITE 124, EXTRACT 3, REHOME 1,
+  REJECT 18 - of which **127 survive** and resolve to **81 live claims**. The
+  gap is 46 redirections where several source propositions collapse onto one
+  claim; there are no splits. Losses: **19** items (18 rejections, 1
+  re-homing), each signed individually with its own note; **zero** HOLDs and
+  **zero** FLAGs. The **508** sentences of the forty-six entries' `observation`,
+  `boundary` and `diagnosis.hypothesis` are each accounted exactly once.
+  Thirteen entries were classified as in-place accretion and all thirteen went
+  to an independent blind second reader. The store declares
+  `memory_schema_version: 3` and `memory_version: 62`.
+  `memory/software-engineering/training_history.jsonl` is byte-identical to its
+  FREEZE hash at **124 events**, and the art, game-design and writing stores are
+  byte-identical to their pre-T20 hashes.
+- **The empirical layer is now executed rather than reasoned.** Forty-two
+  behaviour-test scenarios back the 81 claims: **39 EXECUTED, 2 MIXED, 1
+  DECISION**, against 25 EXECUTED and 17 DECISION before this pass. Claims
+  resting on a reasoning fixture alone fell from **37 of 81 to 7 of 81**. The
+  conversions are real measurements over real artifacts - 378 core patterns
+  swept for rule-position defects, 102 drills cross-referenced against their own
+  grading standards, seven C++ corpora re-measured for check and comment
+  density, 202 C++ cards against 462 git repair commits, a fail-closed gate run
+  against two phrasings of one violation, `validate.py` line-traced over 2 388
+  objects, and four contract seams rebuilt and run.
+- **Three claims were changed because the measurements disagreed with them.**
+  `T_008_1` claimed the within-kind spread exceeds the between-kind gap *on
+  every metric*; re-measurement over seven corpora found it holds on two of
+  three, and the claim is narrowed with the confound named. `T_022_2` claimed a
+  count derived from a structure survives re-measurement; byte sizes reproduced
+  exactly but an element-move count did not, because the container growth factor
+  is an implementation choice, so the claim now draws the line between what a
+  structure fixes and what an implementation fixes. `T_025_2` claimed source
+  distance predicts a broken language claim; it holds at the extremes
+  (2.71 repairs/card at distance 4 against 1.42 at distance 0) and fails in the
+  middle, so the claim is narrowed to aiming a batch rather than ranking one. A
+  fourth measurement - language-requirement cards showing the *highest* repair
+  rate, against `T_025_1`'s ordering - is recorded without changing the claim,
+  because repair frequency is a proxy for probe failure and a card is touched
+  for other reasons.
+- **The duplicate matrix is reproducible.** All five `duplicate_of` rejections
+  now rest on an executed discrimination that would have separated the pair had
+  they been distinct; two of the five previously rested on reading. A sixth row
+  records a pair that is *not* a duplicate, with the two evidence configurations
+  that separate it.
+- **The `SE_MEM_003` / `SE_MEM_016` adjudication is closed, and no owner
+  decision remains.** The two entries declare the same `scope_id` and are
+  distinct boundaries on it: 003's content was absorbed into
+  `AP_review_code_you_did_not_write` between its sighting and this migration -
+  six of seven propositions are now Canon text verbatim, checked clause by
+  clause - while 016's nine survive as six claims because step 5, step 7 and
+  `PAT_look_for_the_evidence_outside_the_code` do not carry them. Nothing was
+  merged across the two entries, nothing was chosen for being newer, and neither
+  was retired.
+
+### Fixed
+
+- Three migration tests pinned the live software-engineering store as a legacy
+  migration input - the last such store in the corpus. They now assert the
+  firewall that matters after T20: FREEZE and the sentence emitter must *refuse*
+  a schema-3 store rather than re-freeze or slice it, which is the only way a v3
+  store could be migrated twice. The mechanics the live store exercised are
+  preserved synthetically, including the overlap case where an event is both
+  invalid and quarantined and must be excluded once rather than twice.
+- A T20 behaviour fixture resolved `PASS/tools/memory.py` relative to the
+  caller's working directory, so it only ran from the repository root. It now
+  resolves from its own location.
+
+### Known issues
+
+- **The full-discovery skip baseline moves from 2 to 3.** `SpecificationExamples`
+  draws its A9 end-to-end examples from the two live legacy entries R2.5 7.2
+  names, `SE_MEM_001` and `GAMEDESIGN_MEM_001`. T17 migrated the second and T20
+  the first, so both parameterisations now skip with a message saying so, and
+  that class provides no coverage at all. The A9 derivation is still exercised
+  by the synthetic suites, but the specification's own worked examples are no
+  longer run against anything. Restoring them against a committed fixture
+  instead of the live corpus is T21's, and is deliberately not done here.
+  Full discovery: **829 OK, 3 skipped** - the third being the one this entry
+  describes, alongside the game-design example and the pre-existing Windows
+  symlink limitation.
+- Seven of 81 claims still rest on a reasoning fixture alone, each recorded with
+  why it cannot be executed: one needs a code example the card corpus does not
+  contain (no software-engineering card carries a code fence), three need a
+  corpus of task outputs graded against their own stated requirements that is
+  not on this machine, and three need a second party - an independent runner, an
+  independent grader, or separately-authored observation and diagnosis - which a
+  single session cannot supply.
+- `memory.py`'s L4 specimen-grade check reads `C++` as the grade `C+`. Three
+  envelope statements were reworded to the legacy store's own "C plus plus"
+  convention rather than widening the rule, which T20 may not do. Any future
+  C++ Memory claim will hit it.
+
 ## 1.0.0-beta.129 - 2026-10-23
 
 ### Changed

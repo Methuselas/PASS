@@ -249,31 +249,33 @@ class Freeze(MigrationFixture):
         (MEMORY / "software-engineering" / "skill_memory.yaml").is_file(),
         "no software-engineering store in this checkout",
     )
-    def test_freeze_matches_the_live_software_engineering_store(self) -> None:
-        """Acceptance criterion 1: the frozen block names the live store exactly.
+    def test_freeze_refuses_the_migrated_software_engineering_store(self) -> None:
+        """Acceptance criterion 1, after T20: the last legacy store is gone.
 
-        The live corpus is pinned at this baseline — schema 1, memory_version
-        61, 46 entries — and stays legacy until its own migration ticket. This
-        is a read: the ledger lands in a temp purpose directory, and the store
-        is never opened for writing.
+        Until T20 this test froze the live software-engineering store and
+        pinned it at schema 1, memory_version 61, 46 entries with 46 hashes.
+        T20 migrated it, so that baseline now lives in the T20 ledger rather
+        than in the corpus, and the corpus has no legacy store left at all.
+
+        What the suite must still hold is the firewall: FREEZE records a
+        migration INPUT, so a schema-3 store is refused rather than re-frozen.
+        A silent re-freeze would let a migrated store be treated as legacy a
+        second time, which is the one way a v3 store could be migrated twice.
+        The mechanics the live store used to exercise are covered
+        synthetically by the sibling tests in this class.
         """
         result = run_migrator(
             "freeze", "--domain", "software-engineering",
             "--ledger-dir", self.ledger_dir, memory=MEMORY,
         )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        legacy = self.ledger(domain="software-engineering")["legacy"]
-        self.assertEqual(legacy["memory_schema_version"], 1)
-        self.assertEqual(legacy["memory_version"], 61)
-        self.assertEqual(legacy["entry_count"], 46)
-        self.assertEqual(len(legacy["entry_hashes"]), 46)
-        for digest in legacy["entry_hashes"].values():
-            self.assertRegex(digest, r"^[0-9a-f]{64}$")
-        verified = run_migrator(
-            "verify-hashes", "--domain", "software-engineering",
-            "--ledger-dir", self.ledger_dir, memory=MEMORY,
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("migration input", result.stderr)
+        self.assertIn("memory_schema_version 3", result.stderr)
+        store = yaml.safe_load(
+            (MEMORY / "software-engineering" / "skill_memory.yaml").read_bytes()
         )
-        self.assertEqual(verified.returncode, 0, verified.stdout + verified.stderr)
+        self.assertEqual(store["memory_schema_version"], 3)
+        self.assertNotIn("entries", store)
 
     def test_freeze_refuses_an_invalid_legacy_store(self) -> None:
         broken = valid_entry("ART_MEM_001", "Kept.")
@@ -494,30 +496,55 @@ class AdmissibleSet(MigrationFixture):
         (MEMORY / "software-engineering" / "training_history.jsonl").is_file(),
         "no software-engineering history in this checkout",
     )
-    def test_the_live_software_engineering_set_excludes_invalid_and_quarantined(self) -> None:
-        """Acceptance criterion 4, against the live store named in the ticket.
+    def test_an_event_both_invalid_and_quarantined_is_excluded_once(self) -> None:
+        """Acceptance criterion 4, as a counting rule rather than a corpus read.
 
-        The corpus is pinned at this baseline: 124 events, of which five are
-        invalid and two are evidence corrections, and thirty valid performance
-        events are quarantined by those corrections (three of the invalid
-        events are among the quarantined, so 124 - 5 - 2 - 30 + 3 = 90 remain).
+        Until T20 this ran against the live software-engineering history and
+        pinned it at 124 events, of which five are invalid and two are evidence
+        corrections quarantining thirty valid performance events — with three
+        of the invalid events among the quarantined, so
+        124 - 5 - 2 - 30 + 3 = 90 remain. T20 migrated that store, so FREEZE
+        refuses it and the figure now lives in the T20 ledger.
+
+        The arithmetic that overlap exercises is the part worth keeping: an
+        event that is both invalid and quarantined must be removed once, not
+        twice, or the admissible count drifts below the set it describes.
         """
-        result = run_migrator(
-            "freeze", "--domain", "software-engineering",
-            "--ledger-dir", self.ledger_dir, memory=MEMORY,
-        )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        admissible = self.ledger(domain="software-engineering")["legacy"]["admissible_event_ids"]
-        self.assertEqual(len(admissible), 90)
-        self.assertEqual(admissible, sorted(admissible))
-        excluded = [
-            "SE_EV_0042", "SE_EV_0053", "SE_EV_0091", "SE_EV_0104", "SE_EV_0106",
-            "SE_EV_0111", "SE_EV_0112",
-            *[f"SE_EV_{number:04d}" for number in range(81, 111)],
+        events = [
+            dict(VALID_EVENT),  # TST_EV_0001, admissible
+            {
+                "event_id": "TST_EV_0002", "date": "2026-09-01",
+                "task": "Invalid AND later quarantined", "validity": "invalid",
+                "invalid_reason": "the tool failed before the capability ran",
+            },
+            {
+                "event_id": "TST_EV_0003", "date": "2026-09-02",
+                "task": "Valid, quarantined by the correction below",
+                "validity": "valid",
+            },
+            {
+                "event_id": "TST_EV_0004", "date": "2026-09-03",
+                "task": "Quarantine both of the above",
+                "validity": "valid", "event_kind": "evidence_correction",
+                "supersedes_events": ["TST_EV_0002", "TST_EV_0003"],
+                "corrections": {
+                    "disposition": "quarantined",
+                    "reason": "Neither attempt exercised the capability.",
+                },
+            },
+            {
+                "event_id": "TST_EV_0005", "date": "2026-09-04",
+                "task": "Another admissible run", "validity": "valid",
+            },
         ]
-        for event_id in excluded:
-            self.assertNotIn(event_id, admissible)
-        self.assertIn("SE_EV_0001", admissible)
+        self.write_store([valid_entry("ART_MEM_001", "Held.")], events)
+        result = self.freeze()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        admissible = self.ledger()["legacy"]["admissible_event_ids"]
+        # 5 events - 1 invalid - 1 correction - 2 quarantined + 1 counted twice = 2
+        self.assertEqual(admissible, ["TST_EV_0001", "TST_EV_0005"])
+        self.assertEqual(len(admissible), 2)
+        self.assertEqual(admissible, sorted(admissible))
 
 
 class MemoryTreeFirewall(MigrationFixture):
@@ -1355,31 +1382,34 @@ class SentenceCoverage(AccountLedgerFixture):
         (MEMORY / "software-engineering" / "skill_memory.yaml").is_file(),
         "no software-engineering store in this checkout",
     )
-    def test_the_live_se_entry_inventory_is_stable_across_runs(self) -> None:
-        """Acceptance criterion 1 against the live entry the ticket names:
-        `sentences --domain software-engineering --entry SE_MEM_001` is stable
-        across runs and equals the recompute from the live store's bytes (a
-        read of the corpus; the tree is asserted unchanged by the firewall
-        test)."""
-        store_path = MEMORY / "software-engineering" / "skill_memory.yaml"
-        expected = reference_inventory(store_path, "SE_MEM_001")
-        self.assertTrue(expected)
-        first = run_migrator(
+    def test_the_sentence_inventory_refuses_the_migrated_se_store(self) -> None:
+        """Acceptance criterion 1, after T20.
+
+        Until T20 this emitted the inventory for the live `SE_MEM_001` twice
+        and compared it with a recompute from the store's bytes. T20 migrated
+        software-engineering, so there is no legacy entry left to emit: a v3
+        store holds claims, and a claim is a migration output whose prose was
+        authored rather than sliced. The emitter must refuse it instead of
+        slicing claim text, which would read as a decomposition of something
+        that was never decomposed.
+
+        Stability itself is pinned by the synthetic sibling above, which runs
+        the same two-emission comparison against a store this suite owns.
+        """
+        store = yaml.safe_load(
+            (MEMORY / "software-engineering" / "skill_memory.yaml").read_bytes()
+        )
+        self.assertEqual(store["memory_schema_version"], 3)
+        emitted = run_migrator(
+            "sentences", "--domain", "software-engineering",
+            "--entry", store["claims"][0]["id"], memory=MEMORY,
+        )
+        self.assertEqual(emitted.returncode, 1, self.output(emitted))
+        legacy_entry = run_migrator(
             "sentences", "--domain", "software-engineering",
             "--entry", "SE_MEM_001", memory=MEMORY,
         )
-        second = run_migrator(
-            "sentences", "--domain", "software-engineering",
-            "--entry", "SE_MEM_001", memory=MEMORY,
-        )
-        self.assertEqual(first.returncode, 0, self.output(first))
-        self.assertEqual(first.stdout, second.stdout, "emission is not stable")
-        header = re.fullmatch(
-            r"SE_MEM_001: (\d+) sentence\(s\)", first.stdout.splitlines()[0]
-        )
-        self.assertIsNotNone(header, first.stdout)
-        self.assertEqual(int(header.group(1)), len(expected))
-        self.assertEqual(self.sentence_lines(first.stdout), expected)
+        self.assertEqual(legacy_entry.returncode, 1, self.output(legacy_entry))
 
     def test_the_sentences_command_takes_no_ledger_flag(self) -> None:
         """Emission only: the subcommand can neither read nor write a ledger —

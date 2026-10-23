@@ -6,6 +6,85 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.128 - 2026-10-22
+
+### Changed
+
+- **The writing Skillset Memory store is migrated to schema 3: 37 legacy entries
+  become 20 live claims (T19).** The third domain migration, and the only one
+  whose input was a **v2** store. Accounting, with the units kept distinct
+  because conflating them was T17's accounting defect: **37 legacy entries**
+  decomposed into **100 propositions**, which received **100 dispositions**, of
+  which **38 survive** and name **20 distinct live claims** - eleven target ids
+  are shared by more than one source proposition (merges) and no disposition is
+  a split, so the surviving-disposition count and the claim count differ by 18
+  by design. Dispositions: CARRY 23, REWRITE 14, EXTRACT 1, REHOME 7,
+  REJECT 55. Losses: 62 items (55 rejections, 7 re-homings), each signed
+  individually with its own note; **zero** HOLDs and **zero** FLAGs. The
+  **172** sentences of the thirty-seven entries' `observation`, `boundary`, and
+  `diagnosis.hypothesis` are each accounted exactly once. The store declares
+  `memory_schema_version: 3` and `memory_version: 23`; no v2 store remains
+  anywhere. `memory/writing/training_history.jsonl` is untouched at **76
+  events**, all valid, all `performance`, none quarantined.
+- **The Canon-only baseline was the whole writing Canon from the first pass.**
+  The baseline covers all **323** applicable Canon objects - 318 under
+  `library/writing` and 5 under `library/metaskills` - counting one object as
+  one markdown file whose basename begins `AP_`, `PAT_`, or `DRILL_`, excluding
+  `INDEX.md` and `README.md` and not counting variants separately. `metaskills`
+  inclusion was **re-proved for this domain** rather than carried over from
+  T18: the writing release recipe's module closure is entirely internal, and
+  `build_release.py` adds `metaskills` unconditionally and fails any build that
+  omits it. That mattered - one survivor's verdict rests on a metaskills object,
+  and excluding the package would have produced a false survivor. All 55
+  rejections are `fails_canon_only_baseline`; **6 of them name an owning object
+  the legacy entry never nominated**, and a nomination-bounded check would have
+  admitted all six. Each rejection records its owning Canon object and the
+  normative clause actually read; **38 of the 55 rest on a variant**, and in
+  every case the owner recorded is the containing card. Search identified
+  candidates and decided nothing; negative findings were confirmed by
+  whole-package `grep` rather than by search rank.
+- **Writing's Canon had already absorbed most of its Memory.** Three cards own
+  23 of the 55 rejections, and `WRI_MEM_024` was rejected in all six of its
+  propositions by a single card whose Do bullet and one variant state the
+  entire entry - including its prohibition on treating detector output as a
+  revision target. The 38 surviving propositions are of three kinds Canon
+  structurally cannot hold: this skill's own demonstrated error profile, its
+  capability calibration, and a small set of genuine craft gaps around reading
+  a work whose representation is bad and matching evidence form to claim type.
+- **All 37 entries were declared accretion narratives and every one received a
+  genuinely independent blind second decomposition.** The blind input carried
+  only the legacy semantic text and the numbered sentence inventory; it was
+  sealed and the independent reader dispatched **before** the primary
+  decomposition existed, so neither read could see the other. The reads
+  returned 83 and 99 propositions; reconciliation adopted the second read in
+  fifteen of the sixteen diverging entries and held the primary in one
+  (`WRI_MEM_030`, where merging the prose-rendering limit would have
+  under-decomposed). Four propositions were recovered only by the independent
+  read, and **three of the twenty final claims depend materially on them**.
+- **The four card candidates are re-homed to `canon_workflow` with every
+  hand-off verified complete.** `WRI_MEM_031`, `032`, `033`, and `036` were
+  checked present in `canon_workflow/writing/card_candidates.yaml` with their
+  resolved destination ids **before** the legacy store was replaced, not
+  assumed; the transcript is dated ahead of the removal. T11 owns the export
+  and this ticket only verified and accounted it.
+- **The four specialization profiles became `claim_class: reach`.** Each carries
+  `delta.kinds` within `{posture, verification}`, and the four profiles yielded
+  five reach claims because comic timing and comic editing are separately
+  demonstrated capabilities. Every specimen title, named evaluator, and letter
+  grade is stripped. All **seven** first-person legacy entries - `WRI_MEM_007`, `008`, `009`,
+  `014`, `020`, `023`, `037` - were rewritten to model-neutral voice under
+  `rewrite_reason: voice`, across 11 propositions and 7 target claims.
+- **Evidence admissibility was proved explicitly against the frozen Training
+  History** rather than left to the fail-open absent-History rule: all 37
+  evidence references across the 20 claims exist, are `valid`, are
+  `performance`, are unquarantined, and come only from the admissible cited set
+  of each claim's own source entries. **2 of 20** claims diverge from the
+  mechanical first-and-last default, against 8 of 15 in T17 and 4 of 8 in T18;
+  both divergences are merges spanning two legacy entries, and all 18
+  single-entry claims took the default unchanged. Recorded as an observation
+  for the series - A-2 is not reopened and no specification change is proposed.
+
+
 ## 1.0.0-beta.127 - 2026-10-22
 
 ### Changed

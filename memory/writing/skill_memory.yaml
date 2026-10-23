@@ -1,6 +1,6 @@
 memory_schema_version: 3
 skillset: writing
-memory_version: 23
+memory_version: 24
 claims:
 - id: WRI_MEM_01M5K0GVC46TA0VF6DYCKPGMB5
   claim: Craft success and representational judgment are separate axes of evaluation, so a mechanism can
@@ -360,15 +360,18 @@ claims:
     - verification
     - judgment
     statement: Compare each passage against the strongest remaining line of escalation, rhythm, or effect,
-      and test deletion of locally successful material before accepting the draft's length.
+      and run that deletion test again during revision rather than treating the first-draft pass as sufficient.
   envelope:
     holds_in:
     - the verbal middle of one original comic short story, where two independent readers found the same
       excess
+    - a revised and externally evaluated analytical essay whose locally effective framing was retained
+      into self-restatement at the close
     not_shown_in:
-    - non-comic forms, later drafts, and any second original story
+    - poetry, career writing, and any second original story
     conditions:
-    - may be specific to first-draft comic abundance rather than a stable cross-form failure
+    - the two instances are unlike - a comic scene and an analytical framing - so the cross-form generalization
+      remains thin
   provenance:
   - user_feedback
   - training_benchmark
@@ -378,6 +381,7 @@ claims:
   - locally good globally slow
   - comic middle too long
   - test deletion
+  - retention returns at revision
   - editing selection
   last_verified: '2026-09-11'
   canon:
@@ -385,6 +389,7 @@ claims:
   - AP_design_and_revise_short_story_structure
   - PAT_revise_whole_draft_toward_intended_form
   evidence:
+  - WRITING_EV_0046
   - WRITING_EV_0064
   - WRITING_EV_0065
 - id: WRI_MEM_01M5K0GVC4P227756521YG80D4
@@ -683,3 +688,116 @@ claims:
   evidence:
   - WRITING_EV_0061
   - WRITING_EV_0063
+- id: WRI_MEM_01M5KA6J6X6QR9RQSXZ1XRHE75
+  claim: A change of discourse form - testimony, sermon, taxonomy, legal argument, lyric, technical explanation
+    - earns its place when the narrative or cognitive job has actually changed, and the borrowed mode
+    should end once that job is complete rather than continue as display.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: repeated
+  delta:
+    kinds:
+    - judgment
+    - action
+    statement: Before changing discourse form, name the narrative or cognitive job that changed, and fix
+      the stopping condition that ends the borrowed mode, so the exit is a plan rather than a later judgment.
+  envelope:
+    holds_in:
+    - reading analysis of two complete novels whose form shifts were traced to a changed narrative or
+      cognitive job
+    not_shown_in:
+    - original composition attempting such a shift, retention, and transfer to nonfiction or poetry
+    conditions:
+    - 'the test is functional: novelty, range, or an unusual register is not a changed job'
+  provenance:
+  - source_study
+  scope: discourse_form_switching
+  retrieval_cues:
+  - form shift
+  - discourse borrowing
+  - genre switching
+  - voice changes with function
+  - stopping condition for a borrowed mode
+  last_verified: '2026-09-10'
+  canon:
+  - PAT_shape_style_as_response_to_story_situation
+  - PAT_expand_poetic_voice_by_borrowing_another_discourse
+  - PAT_use_diaries_and_letters_as_active_story_documents
+  evidence:
+  - WRITING_EV_0011
+  - WRITING_EV_0039
+- id: WRI_MEM_01M5KA6J6X02GRS4PVGW9YNC71
+  claim: 'The corrective for this skill''s conceptual density is hierarchy and release rather than shortening:
+    name the dominant move, externalize the hidden inferential bridges, make an abstraction concrete where
+    a particular will serve, and place a short declarative sentence where the reader needs orientation.'
+  claim_class: conduct
+  claim_kind: deterministic
+  confidence: repeated
+  delta:
+    kinds:
+    - action
+    - verification
+    statement: Run the four moves as one ordered pass, and close it by naming the concrete particular
+      that replaced an abstraction; a lower word count is not a pass.
+  envelope:
+    holds_in:
+    - short literary-analysis essays across nine externally evaluated cycles where this corrective was
+      recommended and retention improved
+    not_shown_in:
+    - fiction, longer essays, poetry, and isolated practice of the corrective itself
+    conditions:
+    - transfer was partial, and concretization is the least tested of the four moves
+  provenance:
+  - user_feedback
+  scope: density_corrective_hierarchy_and_release
+  retrieval_cues:
+  - conceptual hierarchy
+  - rhythmic release
+  - externalize hidden bridges
+  - concretize an abstraction
+  - short declarative for orientation
+  last_verified: '2026-09-11'
+  canon:
+  - DRILL_revise_clause_load_without_flattening_complexity
+  - PAT_shape_sentence_rhythm_through_length_structure_and_punctuation
+  - PAT_replace_abstractions_with_specific_sensory_images
+  evidence:
+  - WRITING_EV_0014
+  - WRITING_EV_0058
+- id: WRI_MEM_01M5KA6J6XMZADQ5698FW5BCB6
+  claim: Invented or institutional language should produce behavioral or inferential consequences before
+    the system as a whole is explained; the technical account can be delayed, or placed after the narrative
+    ends, once the consequences are already legible in conduct.
+  claim_class: conduct
+  claim_kind: stochastic
+  confidence: provisional
+  delta:
+    kinds:
+    - action
+    - judgment
+    statement: Schedule the consequences first and the systematic explanation after them; needing the
+      explanation early is the signal that the consequences are not yet legible in conduct.
+  envelope:
+    holds_in:
+    - reading analysis of one complete novel whose invented language was demonstrated in ordinary conduct
+      before an appendix explained the system
+    not_shown_in:
+    - original worldbuilding, institutional jargon in nonfiction, retention, and transfer
+    conditions:
+    - bounded to invented or institutional language; it is not a claim that a real community dialect limits
+      thought
+  provenance:
+  - source_study
+  scope: language_consequence_before_explanation
+  retrieval_cues:
+  - consequences before explanation
+  - delay the linguistic appendix
+  - invented language in conduct
+  - show the constraint then name it
+  last_verified: '2026-09-10'
+  canon:
+  - PAT_make_nonstandard_language_a_deliberate_craft_choice
+  - PAT_build_institutional_settings_as_rule_bound_social_worlds
+  - PAT_stage_disclosure_to_sustain_reader_inference
+  evidence:
+  - WRITING_EV_0041

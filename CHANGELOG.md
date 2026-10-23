@@ -6,6 +6,108 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.129 - 2026-10-23
+
+### Changed
+
+- **The writing schema-3 migration is corrected after independent review: four
+  propositions reinstated as survivors, three new claims, one claim's evidence
+  and envelope repaired (T19 correction).** The review found the migration's
+  mechanical apparatus sound and did not reopen the FREEZE, the decomposition,
+  the second-reader pass, or the re-homes; it found four Canon-only verdicts
+  wrong and one surviving claim internally inconsistent. The arithmetic below
+  **supersedes the figures published in 1.0.0-beta.128**; everything beta.128
+  recorded about the FREEZE, the 323-object baseline, the second-reader control,
+  and the re-homes still holds.
+- **Corrected accounting.** **37 legacy entries** decomposed into **100
+  propositions**, which received **100 dispositions**, of which **42 survive**
+  and name **23 distinct live claims** - twelve target ids are shared by more
+  than one source proposition (merges) and no disposition is a split, so the
+  surviving-disposition count and the claim count differ by 19 by design.
+  Dispositions: CARRY 27, REWRITE 14, EXTRACT 1, REHOME 7, REJECT 51. Losses:
+  **58** items (51 rejections, 7 re-homings), each signed individually with its
+  own note; **zero** HOLDs and **zero** FLAGs. The **172** sentences of the
+  thirty-seven entries' `observation`, `boundary`, and `diagnosis.hypothesis`
+  are still each accounted exactly once - these corrections move dispositions,
+  never proposition boundaries, so A9 is unchanged by construction. The store
+  declares `memory_schema_version: 3` and `memory_version: 24`.
+  `memory/writing/training_history.jsonl` remains byte-identical to its FREEZE
+  hash at **76 events**.
+- **Three reinstated claims, and why Canon does not own them.** Each was
+  re-searched against the whole 323-object baseline, with the strongest
+  candidates read in full and the absence confirmed by whole-package `grep`
+  rather than by search rank. (1) `WRI_MEM_005#p1`/`#p2` merge into one claim
+  about switching discourse form: the ranked owner,
+  `PAT_expand_poetic_voice_by_borrowing_another_discourse`, is poetry-scoped in
+  its normative text, triggers on lyric staleness rather than a changed
+  narrative or cognitive job, and exits by subordinating the borrowed element to
+  the poem's speaker rather than when its job is complete; the strongest prose
+  candidate, `PAT_use_diaries_and_letters_as_active_story_documents`, is scoped
+  to in-world documents and supplies no entry trigger. (2) `WRI_MEM_014#p3`
+  becomes the density corrective: `DRILL_revise_clause_load_without_flattening_
+  complexity` owns three of its four moves but no Canon object directs a reviser
+  to make an abstraction concrete as a remedy for conceptual density - `grep`
+  for `concretiz` returns **zero** hits across all 323 objects, and the nearest
+  owner, `PAT_replace_abstractions_with_specific_sensory_images`, converts
+  generalization into *sensory* detail, a descriptive remedy rather than a load
+  remedy. (3) `WRI_MEM_019#p2` becomes the ordering claim: the owning card
+  requires invented-language constraints to reach conduct or inference but says
+  nothing about when, and its own timing bullet expressly permits meaning to be
+  `supplied nearby`; the card that does state the ordering,
+  `PAT_build_institutional_settings_as_rule_bound_social_worlds`, states it
+  about institutional rules, not about a designed language, so joining the two
+  would be the two-object synthesis this baseline forbids.
+- **The over-retention claim's evidence and envelope now agree with its text.**
+  The claim retains `WRI_MEM_023#p4`'s residue - that the retention returns
+  during revision once control resumes - but was supported only by the comic
+  pair from `WRI_MEM_037` while its envelope excluded *later drafts* and
+  *non-comic forms*, which is where that half is demonstrated.
+  `WRITING_EV_0046` joins the evidence as the analytical instance, the excluded
+  regions are replaced by what is genuinely unshown (poetry, career writing, a
+  second original story), and the first-draft-comic condition is replaced by the
+  honest one: two unlike instances leave the cross-form generalization thin, so
+  `confidence` stays `provisional`. The recurrence clause was preserved rather
+  than dropped; dropping it would have been the cheaper repair.
+- **One rejection's owner attribution corrected, outcome unchanged.**
+  `WRI_MEM_024#p6`, the prohibition on optimizing against AI-authorship detector
+  scores, now cites `DRILL_reverse_engineer_and_transform_a_writers_microstyle`
+  instruction 12, which states the prohibition as a standing drill step, instead
+  of a variant-scoped sentence in
+  `PAT_replace_received_language_with_precise_distinctive_phrasing`. The legacy
+  entry nominated that drill, so the rejection stands and
+  `outside_nomination` remains false. With `WRI_MEM_014#p3` reinstated, the
+  rejections owned outside the legacy nominations fall to **5 of 51**, and **36
+  of the 51** verdicts rest on a variant.
+- **Evidence admissibility re-proved explicitly, and the A-2 divergence count
+  re-derived rather than assumed.** All **43** evidence references across the 23
+  claims exist in the frozen History, are `valid`, are `performance`, are
+  unquarantined, cite only the admissible set of each claim's own source
+  entries, and no claim cites more than three; `t19_evidence_check.py`
+  reproduces the proof and computes the default/selected comparison per claim.
+  **2 of 23** claims diverge from the mechanical first-and-last default, against
+  8 of 15 in T17 and 4 of 8 in T18. Both divergences are still merges spanning
+  two legacy entries, and all **21** single-entry claims took the default
+  unchanged - including the three reinstated ones. A-2 is not reopened and no
+  specification change is proposed.
+- **The loss report no longer presents a survivor as a loss.** The three
+  migration reports were removed explicitly, re-derived from the corrected
+  ledger, and re-signed: 58 items, 58 individual notes, no document-level
+  approval and no bulk path. The four obsolete signoffs are gone from the live
+  report, and the pre-correction signed report is retained beside the ledger
+  under `superseded-pre-correction/` so the review trail survives.
+- **Known issues left behind, unchanged by this correction.**
+  `memory.py validate` still reports a legacy-entry tally that counts
+  `.entries`, so the three v3 stores contribute 0 and the printed figure is 46 -
+  software-engineering's entries alone; the behaviour is cosmetic and T21
+  removes the remaining legacy branch. Re-running the gate against the live tree
+  after cutover fails A9, correctly, because the legacy input no longer exists
+  there; the post-cutover gate run used the frozen copy. software-engineering
+  remains the last v1 store and is T20's, which stays blocked. The
+  `SE_MEM_003`/`SE_MEM_016` contradiction pair and T18's owed
+  `canon_workflow` hand-off for `DRILL_hold_one_head_type_across_expression_set`
+  are both still carried forward untouched.
+
+
 ## 1.0.0-beta.128 - 2026-10-22
 
 ### Changed

@@ -1,6 +1,6 @@
 memory_schema_version: 3
 skillset: software-engineering
-memory_version: 62
+memory_version: 63
 claims:
 - id: SE_MEM_8JC9EBP7NFAVV2C9YEE45J76PT
   claim: 'A guidance object''s exception clause narrows a correct rule more often than the rule itself
@@ -337,8 +337,8 @@ claims:
   - SE_EV_0004
 - id: SE_MEM_AXTNZ3499FNCZRZC3DGSVQTVZC
   claim: The spread between two projects by the same kind of author exceeds the spread between author
-    kinds on most metrics, so authorship cannot be read off check or comment density; where one metric
-    does separate them, the separating variable is vintage or size.
+    kinds on two of three metrics, so authorship cannot be read off comment or discard-warning density;
+    runtime-check density did separate the sampled groups.
   claim_class: conduct
   claim_kind: deterministic
   confidence: provisional
@@ -346,20 +346,22 @@ claims:
     kinds:
     - judgment
     - posture
-    statement: Do not infer who or what wrote a codebase from its check or comment density; where a density
-      gap does track author kind, name the confound before reading it as an authorship signal.
+    statement: Do not infer who or what wrote a codebase from its comment or discard-warning density;
+      where a density does track author kind, treat the separation as unexplained until vintage and size
+      are ruled out as its cause.
   envelope:
     holds_in:
     - Assertion density, comment density and discard-warning usage across five C plus plus corpora
     not_shown_in:
     - Languages other than C plus plus
-    - Corpora written against the current guidance generation, which is the sample that would test the
-      proposed cause
+    - Corpora that separate vintage and size from author kind, which is the sample that would decide the
+      confound
     conditions:
     - Only two projects of one author kind were available, so the spread claim rests on a small sample
-    - A re-measurement over seven corpora put the within-kind spread below the between-kind gap on runtime-check
-      density alone, where the one kind's corpora were also the newest and smallest, so that metric is
-      the confounded one
+    - A re-measurement over seven corpora put the within-kind spread at 0.79 against a between-kind gap
+      of 2.82 on runtime-check density, so those groups do separate on that metric
+    - The corpora of one author kind in that sample are also the newest and the smallest, so vintage and
+      size are confounded with authorship and none of the three is established as the cause
   provenance:
   - runtime_self_audit
   scope: inferring_authorship_from_code_metrics
@@ -1080,8 +1082,9 @@ claims:
   - SE_EV_0039
   - SE_EV_0041
 - id: SE_MEM_5628P29ZTEVVZASMYW7FTJ6YKG
-  claim: A performer's own report that it used a given support is not evidence that it did; a behaviour
-    credited on four such self-reports did not survive the support being withheld.
+  claim: 'A performer''s own report that it used a given support is not evidence that it did: a behaviour
+    credited to a support on four such self-reports continued unchanged once the support was withheld,
+    so the ablation refuted the attribution and left the behaviour standing.'
   claim_class: conduct
   claim_kind: deterministic
   confidence: repeated
@@ -1089,12 +1092,15 @@ claims:
     kinds:
     - verification
     statement: Withhold the support and re-run before crediting it with a behaviour; treat a self-report
-      of having used it as no evidence at all.
+      of having used it as no evidence, and read survival under withholding as refuting the credit rather
+      than the behaviour.
   envelope:
     holds_in:
     - Ablation of a named support where the behaviour is observable in the output
     not_shown_in:
     - Supports that cannot be withheld without changing the task itself
+    - What does produce the behaviour, which three controlled comparisons withdrawing five supports failed
+      to identify
   provenance:
   - runtime_self_audit
   scope: attributing_a_behavior_to_a_support
@@ -1759,8 +1765,11 @@ claims:
     - Guidance at large rather than this corpus and this method
     - Shared packages and other lanes, which remain unswept
     conditions:
-    - Source distance predicts a broken language claim better than claim kind does, which weakens aiming
-      by kind alone
+    - Later batches found the broken language claims tracking how far an object's source stands from the
+      targeted standard rather than its claim kind, so aiming by kind alone is incomplete; the two were
+      never compared under one measure
+    - An edit-history count over the same module runs contrary, with language-requirement objects edited
+      more often than the rest; edit frequency is not probe-failure frequency and does not test the ordering
   provenance:
   - runtime_self_audit
   scope: which_guidance_claims_survive_testing
@@ -1778,9 +1787,9 @@ claims:
   - SE_EV_0061
   - SE_EV_0069
 - id: SE_MEM_DPPP6562EDPMYN6FW5GY5CKT9M
-  claim: What predicts a broken claim about what the language requires is how far its source stands from
-    the targeted standard - not the kind of claim and not raw age - and the relation separates the extremes
-    rather than ordering them.
+  claim: Across the nine verification batches whose source provenance was known, broken language claims
+    concentrated in objects whose source stood furthest from the targeted standard, while objects contemporary
+    with it held without exception; the signal separates the extremes and does not order adjacent distances.
   claim_class: conduct
   claim_kind: deterministic
   confidence: strong
@@ -1800,9 +1809,10 @@ claims:
     - Objects contemporary with the target standard, which have held without exception and so bound the
       signal rather than testing it
     conditions:
-    - Measured over 202 objects and 462 repairs, repair rate ran highest at the largest well-populated
-      distance and lowest at zero distance, but the small pre-standard group ran below both, so the relation
-      is not monotone
+    - The evidence is where the defects were found across those batches, not a comparison against claim
+      kind or raw age under a common measure
+    - An edit-history sweep over 202 objects counts edits rather than probe failures; its rate by distance
+      is not monotone and neither corroborates nor refutes the batches' result
   provenance:
   - runtime_self_audit
   scope: which_guidance_claims_survive_testing

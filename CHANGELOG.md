@@ -6,6 +6,103 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.131 - 2026-10-23
+
+### Fixed
+
+- **A T20 claim reversed the empirical result it was written from, and is
+  corrected.** `SE_MEM_5628P29ZTEVVZASMYW7FTJ6YKG` said a behaviour credited to
+  a support on four self-reports *did not survive the support being withheld*.
+  The frozen legacy entry `SE_MEM_016` and event `SE_EV_0041` record the
+  opposite: five candidate supports were withdrawn one or two at a time and the
+  behaviour survived every removal, including the arm with none of the five
+  present. What did not survive withholding was the **credit given to
+  retrieval**. The claim now states that the ablation refuted the attribution
+  and left the behaviour standing, which also removes a contradiction with the
+  neighbouring reach claim recording the same persistence. The duplicate-matrix
+  row that distinguishes this claim from the independent-validation claim was
+  re-run against the corrected wording and is unchanged: the correction changes
+  what the ablation refuted, not the condition under which the claim fires.
+- **A claim asserted a cause its experiment did not establish.**
+  `SE_MEM_AXTNZ3499FNCZRZC3DGSVQTVZC` held that where one density metric
+  separates author kinds, *the separating variable is vintage or size*. The
+  seven-corpus measurement reproduces - the within-kind spread exceeds the
+  between-kind gap on two of three metrics, and runtime-check density separates
+  the sampled groups at a 2.82 gap against a 0.79 spread - but nothing in it
+  measured vintage or size. Those corpora are also the newest and the smallest,
+  so the three vary together. The claim now reports two of three exactly, states
+  the separation on the third as observed, and names vintage and size as
+  **confounds preventing attribution** rather than as demonstrated causes.
+- **Two claims rested on predictive language a rerun did not establish.**
+  `SE_MEM_DPPP6562EDPMYN6FW5GY5CKT9M` began "What predicts a broken claim about
+  what the language requires...", excluding claim kind and raw age. The rerun
+  measured **edits per card**, not broken-claim frequency, and the series is
+  non-monotone (1.42, 2.31, 1.64, 2.71, 1.47 by source distance). The claim is
+  rewritten to the scoped historical observation its own batch evidence
+  supports - the nine batches whose source provenance was known - and the
+  predictive framing is gone; the companion claim's stale condition,
+  which asserted source distance *predicts* better than claim kind, is corrected
+  to the same historical form, and both now carry the edit measurement in their
+  envelopes as an explicitly non-equivalent proxy.
+
+### Changed
+
+- **Two behaviour scenarios are reclassified from EXECUTED to MIXED, because
+  their harnesses measured proxies and the evidence reported the proxies as the
+  thing they stood for.** This supersedes the beta.130 figures.
+
+  | | EXECUTED | MIXED | DECISION | claims on reasoning evidence alone |
+  |---|---:|---:|---:|---:|
+  | beta.130 | 39 | 2 | 1 | 7 of 81 |
+  | **beta.131** | **37** | **4** | **1** | **12 of 81** |
+
+  The drill-specification sweep flagged 262 of 472 graded requirements as
+  "unbacked" on a word-overlap heuristic, and the evidence called them 262
+  specification defects. A hand adjudication of fifteen flags drawn at even
+  intervals from the sorted flag list, each read against its drill's own
+  instruction steps, **confirmed none**: thirteen are false positives and two
+  requirements carry one unasked element each. One drill has all six of its
+  requirements flagged while its instructions ask for the graded work step by
+  step, and the lowest-overlap flag in the sample is also a false positive, so
+  the cut point is not the problem. The sweep is now reported as 262 **candidate
+  flags** at a measured precision of zero, which converts it into a second
+  executed instance of the claim that a keyword proxy for a non-decidable
+  property reports noise - the one claim that scenario does establish. The other
+  two return to reasoning evidence.
+- The repair-history harness counted every post-introduction commit as a repair
+  and every commit sparing the IF/THEN marker lines as illustration-only,
+  yielding "411 of 462 (89 %)". Both were wrong. **173 of the 462 edits never
+  leave the YAML front matter** - the worked example changes a foundation role
+  and one cross-link - and the marker regex under-counts rule edits by 2.7×,
+  because a rule can be reworded without its markers changing. Classified by
+  section over the pattern cards: 360 edits, 152 metadata-only, and of the 208
+  prose edits **152 (73 %) leave the rule untouched**. The harness now keeps
+  *edit*, *metadata edit*, *rule edit*, *repair* and *probe failure* as five
+  separate terms in its own header, and records that git holds the first three
+  and neither of the last two. Three claims about probe outcomes across twenty
+  verification batches return to reasoning evidence; the corpus census of what a
+  probe cannot reach stays executed, because the repository does answer it.
+- `memory/software-engineering/skill_memory.yaml` declares `memory_version: 63`.
+  The store is regenerated from the same frozen legacy bytes and the same
+  recorded claim-id map, so every claim id is unchanged and the four corrected
+  claims are the only content difference.
+
+### Known issues
+
+- **Twelve of 81 claims rest on a reasoning fixture alone**, up from seven: the
+  seven beta.130 recorded, plus the two whose lexical cross-reference does not
+  implement the semantic one they describe, plus the three about probe outcomes
+  across twenty verification batches that git cannot see. Each is recorded with
+  why it cannot be executed and the strongest experiment run in its place.
+  Adjudicating all 262 flags by hand would execute one of the two; re-running
+  twenty verification batches against the C++ module would execute the three,
+  and that is a sweep rather than a migration step.
+- The migration accounting, Canon ownership, loss accounting, cutover, domain
+  isolation, duplicate dispositions and the `SE_MEM_003` / `SE_MEM_016`
+  adjudication are unchanged and were not reopened: 46 entries, 146
+  propositions, 146 dispositions, 81 claims, 19 signed losses, zero HOLDs.
+  Full discovery and the skip baseline are unchanged from beta.130.
+
 ## 1.0.0-beta.130 - 2026-10-23
 
 ### Changed

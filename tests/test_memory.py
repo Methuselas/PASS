@@ -376,6 +376,13 @@ class SchemaContract(MemoryStoreFixture):
                 "link-evidence", "--domain", "art",
                 "--claim", "TST_MEM_001", "--events", "TST_EV_0001",
             ),
+            # `show` reads a store like the rest of them, and the T21 matrix
+            # left it out. It answered "no claim 'TST_MEM_001'" on a v1 store -
+            # absence of a claim, from a store whose claims this runtime cannot
+            # read at all - and printed from one whose mapping happened to carry
+            # a `claims` key. Both are the same omission: a reader that did not
+            # pass the version boundary.
+            "show": ("show", "--domain", "art", "--id", "TST_MEM_001"),
         }
 
     def assertLoudlyUnmigrated(self, version: int) -> str:
@@ -441,6 +448,155 @@ class SchemaContract(MemoryStoreFixture):
         self.assertEqual(unmigrated.returncode, 1)
         self.assertIn("unmigrated", unmigrated.stdout)
         self.assertNotIn("must be one of", unmigrated.stdout)
+
+    def write_versioned(self, version: int, key: str, items: list[dict]) -> None:
+        """A store declaring `version`, holding `items` under `key`.
+
+        The fixture writer ties the key to the version, which is exactly the
+        assumption the `show` bypass ran through: a declared version and a v3
+        shape are independent facts on disk, and the runtime has to refuse on
+        the version it was given rather than on the shape it recognises. This
+        writer is ephemeral test input in a temporary tree, like the rest of the
+        wrong-version input here (criterion 48).
+        """
+        (self.domain / "skill_memory.yaml").write_text(
+            yaml.safe_dump(
+                {
+                    "memory_schema_version": version, "skillset": "art",
+                    "memory_version": 1, key: items,
+                },
+                sort_keys=False,
+            ),
+            encoding="utf-8",
+        )
+        (self.domain / "training_history.jsonl").write_text("", encoding="utf-8")
+
+    def test_a_legacy_store_shaped_like_a_current_one_is_still_refused(self) -> None:
+        """A v1 or v2 store that happens to carry `claims` is still unmigrated.
+
+        The sharp half of the `show` bypass: a store declaring a retired version
+        and holding a well-formed v3 claim list printed that claim and exited 0,
+        because `show` read `claims` without asking what schema the file claimed
+        to be. The declared version decides, not the shape - otherwise "no
+        runtime path reads v1 or v2" holds only for files that look legacy.
+        """
+        claim = art_claim()
+        for version in (1, 2):
+            for command in (
+                ("show", "--domain", "art", "--id", claim["id"]),
+                ("query", "--cues", "shadow shape", "--domain", "art"),
+            ):
+                with self.subTest(schema_version=version, command=command[0]):
+                    self.write_versioned(version, "claims", [claim])
+                    before = (self.domain / "skill_memory.yaml").read_bytes()
+                    result = run_tool(*command, memory=self.tmp)
+                    output = result.stdout + result.stderr
+                    self.assertEqual(result.returncode, 1, output)
+                    self.assertIn("unmigrated", output)
+                    self.assertNotIn(claim["claim"], output)
+                    self.assertNotIn(claim["id"], result.stdout)
+                    self.assertEqual(
+                        (self.domain / "skill_memory.yaml").read_bytes(), before,
+                    )
+
+    def test_an_unsupported_version_is_refused_by_every_reader(self) -> None:
+        """Criterion 8 on the reading paths, not just the validating one.
+
+        `validate` has always called schema 4 an unknown version. `query` read
+        it as a current store - claims returned, normal receipt, exit 0 - and
+        `show` printed from it, because neither asked for the exact version and
+        only `unmigrated_problem` stood between them and the claims. A version
+        nobody has defined has no reader, so every reader refuses it, and none
+        of them borrows the migration wording: there is nothing to migrate from.
+        """
+        claim = art_claim()
+        self.write_versioned(4, "claims", [claim])
+        before = (self.domain / "skill_memory.yaml").read_bytes()
+        commands = {
+            "query": ("query", "--cues", "shadow shape", "--domain", "art"),
+            "show": ("show", "--domain", "art", "--id", claim["id"]),
+            "validate": ("validate", "--domain", "art"),
+            "review": ("review", "--domain", "art"),
+        }
+        for label, args in commands.items():
+            with self.subTest(command=label):
+                result = run_tool(*args, memory=self.tmp)
+                output = result.stdout + result.stderr
+                self.assertEqual(result.returncode, 1, output)
+                self.assertIn("memory_schema_version", output)
+                self.assertIn("must be one of [3]", output)
+                self.assertNotIn("unmigrated", output)
+                self.assertNotIn("migrate_memory_v3", output)
+                self.assertNotIn(claim["claim"], output)
+                self.assertEqual(
+                    (self.domain / "skill_memory.yaml").read_bytes(), before,
+                )
+
+    def test_an_existing_domain_directory_with_no_store_is_absence(self) -> None:
+        """Criterion 32 on the topology the absence tests missed.
+
+        `memory/<domain>/` can exist with no `skill_memory.yaml` in it - a
+        directory left behind, a partial copy, a domain nothing has written yet
+        - and that is the "no store" arm of fail-open, not corruption and not an
+        unmigrated version. The named-domain lookup used to accept the directory
+        and let the retrieval path open a file that was not there, so a query
+        exited non-zero and issued no receipt. An empty directory asserts
+        nothing about learned state.
+        """
+        (self.domain / "skill_memory.yaml").unlink(missing_ok=True)
+        self.assertTrue(self.domain.is_dir())
+        self.assertFalse((self.domain / "skill_memory.yaml").exists())
+        result = run_tool("query", "--cues", "shadow shape", "--domain", "art", memory=self.tmp)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("retrieved: (none)", result.stdout)
+        for word in ("Traceback", "unmigrated", "corrupt", "must be one of"):
+            self.assertNotIn(word, result.stdout + result.stderr)
+
+        # The same topology with History beside it, because a leftover History
+        # file is still not a store.
+        (self.domain / "training_history.jsonl").write_text(
+            json.dumps(VALID_EVENT, sort_keys=True) + chr(10), encoding="utf-8",
+        )
+        with_history = run_tool(
+            "query", "--cues", "shadow shape", "--domain", "art", memory=self.tmp,
+        )
+        self.assertEqual(with_history.returncode, 0, with_history.stdout + with_history.stderr)
+        self.assertIn("retrieved: (none)", with_history.stdout)
+
+    def test_the_four_runtime_schema_states_stay_distinct(self) -> None:
+        """One command, four states, four different answers.
+
+        The correction's whole point: absence, unmigrated, unsupported and
+        current must not collapse into each other. Reading them off one
+        command's behavior is what catches a shared gate that has been widened
+        to make one case pass - a single check that refuses everything, or one
+        that admits everything, satisfies three of these rows and fails the
+        fourth.
+        """
+        claim = art_claim()
+        query = ("query", "--cues", "shadow shape", "--domain", "art")
+
+        (self.domain / "skill_memory.yaml").unlink(missing_ok=True)
+        absent = run_tool(*query, memory=self.tmp)
+        self.assertEqual(absent.returncode, 0, absent.stdout + absent.stderr)
+        self.assertIn("retrieved: (none)", absent.stdout)
+
+        self.write_versioned(2, "entries", [dict(UNMIGRATED_ENTRY)])
+        unmigrated = run_tool(*query, memory=self.tmp)
+        self.assertEqual(unmigrated.returncode, 1)
+        self.assertIn("unmigrated, not corrupt", unmigrated.stdout + unmigrated.stderr)
+
+        self.write_versioned(4, "claims", [claim])
+        unsupported = run_tool(*query, memory=self.tmp)
+        self.assertEqual(unsupported.returncode, 1)
+        unsupported_output = unsupported.stdout + unsupported.stderr
+        self.assertIn("must be one of [3]", unsupported_output)
+        self.assertNotIn("unmigrated", unsupported_output)
+
+        self.write([claim], [])
+        current = run_tool(*query, memory=self.tmp)
+        self.assertEqual(current.returncode, 0, current.stdout + current.stderr)
+        self.assertIn("retrieved: " + claim["id"], current.stdout)
 
     def test_absence_is_still_silent_and_fail_open(self) -> None:
         """Criterion 32, stated beside its opposite. Absence is silent and exits
@@ -2043,7 +2199,10 @@ class V3RetrievalSurface(unittest.TestCase):
     # justifies it in this list - which is the point, because id parsing, Canon
     # enumeration and a confidence write all have to reach for something.
     RETRIEVAL_ALLOWED_NAMES = frozenset({
-        "load_memory", "score_claim",      # reading the store, scoring one claim
+        # `load_current_store`, not `load_memory`: since the T21 correction,
+        # retrieval may not open a store without its runtime schema state being
+        # classified first, so the ungated loader is off this list deliberately.
+        "load_current_store", "score_claim",
         "CONFIDENCE_RANK",                 # confidence, read last and read only
         "Any", "Path", "bool", "dict", "isinstance", "list", "print", "set",
         "str", "sum", "tuple",             # builtins and typing

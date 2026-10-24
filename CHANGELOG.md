@@ -6,6 +6,69 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.134 - 2026-10-24
+
+### Fixed
+
+- **Every current-store reader now passes through one authoritative schema
+  gate, so none of them can consume a store before its runtime schema state has
+  been classified (T21 correction).** beta.133 put the runtime on schema 3
+  alone, but the check that enforced it was per-command, and three reading paths
+  disagreed with each other and with the validator. An independent review
+  reproduced all three.
+
+  `query` asked only whether the declared version was a *retired* one. A store
+  declaring `memory_schema_version: 4` therefore retrieved normally — claims
+  returned, ordinary receipt, exit 0 — while `validate` called the same file an
+  unknown version. `show` asked nothing at all: on a v1 or v2 store it reported
+  `no claim '<id>'`, which says a claim is absent from a store whose claims this
+  runtime cannot read, and on a legacy-declared mapping that happened to carry a
+  `claims` key it printed the claim and exited 0. That was a runtime path
+  reading v1/v2 content, which beta.133 states does not exist.
+
+  The fix is one seam rather than three checks. `load_current_store` loads a
+  store only after classifying it, and `query`, `query_v3_store` and `show` call
+  it instead of `load_memory`; `unsupported_version_problem` is the third
+  refusal beside `unmigrated_problem`, so an undefined version never borrows the
+  migration wording and a retired one never reads as unknown. The write path
+  already enforced the exact version and is unchanged. `validate` and `review`
+  keep their own error channels and their existing messages.
+
+- **A domain directory with no `skill_memory.yaml` in it is absence, not a
+  failure.** Fail-open covers no store, no domain, and an empty store (R2.5
+  §9.2), and this topology is the first of those: the directory can be left
+  behind by a partial copy or a domain nothing has written yet. The named-domain
+  lookup accepted the directory on `is_dir()` alone while the unnamed sweep
+  required the store file, so a query with `--domain` reached the loader for a
+  file that was not there and exited non-zero with no receipt. `domain_dirs` now
+  applies one predicate both ways in, and the query answers `retrieved: (none)`
+  at exit 0 as it already did for a missing root or a missing domain.
+
+  Four runtime states stay exactly distinct, and a test drives one command
+  through all four: absent (exit 0, honest empty receipt), unmigrated 1 or 2
+  (non-zero, *unmigrated, not corrupt*), unsupported 4 or otherwise undefined
+  (non-zero, unknown-version error, no migration wording), and schema 3 (the
+  normal path). A parseable but schema-invalid v3 store stays deferred (R2.3 #3,
+  R2.5 §12.11): this correction defines no corruption policy.
+
+### Testing
+
+- New `test_memory.py::SchemaContract` tests, each failing against beta.133 for
+  the behavior it describes: `test_a_legacy_store_shaped_like_a_current_one_is_still_refused`
+  (a legacy-declared store carrying `claims`, through `show` and `query`),
+  `test_an_unsupported_version_is_refused_by_every_reader` (schema 4 through
+  `query`, `show`, `validate` and `review`),
+  `test_an_existing_domain_directory_with_no_store_is_absence`, and
+  `test_the_four_runtime_schema_states_stay_distinct`, which exists to catch a
+  shared gate widened to make one case pass.
+
+- `show` joined `SchemaContract.unmigrated_commands`, the command/version matrix
+  that beta.133 ran over every other reading command. Its omission is why the
+  bypass shipped, and the matrix checks the store's bytes afterwards.
+
+- `V3RetrievalSurface` now allows `load_current_store` and no longer allows
+  `load_memory`: retrieval may not open a store ungated.
+
 ## 1.0.0-beta.133 - 2026-10-24
 
 ### Removed

@@ -234,11 +234,21 @@ def duplicate_claim_ids(ids: list[str]) -> list[str]:
 
 
 def domain_dirs(memory_root: Path, domain: str | None) -> list[Path]:
+    """Every domain directory that actually holds a store.
+
+    One predicate, both ways in: a named domain has to satisfy the same
+    `skill_memory.yaml` test the unnamed sweep applies. A directory with no
+    store in it is absence (R2.5 §9.2) however the caller reached it - an
+    existing `memory/<domain>/` with no store says no more about learned state
+    than a missing one does - and the two branches disagreeing about that was
+    how a query reached `load_memory` for a file that was not there and
+    reported a missing store as a failure.
+    """
     if not memory_root.is_dir():
         raise MemoryError_(f"memory root not found: {memory_root.as_posix()}")
     if domain:
         target = memory_root / domain
-        if not target.is_dir():
+        if not (target / "skill_memory.yaml").is_file():
             raise MemoryError_(f"no memory for domain '{domain}' under {memory_root.as_posix()}")
         return [target]
     return sorted(p for p in memory_root.iterdir() if p.is_dir() and (p / "skill_memory.yaml").is_file())
@@ -266,7 +276,8 @@ def unmigrated_problem(domain_dir: Path, memory: dict[str, Any]) -> str | None:
     be perfect, and the fix is a migration rather than a repair.
 
     An unknown version - 4, or a string, or nothing - is not this function's
-    business. That stays the validator's "must be one of" error, so the two
+    business. It belongs to `unsupported_version_problem` on a reading path and
+    to the validator's "must be one of" error on a validating one, so the two
     failures never read as the same thing (criterion 8).
     """
     version = memory.get("memory_schema_version")
@@ -280,6 +291,58 @@ def unmigrated_problem(domain_dir: Path, memory: dict[str, Any]) -> str | None:
         "PASS/tools/migrate_memory_v3.py, was retired at the schema-3 cutover and is "
         "recoverable from repository history. No runtime path will upgrade it in place"
     )
+
+
+def unsupported_version_problem(domain_dir: Path, memory: dict[str, Any]) -> str | None:
+    """The unknown-version refusal, or None for schema 3 and for a retired one.
+
+    Criterion 8 keeps three refusals apart, and this is the third of them. A
+    store declaring 4, or a string, or nothing at all is not absence and not a
+    migration that has not been run: nobody has ever defined the contract it
+    claims to be written in, so there is no reader to route it to and nothing
+    to upgrade it from. `unmigrated_problem` owns 1 and 2 and answers first, so
+    this message never has to stand in for that one and never borrows its
+    wording.
+    """
+    if memory.get("memory_schema_version") == SCHEMA_VERSION:
+        return None
+    if unmigrated_problem(domain_dir, memory):
+        return None
+    return (
+        f"{(domain_dir / 'skill_memory.yaml').as_posix()}: memory_schema_version "
+        f"{memory.get('memory_schema_version')!r} is not a schema this runtime "
+        f"supports: it must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}. An unknown "
+        "version is not a retired one - there is no earlier contract behind it and no "
+        "later one this runtime can read - so the store is refused rather than read"
+    )
+
+
+def load_current_store(domain_dir: Path) -> dict[str, Any]:
+    """Load a store only once its runtime schema state has been classified.
+
+    The one seam every current-store reader passes through. `load_memory`
+    answers "what is in this file"; this answers "may this runtime read it at
+    all", and the exact-schema gate lives here rather than in each command so
+    that no reader can consume claims before the question has been asked. The
+    T21 correction exists because `query` and `show` had drifted into
+    disagreeing with each other and with the validator: `query` asked only
+    whether the version was retired, so a schema-4 store retrieved normally,
+    and `show` asked nothing at all, so a v1-declared mapping that happened to
+    carry a `claims` key printed from it.
+
+    Three outcomes, and they are not interchangeable: a retired version raises
+    the loud-unmigrated refusal, an undefined one raises the unknown-version
+    refusal, and schema 3 returns the mapping. Absence is not this function's
+    business - `domain_dirs` settles it before a path gets here - and neither
+    is a malformed schema-3 store, which stays the validator's.
+    """
+    memory = load_memory(domain_dir)
+    problem = unmigrated_problem(domain_dir, memory) or unsupported_version_problem(
+        domain_dir, memory,
+    )
+    if problem:
+        raise MemoryError_(problem)
+    return memory
 
 
 def load_events(domain_dir: Path) -> tuple[list[dict[str, Any]], list[str]]:
@@ -1458,7 +1521,7 @@ def query_v3_store(
     deterministic order available, because sorting by id is exactly what an
     opaque key forbids.
     """
-    memory = load_memory(domain_dir)
+    memory = load_current_store(domain_dir)
     claims = [claim for claim in memory.get("claims") or [] if isinstance(claim, dict)]
     if not (scope or canon_ids or cues):
         return []
@@ -2205,13 +2268,16 @@ def cmd_validate(args: argparse.Namespace) -> int:
 def cmd_query(args: argparse.Namespace) -> int:
     """Retrieve a bounded set, and say exactly what came back.
 
-    An absent store is not a failure. A missing root or a missing domain exits
-    0 with an empty receipt (R2.5 §9.2, criterion 32), because nothing in PASS
-    may stop because Memory is not there. A store that is present but
-    unreadable fails loudly: that is a broken file, not an absent one. So does
-    an unmigrated one, and for the same reason - a legacy store is presence,
-    not absence, and no retrieval can honestly report over claims this runtime
-    cannot read.
+    An absent store is not a failure. A missing root, a missing domain, and a
+    domain directory with no `skill_memory.yaml` in it all exit 0 with an empty
+    receipt (R2.5 §9.2, criterion 32), because nothing in PASS may stop because
+    Memory is not there, and an empty directory is not evidence that it is. A
+    store that is present but unreadable fails loudly: that is a broken file,
+    not an absent one. So does an unmigrated one, and for the same reason - a
+    legacy store is presence, not absence, and no retrieval can honestly report
+    over claims this runtime cannot read. So, distinctly, does a version nobody
+    has defined: `load_current_store` separates those two refusals and this
+    command does not re-decide either.
     """
     try:
         dirs = domain_dirs(args.memory, args.domain)
@@ -2228,9 +2294,12 @@ def cmd_query(args: argparse.Namespace) -> int:
     empty_request = not (scope or cues or canon_ids)
     noted = False
     for domain_dir in dirs:
-        unmigrated = unmigrated_problem(domain_dir, load_memory(domain_dir))
-        if unmigrated:
-            print(f"FAIL: {unmigrated}", file=sys.stderr)
+        # The version boundary, before any claim is read and before any output:
+        # one authoritative classification, shared with every other reader.
+        try:
+            load_current_store(domain_dir)
+        except MemoryError_ as refused:
+            print(f"FAIL: {refused}", file=sys.stderr)
             return 1
         if empty_request and not noted:
             print(EMPTY_V3_QUERY_NOTE)
@@ -2340,6 +2409,11 @@ def read_json_argument(value: str | None) -> Any:
 def cmd_claim(args: argparse.Namespace) -> int:
     """`add`, `update`, `retire` and `show` against one domain's v3 store.
 
+    `show` is a reader, so it goes through `load_current_store` like the others
+    rather than reaching for `claims` directly: a store's runtime schema state
+    decides whether it may be read, and a v1-declared mapping does not become
+    readable by carrying a key that looks like a v3 one.
+
     The admission prompt is printed before `add` and before any `update` that
     touches a key in `ADMITTING_KEYS`, whatever the write then turns out to be:
     it asks the operator a question, so it would be useless printed only after
@@ -2351,7 +2425,7 @@ def cmd_claim(args: argparse.Namespace) -> int:
         return 1
     domain_dir = dirs[0]
     if args.command == "show":
-        claim = find_claim(load_memory(domain_dir).get("claims") or [], args.id)
+        claim = find_claim(load_current_store(domain_dir).get("claims") or [], args.id)
         if claim is None:
             print(f"FAIL: no claim '{args.id}'", file=sys.stderr)
             return 1

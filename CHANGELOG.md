@@ -6,6 +6,82 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.135 - 2026-10-24
+
+### Changed
+
+- **Every document that states the Skillset Memory contract now states the
+  schema-3 claim contract (T22).** The runtime moved to claims over T01-T21, but
+  the prose a reader reaches first still described the retired shape, so the
+  repository carried two contradictory specifications of the same store. This is
+  contract correction, not documentation tidying: a reader who followed
+  `MEMORY_SCHEMA.md` section 5 would have written an entry with a `type`, a
+  `status`, and an `evidence_count` into a store whose validator rejects all
+  three.
+
+  `MEMORY_SCHEMA.md` is the principal change. The v1/v2 store shape, the
+  required/optional entry keys, the two promotion thresholds, the five-state
+  lifecycle, specialization profiles, card-candidate incubation, and compaction
+  are deleted; the claim contract is promoted to section 5 and is now the whole
+  current Memory contract. Retrieval is restated for v3 as its own section, and
+  self-containment is kept, re-pointed from the entry to the claim. The four
+  test-locked phrases survive verbatim, including the invalid-run invariant,
+  which now says an invalid event must never increment *the weight of evidence
+  standing behind a claim* rather than naming the retired `evidence_count`.
+
+  The hard rule in `CLAUDE.md` and `AGENTS.md` keeps its bold lead byte for byte
+  and replaces the prose after it: claims, `conduct` and `reach`, currentness as
+  presence, retirement as removal, and `confidence` as maturity that is never
+  mechanically derived. `ARCHITECTURE.md` contract 20 drops the four retired
+  types and states what a release actually ships - the current-state projection
+  only, with representative `evidence` stripped and no Training History beside
+  it.
+
+- **The candidate workflow is documented where it actually lives.**
+  `CANDIDATE_REFINEMENT.md` described CRQ intake as resolving a `card_candidate`
+  out of Skillset Memory, which T10/T11 re-homed to
+  `canon_workflow/<domain>/card_candidates.yaml` and the controller has read
+  from ever since. The intake section, the disposition vocabulary
+  (`candidate_action`, not the retired `memory_action`), and the
+  `SOFTWARE_CARD_FIELD_TESTS.md` repair pipeline now name that store. Skillset
+  Memory is stated as what it is on this path: not a CRQ input.
+
+### Fixed
+
+- **`MODULE_RELEASES.md` no longer promises a legacy pass-through that T21
+  deleted.** It said a store of any older schema ships whole with its History;
+  packaging has one branch and projects schema 3, and a store of any other
+  declared schema stops the build.
+
+- **`memory/README.md`'s current-contract defects.** It opened by describing
+  Skillset Memory as "what actually happened when the canon was used", which is
+  Training History; it said `build_release.py` "copies the store", which
+  predates the T09 projection; it called Memory "the record of using the canon";
+  and it claimed the Art store is seeded with three craft observations, which
+  the migrated store is not. The separately deferred wording question in the
+  directory tree is untouched.
+
+- **The anti-inline firewall runs against claims.** `test_memory_is_not_inlined_into_canon`
+  iterated `entries` and compared `observation`, so after the migration it
+  passed over an empty list and proved nothing. It now reads `claims` and checks
+  both prose fields a claim carries - `claim` and `delta.statement` - against
+  every card and skill entrypoint.
+
+### Added
+
+- `test_memory.py::ContractDocuments`, two gates over the documents that state
+  the contract: no governed current document presents retired schema vocabulary
+  as a current Memory schema value, and every `memory.py <word>` it names is a
+  live subcommand read off the tool's own parser. Neither is a repository-wide
+  string ban. Ordinary English is not banned - `status:` front matter and "awaits
+  diagnosis" both stand, because the ambiguous tokens are caught only as keys
+  inside a fenced block describing a Memory store - and a sentence that declares
+  a name retired is permitted, which is what lets the S2 rule row list the
+  legacy-only keys it rejects and lets "There is no `supersede`" state the
+  contract. `workspace/handoffs/` and Training History are outside both gates:
+  rewriting the migration evidence to match the present would destroy the record
+  the migration was judged on.
+
 ## 1.0.0-beta.134 - 2026-10-24
 
 ### Fixed

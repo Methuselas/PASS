@@ -104,12 +104,12 @@ or teacher-dependent interpretation.
 `memory/<domain>/` is a separate store with its own contract in
 `PASS/docs/MEMORY_SCHEMA.md`. Read that before touching it.
 
-Skill Memory separates what testing showed (`training_result`) from the durable
-lesson retained from evidence (`learned_principle`). Training history keeps the
-event trail. Memory is never canon and never overrides a card — an entry that seems important
-enough to apply on every turn has earned promotion review, not a paste, because
-pasting creates a second write site and lets the real owner decay unobserved.
-`tests/test_memory.py` enforces this.
+Skillset Memory holds **claims**, classed `conduct` or `reach`, and a claim is
+current by presence. Training history keeps the event trail. Memory is never
+canon and never overrides a card — a claim important enough to apply on every
+turn has earned promotion review, not a paste, because pasting creates a second
+write site and lets the real owner decay unobserved. `tests/test_memory.py`
+enforces this.
 
 When a domain gains, removes, or renames a module, update that domain's canonical
 `SkillForge_*.yaml` recipe in the same change. When an approved cross-skill
@@ -117,13 +117,14 @@ category is selected as an auxiliary, update the consuming recipe's bounded
 auxiliary entries in the same change. A project archive must not be the only
 place where its release composition is correct.
 
-An observation is evidence about a capability only if the run that produced it
-was a valid test of that capability. A run that failed before the capability was
+A result is evidence about a capability only if the run that produced it was a
+valid test of that capability. A run that failed before the capability was
 exercised stays in `training_history.jsonl` and never counts toward a craft
 weakness; attribute it to the tool, controller, or package that actually failed.
 
 ```bash
 python PASS/tools/memory.py validate
+python PASS/tools/memory.py query --domain <domain> --cues a,b
 python PASS/tools/memory.py review --domain <domain>
 python PASS/tools/memory.py link-evidence --domain <domain> --claim <claim id> --events <event ids>
 python PASS/tools/memory.py add|update|retire|show --domain <domain> ...

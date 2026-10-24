@@ -1,6 +1,8 @@
 # Skillset Memory
 
-Empirical state: what actually happened when the canon was used.
+Current learned self-knowledge: what this skill now carries forward about
+doing its own work. The events it was distilled from are the separate
+empirical record beside it.
 
 ```text
 memory/
@@ -17,12 +19,12 @@ The contract is **`PASS/docs/MEMORY_SCHEMA.md`**. Read it before adding
 anything. The short version:
 
 - **Memory is not canon.** It never mutates a card and is never copied into one.
-  An observation that seems to apply on every turn has earned promotion review,
+  A claim that seems to apply on every turn has earned promotion review,
   not a paste.
 - **An invalid run is never evidence about a capability.** A run that failed
   before the capability was exercised stays in history with a reason, attributed
   to the tool, controller, or package that actually failed.
-- **Presence is not consultation.** Nothing here guarantees an entry is read.
+- **Presence is not consultation.** Nothing here guarantees a claim is read.
   `memory.py query` prints what it returned so a run can record what was
   actually consulted; absent that, consultation is unproven.
 - **Retrieval is bounded, and it never selects Canon.** A query ranks by match
@@ -88,26 +90,30 @@ but unreadable is always loud.
 
 The tool is mechanical. It checks shape, retrieves a bounded set, appends an
 event, links one to three representative events behind a claim, and reports what
-looks stale. It never judges whether an artifact was good and never writes an
-observation for you: consolidating several events into one honest sentence is a
+looks stale. It never judges whether an artifact was good and never writes a
+claim for you: consolidating several events into one honest sentence is a
 judgment, and a script that guessed at it would be inventing empirical claims.
 
 ## Releases
 
-`build_release.py` copies the store of every domain a release bundles to
-`memory/<domain>/` in the release root, beside `library/` rather than inside
-it, and writes those files read-only. A release reads the record it inherited;
-it is not the target new events are written to. See
+`build_release.py` ships a **current-state projection** of every domain a
+release bundles to `memory/<domain>/` in the release root, beside `library/`
+rather than inside it, and writes those files read-only. The projection is
+`skill_memory.yaml` alone: ids and current claim semantics carry through
+unchanged, each claim's representative `evidence` is stripped, and no
+`training_history.jsonl` travels with the package. A release reads the state
+it inherited; it is not the target new claims or events are written to. See
 `PASS/docs/MODULE_RELEASES.md`.
 
 ## Deleting this directory
 
 Nothing breaks. `library/` validates with `memory/` absent, and a test enforces
-that. Memory is the record of using the canon, not a dependency of it.
+that. Memory is what the skill learned from using the canon, not a dependency
+of it; the empirical record of what happened is `training_history.jsonl`.
 
 ## Seeding
 
 An empty valid store beats a populated contaminated one. There is no requirement
-to fill this in. The Art store is seeded with three craft observations from
-pre-Memory practical runs; controller, tool, and packaging failures from the same
+to fill this in. Where a store was seeded from retained history, only craft
+evidence was admitted: controller, tool, and packaging failures from the same
 period are deliberately absent, because those were never tests of craft.

@@ -716,13 +716,20 @@ class ShippedStore(unittest.TestCase):
                 )
 
     def test_memory_is_not_inlined_into_canon(self) -> None:
-        """An entry that must apply every turn earns promotion, not a paste.
+        """A claim that must apply every turn earns promotion, not a paste.
 
         Copying memory into an always-loaded file creates a second write site and
-        lets the retrieval path decay unobserved. Learned principles and empirical
-        calibration may overlap conceptually with the canon they inform, so shared
-        phrases are not proof of inlining. No complete memory observation and no
-        entry id may appear in a card or skill entrypoint.
+        lets the retrieval path decay unobserved. A claim may overlap conceptually
+        with the canon it informs, so shared phrases are not proof of inlining.
+        What is forbidden is the whole of a claim's prose, or its id, appearing in
+        a card or skill entrypoint.
+
+        T22 re-pointed this from the retired `entries`/`observation` pair to the
+        schema-3 `claims`, and reads both prose fields a claim carries: `claim`
+        itself and `delta.statement`, which is the sentence that actually changes
+        what the next task does and therefore the one most tempting to paste. The
+        firewall is not weakened: the same two things are still banned outright,
+        over the unit that now exists.
         """
         canon_texts: list[tuple[str, str]] = []
         for path in LIBRARY.rglob("*.md"):
@@ -738,21 +745,29 @@ class ShippedStore(unittest.TestCase):
             if not store.is_file():
                 continue
             data = yaml.safe_load(store.read_text(encoding="utf-8")) or {}
-            for entry in data.get("entries") or []:
-                entry_id = str(entry.get("id", ""))
+            for claim in data.get("claims") or []:
+                claim_id = str(claim.get("id", ""))
                 for label, text in normalized:
                     self.assertNotIn(
-                        entry_id.lower(), text,
-                        f"memory id {entry_id} appears in canon at {label}",
+                        claim_id.lower(), text,
+                        f"claim id {claim_id} appears in canon at {label}",
                     )
-                observation = " ".join(
-                    str(entry.get("observation", "")).lower().split()
-                )
-                for label, text in normalized:
-                    self.assertNotIn(
-                        observation, text,
-                        f"complete memory observation from {entry_id} appears verbatim in canon at {label}",
-                    )
+                delta = claim.get("delta")
+                prose = {
+                    "claim": claim.get("claim", ""),
+                    "delta.statement": (delta or {}).get("statement", "")
+                    if isinstance(delta, dict) else "",
+                }
+                for field, value in prose.items():
+                    normalized_value = " ".join(str(value).lower().split())
+                    if not normalized_value:
+                        continue
+                    for label, text in normalized:
+                        self.assertNotIn(
+                            normalized_value, text,
+                            f"the complete {field} of {claim_id} appears verbatim "
+                            f"in canon at {label}",
+                        )
 
     def test_memory_carries_no_practice_history_into_cards(self) -> None:
         """CLAUDE.md rule 15, checked from the other side."""
@@ -897,6 +912,198 @@ class ToolingBoundary(unittest.TestCase):
             "reopens and contains the expected state",
         ):
             self.assertIn(required, text, f"MEMORY_SCHEMA.md is missing: {required}")
+
+# The documents that state the Memory contract. `workspace/handoffs/` is
+# deliberately absent: the migration authorities and per-domain ledgers there
+# describe the shape the corpus migrated away from, and rewriting history to
+# match the present would destroy the evidence the migration was judged on.
+GOVERNED_FILES = ("CLAUDE.md", "AGENTS.md", "ARCHITECTURE.md")
+GOVERNED_TREES = ("PASS/docs", ".claude/skills", ".agents/skills", "memory")
+
+# Retired schema vocabulary that is not also an ordinary English word, so a
+# governed document containing one is naming a value no store has.
+RETIRED_SCHEMA_TOKENS = (
+    "scope_type", "evidence_count", "evidence_origin", "runtime_scope",
+    "superseded_by", "likely_owners", "learned_principle", "recurring_failure",
+    "successful_tendency", "known_boundary", "training_result",
+    "specialization_profile", "card_candidate",
+)
+
+# Retired schema vocabulary that is also ordinary English. Banning the string
+# would ban the word - "status: active" is front matter, "awaits diagnosis" is a
+# sentence - so these are caught only where a document presents one *as schema*:
+# a YAML key inside a fenced block that is describing a Memory store.
+RETIRED_AMBIGUOUS_TOKENS = (
+    "type", "scope_id", "status", "observation", "boundary", "diagnosis",
+    "interventions", "evidence_class",
+)
+
+# What makes a fenced block a Memory store rather than some other YAML.
+MEMORY_STORE_MARKERS = ("memory_schema_version", "memory_version", "skill_memory", "claims:")
+
+# A line that declares a token retired is naming it as *not* current, which is
+# the opposite of the defect this gate exists for. The live example is the S2
+# rule row in MEMORY_SCHEMA.md, which lists legacy-only keys precisely to say
+# they are unknown now. Historical description is permitted; current contract is
+# not.
+RETIREMENT_MARKERS = (
+    "legacy", "retired", "unknown here", "rejected", "no longer", "historical",
+    "used to", "went with",
+)
+
+
+def governed_documents() -> list[Path]:
+    """Every current document that states part of the Memory contract."""
+    paths = [ROOT / name for name in GOVERNED_FILES]
+    for tree in GOVERNED_TREES:
+        base = ROOT / tree
+        if base.is_dir():
+            paths.extend(sorted(base.rglob("*.md")))
+    return [path for path in paths if path.is_file()]
+
+
+def shell_fences(text: str) -> list[tuple[int, list[str]]]:
+    """Fenced shell blocks, as (first line number, lines). An invocation surface."""
+    blocks: list[tuple[int, list[str]]] = []
+    inside = False
+    start = 0
+    buffer: list[str] = []
+    for number, line in enumerate(text.split("\n"), 1):
+        stripped = line.lstrip()
+        if stripped.startswith("```"):
+            if inside:
+                blocks.append((start, buffer))
+                inside, buffer = False, []
+            elif stripped[3:].strip() in ("bash", "sh", "shell", "console"):
+                inside, start, buffer = True, number + 1, []
+            continue
+        if inside:
+            buffer.append(line)
+    return blocks
+
+
+def memory_store_fences(text: str) -> list[tuple[int, list[str]]]:
+    """Fenced blocks that describe a Memory store, as (first line number, lines)."""
+    blocks: list[tuple[int, list[str]]] = []
+    inside = False
+    start = 0
+    buffer: list[str] = []
+    for number, line in enumerate(text.split("\n"), 1):
+        if line.lstrip().startswith("```"):
+            if inside:
+                blocks.append((start, buffer))
+                inside, buffer = False, []
+            else:
+                inside, start, buffer = True, number + 1, []
+            continue
+        if inside:
+            buffer.append(line)
+    return [
+        (start, lines) for start, lines in blocks
+        if any(marker in "\n".join(lines) for marker in MEMORY_STORE_MARKERS)
+    ]
+
+
+class ContractDocuments(unittest.TestCase):
+    """The documents that define Memory state the contract the runtime has.
+
+    T22's subject. A document naming a type, status, field, or subcommand that
+    schema 3 does not have is not a typo: it is a second, contradictory
+    specification, and the one a reader reaches first. These two tests are
+    deliberately not repository-wide string bans. A CHANGELOG entry recording
+    that `training_result` was migrated away, and a migration handoff describing
+    the store it migrated, are evidence; banning the string would delete the
+    record of the work. What is checked is the set of surfaces that state what
+    is true *now*.
+    """
+
+    def test_no_document_states_a_retired_memory_type(self) -> None:
+        offenders: list[str] = []
+
+        for path in governed_documents():
+            relative = path.relative_to(ROOT).as_posix()
+            text = path.read_text(encoding="utf-8")
+
+            for number, line in enumerate(text.split("\n"), 1):
+                if any(marker in line.lower() for marker in RETIREMENT_MARKERS):
+                    continue
+                for token in RETIRED_SCHEMA_TOKENS:
+                    # `\b...\b` already excludes `card_candidates.yaml`, which is
+                    # the live candidate workflow store and not this vocabulary.
+                    if re.search(rf"\b{token}\b", line):
+                        offenders.append(f"{relative}:{number}: {token}")
+
+            for start, lines in memory_store_fences(text):
+                for offset, line in enumerate(lines):
+                    for token in RETIRED_AMBIGUOUS_TOKENS:
+                        if re.match(rf"\s*-?\s*{token}:(\s|$)", line):
+                            offenders.append(
+                                f"{relative}:{start + offset}: {token} presented as a "
+                                "Memory store key"
+                            )
+
+        # The stores themselves are a governed surface too, and a key is schema
+        # however it is spelled in prose. `validate` rule S2 refuses these on a
+        # write; this is the same statement read off the committed corpus.
+        for store in sorted(MEMORY.glob("*/skill_memory.yaml")):
+            relative = store.relative_to(ROOT).as_posix()
+            data = yaml.safe_load(store.read_text(encoding="utf-8")) or {}
+            for claim in data.get("claims") or []:
+                for key in claim:
+                    if key in RETIRED_SCHEMA_TOKENS or key in RETIRED_AMBIGUOUS_TOKENS:
+                        offenders.append(f"{relative}: claim key {key}")
+
+        self.assertEqual(
+            offenders, [],
+            "a governed document presents retired Memory vocabulary as current "
+            "schema:\n  " + "\n  ".join(offenders),
+        )
+
+    def test_no_document_names_a_removed_subcommand(self) -> None:
+        """Every `memory.py <word>` in a governed document names a live command.
+
+        Stronger than banning `compact` and `entry`, and self-maintaining: the
+        set is read off the tool's own parser, so a subcommand renamed or dropped
+        later fails here instead of rotting into the documentation.
+        """
+        usage = run_tool("--help").stdout
+        listed = re.search(r"\{([a-z0-9,\-]+)\}", usage)
+        self.assertIsNotNone(listed, f"could not read the subcommand list from:\n{usage}")
+        supported = set(listed.group(1).split(","))
+        self.assertIn("validate", supported)
+        for removed in ("compact", "entry"):
+            self.assertNotIn(removed, supported, f"{removed} is still a subcommand")
+
+        offenders: list[str] = []
+        for path in governed_documents():
+            relative = path.relative_to(ROOT).as_posix()
+            for number, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
+                if any(marker in line.lower() for marker in RETIREMENT_MARKERS):
+                    continue
+                for match in re.finditer(r"memory\.py\s+([a-z][a-z0-9-]*)", line):
+                    named = match.group(1)
+                    if named not in supported:
+                        offenders.append(f"{relative}:{number}: memory.py {named}")
+                if re.search(r"\bentry\s+(add|update|supersede|show)\b", line):
+                    offenders.append(f"{relative}:{number}: legacy `entry` subcommand")
+
+            # A removed name inside a shell fence is an invocation, not prose.
+            # Checking only there is what lets "There is no `supersede`" stand:
+            # that sentence states the contract rather than contradicting it.
+            for start, lines in shell_fences(path.read_text(encoding="utf-8")):
+                for offset, line in enumerate(lines):
+                    for removed in ("supersede", "compact", "entry"):
+                        if re.search(rf"\b{removed}\b", line):
+                            offenders.append(
+                                f"{relative}:{start + offset}: removed command "
+                                f"`{removed}` invoked"
+                            )
+
+        self.assertEqual(
+            offenders, [],
+            "a governed document names a removed Memory subcommand as current:\n  "
+            + "\n  ".join(offenders),
+        )
 
 
 class V3WriteFixture(unittest.TestCase):
@@ -3042,9 +3249,20 @@ class V3Schema(V3StoreChecks):
             self.assertNotIn("memory_version", loaded, function.name)
 
     def test_schema_document_declares_the_v3_contract(self) -> None:
+        """T22 re-homed the anchor, not the assertion.
+
+        T02 added the claim contract as a trailing section titled "Schema
+        version 3 - the claim" and anchored this test on that title. T22 deleted
+        the retired sections it trailed and promoted it to section 5, where it is
+        no longer one schema among several but the only one. The title went with
+        that move; what this test is actually for - the document declares the v3
+        contract rather than merely mentioning it - is unchanged, so the anchor
+        is now the sentence that makes the claim contract exclusive.
+        """
         text = SCHEMA_DOC.read_text(encoding="utf-8")
         for required in (
-            "Schema version 3 — the claim",
+            "whole current Memory contract",
+            "Schema 3 is live and sole",
             "memory_schema_version: 3",
             "claim_class",
             "claim_kind",

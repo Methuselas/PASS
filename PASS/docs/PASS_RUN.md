@@ -1006,13 +1006,14 @@ Four layers of state matter, and they have different owners.
 
 1. **Canonical skillset** — general, reusable, source-independent executable
    knowledge. This is `library/`.
-2. **Skill memory** — compact current state. A `learned_principle` records the
-   durable craft or design lesson retained from evidence; a `training_result`
-   records the outcome of an actual exercise or evaluation; a
-   `specialization_profile` tracks demonstrated transfer into a subcategory; and
-   a `card_candidate` preserves a reusable canon hypothesis while evidence and
-   ownership are still being tested. Strengths, weaknesses, boundaries, and
-   self-calibration live here too.
+2. **Skill memory** — compact current state, held as **claims**. One claim is
+   one learned proposition that changes what the next relevant task does,
+   classed `conduct` for how the work is carried out or `reach` for posture,
+   verification, and willingness to claim a capability. A claim is current
+   because it is present: there is no liveness field, and retirement is removal.
+   A canon hypothesis that is not yet a claim about this skill's own conduct is
+   not Memory — it belongs to the candidate workflow store at
+   `canon_workflow/<domain>/card_candidates.yaml`.
 3. **Training history** — the event-level record of what happened in specific
    attempts and evaluations, including successes, failures, feedback, retention,
    and transfer.
@@ -1036,12 +1037,12 @@ constraints remain:
   general, reusable, and source-independent. Evidence may justify a reviewed
   refinement or Variant; it never edits the owner automatically.
 
-**On timing:** learned state and empirical results may develop while the skill is
-still being taught. Evidence from teaching, mentor study, practice, or review may
-establish a provisional learned principle; actual exercises and evaluations may
-establish training results. Further testing can strengthen, qualify, or overturn
-either. Waiting until a lane is “complete” would discard both the learning process
-and the evidence produced while getting there. What waits for maturity
+**On timing:** learned state may develop while the skill is still being taught.
+Evidence from teaching, mentor study, practice, or review may establish a claim
+at `provisional` confidence; actual exercises and evaluations may raise it.
+Further testing can strengthen, narrow, or retire a claim. Waiting until a lane
+is “complete” would discard both the learning process and the evidence produced
+while getting there. What waits for maturity
 is *distribution*: a Skill Forge release is still declared by the user, never
 inferred, and memory travelling in a release does not make the release mature.
 

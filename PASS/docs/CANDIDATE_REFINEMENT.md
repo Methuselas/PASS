@@ -28,8 +28,10 @@ checks is stated here so the method survives without the script.
 
 ```text
 CANON        Patterns / APs / Drills in library/. Authoritative. Source-independent.
-MEMORY       memory/<domain>/skill_memory.yaml. A card_candidate incubates a possible
-             canon lesson. Never canon; never edited by CRQ.
+CANDIDATES   canon_workflow/<domain>/card_candidates.yaml. One candidate holds a
+             possible canon lesson. Not canon, not Memory; never edited by CRQ.
+MEMORY       memory/<domain>/skill_memory.yaml. The skill's current learned
+             state. Not a CRQ input; never edited by CRQ.
 HISTORY      memory/<domain>/training_history.jsonl. Valid events are the evidence.
 REGRESSION   Deterministic tests that must keep passing after a change lands.
 CRQ          workspace/candidate-qualification/<domain>/<run-id>/. Disposable
@@ -39,7 +41,7 @@ CRQ          workspace/candidate-qualification/<domain>/<run-id>/. Disposable
 Evidence flows one way:
 
 ```text
-real use / Drill / field test -> training_history.jsonl -> card_candidate
+real use / Drill / field test -> training_history.jsonl -> card_candidates.yaml
   -> CRQ assessment -> frozen plan -> bounded candidate -> baseline vs candidate
   -> per-case deltas and the no-regression gate -> synthesis review
   -> an approved delta lands in library/ through the normal workflow, or nothing changes
@@ -57,7 +59,7 @@ Finalized, invalidated and abandoned runs are read-only except for `status`.
 
 | Command | From | To | What it does |
 |---|---|---|---|
-| `prepare` | none | prepared | Resolves the memory candidate, freezes the intake and baseline |
+| `prepare` | none | prepared | Resolves the card candidate, freezes the intake and baseline |
 | `prepare-synthesis` | prepared | prepared | Builds or advances evidence packets; never changes state |
 | `freeze-assessment` | prepared | assessment-frozen | Validates and freezes the defect assessment |
 | `freeze-plan` | assessment-frozen | plan-frozen | Validates and freezes the plan, cases and fixtures |
@@ -87,30 +89,38 @@ stops, because administration rules must not change mid-run. `invalidate` and
 closing fingerprint beside the original. Card and evidence hashes are always
 byte-exact.
 
-## 3. Intake: the memory candidate
+## 3. Intake: the card candidate
 
-A run starts from one Skillset Memory entry:
+A run starts from one candidate in the candidate workflow store,
+`canon_workflow/<domain>/card_candidates.yaml`. That store is the only candidate
+authority CRQ reads. **Skillset Memory is not a CRQ input**: Memory holds the
+skill's current learned claims, a candidate holds a proposal about canon, and
+CRQ reads neither to decide the other.
 
 ```bash
 python PASS/runtime/pass_candidate_qualification.py prepare \
-  --domain software-engineering --memory-entry SE_MEM_0042
+  --domain software-engineering --candidate SE_CAND_01M56AARPWMTW35H4FJ4QT3AH3
 ```
 
 `prepare` refuses unless:
 
-- the domain's store passes `memory.py validate`;
-- the entry is a `card_candidate` in `active` or `monitoring`;
+- the store declares the expected `candidate_schema_version`, names this domain,
+  and every field of the candidate is one of `id`, `hypothesis`, `evidence`,
+  `owners`, `state`;
+- the candidate's `state` is `open`; a candidate already
+  `resolved_into_canon` is refused;
 - it cites at least one event, and every cited event is valid, a performance
   event, and not quarantined by an evidence correction;
-- every likely owner written as an object id is a card in the run's domain or in
+- every owner written as an object id is a card in the run's domain or in
   `metaskills`, and at least one is a card in the run's domain. Card names and
   free-text labels are kept as labels and resolve nothing. A candidate for a new
   card names the nearest existing card it would join.
 
-`confidence: strong` never implies a canon defect; confidence describes repeated
-evidence, not ownership. Only the run's domain plus `metaskills` is read.
+Cited events are read from Training History under the run's history root, which
+stays independently available for event admissibility. Only the run's domain
+plus `metaskills` is read from the library.
 
-The entry and its cited events are frozen as `controller/intake.json`. The
+The candidate and its cited events are frozen as `controller/intake.json`. The
 baseline freezes, byte-exact under `baseline/cards/`, the in-domain owners
 (targets), their transitive hard prerequisites (foundation, `variant_of`, and
 incoming `prerequisite_for` / `foundation_of`), one hop of their other links, and
@@ -159,11 +169,12 @@ Attribute before editing. Fill `controller/assessment.json`, then
   `unresolved`. Only `canon-candidate` continues to candidate authoring; every
   other disposition may freeze for the record with no object actions, and the run
   is then abandoned.
-- `failure_layer`: the Skillset Memory vocabulary. A canon candidate needs
-  `knowledge` (a Pattern's reusable decision), `orchestration` (an AP's
-  goal-directed flow) or `training` (a Drill's practice or evaluation). Retrieval,
-  application, continuity, reference, tool and interface failures never justify a
-  card change.
+- `failure_layer`: CRQ's own vocabulary, owned by
+  `candidate_qualification/schemas.py` because CRQ is its only consumer. A canon
+  candidate needs `knowledge` (a Pattern's reusable decision), `orchestration`
+  (an AP's goal-directed flow) or `training` (a Drill's practice or evaluation).
+  Retrieval, application, continuity, reference, tool and interface failures
+  never justify a card change.
 - `primary_attribution`: `skillcard`, `application`, `source-context`, `fixture`,
   `runtime-tool`, `unresolved`, `other`. A canon candidate is `skillcard`.
 - `owner_object_ids`: exact baseline cards. When the cited events record which
@@ -227,7 +238,7 @@ and writes the candidate author brief.
 
 The author edits ordinary Markdown cards and fills one `rationale` per change in
 `controller/candidate_manifest.json`. A candidate card stays an ordinary,
-source-independent PASS card: it never names the run, a memory entry, a training
+source-independent PASS card: it never names the run, a memory claim, a training
 event, a case, a workspace path or an evidence hash.
 
 `freeze-candidate` accounts for everything:
@@ -327,24 +338,27 @@ qualification decision). `canon_modified` is always false.
   `split-candidate`, `redirect-ownership`, `retain-in-memory`,
   `add-deterministic-regression`, `reject-redundant`, `reject-false`,
   `reject-too-narrow`. Only a qualified candidate may be accepted.
-- `memory_action`: `keep-active`, `keep-monitoring`, `narrow-boundary`,
-  `supersede-candidate`, `resolve-after-canon-fix`, `obsolete`, `no-change`.
-  `resolve-after-canon-fix` needs an accepted delta or a deterministic regression.
+- `candidate_action`: `keep-open`, `narrow-hypothesis`, `replace-candidate`,
+  `resolve-into-canon`, `reject-candidate`, `no-change`. This is
+  candidate-workflow vocabulary; it recommends a change to the candidate store
+  and never to Skillset Memory. `resolve-into-canon` needs an accepted delta or
+  a deterministic regression.
 
 `finalize` checks the disposition against the frozen status, writes
 `synthesis/report.md`, freezes both, and closes the run. It writes neither
-`library/` nor memory.
+`library/`, nor the candidate store, nor memory.
 
 **Acceptance still changes nothing by itself.** When the user or maintainer has
 authorized the integration task, the approved delta lands like any other card
 change: `validate.py`, `verify_references.py`, `build_index.py`, the test suite,
-and the version and changelog rules. Then apply the memory recommendation with
-`memory.py entry`:
+and the version and changelog rules. Then apply the recommended
+`candidate_action` to `canon_workflow/<domain>/card_candidates.yaml`
+deliberately:
 
 - a deterministic defect gains or keeps a regression test, and only then is the
-  candidate resolved;
-- a stochastic defect keeps the candidate `monitoring` until fresh evidence
-  verifies the changed card;
+  candidate `resolved_into_canon`;
+- a stochastic defect keeps the candidate `open` until fresh evidence verifies
+  the changed card;
 - a candidate is never resolved merely because Markdown was edited.
 
 Never append a positive training event because a synthetic case passed. A
@@ -378,18 +392,19 @@ workspace/candidate-qualification/<domain>/<run-id>/
 A run is administration scratch. It never ships, never enters cards or memory,
 and deleting it never invalidates canon or memory. Once it is finalized,
 invalidated or abandoned and its outcome is handled (an approved delta verified
-in `library/`, accepted regressions in the test suite, the memory recommendation
-applied), remove it. Keep it only under an explicit evidence hold or while invalid
-or contaminated evidence awaits diagnosis.
+in `library/`, accepted regressions in the test suite, the recommended
+`candidate_action` applied), remove it. Keep it only under an explicit evidence
+hold or while invalid or contaminated evidence awaits diagnosis.
 
 ## 13. Relationship to other contracts
 
 - Software field tests (`SOFTWARE_CARD_FIELD_TESTS.md`) remain the preferred way to
-  produce held-out evidence about software cards. CRQ consumes their memory
-  results; it does not reinterpret a valid `application` result as a card defect
-  and does not weaken their evidence rules.
+  produce held-out evidence about software cards. CRQ consumes the candidates
+  their evidence motivates; it does not reinterpret a valid `application` result
+  as a card defect and does not weaken their evidence rules.
 - Ordinary use (`PASS_CONSUMPTION.md`) never produces a qualification claim.
-- Skillset Memory (`MEMORY_SCHEMA.md`) needs no schema change for CRQ.
+- Skillset Memory (`MEMORY_SCHEMA.md`) is not a CRQ input and needs no change
+  for CRQ.
 
 ## 14. What CRQ must not become
 
@@ -412,7 +427,7 @@ synthesis review.
 |---|---|
 | `PASS/runtime/pass_candidate_qualification.py` | The command line |
 | `candidate_qualification/schemas.py` | Vocabularies, hashes, atomic JSON, containment, document validation |
-| `candidate_qualification/evidence.py` | Memory intake, canon reading, accounting, overlay validation, arm evidence, synthesis packets |
+| `candidate_qualification/evidence.py` | Candidate intake, canon reading, accounting, overlay validation, arm evidence, synthesis packets |
 | `candidate_qualification/gate.py` | The per-case delta and the final gate |
 | `candidate_qualification/controller.py` | Run state, freezes, drift and the lifecycle commands |
 | `tests/test_candidate_qualification_*.py` | State, intake, candidate, gate, execution and synthesis contracts on synthetic fixtures |

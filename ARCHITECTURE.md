@@ -60,18 +60,20 @@ If no, the runtime does not depend on it.
     action logic inside scripts, and nothing may describe it as enforcing what
     only the model and host can actually do.
 20. **Skillset Memory separates retained learning from empirical results; it is
-    not canon and not a fourth object type.** Within the compact current state,
-    `learned_principle` records a durable transferable lesson, `training_result`
-    records an observed outcome from actual use or evaluation,
-    `specialization_profile` tracks demonstrated transfer into a subcategory, and
-    `card_candidate` incubates a possible reusable canon lesson until deliberate
-    synthesis accepts, redirects, or rejects it. The event-level evidence lives beside it in
+    not canon and not a fourth object type.** The compact current state is a set
+    of **claims**. One claim is one learned proposition that changes what the
+    next relevant task does, classed `conduct` for how the work is carried out or
+    `reach` for posture, verification, and willingness to claim a capability. A
+    claim is current because it is present in the store: there is no liveness
+    field, and retirement is removal. The event-level evidence lives beside it in
     `memory/<domain>/training_history.jsonl`. Both are domain-scoped rather than
     global; neither mutates or overrides a card. An invalid run — one that failed
     before the capability was exercised — may remain in training history but never
     counts as performance evidence. Memory does not choose the AP, does not
     substitute for a regression test, and does not carry source, session, or
-    workflow state. The contract is `PASS/docs/MEMORY_SCHEMA.md`.
+    workflow state. A release ships the **current-state projection only**: the
+    claim store with each claim's representative `evidence` stripped, and no
+    training history beside it. The contract is `PASS/docs/MEMORY_SCHEMA.md`.
 21. **Candidate Refinement & Qualification is a factory/runtime empirical
     refinement mechanism, not canon and not a new object type.** Candidate
     Refinement & Qualification stages bounded card changes outside canon, compares
@@ -247,7 +249,7 @@ the authority on what a finished card is, and Preflight keeps its own independen
 persist one bounded unattended authorization, exact packet audit copies, source
 identity and final source verification, but it does not perform PASS reads or own
 library knowledge. Run state, prepared source, checkpoints and accepted staged
-deltas are never card fields, Skillset Memory entries or SkillForge release
+deltas are never card fields, Skillset Memory claims or SkillForge release
 dependencies. A temporary domain landing lease serializes canonical close; it
 stores no research. There is no shared run registry or permanent history. Human
 rules remain in `PASS/docs/PASS_RUN.md`; executable contracts live in

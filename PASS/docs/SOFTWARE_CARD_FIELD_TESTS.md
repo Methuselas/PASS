@@ -119,7 +119,7 @@ tested. A `motivating-example-regression` may show whether the repair still
 handles the example that prompted it, but agreement is circular and cannot
 validate the repair. An `exploratory` source may discover questions but cannot
 export a qualification or habit candidate. Only held-out validation produces a
-Skillset Memory candidate event.
+candidate event for Training History.
 
 ### Evidence gates
 
@@ -361,8 +361,8 @@ A field test never edits the card it exposed. The repair path is:
 
 ```text
 valid FAIL attributed to an exposed skillcard -> training_history event
-  -> card_candidate in Skillset Memory -> CRQ -> fresh target and protected
-  qualification cases -> synthesis review
+  -> candidate in canon_workflow/<domain>/card_candidates.yaml -> CRQ
+  -> fresh target and protected qualification cases -> synthesis review
 ```
 
 Candidate Refinement & Qualification (`CANDIDATE_REFINEMENT.md`) consumes the

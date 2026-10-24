@@ -49,24 +49,30 @@ when genuine uncertainty remains.
 
 ## Skillset Memory
 
-`memory/art/` is the empirical record of what happened when this canon was
-actually used — known weak areas, recurring failures, and the boundary of what
-has been verified. It is not canon and never overrides a card.
+`memory/art/` holds this skill's current learned self-knowledge about doing its
+own work: **claims** distilled from use, each a proposition that changes what
+the next relevant task does. It is not the event record — that is
+`training_history.jsonl` — and it is not canon, so it never overrides a card.
 
-Canon resolves first; memory is retrieved second and bounded. Query it before
-productive work, with short cues drawn from the subject and the operation:
+Canon is selected first; a Memory retrieval comes after it, is bounded, and
+never selects or reroutes Canon. Retrieve with short cues drawn from the subject
+and the operation:
 
 ```bash
 python PASS/tools/memory.py query --domain art --cues "hand,contact,foreshortening"
 ```
 
-Cues match as substrings of an entry's recorded cues, so prefer several short
-terms over one long phrase. Read what comes back as an observation carrying a
-stated confidence, not as an instruction. A recorded weak area is a reason to
-inspect that region of the artifact more carefully after rendering; it is never
-a reason to skip a risk check the routing contract already requires.
+Cues match as substrings of a claim's `retrieval_cues` and its `claim` text, so
+prefer several short terms over one long phrase. A match is not an instruction:
+read the claim's `delta` as what to do differently, and its `envelope` as where
+that has and has not been shown to hold. A `conduct` claim may change how the
+drawing is carried out; a `reach` claim may change posture, verification, or
+willingness to claim a capability, and may not choose an AP. A recorded weak
+area is a reason to inspect that region of the artifact more carefully after
+rendering; it is never a reason to skip a risk check the routing contract
+already requires.
 
-Never copy an entry's content into a card, an index, or this file. An entry that
+Never copy a claim's content into a card, an index, or this file. A claim that
 seems to apply on every turn has earned promotion review, not a paste.
 
 ## Conditional production contract

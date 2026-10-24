@@ -47,23 +47,29 @@ taker before they start; do not confuse describing an artifact with producing it
 
 ## Skillset Memory
 
-`memory/software-engineering/` is the empirical record of what happened when this
-canon was actually used — known weak areas, recurring misreadings, and the
-boundary of what has been verified. It is not canon and never overrides a card.
+`memory/software-engineering/` holds this skill's current learned self-knowledge
+about doing its own work: **claims** distilled from use, each a proposition
+that changes what the next relevant task does. It is not the event record — that
+is `training_history.jsonl` — and it is not canon, so it never overrides a card.
 
-Canon resolves first; memory is retrieved second and bounded. Query it before
-acting, with short cues taken from the task's own words:
+Canon is selected first; a Memory retrieval comes after it, is bounded, and
+never selects or reroutes Canon. Retrieve with short cues taken from the task's
+own words:
 
 ```bash
 python PASS/tools/memory.py query --domain software-engineering --cues "cache,thread,review"
 ```
 
-Cues match as substrings of an entry's recorded cues, so prefer several short
-terms over one long phrase. Read what comes back as an observation carrying a
-stated confidence, not as an instruction — an entry may be provisional, scoped to
-one run, or since superseded.
+Cues match as substrings of a claim's `retrieval_cues` and its `claim` text, so
+prefer several short terms over one long phrase. A match is not an instruction:
+read the claim's `delta` as what to do differently, and its `envelope` as where
+that has and has not been shown to hold. `confidence` is `provisional`,
+`repeated`, or `strong`, and it describes maturity and demonstrated breadth
+rather than authority. A `conduct` claim may change how the work is carried out;
+a `reach` claim may change posture, verification, or willingness to claim a
+capability, and may not choose an AP.
 
-Never copy an entry's content into a card, an index, or this file. An entry that
+Never copy a claim's content into a card, an index, or this file. A claim that
 seems to apply on every turn has earned promotion review, not a paste; pasting
 creates a second write site and lets the real owner decay unobserved.
 

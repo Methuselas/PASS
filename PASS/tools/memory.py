@@ -33,7 +33,7 @@ import secrets
 import sys
 import time
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -42,23 +42,17 @@ import yaml
 from paths import default_memory_root, default_library_root
 
 
-SCHEMA_VERSION = 2
-SUPPORTED_SCHEMA_VERSIONS = {1, 2}
-# The legacy claim vocabularies (entry types, scopes, evidence classes,
-# statuses, origins, the optional face of the entry keys, file-level keys) live
-# with `validate_entry` in `memory_legacy_input.py`, the transient migration
-# reader T21 deletes. What stays here serves surviving runtime paths: the
-# semantic ladder and failure layers are shared with the v3 path, and
-# retrievable status feeds `query`/`review` until T07 and T08 reach them.
-# `ENTRY_REQUIRED` below is the one exception — since T05 removed the legacy
-# write path, its only reader is the legacy module, which imports it from here.
-# It stays put rather than moving so that T21 deletes one module, not two edits.
+# One schema, loudly (R2.5 §9.1). The runtime reads schema 3 and nothing else:
+# `SUPPORTED_SCHEMA_VERSIONS` is what `validate` will accept, and
+# `LEGACY_SCHEMA_VERSIONS` exists only so a store carrying one of those numbers
+# is refused as *unmigrated* rather than reported as an unknown version. T21
+# deleted the transition scaffolds the dispatch used to route to - the legacy
+# input reader, the one-time migrator, and the packaging pass-through - so there
+# is no branch left for a v1 or v2 store to take.
+SCHEMA_VERSION = 3
+SUPPORTED_SCHEMA_VERSIONS = {SCHEMA_VERSION}
+LEGACY_SCHEMA_VERSIONS = {1, 2}
 CONFIDENCE_VALUES = {"provisional", "repeated", "strong"}
-RETRIEVABLE_STATUS = {"active", "monitoring"}
-FAILURE_LAYERS = {
-    "knowledge", "orchestration", "retrieval", "application", "continuity",
-    "reference", "tool", "interface", "training",
-}
 STAGE_RESULTS = {"improved", "partial", "unchanged", "failed", "untested"}
 SCORE_VALUES = {"strong", "adequate", "weak", "failed", "unproven"}
 VALIDITY_VALUES = {"valid", "invalid"}
@@ -73,11 +67,6 @@ TRAINING_STAGE_VALUES = {
 PROGRAM_PURPOSE_VALUES = {"skillset-improvement"}
 EVENT_INTERVENTION_COMPONENT_KEYS = {
     "drill_instructions", "card_ids", "external_material",
-}
-
-ENTRY_REQUIRED = {
-    "id", "scope_type", "scope_id", "type", "evidence_class", "observation",
-    "confidence", "status",
 }
 
 EVENT_REQUIRED = {"event_id", "date", "task", "validity"}
@@ -123,8 +112,6 @@ AUTHORING_TASK_PHRASES = (
 )
 
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-ID_RE = re.compile(r"^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$")
-STALE_DAYS = 180
 
 
 class MemoryError_(Exception):
@@ -267,6 +254,32 @@ def load_memory(domain_dir: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise MemoryError_(f"{path.as_posix()}: top level must be a mapping")
     return data
+
+
+def unmigrated_problem(domain_dir: Path, memory: dict[str, Any]) -> str | None:
+    """The loud-unmigrated refusal for a v1/v2 store, or None for anything else.
+
+    Unmigrated is presence, not absence (R2.5 §9.1). Fail-open covers a store
+    that is not there; a store carrying a legacy schema version asserts that
+    learned state exists while being unreadable by this runtime, so it is
+    always loud. The message says *unmigrated*, never *corrupt*: the bytes may
+    be perfect, and the fix is a migration rather than a repair.
+
+    An unknown version - 4, or a string, or nothing - is not this function's
+    business. That stays the validator's "must be one of" error, so the two
+    failures never read as the same thing (criterion 8).
+    """
+    version = memory.get("memory_schema_version")
+    if version not in LEGACY_SCHEMA_VERSIONS:
+        return None
+    return (
+        f"{(domain_dir / 'skill_memory.yaml').as_posix()}: memory_schema_version "
+        f"{version} is unmigrated, not corrupt: this runtime reads schema "
+        f"{SCHEMA_VERSION} only. Migrate the domain to the schema-3 contract recorded in "
+        "PASS/docs/MEMORY_SCHEMA.md; the one-time migrator, "
+        "PASS/tools/migrate_memory_v3.py, was retired at the schema-3 cutover and is "
+        "recoverable from repository history. No runtime path will upgrade it in place"
+    )
 
 
 def load_events(domain_dir: Path) -> tuple[list[dict[str, Any]], list[str]]:
@@ -548,23 +561,23 @@ def validate_event(
 def validate_store(domain_dir: Path) -> tuple[list[str], list[str]]:
     """Load one domain's store and validate it, as `(errors, flags)`.
 
-    History loading differs by version: a v1/v2 store (or an unknown version)
-    must have its `training_history.jsonl` — absence is the load error
-    `load_events` reports, exactly as before — while beside a v3 store absence
-    means "no resolution" (I5), so nothing is loaded and nothing is reported
-    missing.
+    A legacy store is refused here and nothing else is reported about it: it is
+    unmigrated, so there is nothing to say about the shape of entries this
+    runtime no longer reads. Beside a schema-3 store an absent
+    `training_history.jsonl` means "no evidence resolution" (I5), so nothing is
+    loaded and nothing is reported missing.
     """
     try:
         memory = load_memory(domain_dir)
     except MemoryError_ as exc:
         return [str(exc)], []
-    if memory.get("memory_schema_version") == V3_SCHEMA_VERSION:
-        if (domain_dir / "training_history.jsonl").is_file():
-            events, event_errors = load_events(domain_dir)
-        else:
-            events, event_errors = None, None
-    else:
+    unmigrated = unmigrated_problem(domain_dir, memory)
+    if unmigrated:
+        return [unmigrated], []
+    if (domain_dir / "training_history.jsonl").is_file():
         events, event_errors = load_events(domain_dir)
+    else:
+        events, event_errors = None, None
     return validate_contents(domain_dir.name, memory, events, event_errors)
 
 
@@ -574,31 +587,28 @@ def validate_contents(
     events: list[dict[str, Any]] | None,
     event_errors: list[str] | None,
 ) -> tuple[list[str], list[str]]:
-    """Validate a store's contents by its declared schema version (T04).
+    """Validate a store's contents, as `(errors, flags)`.
 
-    The claim side dispatches: schema 3 to `validate_v3_contents`, schemas 1
-    and 2 to the transient `memory_legacy_input` module, anything else to the
-    existing unknown-version error. The Training History path runs for every
-    version — History is not versioned (R2.5 §8.4) — and `events is None`
-    means the file is absent beside a v3 store (I5): nothing to validate and
-    nothing to report. Returns `(errors, flags)`: errors make the store
-    invalid (exit 1); flags leave it valid and are printed as reviewable
-    (exit 0).
+    There is one claim schema, so there is no dispatch: schema 3 goes to
+    `validate_v3_contents` and any other declared version is the
+    unknown-version error. A caller that reads from disk refuses a legacy store
+    earlier, through `unmigrated_problem`, so "unknown" here never has to stand
+    in for "unmigrated".
+
+    The Training History path runs whatever the store declares - History is not
+    versioned (R2.5 §8.4) - and `events is None` means the file is absent
+    beside the store (I5): nothing to validate and nothing to report. Errors
+    make the store invalid (exit 1); flags leave it valid and are printed as
+    reviewable (exit 0).
     """
     errors: list[str] = []
     flags: list[str] = []
-    schema_version = memory.get("memory_schema_version")
-    if schema_version == V3_SCHEMA_VERSION:
+    if memory.get("memory_schema_version") == V3_SCHEMA_VERSION:
         claim_errors, claim_flags = validate_v3_contents(
             domain, memory, events=events, event_errors=None,
         )
         errors.extend(claim_errors)
         flags.extend(claim_flags)
-    elif schema_version in SUPPORTED_SCHEMA_VERSIONS:
-        import memory_legacy_input  # transient dispatch dependency; deleted by T21
-        errors.extend(
-            memory_legacy_input.validate_legacy_contents(domain, memory, events or [])
-        )
     else:
         errors.append(
             f"skill_memory.yaml: memory_schema_version must be one of {sorted(SUPPORTED_SCHEMA_VERSIONS)}"
@@ -641,19 +651,17 @@ def validate_contents(
 
 # ------------------------------------------------- claim schema (version 3)
 #
-# Structural validation for a `memory_schema_version: 3` store, beside the
-# legacy validator and sharing none of its vocabulary constants. The split is
-# deliberate: FORBIDDEN_KEYS rejects `provenance` on v1/v2 entries and History
-# events, while every v3 claim requires it (R2.5 §4.5 L1, SR1), so the two
-# rejection lists can never be merged. Since T04, `validate_contents` dispatches
-# here for schema 3 — schemas 1 and 2 route to the transient
-# `memory_legacy_input` reader that T21 deletes — and this validator is also
-# reachable from tests and from an explicit internal call.
+# Structural validation for a `memory_schema_version: 3` store: since T21, the
+# only claim schema there is. The two rejection lists below stay separate
+# anyway, because they always disagreed about one key: FORBIDDEN_KEYS rejects
+# `provenance` on a History event, while every claim requires it (R2.5 §4.5 L1,
+# SR1), so merging them would reject every valid claim. `validate_contents`
+# reaches this validator for schema 3; it is also called directly from tests and
+# from `validate_v3_store`.
 
-V3_SCHEMA_VERSION = 3
+V3_SCHEMA_VERSION = SCHEMA_VERSION
 CLAIM_CLASSES = {"conduct", "reach"}
 CLAIM_KINDS = {"deterministic", "stochastic"}
-# CONFIDENCE_VALUES is shared with the legacy path: one semantic ladder.
 DELTA_KINDS = {"action", "judgment", "verification", "posture", "application_limit"}
 PROVENANCE_VALUES = {
     "human_teaching", "user_feedback", "runtime_self_audit",
@@ -711,8 +719,8 @@ GRADE_RE = re.compile(
     r"\b(?:grade[ds]?|earned|scored|rated|received)\s+[ABC][+-]?\b|\b[ABC][+-](?![A-Za-z0-9])"
 )
 
-# L2 carries the legacy self-containment phrases plus the three the v3 rule
-# names that the legacy list does not.
+# L2 carries the self-containment phrases the event path also rejects, plus the
+# three more the v3 claim rule names.
 CONVERSATION_DEFERENCE_PHRASES = NON_SELF_CONTAINED_PHRASES + (
     "as discussed", "in the session above", "earlier in this conversation",
 )
@@ -1061,9 +1069,8 @@ def evidence_id_well_formed(member: Any, prefixes: set[str]) -> bool:
 def quarantined_event_ids(events: list[dict[str, Any]]) -> set[str]:
     """Events a superseding evidence correction removed from capability evidence.
 
-    The single derivation, called from both claim sides since T04: the legacy
-    `evidence_events` reader in `memory_legacy_input` and this tool's own
-    `validate_event`/v3 paths, so the two cannot drift apart.
+    One derivation, shared by `validate_event` and the v3 claim path so the
+    two cannot drift apart about what a quarantine means.
     """
     return {
         str(target)
@@ -1083,15 +1090,13 @@ def evidence_admissibility_problem(
 ) -> str | None:
     """Why this event may not be cited as capability evidence, or None.
 
-    One implementation for both claim sides (T04): the legacy path passes field
-    `evidence_events`, the v3 path passes `evidence`, and each caller tags the
-    message its way — "(I4)" belongs to the v3 rule ids, the legacy messages
-    stay exactly as they read before the extraction. `event is None` is an
-    unknown citation: nothing validates a run that is not there. The checks run
-    in the order the legacy block stated them — invalid run (the invariant this
-    whole tool exists to hold), both correction kinds, quarantine — then the
-    performance-kind requirement of R2.5 §3.5, which only the v3 path used to
-    state.
+    `field` is the citing key, so a caller names its own ("evidence" on a v3
+    claim) and tags the message its way - "(I4)" belongs to the v3 rule ids.
+    `event is None` is an unknown citation: nothing validates a run that is not
+    there. The checks run in the order the invariant states them - invalid run
+    first, because that is the one this whole tool exists to hold, then both
+    correction kinds, then quarantine - and last the performance-kind
+    requirement of R2.5 §3.5.
     """
     if event is None:
         return f"{label}: {field} cites unknown event '{event_id}'"
@@ -1360,53 +1365,6 @@ def validate_v3_store(
     )
 
 
-# ---------------------------------------------------------------- query
-
-
-def score_entry(entry: dict[str, Any], scope_id: str | None, cues: list[str]) -> tuple[bool, int]:
-    """Return (matched, score).
-
-    `matched` is what bounds retrieval. Specificity and confidence only rank
-    entries that already matched the request; without that separation a broad
-    tendency would score points on every task and the bounded set would quietly
-    become the whole file.
-    """
-    matched = False
-    score = 0
-    if scope_id and entry.get("scope_id") == scope_id:
-        matched = True
-        score += 100
-    entry_cues = [str(c).lower() for c in entry.get("retrieval_cues", []) if isinstance(c, str)]
-    haystack = " ".join(entry_cues + [str(entry.get("scope_id", "")).lower()])
-    for cue in cues:
-        if cue and cue.lower() in haystack:
-            matched = True
-            score += 10
-    # More specific scope outranks broader tendency when both matched.
-    score += {"ap": 5, "pattern": 5, "drill": 5, "training": 5, "topic": 3, "runtime": 2, "skillset": 1}.get(
-        str(entry.get("scope_type")), 0
-    )
-    score += {"strong": 3, "repeated": 2, "provisional": 1}.get(str(entry.get("confidence")), 0)
-    if entry.get("status") == "active":
-        score += 1
-    return matched, score
-
-
-def query_store(domain_dir: Path, scope_id: str | None, cues: list[str], limit: int) -> list[dict[str, Any]]:
-    memory = load_memory(domain_dir)
-    entries = [e for e in memory.get("entries") or [] if isinstance(e, dict)]
-    # Resolved history stays in the file and stops biasing the runtime.
-    candidates = [e for e in entries if e.get("status") in RETRIEVABLE_STATUS]
-    if scope_id or cues:
-        scored = [(score_entry(e, scope_id, cues), e) for e in candidates]
-        hits = [(score, entry) for (matched, score), entry in scored if matched]
-        hits.sort(key=lambda pair: (-pair[0], str(pair[1].get("id"))))
-        candidates = [entry for _, entry in hits]
-    else:
-        candidates.sort(key=lambda e: str(e.get("id")))
-    return candidates[:limit]
-
-
 # ---------------------------------------------------------------- v3 query
 
 # Confidence is the last thing that ranks, so it is the last position in the
@@ -1639,12 +1597,11 @@ def spliced_store(current: str, memory: dict[str, Any]) -> str | None:
     changed or new ones (plus `memory_version`) are dumped. None means the file
     is not in that shape; the caller then writes a full dump.
 
-    The collection key is read from the store being written: `claims` for schema
-    3, `entries` for a legacy store this still has to read back. R2.0 is explicit
-    that byte-splicing is implementation rather than contract — it survives here
-    because one key name was the whole cost of keeping it.
+    R2.0 is explicit that byte-splicing is implementation rather than contract.
+    It survives because it is cheap, and because a diff that rewraps a store
+    nobody edited is a diff a reviewer cannot read.
     """
-    collection = "claims" if "claims" in memory else "entries"
+    collection = "claims"
     text = current.replace("\r\n", "\n")
     starts = [m.start() for m in re.finditer(r"(?m)^- id:", text)]
     if not starts:
@@ -1796,12 +1753,9 @@ def change_claims(domain_dir: Path, change) -> tuple[bool, list[str], dict[str, 
     the store was already invalid, the change reports a problem, the resulting
     store is invalid, or the readback disagrees.
 
-    Those safety properties are inherited unchanged from the legacy writer this
-    replaces; what changed is the collection it edits (`claims`), the validator
-    the result is checked against, and the refusal of any store that is not
-    schema 3. Writing is v3-only deliberately (R2.5 §9.1): a legacy store stays
-    readable until its domain migrates, and the way to change one is to migrate
-    it, not to keep a second writer alive behind it.
+    Writing is schema-3 only (R2.5 §9.1), and since T21 so is reading: an
+    unmigrated store is refused here rather than edited, because the way to
+    change one is to migrate it, not to keep a second writer alive behind it.
 
     History is loaded only when it sits beside the store, because beside a v3
     store its absence means "no evidence resolution" (I5) rather than a missing
@@ -1809,6 +1763,9 @@ def change_claims(domain_dir: Path, change) -> tuple[bool, list[str], dict[str, 
     """
     with store_lock(domain_dir):
         memory = load_memory(domain_dir)
+        unmigrated = unmigrated_problem(domain_dir, memory)
+        if unmigrated:
+            return False, [unmigrated], {}
         declared = memory.get("memory_schema_version")
         if declared != V3_SCHEMA_VERSION:
             return False, [
@@ -2039,7 +1996,7 @@ def link_evidence(
 
 
 def uncited_valid_events(domain_dir: Path) -> list[str]:
-    """Valid performance events no claim and no legacy entry cites.
+    """Valid performance events no claim cites.
 
     Informational only (R2.5 §8.4): with representative evidence capped at
     three, this list is a view of History nothing has linked yet - not a
@@ -2048,9 +2005,6 @@ def uncited_valid_events(domain_dir: Path) -> list[str]:
     """
     memory = load_memory(domain_dir)
     cited: set[str] = set()
-    for entry in memory.get("entries") or []:
-        if isinstance(entry, dict) and isinstance(entry.get("evidence_events"), list):
-            cited.update(str(e) for e in entry["evidence_events"])
     for claim in memory.get("claims") or []:
         if isinstance(claim, dict) and isinstance(claim.get("evidence"), list):
             cited.update(str(member) for member in claim["evidence"])
@@ -2102,14 +2056,17 @@ def review_store(domain_dir: Path, library_root: Path | None) -> tuple[list[str]
     well-formed — so review reports the errors and returns no findings rather
     than restating a validation failure as a softer kind of concern.
 
-    Each store is routed by its own declared schema version: a schema-3 store
-    takes the v3 path, and an unmigrated store keeps the legacy heuristics
-    until T21 deletes them.
+    An unmigrated store has nothing reviewable to say either, and for the same
+    reason: this runtime cannot read its claims. It comes back through the
+    error channel carrying the loud-unmigrated refusal.
     """
     memory = load_memory(domain_dir)
+    unmigrated = unmigrated_problem(domain_dir, memory)
+    if unmigrated:
+        return [unmigrated], []
     if memory.get("memory_schema_version") == V3_SCHEMA_VERSION:
         return review_v3_store(domain_dir, memory, library_root)
-    return [], review_legacy_store(domain_dir, memory, library_root)
+    return validate_store(domain_dir)[0], []
 
 
 def disputed_pairs(claims: list[Any]) -> list[tuple[str, str]]:
@@ -2154,8 +2111,9 @@ def review_v3_store(
     the confidence is honest, and which side of a contradiction should win are
     all §4.7 judgments that stay with the person reading this output.
 
-    `STALE_DAYS` has no part on this path: per-claim `revalidate_after`
-    replaced the repository-wide constant (R2.5 §5.1).
+    There is no repository-wide staleness constant on this path or any other:
+    per-claim `revalidate_after` replaced `STALE_DAYS`, which T21 deleted with
+    the legacy review heuristics (R2.5 §5.1).
     """
     errors, flags = validate_v3_store(domain_dir, library_root=library_root)
     if errors:
@@ -2193,52 +2151,10 @@ def uncited_events_note(domain_dir: Path) -> list[str]:
     if not uncited:
         return []
     return [
-        f"{len(uncited)} valid event(s) are not cited by any claim or entry: "
+        f"{len(uncited)} valid event(s) are not cited by any claim: "
         f"{', '.join(uncited[:8])} - informational only, not a backlog: under the "
         "cap of three representative events this is not a measure of support"
     ]
-
-
-def review_legacy_store(
-    domain_dir: Path, memory: dict[str, Any], library_root: Path | None
-) -> list[str]:
-    """The v1/v2 review heuristics, unchanged and going nowhere new.
-
-    These read `status`, `evidence_count`, and `evidence_class`, none of which
-    exist in schema 3, and one of them derives a confidence remark from an
-    evidence count — which is exactly what F1 forbids and why the v3 path above
-    was written rather than extended from here. This function is deleted with
-    the rest of the legacy reader (T21); it is not a model for anything.
-    """
-    notes: list[str] = []
-    entries = [e for e in memory.get("entries") or [] if isinstance(e, dict)]
-    known = library_object_ids(library_root) if library_root else set()
-    cutoff = datetime.now().date() - timedelta(days=STALE_DAYS)
-
-    for entry in entries:
-        label = entry.get("id", "entry")
-        status = entry.get("status")
-        if status not in RETRIEVABLE_STATUS:
-            continue
-        verified = entry.get("last_verified")
-        if not verified:
-            notes.append(f"{label}: active with no last_verified")
-        elif DATE_RE.fullmatch(str(verified)) and date.fromisoformat(str(verified)) < cutoff:
-            notes.append(f"{label}: last verified {verified}, older than {STALE_DAYS} days")
-        if entry.get("confidence") == "strong" and int(entry.get("evidence_count", 0) or 0) <= 1:
-            notes.append(f"{label}: confidence strong on {entry.get('evidence_count', 0)} event(s)")
-        if entry.get("evidence_class") == "deterministic_contract" and status == "active":
-            notes.append(
-                f"{label}: deterministic_contract still active: if the fix landed, "
-                "move it to resolved and let the test hold it"
-            )
-        if known:
-            for owner in entry.get("likely_owners") or []:
-                owner = str(owner)
-                if re.fullmatch(r"(?:PAT|DRILL|AP)_[a-z0-9_]+", owner) and owner not in known:
-                    notes.append(f"{label}: likely_owner '{owner}' no longer exists in the library")
-    notes.extend(uncited_events_note(domain_dir))
-    return notes
 
 
 # ---------------------------------------------------------------- CLI
@@ -2272,23 +2188,30 @@ def cmd_validate(args: argparse.Namespace) -> int:
     if total:
         print(f"FAIL: {total} issue(s) across {len(dirs)} memory store(s)")
         return 1
-    entries = sum(len(load_memory(d).get("entries") or []) for d in dirs)
-    events = sum(len(load_events(d)[0]) for d in dirs)
-    print(f"PASS: {len(dirs)} store(s), {entries} entr(ies), {events} event(s) validated")
+    # Claims, because claims are what a store holds. The summary used to count
+    # `entries` and so under-reported every migrated store by its whole content;
+    # the legacy key that made the count ambiguous is gone with the legacy
+    # reader. A store with no History file contributes no events rather than an
+    # error - absence beside a v3 store means "no resolution" (I5).
+    claims = sum(len(load_memory(d).get("claims") or []) for d in dirs)
+    events = sum(
+        len(load_events(d)[0]) if (d / "training_history.jsonl").is_file() else 0
+        for d in dirs
+    )
+    print(f"PASS: {len(dirs)} store(s), {claims} claim(s), {events} event(s) validated")
     return 0
 
 
 def cmd_query(args: argparse.Namespace) -> int:
     """Retrieve a bounded set, and say exactly what came back.
 
-    Each store is routed by its own `memory_schema_version`, so a corpus part
-    way through migration answers one request: a schema-3 store takes the v3
-    path, and an unmigrated store keeps the legacy one until T21 deletes it.
-
     An absent store is not a failure. A missing root or a missing domain exits
     0 with an empty receipt (R2.5 §9.2, criterion 32), because nothing in PASS
     may stop because Memory is not there. A store that is present but
-    unreadable still fails loudly: that is a broken file, not an absent one.
+    unreadable fails loudly: that is a broken file, not an absent one. So does
+    an unmigrated one, and for the same reason - a legacy store is presence,
+    not absence, and no retrieval can honestly report over claims this runtime
+    cannot read.
     """
     try:
         dirs = domain_dirs(args.memory, args.domain)
@@ -2296,42 +2219,28 @@ def cmd_query(args: argparse.Namespace) -> int:
         print(f"note: {absent}")
         print("retrieved: (none)")
         return 0
-    scope = args.scope if args.scope is not None else args.scope_id
+    scope = args.scope
     cues = [c.strip() for c in (args.cues or "").split(",") if c.strip()]
     canon_ids = [c.strip() for c in (args.canon or "").split(",") if c.strip()]
     limit = max(0, args.limit)
     returned: list[str] = []
     pairs: list[str] = []
     empty_request = not (scope or cues or canon_ids)
-    noted: set[str] = set()
+    noted = False
     for domain_dir in dirs:
-        if load_memory(domain_dir).get("memory_schema_version") == V3_SCHEMA_VERSION:
-            if empty_request and "empty" not in noted:
-                print(EMPTY_V3_QUERY_NOTE)
-                noted.add("empty")
-            for claim, paired_with in query_v3_store(domain_dir, scope, canon_ids, cues, limit):
-                if paired_with:
-                    pairs.append(f"{claim.get('id')} with {paired_with}")
-                else:
-                    returned.append(str(claim.get("id")))
-                print_v3_claim(claim, paired_with)
-            continue
-        # A legacy store has no `canon` field, so a Canon-id request cannot be
-        # honoured there. Said out loud rather than dropped: a filter that is
-        # silently ignored reads as a filter that matched nothing.
-        if canon_ids and "legacy-canon" not in noted:
-            print(
-                f"note: --canon does not apply to a store below schema "
-                f"{V3_SCHEMA_VERSION}; it was not used to match."
-            )
-            noted.add("legacy-canon")
-        for entry in query_store(domain_dir, scope, cues, limit):
-            returned.append(str(entry.get("id")))
-            print(f"[{entry.get('id')}] {entry.get('scope_type')}:{entry.get('scope_id')} "
-                  f"({entry.get('type')}, {entry.get('confidence')}, {entry.get('status')})")
-            print(f"    {' '.join(str(entry.get('observation', '')).split())}")
-            if entry.get("boundary"):
-                print(f"    boundary: {' '.join(str(entry['boundary']).split())}")
+        unmigrated = unmigrated_problem(domain_dir, load_memory(domain_dir))
+        if unmigrated:
+            print(f"FAIL: {unmigrated}", file=sys.stderr)
+            return 1
+        if empty_request and not noted:
+            print(EMPTY_V3_QUERY_NOTE)
+            noted = True
+        for claim, paired_with in query_v3_store(domain_dir, scope, canon_ids, cues, limit):
+            if paired_with:
+                pairs.append(f"{claim.get('id')} with {paired_with}")
+            else:
+                returned.append(str(claim.get("id")))
+            print_v3_claim(claim, paired_with)
     # One retrieval receipt, in one format, on every query. Consultation cannot
     # be proven by a memory file existing; it can be recorded by naming what was
     # actually returned. A contradiction counterpart is named in its own segment
@@ -2535,11 +2444,6 @@ def main() -> int:
              "query proposes, ranks or discovers one.",
     )
     query.add_argument("--limit", type=int, default=5)
-    query.add_argument(
-        "--scope-id", default=None,
-        help="The legacy spelling of --scope, for a store that has not migrated yet. "
-             "Deleted with the rest of the legacy reader.",
-    )
 
     append = sub.add_parser("append", parents=[common], help="Append one high-signal event, verified by readback.")
     append.add_argument("--task")

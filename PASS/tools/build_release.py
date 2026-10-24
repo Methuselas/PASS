@@ -369,11 +369,12 @@ def remove_tree(path: Path, ignore_errors: bool = False) -> None:
 
 
 def read_store_data(store: Path) -> dict[str, Any] | None:
-    """The store parsed as a mapping, or None when it cannot be projected.
+    """The store parsed as a mapping, or None when it cannot be read as one.
 
-    An unreadable, non-mapping, or malformed store is not this function's
-    failure to report: it ships whole under the legacy branch and the
-    staged-copy validation gate reports the actual defect.
+    Whether None is a build failure is the caller's decision, not this
+    function's: `stage_memory` refuses to ship a store it cannot project, while
+    `projected_store_problems` is checking a staged copy and lets the
+    staged-copy validation gate report the actual defect.
     """
     try:
         data = yaml.safe_load(store.read_text(encoding="utf-8"))
@@ -414,11 +415,11 @@ def stage_memory(staging: Path, memory_root: Path, owned_domains: set[str]) -> l
     with no store simply contributes nothing — memory is never a build
     dependency (`ARCHITECTURE.md` contract 20).
 
-    A store that declares schema 3 ships as a current-state projection: only
-    its `skill_memory.yaml`, with claim-level `evidence` removed and no
-    `training_history.jsonl` (R2.5 §8.5). A store of any other schema ships
-    whole, History included, unchanged; that branch is deleted with the legacy
-    reader in T21.
+    There is one branch and it projects schema 3: only `skill_memory.yaml`,
+    with claim-level `evidence` removed and no `training_history.jsonl` (R2.5
+    §8.5). The pass-through that used to ship a legacy store whole went with
+    the legacy reader at T21 (Decision 2), so a store this cannot project stops
+    the build instead of travelling unexamined into a release.
     """
     shipped: list[str] = []
     for domain in sorted(owned_domains):
@@ -426,10 +427,20 @@ def stage_memory(staging: Path, memory_root: Path, owned_domains: set[str]) -> l
         if not (source / MEMORY_STORE).is_file():
             continue
         data = read_store_data(source / MEMORY_STORE)
-        if data is not None and data.get("memory_schema_version") == V3_SCHEMA_VERSION:
-            write_projected_store(data, staging / MEMORY_DIR / domain / MEMORY_STORE)
-        else:
-            shutil.copytree(source, staging / MEMORY_DIR / domain)
+        if data is None:
+            raise ValueError(
+                f"memory store cannot be read as a mapping: {domain}; "
+                "a release projects schema "
+                f"{V3_SCHEMA_VERSION} and has no pass-through for anything else"
+            )
+        declared = data.get("memory_schema_version")
+        if declared != V3_SCHEMA_VERSION:
+            raise ValueError(
+                f"memory store declares memory_schema_version {declared!r}: {domain}; "
+                f"packaging projects schema {V3_SCHEMA_VERSION} only. A legacy store is "
+                "unmigrated, not corrupt - migrate the domain before building a release"
+            )
+        write_projected_store(data, staging / MEMORY_DIR / domain / MEMORY_STORE)
         shipped.append(domain)
     return shipped
 
@@ -537,14 +548,20 @@ def projected_store_problems(domain_root: Path) -> list[str]:
 
     A schema-3 store ships as current state only: the events its `evidence`
     ids used to resolve against do not travel, so neither History nor the ids
-    may be present. A store that does not declare schema 3 still ships whole
-    until its domain migrates, so this checks nothing for it. An unreadable
-    store is not this check's failure either: the staged-copy validation gate
-    reports the actual defect.
+    may be present. Since T21 there is no other kind of shipped store, so a
+    staged copy declaring any other version is itself the problem rather than
+    something this check skips. An unreadable store is still not this check's
+    failure: the staged-copy validation gate reports the actual defect.
     """
     data = read_store_data(domain_root / MEMORY_STORE)
-    if data is None or data.get("memory_schema_version") != V3_SCHEMA_VERSION:
+    if data is None:
         return []
+    declared = data.get("memory_schema_version")
+    if declared != V3_SCHEMA_VERSION:
+        return [
+            f"packaged memory declares memory_schema_version {declared!r}: "
+            f"{domain_root.name}; a release ships schema {V3_SCHEMA_VERSION} only"
+        ]
     problems: list[str] = []
     if (domain_root / MEMORY_HISTORY).exists():
         problems.append(

@@ -78,9 +78,13 @@ used to say:
   nothing is inherited, because no tool may compute, suggest, copy, or promote a
   confidence value.
 
-Writing requires `memory_schema_version: 3`. A store still on v1 or v2 is read
-and validated as it stands; the way to change one is to migrate the domain, not
-to edit it in place.
+Every command requires `memory_schema_version: 3`. A store declaring the retired
+1 or 2 is refused as **unmigrated, not corrupt** - the bytes may be perfect, and
+the fix is a migration rather than a repair. Nothing upgrades a store in place,
+and there is no reader left for the old shape: the transition scaffolds were
+deleted once the last domain migrated. An absent store stays different from a
+wrong-version one: absence is silent and fails open, while a store that is there
+but unreadable is always loud.
 
 The tool is mechanical. It checks shape, retrieves a bounded set, appends an
 event, links one to three representative events behind a claim, and reports what

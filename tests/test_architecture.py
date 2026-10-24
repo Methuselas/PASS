@@ -1213,6 +1213,12 @@ class RepositoryShapeTests(unittest.TestCase):
             "PASS/tools/preflight_pdf.py",
             "PASS/tools/render_pdf.py",
             "PASS/tools/cleanup_authoring_cache.py",
+            # The Memory schema-3 transition scaffolds (T21, Decisions 1 and 2):
+            # a migration-input reader and a one-time migrator, both deleted once
+            # the last domain migrated. Listed here so neither can come back
+            # quietly as a compatibility feature.
+            "PASS/tools/memory_legacy_input.py",
+            "PASS/tools/migrate_memory_v3.py",
             "PASS/docs/PASS_LEDGER.md",
             "PASS/docs/PASS_GROUNDING.md",
             "PASS/templates/SOURCE_TEMPLATE.md",
@@ -1237,34 +1243,31 @@ class ReleaseMemoryTests(unittest.TestCase):
 
     @unittest.skipUnless(ART_STORE.is_file(), "no Art memory store in this checkout")
     def test_release_ships_the_memory_of_the_domains_it_bundles(self) -> None:
-        # What "its memory" means follows the store's declared schema, because
-        # this test reads the real art store rather than a fixture. The
-        # schema-3 branch is SR6, T09's named reversal, which came due when
-        # T18 migrated that store: a v3 store ships as a current-state
+        # SR6, T09's named reversal: a v3 store ships as a current-state
         # projection, so the event record stays behind and no claim carries
-        # `evidence` (R2.5 section 8.5). The legacy branch goes with the
-        # legacy reader in T21.
-        schema = yaml.safe_load(
-            self.ART_STORE.read_text(encoding="utf-8")
-        ).get("memory_schema_version")
+        # `evidence` (R2.5 section 8.5). This test reads the real art store, so
+        # it used to branch on the declared version; T21 deleted the legacy
+        # pass-through, which makes the projection unconditional and the
+        # declared version an assertion rather than a question.
+        self.assertEqual(
+            yaml.safe_load(self.ART_STORE.read_text(encoding="utf-8"))
+            .get("memory_schema_version"),
+            3,
+        )
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp) / "release"
             self.assertEqual(run("build", ART_RECIPE, out).returncode, 0)
             manifest = json.loads((out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["memory_domains"], ["art"])
             self.assertTrue((out / "memory/art/skill_memory.yaml").is_file())
-            history = out / "memory/art/training_history.jsonl"
-            if schema == 3:
-                self.assertFalse(history.is_file())
-                staged = yaml.safe_load(
-                    (out / "memory/art/skill_memory.yaml").read_text(encoding="utf-8")
-                )
-                self.assertTrue(staged["claims"])
-                for claim in staged["claims"]:
-                    with self.subTest(claim=claim["id"]):
-                        self.assertNotIn("evidence", claim)
-            else:
-                self.assertTrue(history.is_file())
+            self.assertFalse((out / "memory/art/training_history.jsonl").is_file())
+            staged = yaml.safe_load(
+                (out / "memory/art/skill_memory.yaml").read_text(encoding="utf-8")
+            )
+            self.assertTrue(staged["claims"])
+            for claim in staged["claims"]:
+                with self.subTest(claim=claim["id"]):
+                    self.assertNotIn("evidence", claim)
             self.assertEqual(manifest["quality_gates"]["memory_validation"], "passed")
             self.assertIn("## Skillset Memory", (out / "SKILL.md").read_text(encoding="utf-8"))
             self.assertEqual(run("check", out).returncode, 0)
@@ -1350,8 +1353,8 @@ class ReleaseV3MemoryTests(unittest.TestCase):
     R2.5 §8.5: the release stages only `skill_memory.yaml`, strips claim-level
     `evidence`, and ships no `training_history.jsonl`. The source store is read
     and never rewritten; every id and non-evidence key carries through
-    unchanged. A pre-v3 store still ships whole (legacy pass-through, deleted
-    with the reader in T21).
+    unchanged. Since T21 deleted the pass-through there is no other branch: a
+    store packaging cannot project stops the build.
     """
 
     @classmethod
@@ -1542,22 +1545,42 @@ class ReleaseMemoryProjectionTests(unittest.TestCase):
                 [claim["id"] for claim in source_store["claims"]],
             )
 
-    def test_stage_memory_copies_a_legacy_store_untouched(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            memory_root = root / "memory"
-            legacy = memory_root / "art"
-            legacy.mkdir(parents=True)
-            store_bytes = b"memory_schema_version: 1\nskillset: art\nentries: []\n"
-            history_bytes = b'{"event_id": "ART_EV_0001"}\n'
-            (legacy / "skill_memory.yaml").write_bytes(store_bytes)
-            (legacy / "training_history.jsonl").write_bytes(history_bytes)
-            staging = root / "staging"
-            shipped = build_release.stage_memory(staging, memory_root, {"art"})
-            self.assertEqual(shipped, ["art"])
-            staged = staging / "memory/art"
-            self.assertEqual((staged / "skill_memory.yaml").read_bytes(), store_bytes)
-            self.assertEqual((staged / "training_history.jsonl").read_bytes(), history_bytes)
+    def test_stage_memory_refuses_a_store_it_cannot_project(self) -> None:
+        """The T21 reversal of `test_stage_memory_copies_a_legacy_store_untouched`.
+
+        Decision 2 scheduled the pass-through for deletion rather than a
+        permanent conditional, so there is no branch that ships a store whole
+        any more. A retired version is refused as unmigrated - the fix is a
+        migration, not a repair - and a version nobody has defined is refused as
+        unprojectable. Both inputs are built in this test's own temporary
+        directory and no committed file carries either shape (criterion 48).
+        """
+        cases = {
+            1: "unmigrated, not corrupt",
+            4: "packaging projects schema 3 only",
+        }
+        for version, expected in cases.items():
+            with self.subTest(schema_version=version), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                memory_root = root / "memory"
+                domain = memory_root / "art"
+                domain.mkdir(parents=True)
+                (domain / "skill_memory.yaml").write_text(
+                    yaml.safe_dump(
+                        {
+                            "memory_schema_version": version, "skillset": "art",
+                            "memory_version": 1, "claims": [],
+                        },
+                        sort_keys=False,
+                    ),
+                    encoding="utf-8",
+                )
+                (domain / "training_history.jsonl").write_text("", encoding="utf-8")
+                staging = root / "staging"
+                with self.assertRaises(ValueError) as refused:
+                    build_release.stage_memory(staging, memory_root, {"art"})
+                self.assertIn(expected, str(refused.exception))
+                self.assertFalse((staging / "memory/art").exists())
 
     def test_stage_memory_skips_domains_without_a_store(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -1594,7 +1617,15 @@ class ReleaseMemoryProjectionTests(unittest.TestCase):
             problems = build_release.projected_store_problems(staged)
             self.assertTrue(any("evidence key" in problem for problem in problems))
 
-    def test_projected_store_problems_passes_a_legacy_store(self) -> None:
+    def test_projected_store_problems_reports_a_store_of_another_schema(self) -> None:
+        """The T21 reversal of `test_projected_store_problems_passes_a_legacy_store`.
+
+        That test asserted the check skipped a non-v3 staged store, because such
+        a store still shipped whole. Nothing ships whole now, so a staged copy
+        declaring any other version is itself the finding rather than something
+        this check steps over. An unreadable store is still not this check's
+        failure: the staged-copy validation gate reports the actual defect.
+        """
         with tempfile.TemporaryDirectory() as tmp:
             domain = Path(tmp) / "art"
             domain.mkdir()
@@ -1602,6 +1633,13 @@ class ReleaseMemoryProjectionTests(unittest.TestCase):
                 "memory_schema_version: 1\n", encoding="utf-8"
             )
             (domain / "training_history.jsonl").write_text("{}\n", encoding="utf-8")
+            problems = build_release.projected_store_problems(domain)
+            self.assertTrue(
+                any("memory_schema_version 1" in problem for problem in problems),
+                problems,
+            )
+
+            (domain / "skill_memory.yaml").write_text("- not a mapping\n", encoding="utf-8")
             self.assertEqual(build_release.projected_store_problems(domain), [])
 
     def test_run_quality_gates_validates_the_staged_memory(self) -> None:

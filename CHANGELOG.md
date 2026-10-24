@@ -6,6 +6,169 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.133 - 2026-10-24
+
+### Removed
+
+- **Skillset Memory now reads one schema, and every transition scaffold that
+  made two schemas possible is deleted (T21).** All four stores reached
+  `memory_schema_version: 3` at beta.132, which was the condition R2.5 set for
+  this cutover: no legacy store, path, or fixture could be removed until the
+  gates that depended on it had passed.
+
+  Gone from `PASS/tools/`: `memory_legacy_input.py` (the migration-input reader,
+  a transition scaffold rather than a compatibility feature — Decision 1) and
+  `migrate_memory_v3.py` (the one-time migrator). Gone from `memory.py`: the
+  schema dispatch, `score_entry`, `query_store`, `review_legacy_store`,
+  `STALE_DAYS`, `ENTRY_REQUIRED`, `RETRIEVABLE_STATUS`, `ID_RE`, the duplicate
+  `FAILURE_LAYERS` that T12 had already re-homed to
+  `PASS/runtime/candidate_qualification/schemas.py`, and `query --scope-id`, the
+  legacy spelling of `--scope`. Gone from `build_release.py`: the `stage_memory`
+  pass-through that shipped a non-v3 store whole (Decision 2 — one deletion
+  ticket, no permanent conditional). `stage_memory` now has exactly one branch
+  and it projects schema 3.
+
+  Both deleted tool paths joined
+  `test_architecture.py::test_retired_authoring_infrastructure_is_gone`, so
+  neither can return quietly.
+
+### Changed
+
+- **A v1 or v2 store is refused as unmigrated, not corrupt.** Every command that
+  reads a store — `validate`, `query`, `review`, `add`, `update`, `retire`,
+  `link-evidence` — exits non-zero naming the store path, the declared version,
+  the schema-3 contract in `PASS/docs/MEMORY_SCHEMA.md`, and the retired
+  migrator that is recoverable from repository history. The word is
+  *unmigrated*: the bytes may be perfect and the fix is a migration rather than
+  a repair. Nothing upgrades a store in place, and the message is deliberately
+  not generalised into a corruption policy — a parseable but schema-invalid v3
+  store stays deferred (R2.3 #3, R2.5 §12.11).
+
+  Fail-open is unchanged and is now stated beside its opposite. A missing
+  `memory/` root, a missing domain, and an empty store each exit 0 with an
+  honest empty receipt, because nothing in PASS may stop because Memory is
+  absent. A wrong-version store is *presence*, not absence — it asserts that
+  learned state exists while being unreadable — so it is always loud. An
+  undefined version such as 4 is still the unknown-version validation error, and
+  reads differently from unmigrated.
+
+- **`memory.py validate` counts claims.** The summary counted `entries`, so
+  every migrated store reported zero content and the printed total under-reported
+  the corpus; beta.130 recorded the gap and left it here. The live corpus now
+  reports `4 store(s), 127 claim(s), 308 event(s) validated`. A store with no
+  History file beside it contributes no events rather than a missing-file error,
+  which is what absence means beside a v3 store (I5).
+
+- **`PASS/docs/MEMORY_SCHEMA.md` §10 and `memory/README.md` state the cutover.**
+  Both described a dispatch that routed v1/v2 to a reader that no longer exists.
+  §10's status line now records that schema 3 is live and sole; sections 5 and 7
+  still describe the retired shape and are explicitly marked as describing no
+  store that exists, because deleting them is T22's.
+
+### Testing
+
+- New `test_memory.py::SchemaContract` tests: `test_a_v1_store_is_loudly_unmigrated`,
+  `test_a_v2_store_is_loudly_unmigrated` (both driving every reading command and
+  checking the store's bytes afterwards), `test_unmigrated_is_not_corrupt`,
+  `test_absence_is_still_silent_and_fail_open`, and
+  `test_no_runtime_path_parses_schema_one_or_two` — the last read off the syntax
+  tree, locking the retired version numbers to the single function that builds
+  the refusal. `ShippedStore::test_no_legacy_store_remains_in_the_working_tree`
+  asserts criterion 48 over the whole repository rather than over `memory/`.
+
+- **The R2.5 §8.2 reversals landed.** Obsolete and removed, each for the reason
+  §8.2 gives: `test_learned_principle_is_an_accepted_memory_type`,
+  `test_v2_accepts_specialization_profiles_and_card_candidates`,
+  `test_v1_rejects_v2_only_entry_types`,
+  `test_superseded_status_requires_a_successor`,
+  `test_unknown_evidence_origin_is_rejected`,
+  `test_human_teaching_is_a_recognized_evidence_origin`, and
+  `test_evidence_count_must_match_cited_events`. Surviving in spirit:
+  `test_unknown_schema_version_is_rejected`, which now also asserts that the
+  unknown-version message and the unmigrated message are different.
+  `test_stage_memory_copies_a_legacy_store_untouched` and
+  `test_projected_store_problems_passes_a_legacy_store` — the two further
+  reversals scope recovery identified — are replaced by
+  `test_stage_memory_refuses_a_store_it_cannot_project` and
+  `test_projected_store_problems_reports_a_store_of_another_schema`.
+
+- **Entry-shaped duplicates were retired rather than re-pointed.** The v1/v2
+  contract classes stated things the v3 suites already state against the only
+  claim schema there is, so `TemporaryStateFirewall` (covered by
+  `V3Leakage::test_retired_authoring_and_lineage_keys_are_rejected` and
+  `test_conversation_deference_is_rejected`), the entry-shape half of
+  `SchemaContract` (covered by `V3Schema` and `V3ClaimInvariants`), and the
+  entry-citing half of `AdmissibilityContract` (covered by
+  `V3ReferentialIntegrity`) are gone. Each surviving class names where its old
+  statements went. `AdmissibilityContract` keeps the Training History half,
+  which is unversioned (R2.5 §8.4) and so crossed the cutover unchanged.
+  `SchemaDispatch` became `CorpusSurface`: its four mixed-state tests described
+  an arrangement the cutover removed, and what survives is the two-channel
+  validate run plus a new `test_the_summary_counts_claims_across_every_store`.
+
+- **`tests/test_memory_migration.py` is deleted with the migrator it tested.**
+  2,440 lines covering FREEZE, hash verification, the sentence inventory, the
+  A1–A10 accounting checker, the three reports, and the VERIFY gate — every one
+  of them driving `migrate_memory_v3.py`. A suite for a deleted tool is not
+  coverage.
+
+### Owner decision recorded
+
+- **`SpecificationExamples` is removed, not restored.** Two committed statements
+  prescribed opposite dispositions for that suite: the beta.130 T20 entry said
+  restoring its worked examples against a committed fixture "is T21's", while
+  `test_memory_migration.py` and the beta.129 T17 entry said T21 removes the
+  suite when the last domain migrates. The authoritative T21 ticket is silent,
+  so the conflict went to the owner, who ruled: **remove the suite, and do not
+  restore it against a committed v1/v2 fixture.**
+
+  The beta.130 statement was an erroneous carry-forward note and is not T21
+  authority; it stays in the changelog as historical evidence of the mistake
+  rather than being rewritten. The ruling follows from what the suite was for —
+  it read two *live legacy* entries, `SE_MEM_001` and `GAMEDESIGN_MEM_001`, and
+  T17 and T20 consumed both — and from criterion 48, which is read literally: a
+  committed test fixture that is itself a v1/v2 Memory store is a legacy store
+  in the working tree. Restoring the examples would have preserved a transition
+  scaffold inside the ticket whose whole subject is removing them.
+
+  So: no committed legacy fixture is retained anywhere. The wrong-version tests
+  synthesize minimal v1/v2 input inside their own temporary directories, which
+  is test input rather than a retained store, and no production path parses it
+  as a supported schema. A9 derivation coverage retired with the migrator it
+  belonged to.
+
+### Already satisfied, reconciled honestly
+
+Three scope items were closed before this ticket began, and are recorded rather
+than re-done:
+
+- `FAILURE_LAYERS` was re-homed by T12 to
+  `PASS/runtime/candidate_qualification/schemas.py`; verified that nothing
+  imports it from a deleted module, and the dead duplicate in `memory.py` was
+  removed with the other legacy constants.
+- Criterion 48 was already satisfied for the four live stores at beta.132; what
+  this ticket added is the repository-wide assertion that keeps it satisfied.
+- The seven `SchemaContract` reversals R2.5 §8.2 names were all present and were
+  reversed here by name.
+
+Two items are explicitly **not** done, and neither is a gap: `MEMORY_SCHEMA.md`'s
+legacy sections belong to T22, and the FREEZE inputs and signed ledgers under
+`workspace/handoffs/` are untracked migration evidence this ticket is forbidden
+to delete. They are the owner's to release; nothing active reads them and no
+release ships them.
+
+### Validation
+
+`python -m unittest discover -s tests -p "test_*.py"` green.
+`python PASS/tools/validate.py`, `verify_references.py`, and
+`memory.py validate` over all four v3 stores green, with no FLAG unreviewed. A
+transcript of a v1 fixture refused loudly by `validate`, `query`, `review`, and
+`add` — with the fixture byte-identical afterwards — and an absent `memory/` root
+accepted silently at exit 0, is reproduced by
+`SchemaContract.assertLoudlyUnmigrated` and
+`test_absence_is_still_silent_and_fail_open`. `PASS/tools/` carries neither
+deleted module.
+
 ## 1.0.0-beta.132 - 2026-10-24
 
 ### Changed

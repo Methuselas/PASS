@@ -47,7 +47,13 @@ memory_tool = importlib.util.module_from_spec(_MEMORY_SPEC)
 sys.modules[_MEMORY_SPEC.name] = memory_tool
 _MEMORY_SPEC.loader.exec_module(memory_tool)
 
-VALID_ENTRY = {
+# Ephemeral wrong-version input, for the loud-unmigrated tests and nothing
+# else. It is test input, not a retained legacy store: every test that uses it
+# builds it inside its own temporary directory, no committed file carries this
+# shape, and no production path parses it as a supported schema. The entry is
+# deliberately minimal - the runtime refuses the store on its declared version
+# and never reaches the entry, so a richer one would prove nothing.
+UNMIGRATED_ENTRY = {
     "id": "TST_MEM_001",
     "scope_type": "topic",
     "scope_id": "example_topic",
@@ -57,6 +63,38 @@ VALID_ENTRY = {
     "confidence": "provisional",
     "status": "active",
 }
+
+
+def art_claim(**overrides: object) -> dict:
+    """A minimal structurally valid v3 claim in the `art` domain.
+
+    `base_claim` further down is the software-engineering counterpart the v3
+    suites use; this one exists because the shared store fixture is an `art`
+    tree and a claim id carries its own domain token.
+    """
+    claim = {
+        "id": "ART_MEM_01M55WJVKRQ4N8TDZ3G7XB2VHE",
+        "claim": "Blocking the shadow shapes before any contour keeps a figure's weight readable.",
+        "claim_class": "conduct",
+        "claim_kind": "stochastic",
+        "confidence": "provisional",
+        "delta": {
+            "kinds": ["action"],
+            "statement": "Block the shadow shapes before drawing any contour.",
+        },
+        "envelope": {
+            "holds_in": ["single-source lighting on a standing figure"],
+            "not_shown_in": ["flat frontal light"],
+        },
+        "provenance": ["runtime_self_audit"],
+        "scope": "figure_weight",
+        "retrieval_cues": ["shadow shape", "figure weight"],
+        "last_verified": "2026-10-17",
+    }
+    claim.update(overrides)
+    return claim
+
+
 VALID_EVENT = {
     "event_id": "TST_EV_0001",
     "date": "2026-08-22",
@@ -112,22 +150,26 @@ class MemoryStoreFixture(unittest.TestCase):
 
     def write(
         self,
-        entries: list[dict],
+        claims: list[dict],
         events: list[dict],
         *,
-        schema_version: int = 1,
+        schema_version: int = 3,
     ) -> None:
+        """A schema-3 store and its History.
+
+        `schema_version` is a parameter only so the wrong-version tests can
+        declare a retired number here, inside their own temporary tree. No
+        committed file carries that shape: it is ephemeral test input, never a
+        retained legacy store (criterion 48).
+        """
+        store: dict = {
+            "memory_schema_version": schema_version,
+            "skillset": "art",
+            "memory_version": 1,
+        }
+        store["claims" if schema_version == 3 else "entries"] = claims
         (self.domain / "skill_memory.yaml").write_text(
-            yaml.safe_dump(
-                {
-                    "memory_schema_version": schema_version,
-                    "skillset": "art",
-                    "memory_version": 1,
-                    "entries": entries,
-                },
-                sort_keys=False,
-            ),
-            encoding="utf-8",
+            yaml.safe_dump(store, sort_keys=False), encoding="utf-8",
         )
         (self.domain / "training_history.jsonl").write_text(
             "".join(json.dumps(event, sort_keys=True) + "\n" for event in events),
@@ -139,49 +181,33 @@ class MemoryStoreFixture(unittest.TestCase):
 
 
 class AdmissibilityContract(MemoryStoreFixture):
-    """An invalid run may be remembered. It may never count."""
+    """An invalid run may be remembered. It may never count.
 
-    def test_entry_citing_an_invalid_event_is_rejected(self) -> None:
-        entry = dict(VALID_ENTRY, evidence_count=1, evidence_events=["TST_EV_0002"])
-        self.write([entry], [VALID_EVENT, INVALID_EVENT])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1, result.stdout)
-        self.assertIn("cites invalid event", result.stdout)
+    This class holds the Training History half, which is not versioned (R2.5
+    §8.4) and so survived the cutover unchanged. The claim half - a claim that
+    cites an invalid, corrected, or quarantined event - is held by
+    `V3ReferentialIntegrity` against the only claim schema there is; the
+    duplicate entry-shaped versions that used to sit here went with the legacy
+    reader at T21 rather than being re-pointed into a second copy of it.
 
-    def test_entry_citing_a_valid_event_is_accepted(self) -> None:
-        entry = dict(VALID_ENTRY, evidence_count=1, evidence_events=["TST_EV_0001"])
-        self.write([entry], [VALID_EVENT, INVALID_EVENT])
-        self.assertEqual(self.validate().returncode, 0)
+    `test_evidence_count_must_match_cited_events` was one of them, and it is a
+    named reversal: R2.5 §8.2 retires it as obsolete because schema 3 has no
+    `evidence_count`. What replaced it is the cap of three
+    (`V3ClaimInvariants.test_evidence_is_capped_at_three`) plus the
+    admissibility checks below and in `V3ReferentialIntegrity`.
+    """
 
     def test_invalid_events_are_kept_rather_than_discarded(self) -> None:
         """The invalid run is the evidence that a tool or controller needs work."""
-        self.write([VALID_ENTRY], [VALID_EVENT, INVALID_EVENT])
+        self.write([art_claim()], [VALID_EVENT, INVALID_EVENT])
         self.assertEqual(self.validate().returncode, 0)
         lines = (self.domain / "training_history.jsonl").read_text(encoding="utf-8").splitlines()
         self.assertEqual(len(lines), 2)
 
-    def test_evidence_count_must_match_cited_events(self) -> None:
-        entry = dict(VALID_ENTRY, evidence_count=7, evidence_events=["TST_EV_0001"])
-        self.write([entry], [VALID_EVENT])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("does not match", result.stdout)
-
     def test_metadata_correction_is_valid_history_but_not_evidence(self) -> None:
         self.write([], [VALID_EVENT, CORRECTION_EVENT])
         self.assertEqual(self.validate().returncode, 0)
-        sys.path.insert(0, str(ROOT / "PASS/tools"))
-        self.addCleanup(sys.path.remove, str(ROOT / "PASS/tools"))
-        import memory as memory_tool
-
         self.assertEqual(memory_tool.uncited_valid_events(self.domain), ["TST_EV_0001"])
-
-    def test_entry_citing_metadata_correction_is_rejected(self) -> None:
-        entry = dict(VALID_ENTRY, evidence_count=1, evidence_events=["TST_EV_0003"])
-        self.write([entry], [VALID_EVENT, CORRECTION_EVENT])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("correction is not capability evidence", result.stdout)
 
     def test_metadata_correction_must_point_backward_to_known_event(self) -> None:
         correction = dict(CORRECTION_EVENT, supersedes_events=["TST_EV_9999"])
@@ -193,22 +219,11 @@ class AdmissibilityContract(MemoryStoreFixture):
     def test_evidence_correction_quarantines_history_without_deleting_it(self) -> None:
         self.write([], [VALID_EVENT, EVIDENCE_CORRECTION_EVENT])
         self.assertEqual(self.validate().returncode, 0)
-        sys.path.insert(0, str(ROOT / "PASS/tools"))
-        self.addCleanup(sys.path.remove, str(ROOT / "PASS/tools"))
-        import memory as memory_tool
-
         self.assertEqual(memory_tool.uncited_valid_events(self.domain), [])
         self.assertEqual(
             len((self.domain / "training_history.jsonl").read_text(encoding="utf-8").splitlines()),
             2,
         )
-
-    def test_entry_citing_quarantined_event_is_rejected(self) -> None:
-        entry = dict(VALID_ENTRY, evidence_count=1, evidence_events=["TST_EV_0001"])
-        self.write([entry], [VALID_EVENT, EVIDENCE_CORRECTION_EVENT])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("cites quarantined event", result.stdout)
 
     def test_evidence_correction_requires_a_reason_and_closed_outcome(self) -> None:
         correction = dict(EVIDENCE_CORRECTION_EVENT)
@@ -329,108 +344,179 @@ class PersistenceContract(MemoryStoreFixture):
 
 
 class SchemaContract(MemoryStoreFixture):
-    """Closed vocabularies stay closed; the schema is never widened for an entry."""
+    """One schema, loudly (R2.5 §9.1): the runtime reads schema 3 and refuses
+    everything else, and it refuses the two retired versions differently from a
+    version nobody has ever defined.
 
-    def test_learned_principle_is_an_accepted_memory_type(self) -> None:
-        self.write([dict(VALID_ENTRY, type="learned_principle")], [])
-        self.assertEqual(self.validate().returncode, 0)
+    What used to be here was the v1/v2 entry-shape contract - closed
+    vocabularies, unknown keys, missing required keys, duplicate ids. Every one
+    of those statements is now made against the only claim schema there is, by
+    `V3Schema` and `V3ClaimInvariants`, so T21 retired the entry-shaped copies
+    rather than re-pointing them into duplicates. The six R2.5 §8.2 reversals
+    that lived in this class - `test_learned_principle_is_an_accepted_memory_type`,
+    `test_v2_accepts_specialization_profiles_and_card_candidates`,
+    `test_v1_rejects_v2_only_entry_types`,
+    `test_superseded_status_requires_a_successor`,
+    `test_unknown_evidence_origin_is_rejected`, and
+    `test_human_teaching_is_a_recognized_evidence_origin` - are obsolete for the
+    reason §8.2 gives in each case: schema 3 has no `type`, no `status`, no
+    `evidence_origin`, and no second version to gate a type behind. Provenance
+    survives as a required claim key, held by
+    `V3Leakage.test_provenance_is_required_and_never_a_forbidden_key`.
+    """
 
-    def test_v2_accepts_specialization_profiles_and_card_candidates(self) -> None:
-        for entry_type in ("specialization_profile", "card_candidate"):
-            with self.subTest(entry_type=entry_type):
-                self.write(
-                    [dict(VALID_ENTRY, type=entry_type)],
-                    [],
-                    schema_version=2,
+    def unmigrated_commands(self) -> dict[str, tuple[object, ...]]:
+        """Every command that reads a store, with arguments that reach the read."""
+        return {
+            "validate": ("validate", "--domain", "art"),
+            "query": ("query", "--cues", "shadow shape", "--domain", "art"),
+            "review": ("review", "--domain", "art"),
+            "add": ("add", "--domain", "art", "--json", "{}"),
+            "link-evidence": (
+                "link-evidence", "--domain", "art",
+                "--claim", "TST_MEM_001", "--events", "TST_EV_0001",
+            ),
+        }
+
+    def assertLoudlyUnmigrated(self, version: int) -> str:
+        """Every reading command refuses the store, and none of them edits it."""
+        self.write([dict(UNMIGRATED_ENTRY)], [VALID_EVENT], schema_version=version)
+        before = (self.domain / "skill_memory.yaml").read_bytes()
+        transcript = ""
+        for label, args in self.unmigrated_commands().items():
+            with self.subTest(command=label):
+                result = run_tool(*args, memory=self.tmp)
+                self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+                output = result.stdout + result.stderr
+                transcript += output
+                self.assertIn("unmigrated", output)
+                self.assertEqual(
+                    (self.domain / "skill_memory.yaml").read_bytes(), before,
+                    f"{label} changed an unmigrated store",
                 )
-                self.assertEqual(self.validate().returncode, 0)
+        return transcript
 
-    def test_v1_rejects_v2_only_entry_types(self) -> None:
-        for entry_type in ("specialization_profile", "card_candidate"):
-            with self.subTest(entry_type=entry_type):
-                self.write([dict(VALID_ENTRY, type=entry_type)], [])
-                result = self.validate()
-                self.assertEqual(result.returncode, 1)
-                self.assertIn("requires memory_schema_version 2", result.stdout)
+    def test_a_v1_store_is_loudly_unmigrated(self) -> None:
+        """Criterion 34. The message names the store it refused and the way
+        forward, so the operator is not left guessing which domain and which
+        procedure."""
+        transcript = self.assertLoudlyUnmigrated(1)
+        self.assertIn("skill_memory.yaml", transcript)
+        self.assertIn("memory_schema_version 1", transcript)
+        self.assertIn("migrate_memory_v3.py", transcript)
+        self.assertIn("MEMORY_SCHEMA.md", transcript)
+
+    def test_a_v2_store_is_loudly_unmigrated(self) -> None:
+        transcript = self.assertLoudlyUnmigrated(2)
+        self.assertIn("skill_memory.yaml", transcript)
+        self.assertIn("memory_schema_version 2", transcript)
+        self.assertIn("migrate_memory_v3.py", transcript)
+
+    def test_unmigrated_is_not_corrupt(self) -> None:
+        """The distinction R2.5 §9.1 insists on. The bytes are fine; the version
+        is retired. Calling it corruption would send a reader looking for damage
+        that is not there, and this ticket is explicit that the loud-unmigrated
+        message must not generalise into a corruption policy."""
+        self.write([dict(UNMIGRATED_ENTRY)], [VALID_EVENT], schema_version=1)
+        result = self.validate()
+        self.assertEqual(result.returncode, 1)
+        output = (result.stdout + result.stderr).lower()
+        self.assertIn("unmigrated, not corrupt", output)
+        for word in ("corrupt file", "damaged", "malformed", "unreadable"):
+            self.assertNotIn(word, output)
 
     def test_unknown_schema_version_is_rejected(self) -> None:
-        # 3 now dispatches to the v3 path, so the unknown-version rejection is
-        # stated with a version that is genuinely outside {1, 2, 3}.
-        self.write([VALID_ENTRY], [], schema_version=4)
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("memory_schema_version must be one of [1, 2]", result.stdout)
+        """The R2.5 §8.2 reversal that survives in spirit: an unknown version is
+        still rejected, and criterion 8 requires it to read differently from an
+        unmigrated one. A version nobody has defined is a validation error; a v1
+        store is a migration that has not been run."""
+        self.write([art_claim()], [], schema_version=4)
+        unknown = self.validate()
+        self.assertEqual(unknown.returncode, 1)
+        self.assertIn("memory_schema_version must be one of [3]", unknown.stdout)
+        self.assertNotIn("unmigrated", unknown.stdout + unknown.stderr)
 
-    def test_unknown_vocabulary_value_is_rejected(self) -> None:
-        self.write([dict(VALID_ENTRY, confidence="quite_sure")], [])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("closed vocabulary", result.stdout)
+        self.write([dict(UNMIGRATED_ENTRY)], [VALID_EVENT], schema_version=2)
+        unmigrated = self.validate()
+        self.assertEqual(unmigrated.returncode, 1)
+        self.assertIn("unmigrated", unmigrated.stdout)
+        self.assertNotIn("must be one of", unmigrated.stdout)
 
-    def test_unknown_key_is_rejected(self) -> None:
-        self.write([dict(VALID_ENTRY, vibe="strong")], [])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("unknown key", result.stdout)
+    def test_absence_is_still_silent_and_fail_open(self) -> None:
+        """Criterion 32, stated beside its opposite. Absence is silent and exits
+        0; a wrong-version store is presence - it asserts that learned state
+        exists while being unreadable - so it is loud. Both belong in one test:
+        the cutover must not have made absence loud, and must not have left
+        presence quiet."""
+        self.write([], [])
+        cases = {
+            "empty store": (self.tmp, ("--domain", "art")),
+            "missing domain": (self.tmp, ("--domain", "writing")),
+            "missing root": (self.tmp / "no-such-root", ()),
+        }
+        for label, (memory, args) in cases.items():
+            with self.subTest(case=label):
+                result = run_tool("query", "--cues", "shadow shape", *args, memory=memory)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn("retrieved: (none)", result.stdout)
+                self.assertNotIn("unmigrated", result.stdout + result.stderr)
 
-    def test_missing_required_key_is_rejected(self) -> None:
-        entry = dict(VALID_ENTRY)
-        del entry["evidence_class"]
-        self.write([entry], [])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("missing required keys", result.stdout)
+        self.write([dict(UNMIGRATED_ENTRY)], [VALID_EVENT], schema_version=1)
+        loud = run_tool("query", "--cues", "shadow shape", "--domain", "art", memory=self.tmp)
+        self.assertEqual(loud.returncode, 1)
+        self.assertIn("unmigrated", loud.stdout + loud.stderr)
 
-    def test_duplicate_entry_id_is_rejected(self) -> None:
-        self.write([VALID_ENTRY, dict(VALID_ENTRY)], [])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("duplicate entry id", result.stdout)
+    def test_no_runtime_path_parses_schema_one_or_two(self) -> None:
+        """Criterion 35, read off the syntax tree rather than off behavior.
 
-    def test_superseded_status_requires_a_successor(self) -> None:
-        self.write([dict(VALID_ENTRY, status="superseded")], [])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("requires superseded_by", result.stdout)
+        Two deleted modules that cannot return, one accepted version, and the
+        retired numbers named in exactly one function - the one that builds the
+        refusal. A behavioral test only proves the paths somebody remembered to
+        drive; a reader on the source proves there is no branch left to drive.
+        """
+        for name in ("memory_legacy_input", "migrate_memory_v3"):
+            self.assertFalse(
+                (ROOT / "PASS/tools" / f"{name}.py").exists(),
+                f"{name}.py survived the cutover",
+            )
+        self.assertEqual(memory_tool.SUPPORTED_SCHEMA_VERSIONS, {3})
+        self.assertEqual(memory_tool.LEGACY_SCHEMA_VERSIONS, {1, 2})
+        for gone in (
+            "score_entry", "query_store", "review_legacy_store", "validate_entry",
+            "STALE_DAYS", "ENTRY_REQUIRED", "RETRIEVABLE_STATUS",
+        ):
+            with self.subTest(name=gone):
+                self.assertFalse(hasattr(memory_tool, gone), f"{gone} survived T21")
 
-    def test_unknown_evidence_origin_is_rejected(self) -> None:
-        self.write([dict(VALID_ENTRY, evidence_origin=["vibes"])], [])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("evidence_origin", result.stdout)
-
-    def test_human_teaching_is_a_recognized_evidence_origin(self) -> None:
-        """Teaching is not user preference and must not be filed as feedback."""
-        self.write([dict(VALID_ENTRY, evidence_origin=["human_teaching"])], [])
-        self.assertEqual(self.validate().returncode, 0)
-
-
-class TemporaryStateFirewall(MemoryStoreFixture):
-    """Nothing becomes memory except a generalized empirical observation."""
-
-    def test_session_state_keys_are_rejected(self) -> None:
-        for key in ("current_stage", "candidate_id", "session_id", "next_unit", "parent_gen_id"):
-            with self.subTest(key=key):
-                self.write([dict(VALID_ENTRY, **{key: "whatever"})], [])
-                result = self.validate()
-                self.assertEqual(result.returncode, 1)
-                self.assertIn("forbidden key", result.stdout)
-
-    def test_retired_provenance_keys_are_rejected(self) -> None:
-        for key in ("source_id", "page", "receipt", "attestation", "ledger"):
-            with self.subTest(key=key):
-                self.write([dict(VALID_ENTRY, **{key: "whatever"})], [])
-                result = self.validate()
-                self.assertEqual(result.returncode, 1)
-                self.assertIn("forbidden key", result.stdout)
-
-    def test_observation_deferring_to_a_conversation_is_rejected(self) -> None:
-        entry = dict(VALID_ENTRY, observation="Hands were weak; see the earlier chat for details.")
-        self.write([entry], [])
-        result = self.validate()
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("must stand alone", result.stdout)
-
+        for relative in ("PASS/tools/memory.py", "PASS/tools/build_release.py"):
+            source = (ROOT / relative).read_text(encoding="utf-8")
+            tree = ast.parse(source)
+            with self.subTest(module=relative):
+                self.assertNotIn("memory_legacy_input", source)
+                legacy_literals = [
+                    ast.unparse(node)
+                    for node in ast.walk(tree)
+                    if isinstance(node, ast.Compare)
+                    and "schema_version" in ast.unparse(node)
+                    and any(
+                        isinstance(side, ast.Constant) and side.value in (1, 2)
+                        for side in node.comparators
+                    )
+                ]
+                self.assertEqual(
+                    legacy_literals, [],
+                    "a schema version is still compared against 1 or 2",
+                )
+                readers = sorted(
+                    node.name for node in ast.walk(tree)
+                    if isinstance(node, ast.FunctionDef)
+                    and "LEGACY_SCHEMA_VERSIONS" in ast.unparse(node)
+                )
+                self.assertEqual(
+                    readers,
+                    ["unmigrated_problem"] if relative.endswith("memory.py") else [],
+                    "the retired versions are read somewhere other than the refusal",
+                )
 
 class ShippedStore(unittest.TestCase):
     """The memory that actually ships in this repository."""
@@ -438,6 +524,32 @@ class ShippedStore(unittest.TestCase):
     def test_shipped_memory_validates(self) -> None:
         result = run_tool("validate")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_no_legacy_store_remains_in_the_working_tree(self) -> None:
+        """Criterion 48, read literally and over the whole repository.
+
+        Every `skill_memory.yaml` in the tree declares schema 3 - not just the
+        four under `memory/`, because a committed fixture that is itself a v1 or
+        v2 store would be a transition scaffold surviving the ticket that
+        deleted them. The wrong-version tests build their input in a temporary
+        directory instead, which is test input rather than a retained store.
+
+        `workspace/` is excluded, and only `workspace/`: the FREEZE inputs and
+        signed ledgers under `workspace/handoffs/` are untracked migration
+        evidence that this ticket is explicitly forbidden to delete, and the
+        owner releases them. Nothing active reads them, and a release never
+        ships them.
+        """
+        offenders: list[str] = []
+        for store in ROOT.rglob("skill_memory.yaml"):
+            relative = store.relative_to(ROOT).as_posix()
+            if relative.startswith(("workspace/", "archive/")):
+                continue
+            data = yaml.safe_load(store.read_text(encoding="utf-8")) or {}
+            declared = data.get("memory_schema_version") if isinstance(data, dict) else None
+            if declared != 3:
+                offenders.append(f"{relative}: memory_schema_version {declared!r}")
+        self.assertEqual(offenders, [], "a pre-schema-3 store survives in the working tree")
 
     def test_every_domain_with_memory_is_a_real_library_package(self) -> None:
         for domain_dir in MEMORY.iterdir():
@@ -634,9 +746,10 @@ class ToolingBoundary(unittest.TestCase):
 class V3WriteFixture(unittest.TestCase):
     """A disposable schema-3 store, so no test mutates the shipped corpus.
 
-    The live corpus is still v1/v2 while the domains migrate, so every write
-    test runs against a temporary v3 store. That is not a convenience: writing
-    is schema-3 only, and a legacy store is read until its own migration lands.
+    A temporary store rather than the live one, because a write test that
+    edited the shipped corpus would be recording its own fixtures as learned
+    state. Every store here declares schema 3, which since T21 is the only
+    version any command will read or write.
     """
 
     DOMAIN = "software-engineering"
@@ -1091,8 +1204,9 @@ class V3WriteConfidence(V3WriteFixture):
 
     def test_no_write_output_names_a_confidence_it_was_not_given(self) -> None:
         """Criterion 18 over the write surface: nothing a write prints suggests
-        or promotes a value. (The legacy `review` heuristic that derives one from
-        `evidence_count` is T08's to remove on the v3 path.)"""
+        or promotes a value. The heuristic that used to derive one from an
+        `evidence_count` is gone from `review` as well: T08 kept it off the v3
+        path, and T21 deleted it with the legacy reader."""
         self.write([], [V3_VALID_EVENT])
         transcript: list[str] = []
         added = self.tool("add", "--json", self.new_claim(evidence=["SE_EV_0001"]))
@@ -1203,37 +1317,52 @@ class V3WriteSafety(V3WriteFixture):
                     self.tool("add", "--json", self.new_claim(**changes)), before, text,
                 )
 
-    def test_a_legacy_store_is_not_writable(self) -> None:
-        """Writing is schema-3 only (R2.5 §9.1). A v1 store stays readable until
-        its domain migrates; the way to change one is to migrate it, not to keep
-        a second writer alive behind the dispatch."""
-        legacy = self.tmp / "art"
-        legacy.mkdir()
-        (legacy / "skill_memory.yaml").write_text(
-            yaml.safe_dump(
-                {
-                    "memory_schema_version": 1, "skillset": "art",
-                    "memory_version": 1, "entries": [dict(VALID_ENTRY)],
-                },
-                sort_keys=False,
-            ),
+    def test_a_store_of_another_schema_is_not_writable(self) -> None:
+        """Writing is schema-3 only (R2.5 §9.1), and the refusal distinguishes
+        the two ways a store can fail that. A retired version is unmigrated: the
+        fix is a migration. An undefined version is unknown: there is nothing to
+        migrate from. Neither is edited, and the loud-unmigrated half of this -
+        across every reading command, with the bytes checked afterwards - is
+        `SchemaContract.assertLoudlyUnmigrated`.
+        """
+        domain = self.tmp / "art"
+        domain.mkdir()
+        store = domain / "skill_memory.yaml"
+        # `link-evidence` checks History before it checks the version, so the
+        # file has to be there for the version refusal to be what is tested.
+        (domain / "training_history.jsonl").write_text(
+            json.dumps(dict(VALID_EVENT, event_id="TST_EV_0001"), sort_keys=True) + chr(10),
             encoding="utf-8",
         )
-        (legacy / "training_history.jsonl").write_text(
-            json.dumps(VALID_EVENT, sort_keys=True) + "\n", encoding="utf-8",
-        )
-        before = (legacy / "skill_memory.yaml").read_bytes()
-        self.assertEqual(run_tool("validate", "--domain", "art", memory=self.tmp).returncode, 0)
-        result = run_tool("add", "--domain", "art", "--json", "{}", memory=self.tmp)
-        self.assertEqual(result.returncode, 1)
-        self.assertIn("writes schema 3 only", result.stderr)
-        linked = run_tool(
-            "link-evidence", "--domain", "art", "--claim", "TST_MEM_001",
-            "--events", "TST_EV_0001", memory=self.tmp,
-        )
-        self.assertEqual(linked.returncode, 1)
-        self.assertIn("writes schema 3 only", linked.stderr)
-        self.assertEqual((legacy / "skill_memory.yaml").read_bytes(), before)
+        cases = {
+            1: "unmigrated, not corrupt",
+            4: "writes schema 3 only",
+        }
+        for version, expected in cases.items():
+            with self.subTest(schema_version=version):
+                # Ephemeral wrong-version input in this test's own temporary
+                # tree: no committed store carries either version (criterion 48).
+                store.write_text(
+                    yaml.safe_dump(
+                        {
+                            "memory_schema_version": version, "skillset": "art",
+                            "memory_version": 1, "claims": [],
+                        },
+                        sort_keys=False,
+                    ),
+                    encoding="utf-8",
+                )
+                before = store.read_bytes()
+                added = run_tool("add", "--domain", "art", "--json", "{}", memory=self.tmp)
+                self.assertEqual(added.returncode, 1)
+                self.assertIn(expected, added.stderr)
+                linked = run_tool(
+                    "link-evidence", "--domain", "art", "--claim", "TST_MEM_001",
+                    "--events", "TST_EV_0001", memory=self.tmp,
+                )
+                self.assertEqual(linked.returncode, 1)
+                self.assertIn(expected, linked.stderr)
+                self.assertEqual(store.read_bytes(), before)
 
     def test_an_already_invalid_store_must_be_repaired_first(self) -> None:
         self.write([base_claim(), base_claim()])
@@ -1583,9 +1712,10 @@ class V3RetrievalFixture(V3WriteFixture):
 class RetrievalContract(V3RetrievalFixture):
     """Retrieval is bounded, and it reports what it actually returned.
 
-    Re-pointed at schema 3 by T07. The legacy `score_entry`/`query_store` path
-    still serves an unmigrated store and is deleted with the rest of the legacy
-    reader at T21; what carries over here is the contract, not the field names.
+    Re-pointed at schema 3 by T07, and since T21 there is nothing else to
+    point at: `score_entry` and `query_store` went with the legacy reader, so
+    retrieval has one ranking path. What carried over from the entry-shaped
+    version of this class is the contract, not the field names.
     """
 
     def test_query_returns_only_matching_claims(self) -> None:
@@ -2970,9 +3100,20 @@ class V3ReachInvariant(V3StoreChecks):
 
 
 class V3Leakage(V3StoreChecks):
-    """R2.5 §4.5: model-neutral, learner-neutral, portable prose — and the one
-    collision with the legacy tool: `provenance` is required here, forbidden
-    there (SR1), so the two rejection lists can never be merged."""
+    """R2.5 §4.5: model-neutral, learner-neutral, portable prose - and the one
+    collision that outlived the legacy reader: `provenance` is required on a
+    claim and forbidden on a History event (SR1), so the two rejection lists
+    can never be merged.
+
+    This class is also where the temporary-state firewall now lives. The
+    entry-shaped `TemporaryStateFirewall` that used to state it - session keys
+    refused, retired provenance keys refused, an observation that defers to a
+    conversation refused - was deleted at T21 with the schema it was written
+    against, because `test_retired_authoring_and_lineage_keys_are_rejected` and
+    `test_conversation_deference_is_rejected` below make the same three
+    statements against claims. Nothing becomes Memory except a portable
+    empirical claim; that rule did not move, only the shape it is enforced on.
+    """
 
     def test_model_identity_tokens_are_rejected_in_claim_and_envelope(self) -> None:
         for token in memory_tool.MODEL_IDENTITY_TOKENS:
@@ -3650,8 +3791,8 @@ class V3Review(unittest.TestCase):
 
     def test_review_never_suggests_a_confidence(self) -> None:
         """SR4, F1 and F2, and criterion 18. The store is engineered to trip
-        every heuristic the legacy path had and every one a reader might be
-        tempted to add: a `strong` label on a single event, a long-past due
+        heuristic the deleted legacy path had and every one a reader might be
+        tempted to add back: a `strong` label on a single event, a long-past due
         date, a `stochastic` kind, and a live contradiction. No confidence
         vocabulary may appear in the output at all."""
         left, right = self.disputed_pair()
@@ -3675,8 +3816,9 @@ class V3Review(unittest.TestCase):
     def test_the_legacy_confidence_heuristic_is_not_on_the_v3_path(self) -> None:
         """SR4 as a source check, because an output scan only proves what this
         fixture happened to trip. `STALE_DAYS` and the evidence-count remark
-        belong to the legacy reader T21 deletes; neither may be reachable from
-        the v3 review functions."""
+        went with the legacy review heuristics at T21; this holds the ground
+        after the deletion, so neither can be reintroduced on the v3 path by a
+        later convenience."""
         tree = ast.parse(TOOL.read_text(encoding="utf-8"))
         wanted = {"review_v3_store", "disputed_pairs", "uncited_events_note"}
         found = {}
@@ -3762,10 +3904,23 @@ class V3Review(unittest.TestCase):
         self.assertNotIn("Checking both overloads", output, "review dumped claim prose")
 
 
-class SchemaDispatch(unittest.TestCase):
-    """T04: `validate` routes each store by `memory_schema_version`, one run
-    over a mixed-state corpus, with the v1/v2 claim side reachable only through
-    the dispatch."""
+class CorpusSurface(unittest.TestCase):
+    """What one `validate` run says about a whole corpus.
+
+    This was `SchemaDispatch`, and T04 built it to prove that one run could
+    answer a corpus part way through migration: a v1 store beside a v3 store,
+    each routed by its own declared version. T21 deleted the dispatch, so the
+    mixed-state tests went with it - `test_a_v3_store_and_a_v1_store_validate_in_one_run`,
+    `test_one_query_answers_a_mixed_corpus_with_one_receipt`,
+    `test_only_the_dispatch_imports_the_legacy_input_module`, and
+    `test_the_legacy_module_states_it_is_transitional` all described an
+    arrangement the cutover removed. The boundary they protected is now held
+    structurally by `SchemaContract.test_no_runtime_path_parses_schema_one_or_two`:
+    there is no second claim side to keep behind a dispatch.
+
+    What survives is the part that was never about the dispatch - the two
+    channels of a validate run, and the summary line.
+    """
 
     def temp_root(self, prefix: str) -> Path:
         root = Path(tempfile.mkdtemp(prefix=prefix))
@@ -3786,51 +3941,6 @@ class SchemaDispatch(unittest.TestCase):
                 encoding="utf-8",
             )
 
-    def test_a_v3_store_and_a_v1_store_validate_in_one_run(self) -> None:
-        root = self.temp_root("pass-memory-dispatch-")
-        self.write_store(
-            root,
-            "art",
-            {
-                "memory_schema_version": 1,
-                "skillset": "art",
-                "memory_version": 1,
-                "entries": [dict(VALID_ENTRY)],
-            },
-            [VALID_EVENT],
-        )
-        self.write_store(root, "software-engineering", v3_store([base_claim()]), None)
-        result = run_tool("validate", memory=root)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("art: memory_schema_version 1\n", result.stdout)
-        self.assertIn("software-engineering: memory_schema_version 3\n", result.stdout)
-        self.assertIn("PASS: 2 store(s), 1 entr(ies), 1 event(s) validated", result.stdout)
-
-    def test_one_query_answers_a_mixed_corpus_with_one_receipt(self) -> None:
-        """T07 routes `query` the way T04 routed `validate`. The legacy store
-        keeps its own output and its own matching; what it cannot do is honour
-        `--canon`, and it says so rather than letting a dropped filter read as
-        a filter that matched nothing."""
-        root = self.temp_root("pass-memory-query-dispatch-")
-        self.write_store(
-            root,
-            "art",
-            {
-                "memory_schema_version": 1,
-                "skillset": "art",
-                "memory_version": 1,
-                "entries": [dict(VALID_ENTRY, retrieval_cues=["shared cue"])],
-            },
-            [VALID_EVENT],
-        )
-        claim = base_claim(retrieval_cues=["shared cue"], canon=["PAT_a_card"])
-        self.write_store(root, "software-engineering", v3_store([claim]), None)
-        result = run_tool("query", "--cues", "shared cue", "--canon", "PAT_a_card", memory=root)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        receipts = [l for l in result.stdout.splitlines() if l.startswith("retrieved:")]
-        self.assertEqual(receipts, [f"retrieved: {VALID_ENTRY['id']}, {claim['id']}"])
-        self.assertIn("--canon does not apply to a store below schema 3", result.stdout)
-
     def test_review_flags_print_without_failing_the_run(self) -> None:
         root = self.temp_root("pass-memory-flags-")
         claim = base_claim(claim="The check holds on this machine after the driver update.")
@@ -3839,35 +3949,30 @@ class SchemaDispatch(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("software-engineering: FLAG: ", result.stdout)
         self.assertIn("(L5)", result.stdout)
-        self.assertIn("PASS: 1 store(s), 0 entr(ies), 0 event(s) validated", result.stdout)
+        self.assertIn("PASS: 1 store(s), 1 claim(s), 0 event(s) validated", result.stdout)
 
-    def test_only_the_dispatch_imports_the_legacy_input_module(self) -> None:
-        """The boundary T04 exists to draw: `memory_legacy_input` is a
-        migration-input reader, so only the dispatch in `memory.py` — later the
-        migrator (T13) — may depend on it. Scanned as text: importing it here to
-        ask would itself be the dependency being forbidden."""
-        importers = set()
-        for tree in (ROOT / "PASS", ROOT / "tests", ROOT / "workspace/tools"):
-            for path in tree.rglob("*.py"):
-                if "__pycache__" in path.parts:
-                    continue
-                text = path.read_text(encoding="utf-8")
-                if re.search(
-                    r"(?:^|\n)[ \t]*(?:from[ \t]+memory_legacy_input[ \t]+import"
-                    r"|import[ \t]+memory_legacy_input\b)",
-                    text,
-                ):
-                    importers.add(path.relative_to(ROOT).as_posix())
-        self.assertEqual(importers, {"PASS/tools/memory.py"})
-
-    def test_the_legacy_module_states_it_is_transitional(self) -> None:
-        """The docstring is how T21 and any future reader learn that the legacy
-        claim side never becomes a resting place."""
-        text = (ROOT / "PASS/tools/memory_legacy_input.py").read_text(encoding="utf-8")
-        first_block = text.split('"""', 1)[1].split("\n\n", 1)[0].lower()
-        self.assertIn("migration-input reader for v1/v2", first_block)
-        self.assertIn("no runtime path", first_block)
-        self.assertIn("t21", first_block)
+    def test_the_summary_counts_claims_across_every_store(self) -> None:
+        """The reporting gap beta.130 left for this ticket. The summary used to
+        count `entries`, so every migrated store reported zero content and the
+        printed total silently under-reported the corpus. It counts claims now,
+        and a store with no History file contributes no events rather than an
+        error - absence beside a v3 store means no resolution (I5).
+        """
+        root = self.temp_root("pass-memory-summary-")
+        self.write_store(
+            root, "software-engineering",
+            v3_store([base_claim(), base_claim(id="SE_MEM_01M55WJVKR0QB8C42T4SSG2KW2")]),
+            None,
+        )
+        self.write_store(
+            root, "art",
+            v3_store([art_claim()], skillset="art"),
+            [dict(VALID_EVENT, event_id="ART_EV_0001")],
+        )
+        result = run_tool("validate", memory=root)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS: 2 store(s), 3 claim(s), 1 event(s) validated", result.stdout)
+        self.assertNotIn("entr(ies)", result.stdout)
 
 
 if __name__ == "__main__":

@@ -526,14 +526,19 @@ When seeding from retained history:
 
 ## 10. Schema version 3 — the claim
 
-status: validation shipped; dispatch wired (T04). `memory.py validate` routes
-each store by `memory_schema_version`: schema 3 to `validate_v3_contents` /
-`validate_v3_store`, schemas 1 and 2 to the transient
-`memory_legacy_input` migration reader, anything else to the unknown-version
-error — so a mixed-state corpus validates in one run, and a live v1/v2 store is
-never routed here early. The sections above remain the live contract for the
-four v1/v2 stores until each domain migrates independently and the legacy path
-is retired by T21.
+status: live and sole. All four stores declare `memory_schema_version: 3`, and
+since the T21 cutover the runtime reads nothing else. `memory.py validate` sends
+a schema-3 store to `validate_v3_contents` / `validate_v3_store`; a store
+declaring 1 or 2 is refused as **unmigrated, not corrupt**, naming the store and
+the retired one-time migrator; any other declared version is the unknown-version
+error. There is no dispatch, no legacy reader, no migrator, and no in-place
+upgrade — absence stays silently fail-open, but a wrong-version store is
+presence and is always loud.
+
+Sections 5 and 7 above still describe the retired v1/v2 shape. They are kept
+here for one more ticket (T22, which restates the Memory contract across the
+documents that define it) and describe no store that exists; this section is the
+whole claim contract.
 
 The unit of a v3 store is the **claim**: one learned proposition that changes
 what the next relevant task does. There is no status, no liveness field, and no
@@ -592,9 +597,9 @@ provenance    human_teaching | user_feedback | runtime_self_audit
               | training_benchmark | source_study | regression_failure
 ```
 
-`provenance` is **required and valid** on a v3 claim. The legacy
-`FORBIDDEN_KEYS` list rejects `provenance` for v1/v2 entries and History
-events; the v3 path has its own `CLAIM_FORBIDDEN_KEYS` list, which carries the
+`provenance` is **required and valid** on a v3 claim. The `FORBIDDEN_KEYS` list
+rejects `provenance` on a Training History event; the claim path has its own
+`CLAIM_FORBIDDEN_KEYS` list, which carries the
 retired authoring vocabulary plus the migration-lineage keys (`legacy_id`,
 `migrated_from`, `source_entry`, `previous_id`) and deliberately excludes
 `provenance`. The two rejection lists are never merged.

@@ -6,6 +6,71 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.132 - 2026-10-24
+
+### Changed
+
+- **The last T20 scenario resting on a lexical proxy is reclassified from MIXED
+  to DECISION, and the claim it carried ceases to be executed.** A targeted
+  re-review of beta.131 confirmed the three other blocker fixes and reproduced
+  the corrected edit-history figures independently, then found that the proxy
+  correction had missed one instance of the very error it was correcting.
+
+  `fixtures/f_verification_batches.py` assigns a card an assertion *kind* by
+  phrase regex. A non-match was being promoted into the semantic assertion that
+  **35 of 202 C++ cards make no assertion a compile-or-run probe can decide**,
+  and `SE_MEMORY_BEHAVIOR_TESTS.md` offered that census as the sole executed
+  support for the claim that unreachable content must be scored untested rather
+  than passing. The census survived the first correction because it looked like
+  a count rather than a rate - 35 cards, enumerated, not sampled. The count is
+  real; what it counts is not probe reach.
+
+  **One member of the bucket refutes it by compiling.** The classifier assigns
+  the empty kind set to `PAT_never_redefine_inherited_default_parameter`, whose
+  Pattern Rule and `Don't` section assert that a call through a base-typed
+  reference selects the derived virtual body and the base default argument -
+  directly executable C++. The probe is carried as
+  `fixtures/f_probe_reach_counterexample.cpp`:
+
+  ```
+  cl /nologo /std:c++20 /EHsc /W4 f_probe_reach_counterexample.cpp    exit 0
+  base-reference=21 derived-reference=22                              exit 0
+  ```
+
+  21 is the derived body carrying the base default. Five further unmatched cards
+  plainly assert executable behaviour - the short-circuit and comma operators,
+  the `std::async` launch policy, postfix increment in terms of prefix, a
+  non-virtual redefinition, constant-time erase into the hole - and the harness
+  now lists them unadjudicated so that no count is drawn from them.
+
+  The classifier is kept as a detector and its result renamed to what it
+  establishes, **classifier-unmatched cards**, supporting no claim. No census of
+  probe reach was run: settling it means reading all 35 cards, which is a sweep
+  and not a migration step, and no other fixture in the set bears on the claim.
+  Truthful downgrade was preferred to manufacturing evidence for the old label.
+
+  | | EXECUTED | MIXED | DECISION | claims on reasoning evidence alone |
+  |---|---:|---:|---:|---:|
+  | beta.130 | 39 | 2 | 1 | 7 of 81 |
+  | beta.131 | 37 | 4 | 1 | 12 of 81 |
+  | **beta.132** | **37** | **3** | **2** | **13 of 81** |
+
+  The scenario total stays 42 and section 3a of the evidence artifact gains a
+  fourth proxy row, so every row of its index can still be checked against the
+  rule it states.
+
+- **No claim changed, and the store is not rewritten.** No claim text, delta,
+  envelope, evidence citation or identifier was touched, `memory_version` stays
+  63, and the builder reproduces the installed software-engineering store byte
+  for byte (SHA-256 `29ec1211d436ba2e85a496f917133b09de886749f94904a6c2f78ebd2418ef1e`).
+  The frozen legacy bytes verify against their FREEZE digest. The accounting is
+  unchanged: 46 entries, 146 propositions, 146 dispositions, 127 survivors, 81
+  claims, 19 signed losses, zero HOLDs, zero FLAGs. No disposition,
+  decomposition, loss item, duplicate adjudication or Canon verdict was touched;
+  the beta.131 fixes to the three other blockers are left exactly as they stood;
+  T17, T18 and T19 were not reopened; T21 is not started. This is an evidence
+  classification correction, not a regression in migration quality.
+
 ## 1.0.0-beta.131 - 2026-10-23
 
 ### Fixed

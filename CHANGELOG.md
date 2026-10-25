@@ -6,6 +6,24 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.138 - 2026-10-24
+
+### Fixed
+
+- **The generated SkillForge `SKILL.md` Skillset Memory section no longer
+  describes a claim as an observation (residual post-R2 wording correction).**
+  beta.137 restated the section's opening as the current learned state and moved
+  its vocabulary from the retired `entry` to `claim`, but it left the clause
+  "read each claim as an observation carrying a stated confidence". The final R2
+  defines a claim as a **learned proposition**, not an observation, so that
+  clause still contradicted the contract it was meant to state. The clause now
+  reads "read each claim as a learned proposition carrying a stated confidence,
+  not as an instruction". Only that generated sentence changed: retrieval,
+  confidence, projection behavior, schema, corpus, packaging, and Tesseract are
+  all untouched. A regression gate on the existing learned-versus-history test
+  now holds the generated section to the not-an-observation rule, scoped to the
+  claim description rather than a repository-wide ban on the word.
+
 ## 1.0.0-beta.137 - 2026-10-24
 
 ### Fixed

@@ -1451,6 +1451,9 @@ class ReleaseV3MemoryTests(unittest.TestCase):
         # the two are separate concepts.
         self.assertNotIn("empirical record", section)
         self.assertNotIn("what actually happened", section)
+        # Under the final R2 a claim is a learned proposition, not an
+        # observation: the generated section must not describe a claim as one.
+        self.assertNotIn("claim as an observation", section)
         # It names the claim contract, not the retired entry vocabulary.
         self.assertRegex(section, r"\bclaim\b")
         self.assertNotRegex(section, r"\bentry\b")

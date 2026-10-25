@@ -6,6 +6,23 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.140 - 2026-10-25
+
+### Fixed
+
+- **Source Prep no longer misreads a bare "engine" + a `5.x` figure number as a
+  Unreal Engine version (compatibility-baseline false positive).** The
+  `_compatibility_baseline` fallback in `PASS/runtime/pass_source_prep.py`
+  accepted the bare word `engine` as engine-version context, so a source line
+  pairing "engine" with any `5.x` number was tagged as Unreal Engine -- e.g. a
+  Rust book's "…the template engine shown in Figure 5.7…" emitted
+  `Unreal Engine 5.7`. The fallback now requires the product token (`Unreal` or
+  `UE`) on the same line before capturing a bare `5.x` version, matching the
+  primary `Unreal Engine`/`UE` pattern's intent. Genuine engine mentions still
+  resolve; the false-positive lines return nothing. This only affects the
+  advisory `compatibility_baseline` metadata recorded in the prepared source;
+  it does not change unit plans, cards, or the integrity gate.
+
 ## 1.0.0-beta.139 - 2026-10-25
 
 ### Changed

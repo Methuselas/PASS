@@ -905,11 +905,13 @@ def _compatibility_baseline(text: str) -> list[str]:
     for label, pattern in VERSION_PATTERNS:
         for match in pattern.finditer(text):
             found.add(f"{label} {match.group(1)}")
-    # Some books state the exact engine version as "5.03 ... engine editor"
-    # rather than prefixing it with "UE". Capture that only when the same
-    # source line explicitly names Unreal/UE/engine context.
+    # Some books state the exact engine version as "5.03 ..." on a line that
+    # names the product (Unreal/UE) without the full "Unreal Engine" prefix.
+    # Require that product token here: a bare "engine" (e.g. a "template
+    # engine" next to a "Figure 5.7" caption) is not engine-version context
+    # and must not be tagged as Unreal Engine.
     for line in text.splitlines():
-        if re.search(r"\b(?:unreal|UE5?|engine)\b", line, re.I):
+        if re.search(r"\b(?:unreal|UE5?)\b", line, re.I):
             for match in re.finditer(r"\b(5\.\d{1,2}(?:\.\d{1,2})?)\b", line):
                 found.add(f"Unreal Engine {match.group(1)}")
     return sorted(found)

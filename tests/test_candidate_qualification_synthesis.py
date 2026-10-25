@@ -5,7 +5,8 @@ checks every summary against the events under its batch, merges four summaries
 per parent until one remains, and never lets a parent erase a contradiction.
 `finalize` accepts only a disposition that restates the frozen status, never
 accepts an unqualified candidate, writes the report and closes the run. The
-synthetic library and memory store come from the candidate-freeze suite.
+synthetic library, candidate store and training history come from the
+candidate-freeze suite.
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_candidate_qualification_candidate import (  # noqa: E402
-    CONTROLLER, DOMAIN, ENTRY, CandidateFixture, crq, schemas, write_text,
+    CONTROLLER, DOMAIN, CANDIDATE, CandidateFixture, crq, schemas, write_text,
 )
 from test_candidate_qualification_execution import GOOD, ExecutionFixture  # noqa: E402
 
@@ -35,15 +36,18 @@ def events(count: int) -> list[dict]:
 
 class SynthesisFixture(CandidateFixture):
     def run_with_events(self, count: int, run_id: str = "SE_CRQ_0001") -> Path:
-        store = self.memory / DOMAIN
+        store = self.candidates / DOMAIN
         cited = [event["event_id"] for event in events(count)]
-        write_text(store / "skill_memory.yaml", yaml.safe_dump({
-            "memory_schema_version": 2, "skillset": DOMAIN, "memory_version": 1,
-            "entries": [dict(ENTRY, evidence_events=cited, evidence_count=len(cited))],
+        write_text(store / "card_candidates.yaml", yaml.safe_dump({
+            "candidate_schema_version": 1, "domain": DOMAIN,
+            "candidates": [dict(CANDIDATE, evidence=cited)],
         }, sort_keys=False))
-        write_text(store / "training_history.jsonl", "".join(json.dumps(e) + "\n" for e in events(count)))
-        out, _run = crq.prepare(domain=DOMAIN, memory_entry_id="SE_MEM_0001", out=self.workspace / run_id,
-                                library_root=self.library, memory_root=self.memory)
+        history = self.history / DOMAIN
+        write_text(history / "training_history.jsonl",
+                   "".join(json.dumps(e) + "\n" for e in events(count)))
+        out, _run = crq.prepare(domain=DOMAIN, candidate_id=CANDIDATE["id"], out=self.workspace / run_id,
+                                library_root=self.library, candidate_root=self.candidates,
+                                history_root=self.history)
         return out
 
     def packets(self, out: Path, level: int) -> list[tuple[Path, dict]]:
@@ -210,7 +214,7 @@ class FinalizeTests(ExecutionFixture):
         path = out / "synthesis" / "disposition.json"
         disposition = json.loads(path.read_text(encoding="utf-8"))
         disposition.update({"synthesis_decision": "accept-canonical-delta",
-                            "memory_action": "keep-monitoring",
+                            "candidate_action": "keep-open",
                             "reason": "The Pattern owns the decision; land it and retest on fresh cases."})
         disposition.update(changes)
         crq.write_json_atomic(path, disposition)
@@ -227,12 +231,15 @@ class FinalizeTests(ExecutionFixture):
         self.assertIsNone(disposition["synthesis_decision"])
         brief = (out / "README.md").read_text(encoding="utf-8")
         self.assertIn("synthesis review", brief)
-        self.assertIn("memory.py entry", brief)
+        self.assertIn("candidate store", brief)
         self.assert_refused(out, "synthesis_decision must be one of")
 
     def test_finalize_writes_the_report_and_closes_read_only(self) -> None:
         library_before = self.library_bytes()
-        memory_before = {p: p.read_bytes() for p in self.memory.rglob("*") if p.is_file()}
+        roots_before = {
+            path: path.read_bytes()
+            for root in (self.candidates, self.history) for path in root.rglob("*") if path.is_file()
+        }
         out = self.evaluated()
         self.disposition(out)
         run = crq.finalize(out)
@@ -243,12 +250,15 @@ class FinalizeTests(ExecutionFixture):
                         "## Canon ownership assessment", "## Changed cards", "## Target cases",
                         "## Protected cases", "## Synthetic stress cases", "## Baseline vs candidate deltas",
                         "## Regressions", "## Invalid or unresolved evidence", "## Qualification status",
-                        "## Recommended synthesis disposition", "## Memory disposition recommendation"):
+                        "## Recommended synthesis disposition", "## Candidate disposition recommendation"):
             self.assertIn(heading, report)
         self.assertIn("qualified-for-synthesis-review", report)
         self.assertIn("accept-canonical-delta", report)
         self.assertEqual(self.library_bytes(), library_before)
-        self.assertEqual({p: p.read_bytes() for p in self.memory.rglob("*") if p.is_file()}, memory_before)
+        self.assertEqual({
+            path: path.read_bytes()
+            for root in (self.candidates, self.history) for path in root.rglob("*") if path.is_file()
+        }, roots_before)
         with self.assertRaisesRegex(crq.CandidateQualificationError, "read-only"):
             crq.finalize(out)
         self.assertEqual(crq.status_report(out)["state"], "finalized")
@@ -258,7 +268,7 @@ class FinalizeTests(ExecutionFixture):
         self.disposition(out, qualification_status="rejected-regression")
         self.assert_refused(out, "cannot be accepted as a canonical delta")
         self.disposition(out, qualification_status="rejected-regression", synthesis_decision="revise-in-fresh-run",
-                         memory_action="keep-monitoring", reason="Fixed the target but broke protection.")
+                         candidate_action="keep-open", reason="Fixed the target but broke protection.")
         self.assertEqual(crq.finalize(out)["state"], "finalized")
 
     def test_disposition_restates_the_frozen_status(self) -> None:
@@ -266,12 +276,12 @@ class FinalizeTests(ExecutionFixture):
         self.disposition(out, qualification_status="invalid")
         self.assert_refused(out, "restate the frozen qualification status")
 
-    def test_memory_action_rules(self) -> None:
+    def test_candidate_action_rules(self) -> None:
         out = self.evaluated()
-        self.disposition(out, synthesis_decision="retain-in-memory", memory_action="resolve-after-canon-fix")
-        self.assert_refused(out, "resolve-after-canon-fix needs")
-        self.disposition(out, memory_action="rewrite-memory")
-        self.assert_refused(out, "memory_action must be one of")
+        self.disposition(out, synthesis_decision="retain-in-memory", candidate_action="resolve-into-canon")
+        self.assert_refused(out, "resolve-into-canon needs")
+        self.disposition(out, candidate_action="rewrite-store")
+        self.assert_refused(out, "candidate_action must be one of")
         self.disposition(out, reason=" ")
         self.assert_refused(out, "reason must explain")
 

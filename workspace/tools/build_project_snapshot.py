@@ -234,8 +234,8 @@ def snapshot_roots(
         roots.append(repo / "tests")
     if include_recipes:
         roots.extend(canonical_recipe_files(repo, domains))
-    # skill-staging is authoring state: PASS runs stage cards there to keep
-    # the library clean, and it never travels in a project snapshot.
+    # Pass-runs/ is authoring state: PASS runs stage cards there to keep the
+    # library clean, and it never travels in a project snapshot.
     return roots
 
 
@@ -327,7 +327,7 @@ def main() -> int:
             "PASS, metaskills, selected domain cards, domain memory, and matching "
             "host skills, matching project handoffs, reusable workspace tools, "
             "and the selected domain's canonical release recipe are included. "
-            "Source PDFs, skill-staging authoring state, nested ZIPs, .git, "
+            "Source PDFs, Pass-runs authoring state, nested ZIPs, .git, "
             "archive, and workspace scratch are excluded. "
             "Explicit text inputs are transient."
         ),

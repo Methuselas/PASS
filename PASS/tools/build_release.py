@@ -18,6 +18,7 @@ from typing import Any
 
 import yaml
 
+from memory import V3_SCHEMA_VERSION
 from module_runtime import IGNORED_DIRS, declared_runtimes, run_runtime_tests
 from paths import default_library_root, default_memory_root, repo_root_from_tool
 
@@ -33,10 +34,11 @@ SHA256_RE = re.compile(r"[0-9a-f]{64}")
 FORBIDDEN = {
     ".git", ".agents", ".claude", "__pycache__", ".pytest_cache",
     "workspace", "sources", "ledger", "ledgers", "worklogs", "trash",
-    "tmp", "build", "dist",
+    "tmp", "build", "dist", "canon_workflow",
 }
 MEMORY_DIR = "memory"
 MEMORY_STORE = "skill_memory.yaml"
+MEMORY_HISTORY = "training_history.jsonl"
 RELEASE_MANIFEST_SCHEMA_VERSION = 3
 RELEASE_LEGAL_FILES = (
     "CONTRIBUTING.md",
@@ -366,6 +368,44 @@ def remove_tree(path: Path, ignore_errors: bool = False) -> None:
     shutil.rmtree(path, ignore_errors=ignore_errors)
 
 
+def read_store_data(store: Path) -> dict[str, Any] | None:
+    """The store parsed as a mapping, or None when it cannot be read as one.
+
+    Whether None is a build failure is the caller's decision, not this
+    function's: `stage_memory` refuses to ship a store it cannot project, while
+    `projected_store_problems` is checking a staged copy and lets the
+    staged-copy validation gate report the actual defect.
+    """
+    try:
+        data = yaml.safe_load(store.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def write_projected_store(data: dict[str, Any], target: Path) -> None:
+    """Write the current-state projection of a schema-3 store.
+
+    This is the one transformation packaging performs (R2.5 §8.5): every key
+    carries through unchanged except that `evidence` is dropped from each
+    claim. With History absent the ids resolve to nothing and are noise. The
+    projection is not a rewrite — no id is regenerated, renumbered, compacted,
+    or abbreviated — and the source store is read, never written. Serialization
+    mirrors `memory.py`'s own dump so a projected file reads exactly like a
+    store written by the tool. Line endings are pinned to `\n` so the staged
+    bytes are identical on every platform.
+    """
+    claims = data.get("claims")
+    if isinstance(claims, list):
+        for claim in claims:
+            if isinstance(claim, dict):
+                claim.pop("evidence", None)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(
+        yaml.safe_dump(data, sort_keys=False, allow_unicode=True, width=88).encode("utf-8")
+    )
+
+
 def stage_memory(staging: Path, memory_root: Path, owned_domains: set[str]) -> list[str]:
     """Copy the memory store of every domain this release owns.
 
@@ -374,13 +414,33 @@ def stage_memory(staging: Path, memory_root: Path, owned_domains: set[str]) -> l
     empirical state travels with the canon, it does not become canon. A domain
     with no store simply contributes nothing — memory is never a build
     dependency (`ARCHITECTURE.md` contract 20).
+
+    There is one branch and it projects schema 3: only `skill_memory.yaml`,
+    with claim-level `evidence` removed and no `training_history.jsonl` (R2.5
+    §8.5). The pass-through that used to ship a legacy store whole went with
+    the legacy reader at T21 (Decision 2), so a store this cannot project stops
+    the build instead of travelling unexamined into a release.
     """
     shipped: list[str] = []
     for domain in sorted(owned_domains):
         source = memory_root / domain
         if not (source / MEMORY_STORE).is_file():
             continue
-        shutil.copytree(source, staging / MEMORY_DIR / domain)
+        data = read_store_data(source / MEMORY_STORE)
+        if data is None:
+            raise ValueError(
+                f"memory store cannot be read as a mapping: {domain}; "
+                "a release projects schema "
+                f"{V3_SCHEMA_VERSION} and has no pass-through for anything else"
+            )
+        declared = data.get("memory_schema_version")
+        if declared != V3_SCHEMA_VERSION:
+            raise ValueError(
+                f"memory store declares memory_schema_version {declared!r}: {domain}; "
+                f"packaging projects schema {V3_SCHEMA_VERSION} only. A legacy store is "
+                "unmigrated, not corrupt - migrate the domain before building a release"
+            )
+        write_projected_store(data, staging / MEMORY_DIR / domain / MEMORY_STORE)
         shipped.append(domain)
     return shipped
 
@@ -483,6 +543,41 @@ def make_read_only(root: Path) -> list[str]:
     return problems
 
 
+def projected_store_problems(domain_root: Path) -> list[str]:
+    """Reject a pre-projection file beside a shipped schema-3 store.
+
+    A schema-3 store ships as current state only: the events its `evidence`
+    ids used to resolve against do not travel, so neither History nor the ids
+    may be present. Since T21 there is no other kind of shipped store, so a
+    staged copy declaring any other version is itself the problem rather than
+    something this check skips. An unreadable store is still not this check's
+    failure: the staged-copy validation gate reports the actual defect.
+    """
+    data = read_store_data(domain_root / MEMORY_STORE)
+    if data is None:
+        return []
+    declared = data.get("memory_schema_version")
+    if declared != V3_SCHEMA_VERSION:
+        return [
+            f"packaged memory declares memory_schema_version {declared!r}: "
+            f"{domain_root.name}; a release ships schema {V3_SCHEMA_VERSION} only"
+        ]
+    problems: list[str] = []
+    if (domain_root / MEMORY_HISTORY).exists():
+        problems.append(
+            f"packaged memory ships training history beside a v3 store: {domain_root.name}"
+        )
+    claims = data.get("claims")
+    if isinstance(claims, list):
+        for claim in claims:
+            if isinstance(claim, dict) and "evidence" in claim:
+                label = claim.get("id") if isinstance(claim.get("id"), str) else "claim"
+                problems.append(
+                    f"packaged v3 memory carries an evidence key: {domain_root.name} {label}"
+                )
+    return problems
+
+
 def memory_release_problems(path: Path, declared: list[str]) -> list[str]:
     """Check a packaged release against the memory domains it declares."""
     root = path / MEMORY_DIR
@@ -497,6 +592,9 @@ def memory_release_problems(path: Path, declared: list[str]) -> list[str]:
                 problems.append(f"undeclared packaged memory domain: {domain}")
             elif not (path / "library" / domain).is_dir():
                 problems.append(f"memory domain has no packaged library package: {domain}")
+        for domain in present:
+            if domain in declared:
+                problems.extend(projected_store_problems(root / domain))
     return problems
 
 
@@ -1063,17 +1161,34 @@ def write_skill(
             "request.\n"
         )
     if memory_domains:
+        # The memory section's last paragraph names what actually shipped: a
+        # domain whose History is absent is a current-state projection, and
+        # saying `training_history.jsonl` is there would describe a file the
+        # reader cannot find (R2.5 §8.5).
+        history_sentence = (
+            "`training_history.jsonl` holds the events an entry was consolidated "
+            "from; an event marked `invalid` failed before the capability was "
+            "exercised and is evidence about a tool or a package, never about craft."
+            if any(
+                (path / MEMORY_DIR / domain / MEMORY_HISTORY).is_file()
+                for domain in memory_domains
+            )
+            else (
+                "This copy is a current-state projection: claim-level `evidence` "
+                "ids are omitted and no `training_history.jsonl` travels with the "
+                "package, so the store is a complete statement of what is learned "
+                "now without the events it was consolidated from."
+            )
+        )
         body += (
             "\n## Skillset Memory\n\n"
-            "`memory/<domain>/skill_memory.yaml` is this skillset's **empirical record**: "
-            "what actually happened when this canon was used, including known weak "
-            "areas and the boundaries of what has been verified. It is not canon and "
-            "never overrides a card. Consult it when a task touches a scope it names, "
-            "and read each entry as an observation carrying a stated confidence, not "
-            "as an instruction. `training_history.jsonl` holds the events an entry was "
-            "consolidated from; an event marked `invalid` failed before the capability "
-            "was exercised and is evidence about a tool or a package, never about "
-            "craft.\n\n"
+            "`memory/<domain>/skill_memory.yaml` is this skillset's **current learned "
+            "state**: what it has learned about doing the skill's work, including known "
+            "weak areas and the boundaries of what has been verified. It is not canon "
+            "and never overrides a card. Consult it when a task touches a scope it "
+            "names, and read each claim as a learned proposition carrying a stated "
+            "confidence, not as an instruction. "
+            f"{history_sentence}\n\n"
             "These files ship **read-only**. This package is not the persistence "
             "target: new events belong to the library that owns the store, so do not "
             "append to them, edit them, or copy their content into a card or a "

@@ -60,18 +60,20 @@ If no, the runtime does not depend on it.
     action logic inside scripts, and nothing may describe it as enforcing what
     only the model and host can actually do.
 20. **Skillset Memory separates retained learning from empirical results; it is
-    not canon and not a fourth object type.** Within the compact current state,
-    `learned_principle` records a durable transferable lesson, `training_result`
-    records an observed outcome from actual use or evaluation,
-    `specialization_profile` tracks demonstrated transfer into a subcategory, and
-    `card_candidate` incubates a possible reusable canon lesson until deliberate
-    synthesis accepts, redirects, or rejects it. The event-level evidence lives beside it in
+    not canon and not a fourth object type.** The compact current state is a set
+    of **claims**. One claim is one learned proposition that changes what the
+    next relevant task does, classed `conduct` for how the work is carried out or
+    `reach` for posture, verification, and willingness to claim a capability. A
+    claim is current because it is present in the store: there is no liveness
+    field, and retirement is removal. The event-level evidence lives beside it in
     `memory/<domain>/training_history.jsonl`. Both are domain-scoped rather than
     global; neither mutates or overrides a card. An invalid run — one that failed
     before the capability was exercised — may remain in training history but never
     counts as performance evidence. Memory does not choose the AP, does not
     substitute for a regression test, and does not carry source, session, or
-    workflow state. The contract is `PASS/docs/MEMORY_SCHEMA.md`.
+    workflow state. A release ships the **current-state projection only**: the
+    claim store with each claim's representative `evidence` stripped, and no
+    training history beside it. The contract is `PASS/docs/MEMORY_SCHEMA.md`.
 21. **Candidate Refinement & Qualification is a factory/runtime empirical
     refinement mechanism, not canon and not a new object type.** Candidate
     Refinement & Qualification stages bounded card changes outside canon, compares
@@ -216,7 +218,11 @@ Retired 2026-08-15.
 
 **Executable authoring uses recoverable, per-source transactional staging.**
 `PASS/pass.py` gates ordinary authoring in
-`workspace/skill-staging/<domain>/<book-run>/`. Deterministic Source Prep may keep
+`Pass-runs/<domain>[/<module-path>...]/<run-id>/`: one run root whose hierarchy
+mirrors canonical library ownership, with short opaque run ids so no generated
+path depends on a descriptive source title. Descriptive run information is
+metadata in `controller/run.json`, never a path segment, which is what keeps
+staged card paths inside the Windows path limit. Deterministic Source Prep may keep
 a verified model-facing source package inside that active run; it is disposable
 authoring input, not card provenance, a shared source registry, or finished-skill
 state. The controller keeps a complete verified checkpoint and generated
@@ -225,11 +231,25 @@ Accepted unit deltas accumulate in this run-local staging area and participate i
 later-unit reconciliation; they do not become canonical `library/` knowledge until
 the mandatory source-close transaction succeeds.
 
+**Model-facing stage boundaries are a closed contract, accepted 2026-10-17.**
+Stage Contract v1 (`PASS/runtime/stage_contract.py`) fixes one structural response
+for Preflight, PASS 1, CHECKPOINT, PASS 2, PASS 3 and closure, so every supported
+model returns the same artifact: free-form model cognition, a closed stage output
+contract, then deterministic host validation and rendering. Model reasoning and
+semantic conclusions stay free; the host owns run/unit/stage identity, filenames,
+paths, enums, defaults, serialization, validation and Markdown rendering, and
+derives a card's path from `object_id` plus `library_path`. A malformed response
+is refused before anything is written, gets one structured correction attempt,
+then fails closed. The contract is not pedagogy: Source Prep, Preflight, PASS 1-3
+and NEW/REFINE/REINFORCE/REJECT are unchanged, the canonical card schema remains
+the authority on what a finished card is, and Preflight keeps its own independent
+`schema_version`. See `PASS/docs/STAGE_CONTRACT.md`.
+
 `PASS/source.py` remains a separate source-level orchestration layer: it may
 persist one bounded unattended authorization, exact packet audit copies, source
 identity and final source verification, but it does not perform PASS reads or own
 library knowledge. Run state, prepared source, checkpoints and accepted staged
-deltas are never card fields, Skillset Memory entries or SkillForge release
+deltas are never card fields, Skillset Memory claims or SkillForge release
 dependencies. A temporary domain landing lease serializes canonical close; it
 stores no research. There is no shared run registry or permanent history. Human
 rules remain in `PASS/docs/PASS_RUN.md`; executable contracts live in
@@ -251,7 +271,9 @@ and a release carries it exactly like any other module file.
 `PASS/vfx.py` is not a second source-authoring system: it stages analysis of an
 existing Niagara asset through inventory, whole-system/isolated temporal capture,
 classification, candidate card extraction and visual validation under
-`workspace/vfx-authoring/<task>/`. The Unreal project/plugin owns asset inspection
+`Pass-runs/software-engineering/unreal-engine/vfx/<run-id>/`: it shares the one
+canonical run root and its library ownership path rather than keeping a run
+layout of its own. The Unreal project/plugin owns asset inspection
 and recording; PASS owns only the temporary evidence contract and staged cards.
 No capture path, emitter receipt, project asset identity or run state becomes a
 finished card field or release dependency. `workspace/tools/extract_vfx_stills.py`

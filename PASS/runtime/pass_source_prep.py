@@ -2,7 +2,7 @@
 """Deterministic pre-preflight source preparation for ordinary PASS runs.
 
 The prepared package is model-facing working input, not card provenance. It is
-kept inside the active skill-staging run so continuation archives are sufficient
+kept inside the active run directory so continuation archives are sufficient
 for provider/model switches after preparation.
 
 Source Prep deliberately keeps two conceptual layers:

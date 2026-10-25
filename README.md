@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.108`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.138`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -46,11 +46,14 @@ receipts, hashes, chat transcripts, or the repository that produced them.
   on itself plus the universal `metaskills` baseline.
 - **Retrieve a small working set.** Rank relevant cards for a task without
   loading a whole domain or maintaining a global registry.
-- **Separate learned principles from observed results.** Skillset Memory keeps
-  durable transferable lessons distinct from empirical training outcomes, tracks
-  demonstrated subcategory transfer with `specialization_profile`, and incubates
-  possible canon lessons with `card_candidate`; `training_history.jsonl` preserves
-  their event-level evidence. Neither replaces canonical cards.
+- **Separate learned principles from observed results.** Skillset Memory holds
+  the skill's current learned state as claims — one learned proposition that
+  changes what the next relevant task does, classed `conduct` for how the work
+  is carried out or `reach` for posture, verification, calibration, and
+  willingness to claim a capability. Card candidates are not Memory; they
+  accumulate in `canon_workflow/<domain>/card_candidates.yaml`, and
+  `training_history.jsonl` preserves the event-level evidence beside the
+  claims. Memory and its history never replace canonical cards.
 - **Validate the library.** Check card schemas, IDs, relationships,
   prerequisites, assets, visual references, generated indexes, memory, and
   release portability.
@@ -136,7 +139,7 @@ than writing directly to `library/`.
 ```bash
 python PASS/vfx.py start --inventory inventory.json --task boss-spawn
 python workspace/tools/extract_vfx_stills.py captures.json -o evidence --interval 0.5
-python PASS/vfx.py register-captures --run workspace/vfx-authoring/boss-spawn --manifest evidence/vfx-stills-manifest.json
+python PASS/vfx.py register-captures --run Pass-runs/software-engineering/unreal-engine/vfx/r_a1b2c3d4 --manifest evidence/vfx-stills-manifest.json
 ```
 
 Niagara Recipes live under
@@ -202,7 +205,7 @@ PASS work.
    before any unit PASS 1 ingestion. After a deliberate stop, `continue-run`
    resumes the same transaction history.
 4. During substantive PASS, every unit completes PASS 1, PASS 2 and PASS 3. The
-   reviewed unit is accepted into the run's cumulative `workspace/skill-staging/`
+   reviewed unit is accepted into the run's cumulative `Pass-runs/` staging
    delta, not directly into canonical `library/`. Later units reconcile against
    the live canonical library plus that accepted source delta. After the final
    unit, complete source closure (AP synthesis, DRILL synthesis, cross-library
@@ -212,7 +215,7 @@ PASS work.
 5. `HANDOFF.md` and the verified hard checkpoint are the restart authority. If
    `resume` reports an interrupted committed operation, run `recover`; if only
    unaccepted working files drifted, use `rollback`. A continuation project ZIP
-   carries the selected domain's active skill-staging state so another capable
+   carries the selected domain's active run state so another capable
    model can resume without chat memory.
 6. Back in the canonical repository, preview the returned archive with the
    importer. Apply it only after the proposed changes pass review.
@@ -224,7 +227,7 @@ A suitable instruction to the chat is:
 > before starting or continuing the selected source. Follow the controller's one
 > next action. Do not repeat verified Source Prep or accepted preflight after a
 > model/provider switch. During unit PASS work, accept reviewed unit deltas into
-> skill-staging; do not treat them as canonical until the mandatory source-close
+> run staging; do not treat them as canonical until the mandatory source-close
 > gate succeeds. If `resume` requests `recover`, restore the last verified
 > checkpoint before doing anything else. If I explicitly authorize unattended
 > completion, use `PASS/source.py authorize` and the state-driven dispatcher.
@@ -278,8 +281,8 @@ python PASS/tools/memory.py validate
 Add a bounded source extract at the visible top-level `SOURCE_INPUT/` folder:
 
 ```bash
-python workspace/tools/extract_pdf_text.py book.pdf workspace/skill-staging/book-unit.txt --pages 20-48
-python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-writing.zip --domain writing --source-text workspace/skill-staging/book-unit.txt
+python workspace/tools/extract_pdf_text.py book.pdf workspace/tmp/book-unit.txt --pages 20-48
+python workspace/tools/build_project_snapshot.py workspace/project-releases/PASS-project-writing.zip --domain writing --source-text workspace/tmp/book-unit.txt
 ```
 
 Useful options:
@@ -534,12 +537,15 @@ for the closed Drill contract.
 
 ## Use Skillset Memory
 
-Skill Memory keeps durable learned principles separate from empirical training
-results, records specialization-specific transfer without assuming that general
-competence propagates automatically, and gives provisional card hypotheses a
-place to accumulate evidence. `training_history.jsonl` records the underlying
-attempts and evaluations. None of these rewrite canonical knowledge automatically;
-card candidates always require deliberate synthesis before canon changes.
+Skillset Memory is the skill's current learned state: a set of claims, one
+learned proposition that changes what the next relevant task does, classed
+`conduct` for how the work is carried out or `reach` for posture, verification,
+calibration, and willingness to claim a capability. A `reach` claim never
+selects canon, chooses an AP, or routes work. `training_history.jsonl` records
+the underlying attempts and evaluations beside the claims. Neither rewrites
+canonical knowledge automatically; card candidates are not Memory — they
+accumulate in `canon_workflow/<domain>/card_candidates.yaml` and always require
+deliberate synthesis before canon changes.
 
 ```bash
 python PASS/tools/memory.py query --domain art --cues "hand,grip" --limit 5
@@ -554,17 +560,20 @@ they never count as evidence of a craft weakness. The full contract is in
 
 ## Refine a candidate card from empirical evidence
 
-When a Skillset Memory `card_candidate` has valid evidence that a card may be
-wrong, Candidate Refinement & Qualification (CRQ) tests one bounded change against
-the current canon before anyone edits `library/`. It stages the change outside
-canon, runs the same target and protected cases on the frozen baseline and on the
-candidate, and refuses to qualify a candidate that breaks any protected case,
-however many targets it fixed. It never edits cards or memory; its strongest
-outcome is `qualified-for-synthesis-review`.
+When an open card candidate in the candidate workflow store
+(`canon_workflow/<domain>/card_candidates.yaml`) has evidence that a card may
+be wrong, Candidate Refinement & Qualification (CRQ) tests one bounded change
+against the current canon before anyone edits `library/`. Skillset Memory is
+not a CRQ input; CRQ starts from the candidate store, not from a claim. It
+stages the change outside canon, runs the same target and protected cases on
+the frozen baseline and on the candidate, and refuses to qualify a candidate
+that breaks any protected case, however many targets it fixed. It never edits
+cards, memory, or the candidate store; its strongest outcome is
+`qualified-for-synthesis-review`.
 
 ```bash
 CRQ="python PASS/runtime/pass_candidate_qualification.py"
-$CRQ prepare --domain software-engineering --memory-entry SE_MEM_0042
+$CRQ prepare --domain software-engineering --candidate <candidate id>
 RUN=workspace/candidate-qualification/software-engineering/SE_CRQ_0001
 $CRQ prepare-synthesis --run $RUN      # optional, for large evidence sets
 $CRQ freeze-assessment --run $RUN      # after filling controller/assessment.json
@@ -681,7 +690,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.105`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.138`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable
@@ -748,7 +757,7 @@ releases.
 - Cards survive their sources.
 - Domains do not depend on other domains.
 - Indexes are generated, never hand-edited.
-- Skillset Memory separates learned principles, empirical results, specialization transfer, and provisional card candidates; it is never canon.
+- Skillset Memory holds the skill's current learned claims beside their empirical training history; it never holds card candidates and is never canon.
 - `archive/` is retired and cannot support active behavior.
 - `.agents/` and `.claude/` are discovery only, never release dependencies.
 - Every release includes `metaskills` and the full prerequisite closure.

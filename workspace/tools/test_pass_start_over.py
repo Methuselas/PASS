@@ -21,6 +21,23 @@ sys.path.insert(0, str(REPO))
 
 from PASS.runtime import pass_authoring_run as preflight
 from PASS.runtime import pass_source_prep as source_prep
+
+
+def plan_envelope(run, plan: dict) -> dict:
+    """Carry a raw preflight plan through the Stage Contract v1 envelope.
+
+    The raw plan shape still exists and is still parsed by pass_authoring_run:
+    the preflight schema version is independent of the stage contract version.
+    This only moves the model-facing fields into the closed payload.
+    """
+    record = run.template()
+    payload = record["payload"]
+    for key in ("title", "author", "extent", "text_quality", "subject", "units", "no_extract"):
+        if key in plan:
+            payload[key] = plan[key]
+    if plan.get("language_policy") is not None:
+        payload["language_policy"] = plan["language_policy"]
+    return record
 from PASS.runtime.pass_authoring_workflow import (
     Run,
     RunError,
@@ -45,7 +62,7 @@ class StartOverTests(unittest.TestCase):
 
     def new_run(self, prefix: str) -> Run:
         task = f"{prefix}-{uuid.uuid4().hex[:8]}"
-        root = start(REPO, self.source, "software-engineering", task, "complete")
+        root = start(REPO, self.source, "software-engineering", None, "complete")
         self.created.append(root)
         return Run(REPO, root)
 
@@ -116,7 +133,7 @@ class StartOverTests(unittest.TestCase):
     def test_preflight_reset_starts_at_pass1_with_schema3_plan(self) -> None:
         old = self.new_run("reset-preflight")
         self.prepare_source(old)
-        old.submit("preflight", self.language_plan())
+        old.submit("preflight", plan_envelope(old, self.language_plan()))
         # This fixture bypasses only the presentation ceremony; it represents an
         # already-accepted preflight so start-over carry semantics can be tested.
         old.state["phase"] = "pass1"
@@ -136,9 +153,14 @@ class StartOverTests(unittest.TestCase):
         plan = self.language_plan()
         plan.pop("language_policy")
         plan["schema_version"] = 2
-        old.submit("preflight", plan)
+        # A schema-2 plan can no longer be *submitted*: Stage Contract v1 always
+        # writes the current preflight schema. Installing it directly is both the
+        # only way to reach this state and proof that a previously accepted
+        # legacy preflight still parses and loads.
+        old.state["plan"] = preflight.serialize_preflight(preflight.parse_preflight(plan))
         old.state["phase"] = "pass1"
         old.save()
+        self.assertEqual(old.state["plan"]["schema_version"], 2)
 
         with self.assertRaisesRegex(RunError, "restart from source_prep"):
             start_over(REPO, old.root, "reuse legacy preflight", "preflight")
@@ -151,7 +173,7 @@ class StartOverTests(unittest.TestCase):
             "reason": "start over",
             "restart_from": "scratch",
             "carry_notes": False,
-            "new_task": "synthetic-restart",
+            "new_run_id": "r_0123abcd",
             "domain": "software-engineering",
             "source": str(self.source.resolve()),
             "state": old.state,

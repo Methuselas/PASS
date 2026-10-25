@@ -192,12 +192,13 @@ process is stopped. This prevents a still-running old process from racing the
 replacement while also ensuring a crashed process cannot make reset impossible.
 
 ```text
-workspace/skill-staging/<domain>/<book-run>/
+Pass-runs/<domain>[/<module-path>...]/<run-id>/
   RUN_NOTE.md
   HANDOFF.md
   controller/run.json
   controller/checkpoint/controller/run.json
   controller/checkpoint/manifest.json
+  controller/checkpoint/blobs/<sha256>
   prepared-source/INDEX.md
   prepared-source/source.json
   prepared-source/...
@@ -209,9 +210,72 @@ workspace/skill-staging/<domain>/<book-run>/
   recipes/<existing-owned-SkillForge-recipe>.yaml
 ```
 
+### Model-facing stage responses
+
+Preflight, PASS 1, CHECKPOINT, PASS 2, PASS 3 and the two closure stages take a
+closed **Stage Contract v1** response:
+
+```json
+{"action_id": "<the host-issued token>", "payload": { ... }}
+```
+
+Model reasoning is deliberately unconstrained. The interface is not. A supported
+model may reach different semantic conclusions; it may not rename a field or a
+disposition, invent stage vocabulary, choose a filename or a path, or emit a
+model-specific structure. The host owns run and unit identity, stage identity,
+filenames, paths, enums, defaults, serialization, validation and rendering.
+
+`template` prints the envelope with a payload skeleton generated from the schema,
+so there is no second convention to infer and no placeholder whose status is
+ambiguous. `python PASS/pass.py schema --stage <stage>` prints the authoritative
+JSON Schema and `--enums` prints the declared vocabularies.
+
+Drafted cards are returned as structured objects, not as files: the model supplies
+`object_id`, `object_type`, `library_path`, `name`, frontmatter and an
+object-type-specific body, and the host derives the path, renders the Markdown and
+writes it. Non-card staged items -- an owned release recipe, a `MODULE.yaml`, an
+asset -- are typed `artifacts` whose paths the host derives the same way. A
+response that breaks the contract is refused before anything is written, gets one
+structured correction attempt, and then fails closed.
+
+Read `PASS/docs/STAGE_CONTRACT.md` for the full contract, the failure codes and
+worked artifacts.
+
+### Run placement and naming
+
+`Pass-runs/` is the one run root for every PASS run. Inside it, a run is filed at
+the canonical library ownership path its cards are destined for, so a Python run
+lives at `Pass-runs/software-engineering/languages/python/<run-id>/` and never
+under an invented parallel label such as `Python/`. Runs do not get a second
+domain taxonomy of their own. `--owner` names the module path below the domain.
+
+Ownership is validated against the library itself, not against a limit the run
+layout invents. An owner must resolve to an existing module directory under
+`library/<domain>/`, or to a new leaf directly beneath one so that a run can
+author a genuinely new module's first card. There is deliberately **no depth or
+length cap on ownership**: the library decides how deep a module sits, and the
+only bound is the total path budget below. One known limit: a misspelled first
+segment is indistinguishable from a new top-level module and is accepted.
+
+A run id is short, opaque, stable and non-semantic: `r_` followed by eight hex
+characters, as in `r_a1b2c3d4`. No path segment carries a source title, book
+title, domain, language, unit title, chapter title or timestamp. Descriptive
+information is run metadata: `controller/run.json` records `run_id`, `owner` and
+a human-readable `label`, and `RUN_NOTE.md` states both.
+
+This is a path-length requirement, not a cosmetic one. The deepest artifact a run
+writes is `accepted/files/<repo-relative card path>`, and the longest card path in
+the library is about 160 characters. A descriptive run directory used to add
+another 80-plus characters on top of that, which pushed real runs past the
+Windows 260-character limit and made them fail mid-copy. Generated names inside a
+run therefore stay short and structural, and checkpoints store staged artifacts
+as flat content-addressed blobs rather than as a second nested copy of the staged
+tree. `start` refuses a run root over `RUN_ROOT_BUDGET` characters, and PASS does
+not rely on the machine opting into Windows long paths.
+
 `drafts/poetry/sound/PAT_example.md` targets
-`library/<domain>/poetry/sound/PAT_example.md`. Book identity stays in temporary
-workspace organization; placement reflects knowledge, not the source. Cards use
+`library/<domain>/poetry/sound/PAT_example.md`. Source identity stays in run
+metadata; placement reflects knowledge, not the source. Cards use
 the unchanged canonical schema and carry no source locators or controller hashes.
 Drafts may be incomplete during PASS 1; only validated finished objects can land.
 
@@ -407,10 +471,19 @@ domain `.landing.lock` serializes only canonical close/integration; per-run
 exclusive leases, not research state. `recover` is the supported path for a dead
 process that left either lease or a controller/checkpoint mismatch.
 
+A refused stage response leaves `controller/stage-rejection.json` behind: a
+machine-readable list of failures with a closed `code` vocabulary, the attempt
+number, and whether a correction is still allowed. The same pending action gets
+exactly one correction; a second malformed response fails the stage closed,
+preserves the last completed boundary, and makes unattended mode report
+`blocked_human_required` instead of reissuing. An infrastructure failure and a
+semantic outcome -- `approval_required`, an honest `false` check, a legitimate
+empty result -- are not contract failures and consume no attempt.
+
 After successful source closure, `close-run` removes generated controller state,
-prepared source, accepted staging and its task note, prunes empty task directories
-and preserves nonempty retained work. Preserve original inputs, other tasks and
+prepared source, accepted staging and its run note, prunes empty owner directories
+and preserves nonempty retained work. Preserve original inputs, other runs and
 explicit failure-evidence holds. Project snapshots and published SkillForge
-releases never carry `skill-staging/` authoring state; a resumed run stays
-where it lives, in the repository's workspace. Deleting closed scratch never
+releases never carry `Pass-runs/` authoring state; a resumed run stays
+where it lives, in the repository's run root. Deleting closed scratch never
 invalidates canonical library knowledge.

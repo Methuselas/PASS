@@ -1,10 +1,10 @@
 """Contracts for CRQ intake and defect assessment.
 
-Covers `prepare` (a Skillset Memory `card_candidate` resolved through
-`memory.py`, owner resolution inside one domain plus metaskills, and the frozen
-baseline snapshot) and `freeze-assessment` (disposition routing, owner and
-exposure checks, bounded object actions). The library and memory store are
-synthetic; no canonical card or memory entry is read or written.
+Covers `prepare` (an open card candidate resolved from the candidate store,
+owner resolution inside one domain plus metaskills, and the frozen baseline
+snapshot) and `freeze-assessment` (disposition routing, owner and exposure
+checks, bounded object actions). The library, candidate store and training
+history are synthetic; no canonical card or candidate store is read or written.
 """
 
 from __future__ import annotations
@@ -118,35 +118,70 @@ EVENTS = [
 ]
 
 
-def entry(entry_id: str, **overrides) -> dict:
+def cid(number: int) -> str:
+    """An opaque candidate id; only the leading namespace token is structural."""
+    return f"SE_CAND_01M56ABCD{number:017d}"
+
+
+def candidate(candidate_id: str, **overrides) -> dict:
     base = {
-        "id": entry_id, "scope_type": "pattern", "scope_id": "PAT_target",
-        "type": "card_candidate", "evidence_class": "stochastic_performance",
-        "observation": "The rule omits a boundary condition that reusable decisions need.",
-        "confidence": "repeated", "status": "active",
-        "diagnosis": {"failure_layer": "knowledge", "hypothesis": "The IF clause is too narrow."},
-        "evidence_count": 2, "evidence_events": ["SE_EV_0001", "SE_EV_0002"],
-        "likely_owners": ["PAT_target", "PAT_meta_process", "the boundary handling guidance"],
+        "id": candidate_id,
+        "hypothesis": "The rule omits a boundary condition that reusable decisions need.",
+        "evidence": ["SE_EV_0001", "SE_EV_0002"],
+        "owners": ["PAT_target", "PAT_meta_process", "the boundary handling guidance"],
+        "state": "open",
     }
     base.update(overrides)
-    if "evidence_events" in overrides:
-        base["evidence_count"] = len(overrides["evidence_events"]) or 1
-        if not overrides["evidence_events"]:
-            base.pop("evidence_events")
-            base.pop("evidence_count")
     return base
 
 
-ENTRIES = [
-    entry("SE_MEM_0001"),
-    entry("SE_MEM_0002", type="learned_principle"),
-    entry("SE_MEM_0003", status="resolved"),
-    entry("SE_MEM_0004", evidence_events=[]),
-    entry("SE_MEM_0005", likely_owners=["PAT_art_only"]),
-    entry("SE_MEM_0006", likely_owners=["PAT_missing"]),
-    entry("SE_MEM_0007", likely_owners=["Build the Target Rule", "PAT_meta_process"]),
-    entry("SE_MEM_0008", status="monitoring", evidence_events=["SE_EV_0006"]),
+CANDIDATES = [
+    candidate(cid(1)),
+    candidate(cid(2), type="not-a-store-field"),
+    candidate(cid(3), state="resolved_into_canon"),
+    candidate(cid(4), evidence=[]),
+    candidate(cid(5), owners=["PAT_art_only"]),
+    candidate(cid(6), owners=["PAT_missing"]),
+    candidate(cid(7), owners=["Build the Target Rule", "PAT_meta_process"]),
+    candidate(cid(8), evidence=["SE_EV_0006"]),
 ]
+
+
+def valid_assessment(run: dict, **overrides) -> dict:
+    assessment = {
+        "schema_version": 1,
+        "run_id": run["run_id"],
+        "candidate_id": run["candidate_id"],
+        "candidate_disposition": "canon-candidate",
+        "failure_layer": "knowledge",
+        "primary_attribution": "skillcard",
+        "owner_object_ids": ["PAT_target"],
+        "proposed_object_actions": [{
+            "action": "revise", "object_id": "PAT_target", "object_type": "pattern",
+            "reason": "The reusable condition is underspecified for the demonstrated case.",
+        }],
+        "noncanon_failures_considered": [{
+            "kind": "application", "disposition": "not-supported",
+            "reason": "The exposed card lacks the condition, so following it could not help.",
+        }],
+        "rationale": "The exposed Pattern owns the decision and omits the boundary.",
+        "unresolved_questions": [],
+    }
+    assessment.update(overrides)
+    return assessment
+
+
+def deterministic_case_entry(case_id: str, **overrides) -> dict:
+    entry = {
+        "case_id": case_id,
+        "purpose": "Prove the deterministic contract holds on a fresh fixture.",
+        "role": "target", "origin": "deterministic",
+        "evaluation_mode": "deterministic", "visibility": "author-visible",
+        "required": True, "positive_qualification_eligible": True,
+        "evaluator_relation": "deterministic", "source_event_ids": [],
+    }
+    entry.update(overrides)
+    return entry
 
 
 class IntakeFixture(unittest.TestCase):
@@ -154,46 +189,50 @@ class IntakeFixture(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.base = Path(self.temporary.name)
         self.library = self.base / "library"
-        self.memory = self.base / "memory"
+        self.candidates = self.base / "canon_workflow"
+        self.history = self.base / "history"
         self.workspace = self.base / "workspace" / "candidate-qualification" / DOMAIN
         for relative, text in [*CARDS.values(), *MODULES.items()]:
             path = self.library / relative
             path.parent.mkdir(parents=True, exist_ok=True)
             write_text(path, text)
-        self.write_memory(ENTRIES, EVENTS)
+        self.write_store(CANDIDATES, EVENTS)
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
 
-    def write_memory(self, entries: list[dict], events: list[dict]) -> None:
-        store = self.memory / DOMAIN
+    def write_store(self, candidates: list[dict], events: list[dict]) -> None:
+        store = self.candidates / DOMAIN
         store.mkdir(parents=True, exist_ok=True)
-        write_text((store / "skill_memory.yaml"), yaml.safe_dump({
-            "memory_schema_version": 2, "skillset": DOMAIN, "memory_version": 1,
-            "entries": entries,
+        write_text((store / "card_candidates.yaml"), yaml.safe_dump({
+            "candidate_schema_version": 1, "domain": DOMAIN, "candidates": candidates,
         }, sort_keys=False))
-        write_text((store / "training_history.jsonl"),
+        history = self.history / DOMAIN
+        history.mkdir(parents=True, exist_ok=True)
+        write_text((history / "training_history.jsonl"),
             "".join(json.dumps(item) + "\n" for item in events))
 
     def canon_bytes(self) -> dict[Path, bytes]:
         return {
             path: path.read_bytes()
-            for root in (self.library, self.memory) for path in root.rglob("*") if path.is_file()
+            for root in (self.library, self.candidates, self.history)
+            for path in root.rglob("*") if path.is_file()
         }
 
-    def prepare(self, entry_id: str = "SE_MEM_0001", run_id: str = "SE_CRQ_0001", **options):
+    def prepare(self, candidate_id: str | None = None, run_id: str = "SE_CRQ_0001", **options):
         return crq.prepare(
-            domain=DOMAIN, memory_entry_id=entry_id, out=self.workspace / run_id,
-            library_root=self.library, memory_root=self.memory, **options,
+            domain=DOMAIN, candidate_id=candidate_id or cid(1), out=self.workspace / run_id,
+            library_root=self.library, candidate_root=self.candidates,
+            history_root=self.history, **options,
         )
 
 
 class PrepareTests(IntakeFixture):
-    def test_valid_candidate_prepares_a_run_without_touching_canon_or_memory(self) -> None:
+    def test_valid_candidate_prepares_a_run_without_touching_canon_or_the_store(self) -> None:
         before = self.canon_bytes()
         out, run = self.prepare()
         self.assertEqual(run["state"], "prepared")
-        self.assertEqual(run["memory_entry_id"], "SE_MEM_0001")
+        self.assertEqual(run["candidate_id"], cid(1))
         self.assertEqual(sorted(run["freezes"]), ["intake"])
         self.assertEqual(self.canon_bytes(), before)
         self.assertEqual(crq.status_report(out)["baseline"]["status"], "clean")
@@ -223,10 +262,10 @@ class PrepareTests(IntakeFixture):
         entry = next(e for e in crq.load_baseline_manifest(out, run)["entries"] if e["object_id"] == "PAT_target")
         self.assertEqual(entry["sha256"], crq.digest_bytes(target.read_bytes()))
 
-    def test_intake_freezes_the_entry_events_and_owner_resolution(self) -> None:
+    def test_intake_freezes_the_candidate_events_and_owner_resolution(self) -> None:
         out, run = self.prepare()
         intake = crq.load_intake(out, run)
-        self.assertEqual(intake["memory_entry"]["id"], "SE_MEM_0001")
+        self.assertEqual(intake["candidate"]["id"], cid(1))
         self.assertEqual([e["event_id"] for e in intake["events"]], ["SE_EV_0001", "SE_EV_0002"])
         self.assertEqual(
             [(o["label"], o["resolution"]) for o in intake["owners"]],
@@ -237,44 +276,46 @@ class PrepareTests(IntakeFixture):
         with self.assertRaisesRegex(crq.CandidateQualificationError, "intake"):
             crq.freeze_assessment(out)
 
-    def test_monitoring_candidate_is_accepted(self) -> None:
-        _out, run = self.prepare("SE_MEM_0008")
+    def test_second_open_candidate_is_accepted(self) -> None:
+        _out, run = self.prepare(cid(8))
         self.assertEqual(run["state"], "prepared")
 
     def test_refusals_leave_nothing_behind(self) -> None:
         cases = {
-            "SE_MEM_0099": "does not exist",
-            "SE_MEM_0002": "not card_candidate",
-            "SE_MEM_0003": "resolved",
-            "SE_MEM_0004": "cites no evidence",
-            "SE_MEM_0005": "not a card in software-engineering or metaskills",
-            "SE_MEM_0006": "not a card in software-engineering or metaskills",
-            "SE_MEM_0007": "names no likely owner that is a card in software-engineering",
+            cid(9999): "does not exist",
+            "SE_MEM_0001": "does not exist",
+            cid(2): "wrong shape",
+            cid(3): "only open candidates",
+            cid(4): "cites no evidence",
+            cid(5): "not a card in software-engineering or metaskills",
+            cid(6): "not a card in software-engineering or metaskills",
+            cid(7): "names no likely owner that is a card in software-engineering",
         }
-        for entry_id, message in cases.items():
-            with self.subTest(entry=entry_id):
+        for candidate_id, message in cases.items():
+            with self.subTest(candidate=candidate_id):
                 with self.assertRaisesRegex(crq.CandidateQualificationError, message):
-                    self.prepare(entry_id)
+                    self.prepare(candidate_id)
                 self.assertFalse(self.workspace.exists() and any(self.workspace.iterdir()))
 
-    def test_invalid_or_quarantined_evidence_fails_memory_validation(self) -> None:
+    def test_invalid_or_quarantined_evidence_fails_intake(self) -> None:
         for cited, reason in (("SE_EV_0003", "invalid event"), ("SE_EV_0004", "quarantined event"),
-                              ("SE_EV_0005", "evidence correction"), ("SE_EV_0404", "unknown event")):
+                              ("SE_EV_0005", "correction"), ("SE_EV_0404", "unknown event")):
             with self.subTest(cited=cited):
-                self.write_memory([entry("SE_MEM_0001", evidence_events=["SE_EV_0001", cited])], EVENTS)
-                with self.assertRaisesRegex(crq.CandidateQualificationError, f"memory.py validate.*{reason}"):
+                self.write_store([candidate(cid(1), evidence=["SE_EV_0001", cited])], EVENTS)
+                with self.assertRaisesRegex(crq.CandidateQualificationError, reason):
                     self.prepare()
 
     def test_domain_mismatch_and_missing_store_fail(self) -> None:
-        store = self.memory / DOMAIN / "skill_memory.yaml"
+        store = self.candidates / DOMAIN / "card_candidates.yaml"
         data = yaml.safe_load(store.read_text(encoding="utf-8"))
-        write_text(store, yaml.safe_dump(dict(data, skillset="art"), sort_keys=False))
-        with self.assertRaisesRegex(crq.CandidateQualificationError, "does not match directory"):
+        write_text(store, yaml.safe_dump(dict(data, domain="art"), sort_keys=False))
+        with self.assertRaisesRegex(crq.CandidateQualificationError, "names domain"):
             self.prepare()
-        with self.assertRaisesRegex(crq.CandidateQualificationError, "no Skillset Memory store"):
-            crq.prepare(domain="art", memory_entry_id="SE_MEM_0001",
+        with self.assertRaisesRegex(crq.CandidateQualificationError, "no card-candidate store"):
+            crq.prepare(domain="art", candidate_id=cid(1),
                         out=self.base / "workspace" / "candidate-qualification" / "art" / "ART_CRQ_0001",
-                        library_root=self.library, memory_root=self.memory)
+                        library_root=self.library, candidate_root=self.candidates,
+                        history_root=self.history)
 
     def test_run_location_is_checked(self) -> None:
         for out, message in (
@@ -284,14 +325,15 @@ class PrepareTests(IntakeFixture):
         ):
             with self.subTest(out=out):
                 with self.assertRaisesRegex(crq.CandidateQualificationError, message):
-                    crq.prepare(domain=DOMAIN, memory_entry_id="SE_MEM_0001", out=out,
-                                library_root=self.library, memory_root=self.memory)
+                    crq.prepare(domain=DOMAIN, candidate_id=cid(1), out=out,
+                                library_root=self.library, candidate_root=self.candidates,
+                                history_root=self.history)
         self.prepare()
         with self.assertRaisesRegex(crq.CandidateQualificationError, "overwrite"):
             self.prepare()
 
     def test_next_run_id_scans_only_this_domain_folder(self) -> None:
-        self.assertEqual(crq.run_id_prefix(DOMAIN, "SE_MEM_0042"), "SE")
+        self.assertEqual(crq.run_id_prefix(DOMAIN, cid(42)), "SE")
         self.assertEqual(crq.run_id_prefix("game-design", "custom"), "GAME_DESIGN")
         self.assertEqual(crq.next_run_id(self.workspace, "SE"), "SE_CRQ_0001")
         for name in ("SE_CRQ_0001", "SE_CRQ_0007", "ART_CRQ_0009", ".SE_CRQ_0010.tmp"):
@@ -321,30 +363,6 @@ class PrepareTests(IntakeFixture):
         self.assertTrue(hasattr(memory, "validate_store"))
         self.assertEqual(sys.path, path_before)
         self.assertNotIn("paths", sys.modules)
-
-
-def valid_assessment(run: dict, **overrides) -> dict:
-    assessment = {
-        "schema_version": 1,
-        "run_id": run["run_id"],
-        "memory_entry_id": run["memory_entry_id"],
-        "candidate_disposition": "canon-candidate",
-        "failure_layer": "knowledge",
-        "primary_attribution": "skillcard",
-        "owner_object_ids": ["PAT_target"],
-        "proposed_object_actions": [{
-            "action": "revise", "object_id": "PAT_target", "object_type": "pattern",
-            "reason": "The reusable condition is underspecified for the demonstrated case.",
-        }],
-        "noncanon_failures_considered": [{
-            "kind": "application", "disposition": "not-supported",
-            "reason": "The exposed card lacks the condition, so following it could not help.",
-        }],
-        "rationale": "The exposed Pattern owns the decision and omits the boundary.",
-        "unresolved_questions": [],
-    }
-    assessment.update(overrides)
-    return assessment
 
 
 class AssessmentTests(IntakeFixture):
@@ -457,7 +475,7 @@ class AssessmentTests(IntakeFixture):
             crq.freeze_assessment(self.out)
 
     def test_exposure_check_applies_only_when_evidence_records_it(self) -> None:
-        out, run = self.prepare("SE_MEM_0008", run_id="SE_CRQ_0002")
+        out, run = self.prepare(cid(8), run_id="SE_CRQ_0002")
         self.out = out
         assessment = valid_assessment(run, owner_object_ids=["PAT_foundation"])
         assessment["proposed_object_actions"][0]["object_id"] = "PAT_foundation"
@@ -526,8 +544,8 @@ class AssessmentTests(IntakeFixture):
 
     def test_identity_and_shape_are_checked(self) -> None:
         self.assert_refused(valid_assessment(self.run_record, run_id="SE_CRQ_0099"), "different run")
-        self.assert_refused(valid_assessment(self.run_record, memory_entry_id="SE_MEM_0002"),
-                            "different memory entry")
+        self.assert_refused(valid_assessment(self.run_record, candidate_id=cid(42)),
+                            "different candidate")
         self.assert_refused(dict(valid_assessment(self.run_record), score=0.9), "unknown assessment key")
         self.assert_refused(self.with_action(reason=" "), "reason must be non-empty")
         self.assert_refused(self.with_action(relative_path=CARDS["PAT_target"][0]), "path from the baseline")
@@ -547,8 +565,58 @@ class AssessmentTests(IntakeFixture):
         for text in ("knowledge: a missing or wrong reusable decision belongs to a Pattern",
                      "orchestration: a missing or wrong goal-directed flow belongs to an AP",
                      "never justify a card change", "SE_EV_0001", "Do not", "library/",
-                     "PAT_meta_process", "never modified by this run"):
+                     "PAT_meta_process", "never modified by this run",
+                     f"## Candidate {cid(1)}"):
             self.assertIn(text, brief)
+
+
+class NoMemoryTreeAcceptanceTests(IntakeFixture):
+    """T12 acceptance: a valid deterministic run completes with no `memory/` tree.
+
+    The candidate store and Training History are separate roots; the fixture
+    keeps them outside any directory named `memory`, and the run never needs
+    one. Only the candidate's own cited events resolve against History; the
+    deterministic plan cases cite none.
+    """
+
+    def write_deterministic_plan(self, out: Path, run: dict) -> None:
+        entry = deterministic_case_entry("TARGET_001")
+        crq.write_json_atomic(out / "controller" / "qualification_plan.json", {
+            "schema_version": run["schema_version"],
+            "run_id": run["run_id"],
+            "cases": [entry],
+            "protected_case_gap": "The synthetic fixture library has no protected case.",
+        })
+        case = {key: entry[key] for key in schemas.CASE_METADATA}
+        case.update({
+            "schema_version": run["schema_version"],
+            "case_id": entry["case_id"],
+            "task": "Apply the rule to a fresh boundary case.",
+            "success_contract": ["The deterministic check passes."],
+            "constraints": [],
+            "fixture_manifest": [],
+            "notes": "",
+        })
+        crq.write_json_atomic(out / "cases" / "TARGET_001" / "case.json", case)
+
+    def test_a_run_prepares_with_no_memory_tree_present(self) -> None:
+        out, run = self.prepare()
+        self.assertEqual(run["state"], "prepared")
+        self.assertFalse((self.base / "memory").exists())
+        self.assertNotIn("memory_root", run)
+        self.assertEqual(run["candidate_root"], str(self.candidates.resolve()))
+        self.assertEqual(run["history_root"], str(self.history.resolve()))
+
+    def test_deterministic_run_completes_prepare_assessment_and_plan_without_a_memory_tree(self) -> None:
+        out, _run = self.prepare()
+        crq.write_json_atomic(out / "controller" / "assessment.json",
+                              valid_assessment(crq.load_run(out)[1]))
+        self.assertEqual(crq.freeze_assessment(out)["state"], "assessment-frozen")
+        self.write_deterministic_plan(out, crq.load_run(out)[1])
+        frozen = crq.freeze_plan(out)
+        self.assertEqual(frozen["state"], "plan-frozen")
+        self.assertFalse((self.base / "memory").exists())
+        self.assertEqual(crq.status_report(out)["cases"]["by_origin"], {"deterministic": 1})
 
 
 class CommandLineTests(IntakeFixture):
@@ -558,11 +626,16 @@ class CommandLineTests(IntakeFixture):
             text=True, encoding="utf-8", capture_output=True,
         )
 
+    def prepare_args(self, candidate_id: str, out: Path) -> list[str]:
+        return [
+            "prepare", "--domain", DOMAIN, "--candidate", candidate_id,
+            "--out", str(out), "--library", str(self.library),
+            "--candidates", str(self.candidates), "--history", str(self.history),
+        ]
+
     def test_prepare_and_freeze_assessment_commands(self) -> None:
         out = self.workspace / "SE_CRQ_0001"
-        result = self.cli("prepare", "--domain", DOMAIN, "--memory-entry", "SE_MEM_0001",
-                          "--out", str(out), "--library", str(self.library),
-                          "--memory-root", str(self.memory))
+        result = self.cli(*self.prepare_args(cid(1), out))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("PREPARED: SE_CRQ_0001", result.stdout)
         self.assertIn("1 target", result.stdout)
@@ -576,11 +649,9 @@ class CommandLineTests(IntakeFixture):
         self.assertIn("ASSESSMENT FROZEN", result.stdout)
 
     def test_prepare_refusal_exits_cleanly(self) -> None:
-        result = self.cli("prepare", "--domain", DOMAIN, "--memory-entry", "SE_MEM_0003",
-                          "--out", str(self.workspace / "SE_CRQ_0001"),
-                          "--library", str(self.library), "--memory-root", str(self.memory))
+        result = self.cli(*self.prepare_args(cid(3), self.workspace / "SE_CRQ_0001"))
         self.assertEqual(result.returncode, 2)
-        self.assertIn("resolved", result.stderr)
+        self.assertIn("resolved_into_canon", result.stderr)
 
 
 if __name__ == "__main__":

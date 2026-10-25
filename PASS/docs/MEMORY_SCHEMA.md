@@ -2,13 +2,14 @@
 
 status: active
 owner: docs/domains/spec
-last_reviewed: 2026-09-11
+last_reviewed: 2026-10-24
 
-Skillset Memory is the portable **compact current state of the skill**. It keeps
-durable learned principles distinct from empirical training results, strengths,
-weaknesses, boundaries, and other self-calibration. `training_history.jsonl` is
-the event record showing what happened in specific attempts. Skillset Memory is
-not canon, not a runtime, not a transcript, and not a fourth object type.
+Skillset Memory is the skill's **current learned self-knowledge about doing its
+own work**. Its unit is the **claim**: one learned proposition that exists
+because the next relevant task behaves differently than it would with this
+skill, Canon, and no Memory. `training_history.jsonl` is the separate event
+record showing what happened in specific attempts. Skillset Memory is not canon,
+not a runtime, not a transcript, and not a fourth object type.
 
 **Every rule in this file that can be checked mechanically is checked by
 `PASS/tools/memory.py validate`.** Rules are written here once so the tool has a
@@ -16,7 +17,7 @@ specification; they are not enforced by asking a model to remember them.
 
 Memory reads the memory tree and, when linkage is present, the history beside
 it. It never looks for a source document, a page, a chat transcript, or any
-record of the conversation that produced an entry.
+record of the conversation that produced a claim.
 
 ---
 
@@ -27,8 +28,8 @@ CANON        what decision to make, how to orchestrate it, how to practise it
              Patterns / APs / Drills. Source-independent. Stable.
 
 MEMORY       what the skill currently carries forward
-             Learned principles and calibrated empirical results, kept distinct.
-             Compact. Provisional. Allowed to be revised or superseded.
+             Claims: learned propositions that change what the next task does.
+             Compact. Current by presence. Rewritten, or retired by removal.
 
 HISTORY      what happened in specific attempts and evaluations
              Empirical. Append-oriented. Includes runs that proved nothing.
@@ -39,37 +40,37 @@ REGRESSION   what must never happen again under deterministic conditions
 
 Four rules follow, and the tool enforces the ones that can be checked:
 
-1. **Memory never mutates canon.** A memory entry may nominate owners. Only a
-   reviewed, approved delta changes a card.
-2. **Memory is never inlined into canon.** If an entry seems important enough to
+1. **Memory never mutates canon.** A claim may link the Canon it informs. Only
+   a reviewed, approved delta changes a card.
+2. **Memory is never inlined into canon.** If a claim seems important enough to
    apply on every turn, that is evidence it has earned promotion review — not a
    reason to copy it into a card or an entrypoint. Copying it there creates a
    second write site and lets the real owner atrophy. Checked by
    `tests/test_memory.py`.
 3. **Memory never substitutes for a regression test.** Once a behavior is a
-   deterministic invariant, enforce it in canon, the resolver, or a test. An
-   entry that exists so the runtime will behave correctly when it is retrieved
+   deterministic invariant, enforce it in canon, the resolver, or a test. A
+   claim that exists so the runtime will behave correctly when it is retrieved
    is a workaround, because retrieval is not guaranteed (§3).
 4. **Memory is not a ledger.** No source ids, page numbers, hashes, receipts,
    attestations, reading progress, or session state. See §8.
 
 ## 2. Admissibility — the gate that matters most
 
-A **training result or other performance claim** is evidence about a capability
-only if the run that produced it was a valid test of that capability. A
-`learned_principle` records the durable lesson retained from evidence; it does
-not turn that lesson into a claim of demonstrated execution or transfer.
+A **performance result** is evidence about a capability only if the run that
+produced it was a valid test of that capability. A Memory claim records the
+durable lesson retained from evidence; it does not turn that lesson into an
+assertion of demonstrated execution or transfer.
 
 ```text
 execution
     ↓
 VALIDITY CHECK        was this a valid test of the thing it appears to measure?
     ↓
-observation           what was seen
+what was seen         the observed outcome
     ↓
-diagnosis             why it may have happened; may change later
+why it happened       the current explanation; it may change later
     ↓
-consolidation         only valid evidence reaches compact memory
+consolidation         only valid evidence reaches a Memory claim
 ```
 
 A run is **invalid** when it failed before the target capability was exercised.
@@ -89,11 +90,11 @@ invalid_reason: <short free-text label, required when invalid>
 **The invariant:**
 
 > An event marked `invalid` may remain in raw history. It must never increment
-> `evidence_count` on a compact entry, and must never be cited for or against a
-> craft capability.
+> the weight of evidence standing behind a claim, and must never be cited for or
+> against a craft capability.
 
-`memory.py compact` refuses to count invalid events. `memory.py validate`
-rejects a compact entry whose cited evidence includes one.
+`memory.py validate` rejects a claim whose cited `evidence` includes one, and
+`memory.py link-evidence` refuses to link one (§5, rule I4).
 
 Invalid runs are worth keeping. They are the evidence that a controller, tool,
 package, or prompt needs work — attributed to that owner, not to craft.
@@ -101,7 +102,7 @@ package, or prompt needs work — attributed to that owner, not to craft.
 ## 3. Presence is not consultation
 
 The retrieval order in the doctrine describes an **intended** sequence, not an
-enforced one. No runtime can guarantee that memory is read. An entry may be
+enforced one. No runtime can guarantee that memory is read. A claim may be
 correct, current, well-scoped, and never loaded, with no error and no signal.
 
 ```text
@@ -110,9 +111,9 @@ memory exists  ≠  memory validates  ≠  memory was retrieved  ≠  memory inf
 
 Two consequences:
 
-- Do not claim an entry influenced behavior because it existed. `memory.py
-  query` emits the ids it returned so a run can record what was actually
-  consulted; absent that record, consultation is unproven.
+- Do not conclude that Memory influenced behavior because a claim existed.
+  `memory.py query` emits the ids it returned so a run can record what was
+  actually consulted; absent that record, consultation is unproven.
 - Do not compensate by inlining (§1 rule 2). The compensation destroys the path
   it protects: once the content is in an always-loaded file, the retrieval path
   stops being exercised and its decay becomes invisible.
@@ -135,116 +136,268 @@ verified written    =  the target reopens and contains the expected state
 
 **Post-write readback is a contract, not a courtesy.** After any writeback,
 reopen the target and confirm the expected state is present before claiming
-persistence. `memory.py append`, `memory.py compact` and `memory.py entry` read their target back
-and fail loudly if it does not contain what they just wrote.
+persistence. `memory.py append`, `add`, `update`, `retire`, and `link-evidence`
+read their target back and fail loudly if it does not contain what they just
+wrote.
 
-**Entries change through `memory.py entry`.** `add`, `update` (a null value
-removes an optional key) and `supersede` (which can add the replacement in the
-same write) validate the whole resulting store before writing, so a refused
-write changes nothing. Writes are atomic, serialized per domain by a lock under
-`memory/.locks/`, and splice only the changed entries, so untouched entries keep
-their exact text. There is deliberately no delete (§7). Editing the YAML by hand
-is a recovery action, followed by `memory.py validate`.
+**Claims change through `add`, `update`, and `retire`.** Each validates the whole
+resulting store before writing, so a refused write changes nothing. Writes are
+atomic, serialized per domain by a lock under `memory/.locks/`, splice only the
+claim that changed so untouched claims keep their exact text, and raise
+`memory_version` by exactly one. `add` generates the claim's id; a caller never
+supplies one. Currentness is presence, so `retire` removes the claim and records
+nothing in its place — no tombstone, no lineage field, no sidecar, no History
+event. There is no `supersede`: a replacement is `retire` then `add`, with a
+fresh id and an independently re-derived `confidence` (§5). Editing the YAML by
+hand is a recovery action, followed by `memory.py validate`.
 
 Session observations are not memory until writeback occurs. Until then the
 honest phrasing is *observed in the current session*.
 
-## 5. `skill_memory.yaml` — compact current state
+## 5. `skill_memory.yaml` — the claim
 
-One file per domain, at `memory/<domain>/skill_memory.yaml`.
+One file per domain, at `memory/<domain>/skill_memory.yaml`. This section is the
+whole current Memory contract. Schema 3 is live and sole: all four stores
+declare `memory_schema_version: 3`, and the runtime reads nothing else.
+`memory.py validate` sends a schema-3 store to `validate_v3_contents` /
+`validate_v3_store`; a store
+declaring 1 or 2 is refused as **unmigrated, not corrupt**, naming the store and
+the retired one-time migrator; any other declared version is the unknown-version
+error. There is no dispatch, no legacy reader, no migrator, and no in-place
+upgrade — absence stays silently fail-open, but a wrong-version store is
+presence and is always loud.
 
-Schema version 2 adds `specialization_profile` and `card_candidate`. The tooling
-continues to read and validate version-1 stores so separately maintained domain
-archives can merge without a synchronized migration. A version-1 store may not
-use the two version-2 entry types; migrate that store to version 2 when either is
-needed.
+The unit of a v3 store is the **claim**: one learned proposition that changes
+what the next relevant task does. There is no status, no liveness field, and no
+non-retrievable state — a claim that is no longer current is removed from the
+store, and `memory_version` counts store revisions only; it is never read to
+allocate or order a claim id.
 
-```yaml
-memory_schema_version: 2
-skillset: art
-memory_version: 3
-entries:
-  - id: ART_MEM_001
-    scope_type: topic
-    scope_id: hands_and_object_contact
-    type: recurring_failure
-    evidence_class: stochastic_performance
-    observation: >
-      Compact lesson or self-knowledge the skill now carries forward.
-      It should remain useful after the specific evidence is forgotten.
-    confidence: provisional
-    status: active
-```
-
-### Required keys
+### Store shape
 
 ```yaml
-id:              stable id, unique within the file
-scope_type:      skillset | ap | pattern | drill | training | topic | runtime
-scope_id:        object_id for canonical scopes; readable slug for topic/runtime
-type:            learned_principle | recurring_failure | successful_tendency | known_boundary | training_result | specialization_profile | card_candidate
-evidence_class:  stochastic_performance | deterministic_contract
-observation:     compact retained lesson or self-observation; factual, self-contained, and not a transcript
-confidence:      provisional | repeated | strong
-status:          active | monitoring | resolved | superseded | obsolete
+memory_schema_version: 3
+skillset: <domain>
+memory_version: <positive integer>
+claims:
+  - <claim>
 ```
 
-`evidence_class` is required because the promotion threshold depends on it
-(§7). Every other key below is optional.
+No other top-level key is permitted. `skillset` must equal the containing
+directory name and must be one of the four claim-domain tokens (`art`,
+`game-design`, `software-engineering`, `writing`); an unmapped domain is an
+error naming the token table, never a guessed token.
 
-`learned_principle` records a durable craft or design lesson that should be
-remembered and applied later. It is the transferable conclusion retained from
-evidence, not the evidence itself. `training_result` records the compact outcome
-of an actual exercise, evaluation, comparison, grade, detector run, playtest, or
-other observed use. It answers what happened when something was tested.
-`successful_tendency`, `recurring_failure`, and `known_boundary` record other
-forms of empirical self-calibration. `specialization_profile` records how far a
-general skill has actually transferred into a named subcategory or specialization
-without assuming that broad competence propagates automatically. `card_candidate`
-records a provisional reusable principle that appears important enough to watch
-but does not yet have enough independent evidence, execution proof, or ownership
-clarity to justify canon change. The supporting event trail remains in
-`training_history.jsonl`.
-
-### Optional keys
+### Claim schema
 
 ```yaml
-diagnosis:
-  failure_layer:  knowledge | orchestration | retrieval | application | continuity |
-                  reference | tool | interface | training
-  hypothesis:     current explanation; may change without rewriting observation
-boundary:         where the observation was verified and where it was not
-evidence_count:   integer ≥ 1
-evidence_events:  list of event_id from training_history.jsonl
-evidence_origin:  list of runtime_self_audit | user_feedback | human_teaching |
-                  training_benchmark | regression_failure | book_close_training |
-                  cross_model_test
-likely_owners:    list of object_id or free-text owner labels
-interventions:    list of { training | drill, isolation_result, retention_result,
-                  transfer_result } — each result: improved | partial | unchanged |
-                  failed | untested
-retrieval_cues:   list of strings used by `memory.py query`
-runtime_scope:    generic | free-text label for one execution environment
-superseded_by:    id of the entry that replaced this one
-last_verified:    YYYY-MM-DD
+- id: <DOMAIN_TOKEN>_MEM_<26-char Crockford base32>   # required, generated once, opaque
+  claim: <string>                         # required, ≤75 words
+  claim_class: conduct | reach            # required
+  claim_kind: deterministic | stochastic  # required
+  confidence: provisional | repeated | strong   # required
+  delta:                                  # required
+    kinds: [<delta_kind>, ...]            #   required, 1..3
+    statement: <string>                   #   required, ≤50 words
+  envelope:                               # required
+    holds_in: [<string>, ...]             #   required, ≥1, each ≤40 words
+    not_shown_in: [<string>, ...]         #   required, ≥1, each ≤40 words
+    conditions: [<string>, ...]           #   optional, each ≤40 words
+  provenance: [<provenance>, ...]         # required, ≥1
+  scope: <snake_case slug>                # required, matches [a-z][a-z0-9_]*
+  retrieval_cues: [<string>, ...]         # required, ≥1
+  last_verified: <YYYY-MM-DD>             # required
+  canon: [<object_id>, ...]               # optional, 1..5 when present
+  evidence: [<event_id>, ...]             # optional, 1..3 when present
+  revalidate_after: <YYYY-MM-DD>          # optional, not earlier than last_verified
+  contradicts: [<claim_id>]               # optional, exactly 1 when present
 ```
 
-### Evidence origins
+No other key is permitted on a claim. Closed vocabularies:
 
-`human_teaching` means direct technical instruction or clarification supplied by
-the human during study or training. It is distinct from `user_feedback`, which
-is the user's assessment of a produced result. Human teaching may support a
-provisional learned principle, but it is not automatically a user preference,
-is not canonical doctrine, and is not by itself proof of execution, retention,
-or transfer.
+```text
+claim_class   conduct | reach
+claim_kind    deterministic | stochastic
+confidence    provisional | repeated | strong
+delta.kinds   action | judgment | verification | posture | application_limit
+provenance    human_teaching | user_feedback | runtime_self_audit
+              | training_benchmark | source_study | regression_failure
+```
+
+`provenance` is **required and valid** on a v3 claim. The `FORBIDDEN_KEYS` list
+rejects `provenance` on a Training History event; the claim path has its own
+`CLAIM_FORBIDDEN_KEYS` list, which carries the
+retired authoring vocabulary plus the migration-lineage keys (`legacy_id`,
+`migrated_from`, `source_entry`, `previous_id`) and deliberately excludes
+`provenance`. The two rejection lists are never merged.
+
+`book_close_training` is renamed `source_study`; `cross_model_test` is dropped
+(its one use migrates to `training_benchmark`). Neither legacy value is a v3
+member.
+
+### The rule table
+
+Two channels. **ERROR** makes the store invalid; **FLAG** leaves it valid and
+marks it for review — `review` surfaces flags, and a flags-only result exits
+zero. Every error message ends with its rule id in parentheses, e.g. `(C1)`.
+
+| # | Rule | Type |
+|---|---|---|
+| S1 | `memory_schema_version` is exactly `3` | ERROR |
+| S2 | no unknown top-level key; no unknown claim key (a legacy-only key such as `type`, `status`, `evidence_count`, `runtime_scope`, or `superseded_by` is unknown here) | ERROR |
+| S3 | every required key present and non-empty | ERROR |
+| S4 | every closed-vocabulary value is a member of its vocabulary | ERROR |
+| S5 | `id` matches `<DOMAIN_TOKEN>_MEM_<26 Crockford base32 chars>` with this store's token; an unmapped `skillset` is an error naming `CLAIM_DOMAIN_TOKENS` | ERROR |
+| S5a | `id` unique within the store | ERROR |
+| S5b | across the stores a caller supplies, no `id` appears in two of them | ERROR |
+| S6 | `skillset` equals the containing directory name | ERROR |
+| S7 | `memory_version` is a positive integer (+1 per successful write is the writer's contract) | ERROR |
+| S8 | `last_verified` and `revalidate_after` are ISO `YYYY-MM-DD`; `revalidate_after` is not earlier than `last_verified` | ERROR |
+| S9 | `evidence` 1..3 when present; `canon` 1..5; `delta.kinds` 1..3; `contradicts` exactly 1 | ERROR |
+| S10 | `scope` matches `[a-z][a-z0-9_]*` | ERROR |
+| C1 | `claim` at most 75 words | ERROR |
+| C2 | `claim` 50 words or more | FLAG (fusion smell) |
+| C3 | each envelope item at most 40 words | ERROR |
+| C4 | `delta.statement` at most 50 words | ERROR |
+| C5 | `delta.kinds` has 3 members | FLAG (fusion smell) |
+| C6 | `claim` contains an accretion connective (`further showed`, `also showed`, `then showed`, `additionally demonstrated`) | ERROR |
+| E1 | `holds_in` and `not_shown_in` both present with ≥1 member | ERROR |
+| E2 | no `not_shown_in` member is a sentinel evasion (`n/a`, `none`, `unknown`, `everywhere`, `no limits`) | ERROR |
+| R1 | when `claim_class: reach`, `delta.kinds` is a subset of `{posture, verification}`; a reach claim may still carry `canon` | ERROR |
+| L1 | retired authoring vocabulary and migration lineage rejected as keys anywhere on a claim | ERROR |
+| L2 | claim and envelope prose contain no conversation deference | ERROR |
+| L3 | claim and envelope prose contain no model or agent identity token | ERROR |
+| L4 | claim and envelope prose contain no learner/evaluator identity or bare specimen grade | ERROR |
+| L5 | no field carries machine-, host-, session-, or toolchain-local state | FLAG |
+| I1 | `canon` members match `(AP\|PAT\|DRILL)_[a-z0-9_]+` or a bare package variant id (`[a-z][a-z0-9_]*`) | ERROR |
+| I2 | when a `library/` root is supplied and present, each `canon` member resolves within this claim's package or `metaskills` | FLAG |
+| I3 | `evidence` members match this store's own event-id family - derived from its History (`ART_EV_`, `GAMEDESIGN_EV_`, `SE_EV_`, `WRITING_EV_`, never from the claim-domain token table), with the generic `[A-Z][A-Z0-9]*_EV_[0-9]+` family applying when there is no History to derive from | ERROR |
+| I4 | when `training_history.jsonl` is present, each `evidence` member exists, is `valid`, is `performance`, is not a correction, and is not quarantined | ERROR |
+| I5 | when History is absent, `evidence` members are not resolved: absence is not corruption and the store stays valid | by construction |
+| I6 | `contradicts` resolves to a claim in the same store, is symmetric (A names B implies B names A), and never self-references | ERROR |
+
+The word caps are closed: a cap reopens only on contradictory evidence from a
+real migration, not on a repeat of the completed sample study.
+
+Referential integrity - canon resolution (`I1`/`I2`), evidence admissibility
+against History (`I3`/`I4`/`I5`), and contradiction symmetry (`I6`) - is
+validated by `validate_v3_references`, and its resolution is conditional by
+design. A v3 store validates standing alone with no History, no `library/`,
+and no version-control repository beside it: shape is checked always, evidence
+resolves only when History is present, canon resolves only when a Library root
+is present, and a canon reference that does not resolve is a FLAG for `review`,
+never an ERROR - Memory validity does not depend on library state.
+
+### A contradiction is a pair, and that is a bound
+
+R2.5 §4.8 defines a Memory contradiction as a **disputed pair** and calls the
+other side a **counterpart**, singular, without ever stating the cardinality as
+a rule. S9 states it: when `contradicts` is present it holds **exactly one**
+claim id. With I6's symmetry and no-self-reference, that makes every valid
+contradiction component exactly two claims:
+
+```text
+A contradicts B
+B contradicts A
+```
+
+The rule is load-bearing at retrieval, not decorative. A query returns a
+contradicted claim together with its counterpart, and the counterpart is not
+charged against the caller's limit. Co-return is therefore **one hop to one
+counterpart and never recursive**: nothing walks a contradiction-connected
+component, and nothing spends a traversal budget on one. Expansion is at most
+one counterpart per ranked claim, so what comes back is bounded by the request
+and not by the store. Chains and contradiction graphs are not supported: they
+are rejected as invalid, and a `limit` of 1 answered with a chain would be the
+store dump §9.2 forbids.
+
+### What v3 validation deliberately cannot check
+
+Stated so no future implementer mistakes silence for permission:
+
+- whether the stated delta is **real** against this skill + Canon + no Memory;
+- whether the claim merely confirms that Canon worked;
+- whether the claim is portable or craft-scoped;
+- whether `confidence` is honest;
+- whether the claim is genuinely one claim;
+- whether a contradiction should resolve, and how.
+
+All six are semantic judgment. Scripts own structure, accounting, and (once
+wired) referential integrity. Nothing else.
+
+### `review`: what it reports, and what it refuses to decide
+
+`review` is a **reporting** operation, not a repair one. It reads the store,
+prints what a human should look at, and changes nothing: no file, no
+`memory_version`, no History event, and no receipt, sidecar, cache, or
+acknowledgement file recording that a finding was seen. A finding is a
+property of current state, so the same run reports it again until an
+authorised write changes that state.
+
+Three outcomes are kept apart:
+
+| State | Channel | Exit |
+|---|---|---|
+| structurally invalid | `ERROR:`, with the rule id | non-zero; findings are withheld |
+| mechanically detectable, semantically undecidable | a review item | zero |
+| ordinary healthy claim | nothing | zero |
+
+Review is **not a substitute for validation** and never softens it. An ERROR
+rule is not downgraded to a flag so that review can keep going: a malformed
+contradiction — one-sided, missing its target, naming more than one
+counterpart, or naming itself — is still invalid after T07, and review reports
+it as an error rather than listing it as a concern.
+
+What a v3 review lists:
+
+- **`revalidate_after` past due.** Age triggers a listing *and nothing else*
+  (F2). It does not suppress retrieval, lower rank, change `confidence`,
+  suggest a new one, or touch `last_verified` or `revalidate_after`. A store
+  whose every claim is past due retrieves identically to one that is not.
+  `STALE_DAYS` has no part on this path; the per-claim date replaced it.
+- **The FLAG rules** — C2 (a claim at or past 50 words), C5 (`delta.kinds` with
+  three members), L5 (prose carrying machine-, host-, session-, or
+  toolchain-local state), and I2 (an unresolved `canon` id). These come
+  straight from the validator, so review and `validate` cannot disagree about
+  what is a flag. A flag leaves the store **valid**; it is a smell to look at,
+  not an invalidity.
+- **Unresolved `canon` ids, conditional on the library.** I2 is reported only
+  when a `library/` root actually exists. With no library there is nothing to
+  resolve against, and absence is a missing input rather than corruption: the
+  same store stays valid and unflagged. Review reports only what failed to
+  resolve — it never enumerates the links that did, because listing them would
+  be Memory offering a Canon menu, and Canon is selected before Memory is read.
+- **Valid disputed pairs.** Each pair is listed once, for human judgment. Both
+  claims stay present and retrievable; review performs no demotion, no merge,
+  no erasure, no confidence change, no winner selection, and no retirement.
+  (The stale R2.5 wording that `review` reports *asymmetric* `contradicts` is
+  superseded: after T07 asymmetry is an ERROR, so the only thing left to
+  surface is a well-formed pair.)
+- **The uncited-events line**, informational, as T06 relabelled it.
+
+No review code computes, recommends, promotes, or demotes a `confidence`, and
+none derives one from evidence length, event count, elapsed time, `claim_kind`,
+or the presence of a contradiction (F1, F2). The v3 output prints no confidence
+value at all.
+
+Everything in "What v3 validation deliberately cannot check" above stays
+uncheckable here too. Review exposes mechanical smells; whether the delta is
+real, whether the claim only confirms Canon worked, whether it is portable,
+whether the confidence is honest, whether the prose is one claim, and which
+side of a contradiction should win remain the reader's judgment.
+
+One known gap is recorded rather than worked around: a valid disputed pair
+cannot be resolved by the ordinary one-claim `retire`, because removing either
+member leaves the survivor with an I6-asymmetric link. I6 is not weakened to
+make that work, and no atomic pair-resolution operation exists yet.
 
 ### Self-containment
 
-> An entry must be valid and applicable after the conversation that produced it
+> A claim must be valid and applicable after the conversation that produced it
 > is gone.
 
 This is `CLAUDE.md` rule 1 — a card must execute after its source is gone —
-applied to memory. An observation reading *"see the earlier project chat for
+applied to memory. A claim reading *"see the earlier project chat for
 details"* is incomplete. Conversation references may survive as optional
 authoring provenance; never as a runtime dependency.
 
@@ -383,87 +536,32 @@ when every criterion passes. If setup, tooling, contamination, or missing
 evidence prevents that judgment, the sitting is `invalid`. `partial` is never a
 qualification result.
 
-## 7. Promotion, lifecycle, compaction
+## 7. Retrieval
 
-### Two thresholds
-
-```text
-stochastic_performance    repeated evidence, then retention, then transfer
-deterministic_contract    one clear reproduction may justify a candidate fix
-```
-
-After a deterministic contradiction is fixed, the rule belongs in canon, the
-resolver, or a test. The entry moves to `resolved` and stops being retrieved.
-
-### Lifecycle
+Canon resolves first; Memory is retrieved second and bounded. Memory never
+selects or reroutes Canon.
 
 ```text
-active      currently believed and retrieved
-monitoring  believed but under retest, or the owning card changed
-resolved    the underlying issue was fixed and the fix held
-superseded  replaced by another entry; set superseded_by
-obsolete    the environment changed and the observation no longer applies
+request → route/select Canon identity → bounded Memory retrieval
+        → apply selected Canon → execute
 ```
 
-Only `active` and `monitoring` entries are returned by `memory.py query`.
-Resolved history stays in the file; it stops biasing the runtime.
+A `query` matches on `scope`, on `canon` ids Canon selection has **already**
+pinned and the caller supplied, and on cue and `claim` substrings. Nothing
+matched is nothing returned: an empty scope with no cues and no canon ids is
+answered as nothing rather than as a store dump. Rank orders only what already
+matched, compared left to right — exact `scope`, then exact `canon` id, then cue
+hits, then `confidence` — so no number of cue hits outranks an exact match and
+`confidence` outranks nothing. Claims of equal rank keep the order the file gives
+them; the opaque `id` is never parsed, ranked, or ordered by. Every field is
+read, `confidence` included, and none is written.
 
-### Specialization profiles
+A contradicted claim always comes back with its counterpart, which is not charged
+against the caller's limit. Co-return is one hop to one counterpart and never
+recursive (§5).
 
-A `specialization_profile` answers **where has this skill actually demonstrated
-transfer?** It is not a separate score system and must not infer mastery from the
-parent skillset. Scope it to a readable specialization such as fiction, poetry,
-encounter design, environment art, backend engineering, or another meaningful
-subcategory. Strengthen or narrow it as valid exercises, evaluations, field tests,
-or mentor-to-production transfer accumulate.
-
-### Card-candidate incubation
-
-A `card_candidate` answers **what possible canonical lesson is accumulating
-evidence but is not ready yet?** It preserves a reusable hypothesis without
-forcing premature Pattern/AP/Drill creation. Keep the observation generalized,
-source-independent, and self-contained; record supporting events rather than
-source locators. Use `likely_owners` to name plausible existing owners when known.
-
-A candidate may accumulate evidence and move from `provisional` to `repeated` or
-`strong`, but **evidence never promotes it automatically**. Sufficient evidence
-triggers deliberate synthesis review. That review may: (1) create a new card,
-(2) add a Variant or refinement to an existing owner, (3) conclude that existing
-canon already covers the lesson, (4) retain the lesson only inside a specialization,
-or (5) reject it as false, redundant, or too narrow. After disposition, mark the
-candidate `resolved`, `superseded`, or `obsolete` as appropriate and point to a
-replacement with `superseded_by` when one exists.
-
-A `card_candidate` whose likely owners are exact object ids may enter Candidate
-Refinement & Qualification (`CANDIDATE_REFINEMENT.md`), which compares a bounded
-card change against the current canon on frozen target and protected cases. CRQ
-needs no schema change and never writes memory: its result is only a memory
-disposition recommendation, which is applied deliberately through `memory.py
-entry`. A qualified candidate is not resolved until the approved change has landed
-and its fix holds; synthetic stress results never become evidence here.
-
-### Compaction
-
-```text
-raw events  →  periodic synthesis  →  one compact entry
-```
-
-Raw history is preserved. Compact entries may be merged, strengthened,
-narrowed, resolved, superseded, or re-scoped. Evidence is never deleted to make
-a conclusion look cleaner.
-
-### Retrieval
-
-Canon resolves first; memory is retrieved second and bounded. Memory never
-chooses the AP.
-
-```text
-request → canonical routing → owners → bounded memory → execute
-```
-
-When several entries match, prefer exact AP/Pattern/Training scope over
-topic scope over skillset scope; then `active` over `monitoring`; then stronger
-confidence; then more recent `last_verified`.
+A `reach` claim may change posture, verification, calibration, or willingness to
+claim a capability. It may not select Canon, choose an AP, or route work.
 
 ## 8. What memory must not store
 
@@ -481,9 +579,9 @@ user-specific preferences — those belong to a future User Memory layer
 ```
 
 Nothing becomes Skillset Memory except by explicit writeback of a **compact,
-generalized current state**. A learned principle captures what should transfer
-forward from evidence; an empirical result captures what testing actually
-showed. Temporary state is not memory however durable it feels. The generalized
+generalized current state**. A claim captures what should transfer forward; the
+events it was distilled from stay in History. Temporary state is not memory
+however durable it feels. The generalized
 lesson such state reveals may become memory; the state itself never does.
 
 Memory may overlap conceptually with canon when it records **how this skill has
@@ -503,9 +601,9 @@ handoff and user-preference layer. Skillset Memory stays repo-backed and travels
 with the skill. Do not write craft-performance observations into a host-provided
 user-scoped store.
 
-The validator rejects entries carrying keys from the retired authoring
+The validator rejects a claim carrying a key from the retired authoring
 vocabulary (`source_id`, `session_id`, `current_stage`, `unit`, `next_unit`,
-`parent_gen_id`, and similar).
+`parent_gen_id`, and similar) under rule L1.
 
 ## 9. Seeding
 
@@ -521,3 +619,5 @@ When seeding from retained history:
 - normalize every seed into this schema rather than copying it verbatim from
   wherever it was recovered;
 - never infer an event that was not recorded.
+
+---

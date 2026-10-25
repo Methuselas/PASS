@@ -65,8 +65,8 @@ class CandidateRunFixture(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.base = Path(self.temporary.name)
         self.library = self.base / "library"
-        self.memory = self.base / "memory"
-        self.memory.mkdir()
+        self.candidates = self.base / "canon_workflow"
+        self.history = self.base / "history"
         for relative, text in (
             (TARGET, card("PAT_example")),
             (SUPPORT, card("PAT_support")),
@@ -104,9 +104,10 @@ class CandidateRunFixture(unittest.TestCase):
         record = crq.new_run_record(
             run_id=run_id,
             domain="software-engineering",
-            memory_entry_id="SE_MEM_0042",
+            candidate_id="SE_CAND_01M56ABCD0000000000000042",
             library_root=self.library,
-            memory_root=self.memory,
+            candidate_root=self.candidates,
+            history_root=self.history,
         )
         crq.initialize_run(out, record, self.populate)
         return out
@@ -241,7 +242,7 @@ class StateMachineTests(CandidateRunFixture):
         before = self.run_bytes(run_dir)
 
         def failing(root: Path, run: dict) -> None:
-            run["memory_entry_id"] = "changed"
+            run["candidate_id"] = "changed"
             raise crq.CandidateQualificationError("assessment is not ready")
 
         with self.assertRaisesRegex(crq.CandidateQualificationError, "not ready"):
@@ -294,7 +295,7 @@ class PersistenceTests(CandidateRunFixture):
 
         def corrupting(value):
             if isinstance(value, dict) and "run_id" in value and "state" in value:
-                value = dict(value, memory_entry_id="SE_MEM_9999")
+                value = dict(value, candidate_id="SE_CAND_01M56ABCD0000000000009999")
             return original(value)
 
         with mock.patch.object(schemas, "stable_json", corrupting):
@@ -320,7 +321,7 @@ class PersistenceTests(CandidateRunFixture):
         pristine = json.loads(path.read_text(encoding="utf-8"))
         cases = {
             "unknown key": dict(pristine, promoted=True),
-            "missing key": {k: v for k, v in pristine.items() if k != "memory_root"},
+            "missing key": {k: v for k, v in pristine.items() if k != "history_root"},
             "reason outside its state": dict(pristine, invalid_reason="early"),
             "unknown state": dict(pristine, state="qualified"),
             "history disagrees": dict(pristine, state="plan-frozen"),
@@ -336,7 +337,8 @@ class PersistenceTests(CandidateRunFixture):
     def test_scope_ceiling_override_is_recorded_and_bounded(self) -> None:
         common = dict(
             run_id="SE_CRQ_0001", domain="software-engineering",
-            memory_entry_id="SE_MEM_0042", library_root=self.library, memory_root=self.memory,
+            candidate_id="SE_CAND_01M56ABCD0000000000000042", library_root=self.library,
+            candidate_root=self.candidates, history_root=self.history,
         )
         with self.assertRaisesRegex(crq.CandidateQualificationError, "override_reason"):
             crq.new_run_record(**common, max_changed_cards=5)
@@ -356,7 +358,8 @@ class PersistenceTests(CandidateRunFixture):
         out = self.workspace / "software-engineering" / "SE_CRQ_0001"
         record = crq.new_run_record(
             run_id="SE_CRQ_0001", domain="software-engineering",
-            memory_entry_id="SE_MEM_0042", library_root=self.library, memory_root=self.memory,
+            candidate_id="SE_CAND_01M56ABCD0000000000000042", library_root=self.library,
+            candidate_root=self.candidates, history_root=self.history,
         )
         with self.assertRaises(crq.BaselineDriftError):
             crq.initialize_run(out, dict(record))

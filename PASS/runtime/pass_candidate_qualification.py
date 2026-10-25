@@ -3,7 +3,7 @@
 
 The administration itself lives in the `candidate_qualification` package beside
 this script; this file only parses arguments and reports. It never writes
-`library/` or Skillset Memory, never calls a model, and never judges domain
+`library/` or the candidate store, never calls a model, and never judges domain
 semantics. Run directories live under
 `workspace/candidate-qualification/<domain>/<run-id>/`.
 """
@@ -46,16 +46,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     commands = parser.add_subparsers(dest="command", required=True)
     prepare_command = commands.add_parser(
-        "prepare", help="start a run from one Skillset Memory card_candidate"
+        "prepare", help="start a run from one open card candidate"
     )
     prepare_command.add_argument("--domain", required=True)
-    prepare_command.add_argument("--memory-entry", required=True)
+    prepare_command.add_argument("--candidate", required=True)
     prepare_command.add_argument(
         "--out", type=Path, default=None,
         help=f"run directory; default {WORKSPACE_BUCKET}/<domain>/<next run id>",
     )
     prepare_command.add_argument("--library", type=Path, default=None)
-    prepare_command.add_argument("--memory-root", type=Path, default=None)
+    prepare_command.add_argument("--candidates", type=Path, default=None)
+    prepare_command.add_argument("--history", type=Path, default=None)
     prepare_command.add_argument("--max-changed-cards", type=int, default=None)
     prepare_command.add_argument("--max-new-cards", type=int, default=None)
     prepare_command.add_argument(
@@ -96,10 +97,11 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "prepare":
             out, run = prepare(
                 domain=args.domain,
-                memory_entry_id=args.memory_entry,
+                candidate_id=args.candidate,
                 out=args.out,
                 library_root=args.library,
-                memory_root=args.memory_root,
+                candidate_root=args.candidates,
+                history_root=args.history,
                 max_changed_cards=args.max_changed_cards,
                 max_new_cards=args.max_new_cards,
                 override_reason=args.override_reason,
@@ -144,7 +146,7 @@ def main(argv: list[str] | None = None) -> int:
                 )
         elif args.command == "finalize":
             run = finalize(args.run)
-            print(f"FINALIZED: {run['run_id']}; synthesis/report.md written; library and memory unchanged")
+            print(f"FINALIZED: {run['run_id']}; synthesis/report.md written; library and the candidate store unchanged")
         elif args.command == "status":
             print(json.dumps(status_report(args.run), indent=2, ensure_ascii=False))
         elif args.command == "invalidate":

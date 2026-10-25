@@ -43,8 +43,9 @@ from .schemas import (
     EVALUATOR_RELATIONS,
     EVIDENCE_DIR,
     EXECUTION_STATES,
+    FAILURE_LAYERS,
     FREEZE_NAME_RE,
-    MEMORY_ACTIONS,
+    CANDIDATE_ACTIONS,
     NONCANON_DISPOSITIONS,
     now_utc,
     PACKAGE_DIR,
@@ -98,7 +99,7 @@ from .evidence import (
     module_manifest_for,
     overlay_problems,
     parent_packets,
-    resolve_memory_candidate,
+    resolve_card_candidate,
     resolve_owners,
     support_closure,
     validate_arm_result,
@@ -145,9 +146,10 @@ def new_run_record(
     *,
     run_id: str,
     domain: str,
-    memory_entry_id: str,
+    candidate_id: str,
     library_root: Path,
-    memory_root: Path,
+    candidate_root: Path,
+    history_root: Path,
     max_changed_cards: int | None = None,
     max_new_cards: int | None = None,
     override_reason: str | None = None,
@@ -170,9 +172,10 @@ def new_run_record(
         "updated_at": created,
         "controller_sha256": controller_sha256(),
         "closing_controller_sha256": None,
-        "memory_entry_id": memory_entry_id,
+        "candidate_id": candidate_id,
         "library_root": str(Path(library_root).resolve()),
-        "memory_root": str(Path(memory_root).resolve()),
+        "candidate_root": str(Path(candidate_root).resolve()),
+        "history_root": str(Path(history_root).resolve()),
         "scope_limits": limits,
         "files": dict(RUN_FILES),
         "baseline_manifest_sha256": None,
@@ -526,8 +529,9 @@ def abandon(run_dir: Path, reason: str) -> dict[str, Any]:
 # ------------------------------------------------------------------ prepare
 
 
-def run_id_prefix(domain: str, memory_entry_id: str) -> str:
-    match = re.fullmatch(r"([A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*?)_MEM_[0-9]+", memory_entry_id)
+def run_id_prefix(domain: str, candidate_id: str) -> str:
+    """Run-id prefix from the candidate id's leading namespace, never its tail."""
+    match = re.fullmatch(r"([A-Z][A-Z0-9]*)_CAND_[0-9A-HJKMNP-TV-Z]{26}", candidate_id)
     return match.group(1) if match else re.sub(r"[^A-Z0-9]+", "_", domain.upper()).strip("_")
 
 
@@ -544,12 +548,12 @@ def next_run_id(domain_dir: Path, prefix: str) -> str:
 
 
 def resolve_run_dir(
-    out: Path | None, domain: str, memory_entry_id: str, protected: Iterable[Path]
+    out: Path | None, domain: str, candidate_id: str, protected: Iterable[Path]
 ) -> Path:
     """Choose or check `<...>/candidate-qualification/<domain>/<run-id>`."""
     if out is None:
         domain_dir = REPO_ROOT / WORKSPACE_BUCKET / domain
-        out = domain_dir / next_run_id(domain_dir, run_id_prefix(domain, memory_entry_id))
+        out = domain_dir / next_run_id(domain_dir, run_id_prefix(domain, candidate_id))
     out = Path(out).resolve()
     if not RUN_ID_RE.fullmatch(out.name):
         raise CandidateQualificationError(f"run directory name must be a run id like SE_CRQ_0001: {out.name}")
@@ -568,7 +572,7 @@ def resolve_run_dir(
 
 def load_intake(root: Path, run: dict[str, Any]) -> dict[str, Any]:
     if "intake" not in run["freezes"]:
-        raise CandidateQualificationError("this run has no frozen memory intake")
+        raise CandidateQualificationError("this run has no frozen candidate intake")
     intake = read_json(contained(root, run["files"]["intake"], "intake"))
     errors = validate_intake(intake, run)
     if errors:
@@ -579,15 +583,16 @@ def load_intake(root: Path, run: dict[str, Any]) -> dict[str, Any]:
 def prepare(
     *,
     domain: str,
-    memory_entry_id: str,
+    candidate_id: str,
     out: Path | None = None,
     library_root: Path | None = None,
-    memory_root: Path | None = None,
+    candidate_root: Path | None = None,
+    history_root: Path | None = None,
     max_changed_cards: int | None = None,
     max_new_cards: int | None = None,
     override_reason: str | None = None,
 ) -> tuple[Path, dict[str, Any]]:
-    """Start a run from one `card_candidate`: intake, baseline, and brief.
+    """Start a run from one open card candidate: intake, baseline, and brief.
 
     Checks run before anything is written. The run directory appears only after
     the baseline snapshot verifies against canon.
@@ -595,29 +600,32 @@ def prepare(
     if not DOMAIN_RE.fullmatch(domain or ""):
         raise CandidateQualificationError(f"domain must be a library package name: {domain!r}")
     library = Path(library_root or REPO_ROOT / "library").resolve()
-    memory_dir = Path(memory_root or REPO_ROOT / "memory").resolve()
+    candidates_dir = Path(candidate_root or REPO_ROOT / "canon_workflow").resolve()
+    history_dir = Path(history_root or REPO_ROOT / "memory").resolve()
     if not (library / domain).is_dir():
         raise CandidateQualificationError(f"library package not found: {library / domain}")
-    resolved = resolve_memory_candidate(memory_dir, domain, memory_entry_id)
-    entry = resolved["memory_entry"]
+    resolved = resolve_card_candidate(candidates_dir, history_dir, domain, candidate_id)
+    candidate = resolved["candidate"]
     index = card_index(library, {domain, SHARED_PACKAGE})
-    owners = resolve_owners(entry.get("likely_owners") or [], index, domain)
+    owners = resolve_owners(candidate.get("owners") or [], index, domain)
     targets = [owner["object_id"] for owner in owners if owner["resolution"] == "target"]
     if not targets:
         raise CandidateQualificationError(
-            f"{memory_entry_id} names no likely owner that is a card in {domain}; "
+            f"{candidate_id} names no likely owner that is a card in {domain}; "
             "add the exact object_id of the owner (or of the nearest existing card a "
-            "new card would join) with memory.py entry update, then prepare again"
+            "new card would join) to the candidate's `owners` in the candidate "
+            "store, then prepare again"
         )
     anchors = targets + [o["object_id"] for o in owners if o["resolution"] == "metaskills"]
     support = support_closure(anchors, index, domain) | (set(anchors) - set(targets))
-    out = resolve_run_dir(out, domain, memory_entry_id, (library, memory_dir))
+    out = resolve_run_dir(out, domain, candidate_id, (library, candidates_dir, history_dir))
     run = new_run_record(
         run_id=out.name,
         domain=domain,
-        memory_entry_id=memory_entry_id,
+        candidate_id=candidate_id,
         library_root=library,
-        memory_root=memory_dir,
+        candidate_root=candidates_dir,
+        history_root=history_dir,
         max_changed_cards=max_changed_cards,
         max_new_cards=max_new_cards,
         override_reason=override_reason,
@@ -651,8 +659,9 @@ def prepare(
             "schema_version": SCHEMA_VERSION,
             "run_id": run["run_id"],
             "domain": domain,
+            "candidate": resolved["candidate"],
+            "events": resolved["events"],
             "owners": owners,
-            **resolved,
         }
         write_json_atomic(contained(staging, run["files"]["intake"], "intake"), intake)
         record_freeze(staging, run, "intake", [run["files"]["intake"]])
@@ -668,7 +677,7 @@ def prepare(
 
 def freeze_assessment(run_dir: Path) -> dict[str, Any]:
     """Validate `controller/assessment.json` and freeze it; never re-freezes."""
-    failure_layers = load_pass_tool("memory").FAILURE_LAYERS
+    failure_layers = FAILURE_LAYERS
 
     def update(root: Path, run: dict[str, Any]) -> None:
         manifest = load_baseline_manifest(root, run)
@@ -697,24 +706,20 @@ def freeze_assessment(run_dir: Path) -> dict[str, Any]:
 
 def assessment_brief(run: dict[str, Any], intake: dict[str, Any], entries: list[dict[str, Any]]) -> str:
     """The operator brief for the assessment phase, written to `README.md`."""
-    entry = intake["memory_entry"]
-    diagnosis = entry.get("diagnosis") or {}
+    candidate = intake["candidate"]
     limits = run["scope_limits"]
     events = intake["events"]
     lines = [
         f"# CRQ run {run['run_id']} ({run['domain']})",
         "",
         "Administration scratch for one Candidate Refinement & Qualification run.",
-        "It never ships and nothing here enters a card or Skillset Memory. Do not",
-        "edit `library/`; a qualified candidate still needs deliberate synthesis review.",
+        "It never ships and nothing here enters a card. Do not edit `library/`; a",
+        "qualified candidate still needs deliberate synthesis review.",
         "",
-        f"## Memory candidate {entry.get('id')}",
+        f"## Candidate {candidate.get('id')}",
         "",
-        f"- Status: {entry.get('status')}; confidence: {entry.get('confidence')}; "
-        f"evidence class: {entry.get('evidence_class')}",
-        f"- Observation: {' '.join(str(entry.get('observation', '')).split())}",
-        f"- Diagnosis: {diagnosis.get('failure_layer', 'not recorded')}"
-        + (f" ({' '.join(str(diagnosis['hypothesis']).split())})" if diagnosis.get("hypothesis") else ""),
+        f"- State: {candidate.get('state')}",
+        f"- Hypothesis: {' '.join(str(candidate.get('hypothesis', '')).split())}",
         "",
         "Likely owners:",
         "",
@@ -744,12 +749,12 @@ def assessment_brief(run: dict[str, Any], intake: dict[str, Any], entries: list[
         f"- `candidate_disposition`: one of {', '.join(CANDIDATE_DISPOSITIONS)}. Only",
         "  `canon-candidate` can go on to candidate authoring.",
         f"- `primary_attribution`: one of {', '.join(PRIMARY_ATTRIBUTIONS)}; a canon-candidate is `skillcard`.",
-        "- `failure_layer`: the Skillset Memory vocabulary. Route by layer:",
+        "- `failure_layer`: CRQ's failure-layer vocabulary. Route by layer:",
         "  - knowledge: a missing or wrong reusable decision belongs to a Pattern;",
         "  - orchestration: a missing or wrong goal-directed flow belongs to an AP;",
         "  - training: a defective practice or evaluation belongs to a Drill;",
         "  - retrieval, application, continuity, reference, tool and interface failures",
-        "    never justify a card change: route them to memory, the runtime, the fixture",
+        "    never justify a card change: route them to the runtime, the fixture",
         "    or a fresh retest.",
         "- A repair routed against its layer (for example an orchestration defect to a",
         "  Pattern) needs a `routing_reason` saying why that card itself is defective.",
@@ -809,7 +814,7 @@ def freeze_plan(run_dir: Path) -> dict[str, Any]:
             raise CandidateQualificationError("controller/qualification_plan.json is missing")
         errors, files = validate_plan(
             read_json(path), run=run, root=root,
-            admissible=admissible_event_ids(Path(run["memory_root"]), run["domain"]),
+            admissible=admissible_event_ids(Path(run["history_root"]), run["domain"]),
         )
         if errors:
             raise CandidateQualificationError("plan cannot be frozen: " + "; ".join(errors))
@@ -893,8 +898,7 @@ def candidate_brief(
     actions: list[dict[str, str]],
 ) -> str:
     """The candidate-author brief. Held-out case details are never written here."""
-    entry = intake["memory_entry"]
-    diagnosis = entry.get("diagnosis") or {}
+    candidate = intake["candidate"]
     limits = run["scope_limits"]
     visible = [e for e in plan["cases"] if e["role"] == "target" and e["visibility"] == "author-visible"]
     held_out = [e for e in plan["cases"] if e["visibility"] == "held-out"]
@@ -906,9 +910,7 @@ def candidate_brief(
         "",
         "## Why this candidate exists",
         "",
-        f"- Memory candidate {entry.get('id')}: {' '.join(str(entry.get('observation', '')).split())}",
-        f"- Diagnosis: {diagnosis.get('failure_layer', 'not recorded')}"
-        + (f" ({' '.join(str(diagnosis['hypothesis']).split())})" if diagnosis.get("hypothesis") else ""),
+        f"- Candidate {candidate.get('id')}: {' '.join(str(candidate.get('hypothesis', '')).split())}",
         f"- Likely owners: {', '.join(o['label'] for o in intake['owners'])}",
         "",
         "## Frozen assessment",
@@ -997,7 +999,7 @@ def freeze_candidate(run_dir: Path) -> dict[str, Any]:
         intake = load_intake(root, run)
         plan = load_frozen_json(root, run, "plan", "qualification_plan")
         errors += evidence_references(root, files, [
-            run["run_id"], run["memory_entry_id"],
+            run["run_id"], run["candidate_id"],
             *(str(event.get("event_id")) for event in intake["events"]),
             *(entry["case_id"] for entry in plan["cases"]),
         ])
@@ -1170,7 +1172,7 @@ def qualification_result(root: Path, run: dict[str, Any]) -> dict[str, Any]:
         "run_id": run["run_id"],
         "status": gate["status"],
         "reason": gate["reason"],
-        "candidate_memory_entry": run["memory_entry_id"],
+        "candidate_id": run["candidate_id"],
         "changed_objects": [change["object_id"] for change in manifest["changes"]],
         "change_accounting": [
             {"action": change["action"], "object_id": change["object_id"],
@@ -1188,7 +1190,7 @@ def qualification_result(root: Path, run: dict[str, Any]) -> dict[str, Any]:
 
 
 def evaluate(run_dir: Path) -> dict[str, Any]:
-    """Write and freeze `qualification_result.json`. It never edits canon or memory."""
+    """Write and freeze `qualification_result.json`. It never edits canon or the candidate store."""
 
     def update(root: Path, run: dict[str, Any]) -> None:
         document = qualification_result(root, run)
@@ -1358,7 +1360,7 @@ def synthesis_report(root: Path, run: dict[str, Any], disposition: dict[str, Any
     assessment = load_frozen_json(root, run, "assessment", "assessment")
     intake = load_intake(root, run)
     manifest = read_json(contained(root, run["files"]["candidate_manifest"], "candidate manifest"))
-    entry = intake["memory_entry"]
+    candidate = intake["candidate"]
     deltas = result["case_deltas"]
 
     def case_lines(select: Callable[[dict[str, Any]], bool]) -> list[str]:
@@ -1376,7 +1378,7 @@ def synthesis_report(root: Path, run: dict[str, Any], disposition: dict[str, Any
         "# Candidate Qualification Report",
         "",
         f"Run {run['run_id']} ({run['domain']}). This report changes nothing in `library/` or",
-        "Skillset Memory; an accepted delta still lands through the ordinary repository workflow.",
+        "the candidate store; an accepted delta still lands through the ordinary repository workflow.",
         "",
         "## Candidate",
         "",
@@ -1385,7 +1387,7 @@ def synthesis_report(root: Path, run: dict[str, Any], disposition: dict[str, Any
         "",
         "## Why it was proposed",
         "",
-        f"Memory candidate {entry.get('id')}: {' '.join(str(entry.get('observation', '')).split())}",
+        f"Candidate {candidate.get('id')}: {' '.join(str(candidate.get('hypothesis', '')).split())}",
         "",
         "## Canon ownership assessment",
         "",
@@ -1436,10 +1438,10 @@ def synthesis_report(root: Path, run: dict[str, Any], disposition: dict[str, Any
         f"{disposition['synthesis_decision']}: {' '.join(disposition['reason'].split())}",
         *(["", disposition["reviewer_notes"].strip()] if disposition["reviewer_notes"].strip() else []),
         "",
-        "## Memory disposition recommendation",
+        "## Candidate disposition recommendation",
         "",
-        f"{disposition['memory_action']} for {disposition['memory_entry_id']}. Apply it deliberately with",
-        "`memory.py entry`; this run never writes Skillset Memory.",
+        f"{disposition['candidate_action']} for {disposition['candidate_id']}. Apply it deliberately to the",
+        "candidate store; this run never writes the candidate store.",
         "",
     ]
     return "\n".join(lines)
@@ -1448,8 +1450,8 @@ def synthesis_report(root: Path, run: dict[str, Any], disposition: dict[str, Any
 def finalize(run_dir: Path) -> dict[str, Any]:
     """Check the synthesis disposition, write the report, freeze both, and close.
 
-    A finalized run is read-only. Finalizing never writes `library/` or Skillset
-    Memory, and only a qualified candidate may be recorded as accepted.
+    A finalized run is read-only. Finalizing never writes `library/` or the
+    candidate store, and only a qualified candidate may be recorded as accepted.
     """
 
     def update(root: Path, run: dict[str, Any]) -> None:
@@ -1482,8 +1484,8 @@ def review_brief(run: dict[str, Any], result: dict[str, Any]) -> str:
         "  qualified candidate may be accepted as a canonical delta, and accepting still",
         "  changes nothing: the approved edit lands through the ordinary repository",
         "  workflow with validation, index regeneration, tests and a version bump.",
-        f"- `memory_action`: one of {', '.join(MEMORY_ACTIONS)}. It is a",
-        "  recommendation; apply it deliberately with `memory.py entry`. Mark a",
+        f"- `candidate_action`: one of {', '.join(CANDIDATE_ACTIONS)}. It is a",
+        "  recommendation; apply it deliberately to the candidate store. Mark a",
         "  candidate resolved only once the fix holds, never because Markdown changed.",
         "- A different candidate, plan or assessment is a fresh run; nothing frozen is",
         "  revised in place.",
@@ -1560,7 +1562,7 @@ def status_report(run_dir: Path) -> dict[str, Any]:
         "current_schema": run["schema_version"] == SCHEMA_VERSION,
         "controller_matches": run["controller_sha256"] == controller_sha256(),
         "closing_controller_sha256": run["closing_controller_sha256"],
-        "memory_entry_id": run["memory_entry_id"],
+        "candidate_id": run["candidate_id"],
         "scope_limits": run["scope_limits"],
         "baseline": {"status": "drifted" if drift else "clean", "problems": drift},
         "frozen_files": {

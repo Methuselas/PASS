@@ -140,7 +140,7 @@ and no other. The domain is the top-level package name of a selected module, so
 `art/composition` and
 `art/subjects/animals` both mean `memory/art/`. Stores land at
 `memory/<domain>/` in the release root — beside `library/`, never inside it.
-Packaging memory must not turn an observation into a card (`ARCHITECTURE.md`
+Packaging memory must not turn a claim into a card (`ARCHITECTURE.md`
 contract 20).
 
 Auxiliary cards do not cause their owner domain's memory to ship. Cross-skill
@@ -158,6 +158,20 @@ release is a reader of the record, not its persistence target: new events belong
 to the library that owns the store. Read-only is a statement of that contract,
 not a security boundary — a consumer who clears the bit only forks a copy that
 no longer travels back.
+
+A release ships a **current-state projection** and nothing else (R2.5 §8.5):
+the release stages only `memory/<domain>/skill_memory.yaml`, with every
+claim-level `evidence` key removed and no `training_history.jsonl`. The
+projection is not a rewrite — no id is regenerated, renumbered, compacted, or
+abbreviated, and the source store is read, never written. Serialization mirrors
+`memory.py`'s own dump, and the staged bytes are exactly what the memory
+quality gate validates. `check` rejects a release that ships History beside a
+store or an `evidence` key inside one. There is one branch and it projects
+schema 3: a store of any other declared schema stops the build rather than
+travelling unexamined into a release, because the legacy pass-through was
+deleted with the legacy reader. A project snapshot is not a projection: it
+round-trips the full writable store, History and evidence included, and its import gate validates
+those shipped bytes.
 
 `RELEASE_MANIFEST.json` records the shipped domains in `memory_domains`, and
 `check` rejects a declared domain whose store is missing, a packaged domain the

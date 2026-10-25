@@ -74,7 +74,7 @@ lesson extraction.
 **Preflight is source-scoped and occurs exactly once for the run.** Only accepted
 preflight releases the first unit for substantive reading. Each unit completes
 PASS 1, any consequential-question checkpoint, the full cold PASS 2, the card-only
-PASS 3, and verified acceptance into cumulative skill-staging before the next
+PASS 3, and verified acceptance into the run's cumulative staging before the next
 becomes active. Later units reconcile against canonical knowledge plus that
 accepted source delta. After the final unit, the controller enters a separate
 mandatory source-closure audit for AP synthesis, DRILL synthesis, cross-library
@@ -144,26 +144,30 @@ not modified unless that work is explicitly opened.
 
 ### Workspace lifecycle
 
-Before creating work files, choose one task-named directory under the existing
-purpose bucket: `workspace/skill-staging/`, `builds/`, `code-studies/`,
+PASS runs live in the one canonical run root, `Pass-runs/`, which the
+controller owns. For other work files, choose one task-named directory under the
+existing purpose bucket: `workspace/builds/`, `code-studies/`,
 `drill-runs/`, `candidate-qualification/` or `handoffs/`. Put reusable tools, release recipes, inputs and
 deliverables in their existing `tools/`, `release-recipes/`, `sources/` and
 `project-releases/` buckets. Disposable process-local files belong under
 `workspace/tmp/`, not a root-level `tmp/`. Do not drop loose generated files or
 new ad-hoc buckets in the workspace root.
 
-The executable entrypoint owns `workspace/skill-staging/<domain>/<book-run>/`.
+The executable entrypoint owns
+`Pass-runs/<domain>[/<module-path>...]/<run-id>/`, filed at the canonical library
+ownership path the run authors into and named by a short opaque run id.
 `controller/` contains progression state and hard checkpoints; `prepared-source/`
 contains verified model-facing input when Source Prep has run;
 `drafts/<canonical-category>/` contains the active unit's provisional changes;
 `accepted/` contains the cumulative reviewed source delta; and `recipes/` may
-stage the domain's existing canonical recipe alongside a module change. The book
-name never becomes a library category by itself. Prepared-source metadata and
+stage the domain's existing canonical recipe alongside a module change. The source title never becomes a
+path segment or a library category by itself; it is recorded as the run's
+`label` in `controller/run.json`. Prepared-source metadata and
 run/checkpoint state remain authoring-only and never enter cards.
 
-Project snapshots and published SkillForge releases never carry `skill-staging/`
+Project snapshots and published SkillForge releases never carry `Pass-runs/`
 authoring state: runs resume from the verified checkpoint in the repository's
-workspace, not from an archive. Project snapshots include only the canonical
+run root, not from an archive. Project snapshots include only the canonical
 release recipe for the selected domain(s).
 
 Unit landing validates the complete working overlay and accepts the reviewed
@@ -1002,13 +1006,14 @@ Four layers of state matter, and they have different owners.
 
 1. **Canonical skillset** — general, reusable, source-independent executable
    knowledge. This is `library/`.
-2. **Skill memory** — compact current state. A `learned_principle` records the
-   durable craft or design lesson retained from evidence; a `training_result`
-   records the outcome of an actual exercise or evaluation; a
-   `specialization_profile` tracks demonstrated transfer into a subcategory; and
-   a `card_candidate` preserves a reusable canon hypothesis while evidence and
-   ownership are still being tested. Strengths, weaknesses, boundaries, and
-   self-calibration live here too.
+2. **Skill memory** — compact current state, held as **claims**. One claim is
+   one learned proposition that changes what the next relevant task does,
+   classed `conduct` for how the work is carried out or `reach` for posture,
+   verification, and willingness to claim a capability. A claim is current
+   because it is present: there is no liveness field, and retirement is removal.
+   A canon hypothesis that is not yet a claim about this skill's own conduct is
+   not Memory — it belongs to the candidate workflow store at
+   `canon_workflow/<domain>/card_candidates.yaml`.
 3. **Training history** — the event-level record of what happened in specific
    attempts and evaluations, including successes, failures, feedback, retention,
    and transfer.
@@ -1032,12 +1037,12 @@ constraints remain:
   general, reusable, and source-independent. Evidence may justify a reviewed
   refinement or Variant; it never edits the owner automatically.
 
-**On timing:** learned state and empirical results may develop while the skill is
-still being taught. Evidence from teaching, mentor study, practice, or review may
-establish a provisional learned principle; actual exercises and evaluations may
-establish training results. Further testing can strengthen, qualify, or overturn
-either. Waiting until a lane is “complete” would discard both the learning process
-and the evidence produced while getting there. What waits for maturity
+**On timing:** learned state may develop while the skill is still being taught.
+Evidence from teaching, mentor study, practice, or review may establish a claim
+at `provisional` confidence; actual exercises and evaluations may raise it.
+Further testing can strengthen, narrow, or retire a claim. Waiting until a lane
+is “complete” would discard both the learning process and the evidence produced
+while getting there. What waits for maturity
 is *distribution*: a Skill Forge release is still declared by the user, never
 inferred, and memory travelling in a release does not make the release mature.
 

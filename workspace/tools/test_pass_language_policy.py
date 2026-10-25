@@ -40,6 +40,19 @@ def language_plan() -> dict:
     return plan
 
 
+def language_stage(run):
+    """The preflight stage envelope carrying the same policy as language_plan()."""
+    plan = language_plan()
+    record = run.template()
+    record["payload"].update(
+        title=plan["title"], author=plan["author"], extent=plan["extent"],
+        text_quality=plan["text_quality"], subject=plan["subject"],
+        units=plan["units"], no_extract=plan["no_extract"],
+        language_policy=plan["language_policy"],
+    )
+    return record
+
+
 class PreflightPolicyTests(unittest.TestCase):
     def test_schema3_round_trip_preserves_language_policy(self) -> None:
         record = preflight.parse_preflight(language_plan())
@@ -74,7 +87,7 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.source = self.tempdir / "source.txt"
         self.source.write_text("synthetic source", encoding="utf-8")
         self.task = "language-policy-" + uuid.uuid4().hex[:10]
-        self.root = start(REPO, self.source, "software-engineering", self.task, "complete")
+        self.root = start(REPO, self.source, "software-engineering", None, "complete")
         self.run = Run(REPO, self.root)
         # Source Prep is independently tested. Put this synthetic controller run
         # directly at preflight so this file exercises only the policy gates.
@@ -87,14 +100,14 @@ class WorkflowPolicyTests(unittest.TestCase):
         shutil.rmtree(self.tempdir, ignore_errors=True)
 
     def test_pass1_pass2_pass3_language_gates(self) -> None:
-        self.run.submit("preflight", language_plan())
+        self.run.submit("preflight", language_stage(self.run))
         self.run.state["phase"] = "pass1"  # bypass presentation only in regression fixture
         self.run.save()
 
         pass1 = self.run.template()
-        self.assertIn("version_sensitive_flags", pass1)
-        pass1["full_read"] = True
-        pass1["version_sensitive_flags"] = [
+        self.assertIn("version_sensitive_flags", pass1["payload"])
+        pass1["payload"]["full_read"] = True
+        pass1["payload"]["version_sensitive_flags"] = [
             {
                 "flag_id": "dict_order",
                 "source_claim": "Dictionary ordering is not guaranteed.",
@@ -104,9 +117,9 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.run.submit("pass1", pass1)
 
         pass2 = self.run.template()
-        audit = pass2["language_modernization"]
+        audit = pass2["payload"]["language_modernization"]
         self.assertEqual(audit["target_version"], "3.14.7")
-        pass2["full_reread"] = True
+        pass2["payload"]["full_reread"] = True
         audit["all_version_sensitive_material_reviewed"] = True
         audit["resolutions"][0].update(
             disposition="modernized",
@@ -116,11 +129,13 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.run.submit("pass2", pass2)
 
         pass3 = self.run.template()
-        self.assertIn("core_language_agnosticism", pass3["checks"])
-        self.assertIn("language_modernization", pass3["checks"])
+        self.assertIn("core_language_agnosticism", pass3["payload"]["checks"])
+        self.assertIn("language_modernization", pass3["payload"]["checks"])
 
     def test_schema3_revision_cannot_drop_language_policy(self) -> None:
-        self.run.submit("preflight", language_plan())
+        # revise-preflight is a maintenance command over the accepted preflight
+        # record, not a model stage artifact, so it keeps the raw preflight shape.
+        self.run.submit("preflight", language_stage(self.run))
         legacy = language_plan()
         legacy.pop("language_policy")
         legacy["schema_version"] = 2

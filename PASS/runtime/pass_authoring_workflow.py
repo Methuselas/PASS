@@ -24,9 +24,10 @@ from typing import Any, Iterable
 import uuid
 
 from . import pass_authoring_run as preflight
+from . import stage_contract as contract
 
 
-RUN_SCHEMA = 2
+RUN_SCHEMA = 3
 PHASES = {"load", "source_prep", "preflight", "preflight_accept", "pass1", "checkpoint", "pass2", "pass3", "land",
           "closure_pass2", "closure_pass3", "closure_land", "finished"}
 STOP_AFTER = {"source_prep", "preflight", "complete"}
@@ -58,6 +59,36 @@ LANGUAGE_SEMANTIC_CHECKS = ("core_language_agnosticism", "language_modernization
 MODERNIZATION_DISPOSITIONS = {"current", "modernized", "historical", "rejected"}
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 FLAG_RE = re.compile(r"^[a-z][a-z0-9_]*$")
+
+# ----------------------------------------------------------------- run layout
+# Runs live in one root whose hierarchy mirrors canonical library ownership:
+#
+#     Pass-runs/<domain>[/<module-segment>...]/<run-id>/
+#     Pass-runs/software-engineering/languages/python/r_a1b2c3d4/
+#
+# The run id is short, opaque and non-semantic. Every descriptive string --
+# source title, book name, unit title -- belongs in controller/run.json, never
+# in a path segment, because a descriptive segment is what pushed real runs past
+# the Windows MAX_PATH limit.
+RUNS_ROOT = "Pass-runs"
+RUN_ID_RE = re.compile(r"^r_[0-9a-f]{8}$")
+LABEL_MAX_CHARS = 80
+
+# Windows refuses paths at or beyond 260 characters unless the machine opts into
+# long paths, which PASS must not require. The deepest artifact a run writes is
+# accepted/files/<repo-relative card path>; the longest card path in the library
+# is roughly 160 characters, so the run root itself has to stay small.
+# RUN_ROOT_BUDGET is the only bound on how deep a run may be filed. Run ownership
+# mirrors the canonical library path, so the layout must not impose a taxonomy
+# limit of its own: the library decides how deep a module sits, and the single
+# real constraint is that the run root still leave room for
+# accepted/files/<repo-relative card path>. Measured against the real library the
+# deepest case is software-engineering at 246 absolute characters from a 14-char
+# repo prefix, and the deepest run root any domain actually needs is 60.
+# tests/test_architecture.py::RunPathBudgetTests holds both numbers to account.
+WINDOWS_MAX_PATH = 260
+SAFE_ABSOLUTE_PATH = 250
+RUN_ROOT_BUDGET = 72
 
 
 class RunError(preflight.PreflightError):
@@ -100,6 +131,102 @@ def inside(root: Path, name: str | PurePosixPath) -> Path:
             raise RunError(f"linked authoring path is not supported: {cursor}")
         cursor = cursor.parent
     return path
+
+
+def check_path_budget(path: Path, what: str) -> Path:
+    """Fail loudly before Windows fails obscurely.
+
+    A path over the limit surfaces as WinError 3/206 from somewhere deep inside a
+    copy, which reads as data loss rather than as a naming problem. Naming the
+    offending path converts it into a fixable one.
+    """
+    length = len(str(path.absolute()))
+    if length >= SAFE_ABSOLUTE_PATH:
+        raise RunError(
+            f"{what} would be {length} characters, past the {SAFE_ABSOLUTE_PATH}-character "
+            f"safe bound under the Windows {WINDOWS_MAX_PATH} limit: {path}"
+        )
+    return path
+
+
+def runs_root(repo: Path) -> Path:
+    return inside(repo, RUNS_ROOT)
+
+
+def parse_owner(owner: str | None) -> tuple[str, ...]:
+    """Shape-check the library module path a run authors into, below its domain.
+
+    Runs mirror library ownership rather than inventing a second taxonomy, so a
+    Python run is owned by ``languages/python`` -- the path its cards land in --
+    and never by a parallel label such as ``Python``, which the slug rule
+    rejects. There is deliberately no depth or length limit here: the library
+    decides how deep a module sits, and the binding constraint is the total path
+    budget checked when the run root is created.
+
+    This is shape only, so an existing run stays openable after its library
+    module is renamed or retired. ``resolve_owner`` adds the mirroring check at
+    creation time.
+    """
+    if owner is None:
+        return ()
+    text = owner.strip().strip("/")
+    if text in {"", "."}:
+        return ()
+    if "\\" in text:
+        raise RunError("owner must use forward slashes")
+    parts = tuple(text.split("/"))
+    if not all(parts):
+        raise RunError(f"owner has an empty path segment: {owner}")
+    for part in parts:
+        if not SLUG_RE.fullmatch(part):
+            raise RunError(f"owner segment must be a lowercase library slug: {part}")
+    return parts
+
+
+def resolve_owner(repo: Path, domain: str, owner: str | None) -> tuple[str, ...]:
+    """Validate that a new run's owner really mirrors a canonical library path.
+
+    The owner must name an existing module directory under ``library/<domain>/``,
+    or a new leaf directly beneath one, so a run may author the first card of a
+    genuinely new module while a typo such as ``langauges/python`` is refused
+    instead of quietly creating a junk run tree.
+
+    The limit of this check is deliberate and worth knowing: a misspelled
+    *first* segment (``craftt`` for ``craft``) is indistinguishable from a new
+    top-level module and is therefore accepted. Catching that would require
+    forbidding new modules, which would block authoring a module's first card.
+    """
+    parts = parse_owner(owner)
+    if not parts:
+        return parts
+    base = inside(repo, f"library/{domain}")
+    target = inside(base, "/".join(parts))
+    if target.is_dir():
+        return parts
+    if target.exists():
+        raise RunError(f"owner path is not a library directory: {domain}/{'/'.join(parts)}")
+    parent = target.parent
+    if not parent.is_dir():
+        raise RunError(
+            f"owner does not mirror a canonical library path: library/{domain}/{'/'.join(parts)} "
+            f"does not exist and neither does its parent; create the module location first "
+            f"or correct the path"
+        )
+    return parts
+
+
+def new_run_id(base: Path) -> str:
+    for _ in range(64):
+        candidate = f"r_{uuid.uuid4().hex[:8]}"
+        if not (base / candidate).exists():
+            return candidate
+    raise RunError("could not allocate an unused run id")
+
+
+def source_label(source: Path) -> str:
+    """A human-readable name for a run, carried in state and never in a path."""
+    text = re.sub(r"\s+", " ", source.stem).strip()
+    return (text[:LABEL_MAX_CHARS].rstrip() or "source")
 
 
 def digest(path: Path) -> str:
@@ -162,16 +289,16 @@ def select_domain(repo: Path, domain: str | None) -> str:
 
 
 def _run_dirs(base: Path) -> list[Path]:
-    """Run directories directly under ``base`` and one genre subfolder below it."""
+    """Every run directory at or below ``base``, at any owner depth.
+
+    A run is identified by its id-shaped directory name, so an owner segment can
+    never be mistaken for a run and the search does not depend on nesting depth.
+    """
     runs = []
-    for child in base.iterdir():
-        if (child / "controller/run.json").is_file():
+    for child in base.rglob("r_*"):
+        if RUN_ID_RE.fullmatch(child.name) and (child / "controller/run.json").is_file():
             runs.append(child)
-        elif child.is_dir():
-            for nested in child.iterdir():
-                if (nested / "controller/run.json").is_file():
-                    runs.append(nested)
-    return sorted(runs, key=lambda p: p.relative_to(base).as_posix())
+    return sorted(runs, key=lambda path: path.relative_to(base).as_posix())
 
 
 def open_runs(repo: Path, domain: str) -> list[Path]:
@@ -179,7 +306,7 @@ def open_runs(repo: Path, domain: str) -> list[Path]:
 
     Runs may live directly under the domain or one genre subfolder below it.
     """
-    base = inside(repo, f"workspace/skill-staging/{domain}")
+    base = inside(repo, f"{RUNS_ROOT}/{domain}")
     found = []
     if not base.is_dir():
         return found
@@ -230,7 +357,8 @@ def matching_runs(repo: Path, domain: str, source: Path) -> list[Path]:
     return found
 
 
-def start(repo: Path, source: Path, domain: str | None, task: str | None, stop_after: str = "complete") -> Path:
+def start(repo: Path, source: Path, domain: str | None, owner: str | None = None,
+          stop_after: str = "complete", run_id: str | None = None) -> Path:
     repo = repo.resolve()
     domain = select_domain(repo, domain)
     required_documents(repo)
@@ -246,27 +374,38 @@ def start(repo: Path, source: Path, domain: str | None, task: str | None, stop_a
         )
     if stop_after not in STOP_AFTER:
         raise RunError("stop_after must be source_prep, preflight, or complete")
-    if task is None:
-        stem = re.sub(r"[^a-z0-9]+", "-", source.stem.lower()).strip("-") or "book"
-        task = f"{stem}-{uuid.uuid4().hex[:8]}"
-    if not SLUG_RE.fullmatch(task):
-        raise RunError("task must be a lowercase book/run slug")
-    root = inside(repo, f"workspace/skill-staging/{domain}/{task}")
+    parts = resolve_owner(repo, domain, owner)
+    base = inside(repo, "/".join((RUNS_ROOT, domain, *parts)))
+    base.mkdir(parents=True, exist_ok=True)
+    if run_id is None:
+        run_id = new_run_id(base)
+    if not RUN_ID_RE.fullmatch(run_id):
+        raise RunError(f"run id must match {RUN_ID_RE.pattern}: {run_id}")
+    root = inside(base, run_id)
     if root.exists():
         raise RunError(f"run already exists; resume it with `python PASS/pass.py resume --run {root}`")
+    relative_root = root.relative_to(repo).as_posix()
+    if len(relative_root) > RUN_ROOT_BUDGET:
+        raise RunError(
+            f"run root {relative_root} is {len(relative_root)} characters, past the "
+            f"{RUN_ROOT_BUDGET}-character budget that keeps staged card paths Windows-safe"
+        )
+    check_path_budget(root, "run root")
     (root / "controller").mkdir(parents=True)
     (root / "drafts").mkdir()
     state = {
-        "schema_version": RUN_SCHEMA, "domain": domain, "source": str(source),
+        "schema_version": RUN_SCHEMA, "run_id": run_id, "owner": "/".join(parts),
+        "label": source_label(source), "domain": domain, "source": str(source),
         "phase": "load", "unit_index": 0, "plan": None, "pass1": None,
         "pass2": None, "reviewed_sha256": None, "live_hashes": None,
         "source_prep": None, "stop_after": stop_after, "stop_reached": False,
     }
     atomic_write(root / "controller/run.json", (json.dumps(state, indent=2) + "\n").encode())
     (root / "RUN_NOTE.md").write_text(
-        f"# PASS authoring task: {task}\n\nOwner: ordinary PASS controller.\n"
+        f"# PASS authoring run: {run_id}\n\nOwner: ordinary PASS controller.\n"
+        f"Label: {state['label']}\nLibrary owner: {'/'.join((domain, *parts))}\n"
         f"Purpose: {domain} authoring from {source.name}; cards are staged by canonical category.\n"
-        "Cleanup: accepted unit deltas remain in skill-staging until source close canonicalizes them; "
+        "Cleanup: accepted unit deltas remain staged in this run until source close canonicalizes them; "
         "close-run removes generated controller state.\n"
         "Preserve original source inputs, other tasks and explicit failure-evidence holds.\n"
         "This directory is disposable and is not card canon or Skillset Memory.\n", encoding="utf-8"
@@ -275,16 +414,21 @@ def start(repo: Path, source: Path, domain: str | None, task: str | None, stop_a
 
 
 def run_root(repo: Path, root: Path) -> Path:
+    """Validate that ``root`` is a run in this project's one canonical run root."""
     root = root.absolute()
     try:
-        path = root.relative_to(repo / "workspace/skill-staging")
+        path = root.relative_to(repo / RUNS_ROOT)
     except ValueError as exc:
-        raise RunError("run must belong to this project's workspace/skill-staging/<domain>/<book-run>") from exc
-    if len(path.parts) not in (2, 3):
         raise RunError(
-            "run must be workspace/skill-staging/<domain>/<book-run> or "
-            "<domain>/<genre>/<book-run>"
+            f"run must belong to this project's {RUNS_ROOT}/<domain>[/<module>...]/<run-id>"
+        ) from exc
+    if len(path.parts) < 2:
+        raise RunError(f"run must be {RUNS_ROOT}/<domain>[/<module>...]/<run-id>")
+    if not RUN_ID_RE.fullmatch(path.parts[-1]):
+        raise RunError(
+            f"run directory must be a short opaque run id matching {RUN_ID_RE.pattern}: {path.parts[-1]}"
         )
+    parse_owner("/".join(path.parts[1:-1]))
     inside(repo, root.relative_to(repo).as_posix())
     return root
 
@@ -317,6 +461,23 @@ def now() -> str:
 ABANDONED = "controller/abandoned-run.json"
 RESET_INTENT = "controller/reset-intent.json"
 CHECKPOINT = "controller/checkpoint"
+# Stage Contract v1: one structured refusal per malformed response, and exactly
+# one correction attempt per pending action before the stage fails closed.
+STAGE_REJECTION = "controller/stage-rejection.json"
+STAGE_CORRECTION_ATTEMPTS = 1
+# Canonical frontmatter order, so a rendered card is byte-stable regardless of
+# the key order a model happened to emit.
+CARD_FRONT_ORDER = (
+    "object_id", "object_type", "name", "library_path", "stage_binding", "lane_fit",
+    "foundation_role", "routing_class", "specialization_axis", "foundation_object_id",
+    "tags", "cross_links", "reference", "confidence", "references", "variants",
+)
+# Staged artifacts are checkpointed as flat content-addressed blobs rather than
+# as a second copy of the staged tree. Mirroring the tree nested a full
+# library-relative card path under controller/checkpoint/files/, which is what
+# pushed real runs past the Windows path limit; a blob name is a constant 64
+# characters no matter how deep the artifact it preserves.
+CHECKPOINT_BLOBS = f"{CHECKPOINT}/blobs"
 HANDOFF_MARK = "<!-- Generated by PASS/pass.py after every accepted step; rewritten each time. Do not edit. -->"
 
 
@@ -376,19 +537,27 @@ class Run:
         self.state = preflight._read_json(str(self.state_path))
         # beta.78 upgrades beta.77 active runs in memory; the next accepted write
         # persists schema 2. No accepted work is discarded during migration.
-        if self.state.get("schema_version") == 1:
-            self.state.setdefault("source_prep", None)
-            self.state.setdefault("stop_after", "complete")
-            self.state.setdefault("stop_reached", False)
+        # Schema 3 moved every descriptive string out of the path and into state.
+        # A schema-2 run that has been moved into the canonical run root is
+        # upgraded in memory from its own location; the next accepted write
+        # persists it, so relocating a run is a plain directory move.
+        if self.state.get("schema_version") == 2:
+            relative = self.root.relative_to(self.repo / RUNS_ROOT)
+            self.state["run_id"] = self.root.name
+            self.state["owner"] = "/".join(relative.parts[1:-1])
+            self.state["label"] = source_label(Path(self.state.get("source") or "source"))
             self.state["schema_version"] = RUN_SCHEMA
-        exact(self.state, {"schema_version", "domain", "source", "phase", "unit_index", "plan", "pass1", "pass2", "reviewed_sha256", "live_hashes", "source_prep", "stop_after", "stop_reached"}, "run state")
+        exact(self.state, {"schema_version", "run_id", "owner", "label", "domain", "source", "phase", "unit_index", "plan", "pass1", "pass2", "reviewed_sha256", "live_hashes", "source_prep", "stop_after", "stop_reached"}, "run state")
         if type(self.state["schema_version"]) is not int or self.state["schema_version"] != RUN_SCHEMA:
             raise RunError("unsupported run state version")
         if self.state["stop_after"] not in STOP_AFTER or type(self.state["stop_reached"]) is not bool:
             raise RunError("invalid stop target state")
-        domain_from_path = self.root.relative_to(self.repo / "workspace/skill-staging").parts[0]
-        if self.state["domain"] != domain_from_path or self.state["domain"] not in authorable_domains(self.repo):
-            raise RunError("run domain no longer matches its authorized workspace/package")
+        placement = self.root.relative_to(self.repo / RUNS_ROOT)
+        if self.state["domain"] != placement.parts[0] or self.state["domain"] not in authorable_domains(self.repo):
+            raise RunError("run domain no longer matches its authorized run root/package")
+        if self.state["run_id"] != self.root.name or self.state["owner"] != "/".join(placement.parts[1:-1]):
+            raise RunError("run id/owner in state no longer matches the run's location")
+        string(self.state["label"], "run label")
         if not isinstance(self.state["phase"], str) or self.state["phase"] not in PHASES or type(self.state["unit_index"]) is not int or self.state["unit_index"] < 0:
             raise RunError("invalid run phase or unit index")
         if self.state["plan"] is not None:
@@ -436,6 +605,12 @@ class Run:
                         files[path.relative_to(self.root).as_posix()] = digest(path)
         return files
 
+    def checkpoint_blob(self, sha: str) -> Path:
+        """The checkpointed content for one staged file, addressed by its digest."""
+        if not re.fullmatch(r"[0-9a-f]{64}", str(sha)):
+            raise RunError(f"checkpoint blob name is not a sha256 digest: {sha}")
+        return inside(self.root, f"{CHECKPOINT_BLOBS}/{sha}")
+
     def checkpoint_manifest(self) -> dict | None:
         path = inside(self.root, f"{CHECKPOINT}/manifest.json")
         return preflight._read_json(str(path)) if path.is_file() else None
@@ -462,10 +637,12 @@ class Run:
             state_copy = fresh / "controller" / "run.json"
             state_copy.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(self.state_path, state_copy)
-            for name in files:
-                target = fresh / "files" / name
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(inside(self.root, name), target)
+            blobs = fresh / "blobs"
+            blobs.mkdir(parents=True, exist_ok=True)
+            for name, sha in files.items():
+                target = blobs / sha
+                if not target.is_file():
+                    shutil.copy2(inside(self.root, name), target)
             record = {
                 "schema_version": 2, "created_at": now(), "state_sha256": state_sha,
                 "phase": self.state["phase"], "unit_index": self.state["unit_index"],
@@ -477,7 +654,8 @@ class Run:
             if digest(state_copy) != state_sha:
                 raise RunError("fresh checkpoint controller state failed verification")
             for name, sha in files.items():
-                if digest(fresh / "files" / name) != sha:
+                blob = fresh / "blobs" / sha
+                if not blob.is_file() or digest(blob) != sha:
                     raise RunError(f"fresh checkpoint file failed verification: {name}")
             check = preflight._read_json(str(fresh / "manifest.json"))
             if check != record:
@@ -529,7 +707,7 @@ class Run:
             lock.unlink(missing_ok=True)
             # A hard kill inside land() can also leave the domain integration
             # lease behind. The owning per-run process is already proven dead.
-            inside(self.repo, f"workspace/skill-staging/{self.domain}/.landing.lock").unlink(missing_ok=True)
+            inside(self.repo, f"{RUNS_ROOT}/{self.domain}/.landing.lock").unlink(missing_ok=True)
 
         # A journal plus a checkpoint mismatch means canonicalization began but
         # the new controller transaction never became durable: restore before-
@@ -549,7 +727,7 @@ class Run:
             if base.exists():
                 shutil.rmtree(base)
         for name, sha in saved.items():
-            source = inside(self.root, f"{CHECKPOINT}/files/{name}")
+            source = self.checkpoint_blob(sha)
             if not source.is_file() or digest(source) != sha:
                 raise RunError(f"checkpoint copy is damaged: {name}")
             target = inside(self.root, name)
@@ -588,8 +766,8 @@ class Run:
         for name in removed:
             inside(self.root, name).unlink()
         for name in restored:
-            source = inside(self.root, f"{CHECKPOINT}/files/{name}")
-            if digest(source) != saved[name]:
+            source = self.checkpoint_blob(saved[name])
+            if not source.is_file() or digest(source) != saved[name]:
                 raise RunError(f"checkpoint copy is damaged: {name}")
             target = inside(self.root, name)
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -1536,11 +1714,17 @@ class Run:
         return "\n".join(lines)
 
     def template(self) -> dict:
+        """The fillable response shape for the pending stage.
+
+        For a Stage Contract v1 stage this is the closed envelope: one opaque
+        action_id plus a payload skeleton generated from the schema. There is no
+        second convention to infer -- no SHOUTING placeholder is a literal value,
+        and `pass.py schema` prints the authoritative schema the skeleton came
+        from.
+        """
         phase = self.state["phase"]
-        if phase == "preflight":
-            result = preflight.template_record(self.domain)
-            result.update(title=Path(self.state["source"]).stem)
-            return result
+        if phase in contract.STAGES:
+            return {"action_id": self.stage_action_id(), "payload": self.stage_skeleton(phase)}
         if phase == "preflight_accept":
             marker = self.preflight_presentation_marker(required=False)
             return {
@@ -1550,50 +1734,19 @@ class Run:
                 "basis": "",
                 "reason": "",
             }
+        # Everything that is a Stage Contract v1 stage returned above. What remains
+        # are the decision gates: LOAD, preflight acceptance and landing. They are
+        # hash-bound human/automation decisions rather than model stage artifacts,
+        # so they keep their beta.110 shapes and their protected sequencing.
         result = {"schema_version": 1}
         if phase == "load":
             result["documents_read"] = required_documents(self.repo)
-        else:
+        elif phase in {"land", "closure_land"}:
             result["unit_id"] = self.unit()["unit_id"]
-            if phase == "pass1":
-                result.update(full_read=False, working_drafts=[], overlap_object_ids=[], secondary_subject_flags=[], questions=[])
-                if self.language_modernization_required():
-                    result["version_sensitive_flags"] = []
-            elif phase == "checkpoint":
-                result["answers"] = [{"question_id": q["question_id"], "resolution": ""} for q in self.state["pass1"]["questions"]]
-            elif phase == "pass2":
-                result.update(full_reread=False, flag_resolutions=[{"flag_id": f["flag_id"], "reason": ""} for f in self.state["pass1"]["secondary_subject_flags"]],
-                              buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False,
-                              owner_reconciliation=[], metadata_classification=[])
-                if self.language_modernization_required():
-                    policy = self.language_policy()
-                    result["language_modernization"] = {
-                        "language": policy["language"],
-                        "target_version": policy["target_version"],
-                        "target_basis": policy["target_basis"],
-                        "all_version_sensitive_material_reviewed": False,
-                        "resolutions": [
-                            {
-                                "flag_id": f["flag_id"],
-                                "disposition": "",
-                                "current_guidance": "",
-                                "verification": "",
-                            }
-                            for f in self.state["pass1"].get("version_sensitive_flags", [])
-                        ],
-                        "core_changes": [],
-                    }
-            elif phase == "closure_pass2":
-                result.update(closure_audits={"ap_synthesis": False, "drill_synthesis": False, "cross_library_reconciliation": False, "metadata_classification": False},
-                              buckets={name: [] for name in BUCKETS}, taxonomy={name: [] for name in TAXONOMY}, changes=[], removals=[], approval_required=False,
-                              owner_reconciliation=[], metadata_classification=[])
-            elif phase in {"pass3", "closure_pass3"}:
-                result.update(card_only_review=False, checks={name: False for name in self.semantic_checks()}, reviewed_sha256=self.staged_hashes())
-            elif phase in {"land", "closure_land"}:
-                marker = self.presentation_marker(required=False)
-                result.update(presentation_sha256=marker["sha256"] if marker else "", basis="", reason="")
-            else:
-                raise RunError("this phase has no submission template")
+            marker = self.presentation_marker(required=False)
+            result.update(presentation_sha256=marker["sha256"] if marker else "", basis="", reason="")
+        else:
+            raise RunError("this phase has no submission template")
         return result
 
     def header(self, data: dict, keys: set[str]) -> None:
@@ -1688,6 +1841,567 @@ class Run:
         if not self.live_unchanged():
             raise RunError("live domain/prerequisites changed; rewind to pass2, reconcile and repeat PASS 3 before landing")
 
+    # ------------------------------------------------- Stage Contract v1 boundary
+    #
+    #     free-form model cognition
+    #         -> closed stage output contract
+    #         -> deterministic host validation/rendering
+    #
+    # The model returns a structured response and nothing else. This boundary owns
+    # run/unit/stage identity, filenames, paths, serialization and rendering, and
+    # it refuses a malformed response before anything is written. PASS pedagogy is
+    # untouched: the semantic checks below this layer are the beta.110 ones.
+
+    def stage_action_id(self) -> str:
+        """The opaque token that binds a response to exactly this pending stage.
+
+        Seeded from the bound source, the stage, the unit and the current
+        controller state, so a response produced for another unit, another stage
+        or a superseded state cannot be accepted. The model echoes this token
+        instead of restating unit_id, stage identity or any hash the host owns.
+        """
+        phase = self.state["phase"]
+        unit_id = "-"
+        if self.state["plan"] and self.state["unit_index"] < len(self.state["plan"]["units"]):
+            unit_id = self.unit()["unit_id"]
+        try:
+            source = self.source_identity()["sha256"]
+        except (RunError, OSError, KeyError, TypeError):
+            source = "-"
+        seed = f"{source}|{phase}|{self.state['unit_index']}|{unit_id}|{digest(self.state_path)}"
+        return hashlib.sha256(seed.encode("utf-8")).hexdigest()
+
+    def semantic_check_names(self) -> tuple[str, ...]:
+        return tuple(self.semantic_checks())
+
+    def stage_required_extras(self, stage: str) -> set[str]:
+        """Contract fields this run's configuration promotes to required.
+
+        A field is optional in the contract because it does not apply to every
+        run, not because it may be skipped when it does apply.
+        """
+        extras: set[str] = set()
+        if self.language_modernization_required():
+            if stage == "pass1":
+                extras.add("version_sensitive_flags")
+            elif stage in {"pass2", "closure_pass2"}:
+                extras.add("language_modernization")
+        # Preflight schema 3 makes the programming-language classification
+        # explicit for Software Engineering and forbids it elsewhere.
+        if stage == "preflight" and self.domain == "software-engineering":
+            extras.add("language_policy")
+        return extras
+
+    def stage_seeded_fields(self, stage: str) -> set[str]:
+        """Optional fields worth prefilling so the model sees the whole shape."""
+        seeded = self.stage_required_extras(stage)
+        if stage in {"pass2", "closure_pass2"}:
+            seeded |= {"cards", "artifacts", "removals",
+                       "owner_reconciliation", "metadata_classification"}
+        if stage == "preflight":
+            seeded.add("no_extract")
+            if self.domain == "software-engineering":
+                seeded.add("language_policy")
+        return seeded
+
+    def stage_skeleton(self, stage: str) -> dict:
+        """A fillable payload generated from the schema, never hand-written.
+
+        Seeded with the identifiers the host already owns -- the questions PASS 1
+        raised, the flags it set, the accepted language policy -- so the model
+        supplies meaning rather than re-deriving an id it was handed.
+        """
+        payload = contract.skeleton(stage, self.semantic_check_names(),
+                                    include_optional=self.stage_seeded_fields(stage))
+        pass1 = self.state.get("pass1") or {}
+        if stage == "checkpoint":
+            payload["answers"] = [{"question_id": question["question_id"], "resolution": ""}
+                                  for question in pass1.get("questions", [])]
+        elif stage in {"pass2", "closure_pass2"}:
+            if stage == "pass2":
+                payload["flag_resolutions"] = [{"flag_id": flag["flag_id"], "reason": ""}
+                                               for flag in pass1.get("secondary_subject_flags", [])]
+            if "language_modernization" in payload:
+                policy = self.language_policy() or {}
+                payload["language_modernization"] = {
+                    "language": policy.get("language", ""),
+                    "target_version": policy.get("target_version", ""),
+                    "target_basis": policy.get("target_basis", ""),
+                    "all_version_sensitive_material_reviewed": False,
+                    "resolutions": [
+                        {"flag_id": flag["flag_id"], "disposition": "",
+                         "current_guidance": "", "verification": ""}
+                        for flag in pass1.get("version_sensitive_flags", [])
+                    ],
+                    "core_changes": [],
+                }
+        if stage == "preflight":
+            payload["title"] = Path(self.state["source"]).stem
+        return payload
+
+    def stage_card_skeleton(self, object_type: str) -> dict:
+        """The shape of one drafted card, for the model to fill with meaning."""
+        return contract.card_skeleton(object_type)
+
+    def stage_schema(self, stage: str) -> dict:
+        return contract.json_schema(stage, self.semantic_check_names())
+
+    # ----------------------------------------------------------- rejection state
+
+    def stage_rejection_path(self) -> Path:
+        return inside(self.root, STAGE_REJECTION)
+
+    def stage_rejection(self) -> dict | None:
+        path = self.stage_rejection_path()
+        return preflight._read_json(str(path)) if path.is_file() else None
+
+    def clear_stage_rejection(self) -> None:
+        self.stage_rejection_path().unlink(missing_ok=True)
+
+    def stage_fail_closed(self, action_id: str) -> bool:
+        """True when this exact pending action has spent its correction attempt."""
+        record = self.stage_rejection()
+        return bool(record and record.get("action_id") == action_id and record.get("fail_closed"))
+
+    def record_stage_rejection(self, stage: str, action_id: str,
+                               failures: list) -> dict:
+        """Persist one structured, machine-readable refusal.
+
+        Exactly one correction attempt is allowed per action_id. A genuine state
+        change mints a new token and a fresh budget, so a model that is not
+        progressing cannot buy more attempts by resubmitting.
+        """
+        previous = self.stage_rejection()
+        attempt = 1
+        if previous and previous.get("action_id") == action_id:
+            attempt = int(previous.get("attempt", 1)) + 1
+        fail_closed = attempt > STAGE_CORRECTION_ATTEMPTS
+        record = {
+            "schema_version": 1,
+            "contract_version": contract.CONTRACT_VERSION,
+            "stage": stage,
+            "action_id": action_id,
+            "attempt": attempt,
+            "fail_closed": fail_closed,
+            "correction_allowed": not fail_closed,
+            "failures": [failure.as_dict() for failure in failures],
+            "guidance": (
+                "Repair the named fields and resubmit the same action_id. Do not redo the "
+                "semantic reasoning and do not change any value the host owns."
+                if not fail_closed else
+                "This stage is closed to further automatic correction. The last completed "
+                "boundary is preserved; a human must inspect the failures above."
+            ),
+            "recorded_at": now(),
+        }
+        atomic_write(self.stage_rejection_path(),
+                     (json.dumps(record, indent=2) + "\n").encode("utf-8"))
+        return record
+
+    def stage_rejection_error(self, record: dict) -> RunError:
+        lines = [
+            f"STAGE CONTRACT {'FAIL-CLOSED' if record['fail_closed'] else 'REJECTED'}: "
+            f"{record['stage']} attempt {record['attempt']}",
+        ]
+        for failure in record["failures"]:
+            detail = f"  - {failure['path']}: {failure['code']} — {failure['message']}"
+            if "expected" in failure:
+                detail += f" (expected {failure['expected']!r})"
+            lines.append(detail)
+        lines.append(f"  {record['guidance']}")
+        lines.append(f"  Structured detail: {STAGE_REJECTION}")
+        return RunError("\n".join(lines))
+
+    # -------------------------------------------------------- response acceptance
+
+    def stage_response(self, stage: str, data: dict) -> dict:
+        """Validate a model response completely, then materialize what it names.
+
+        Nothing is written and no state is mutated until every contract failure
+        has been collected, so an invalid response leaves the run exactly as it
+        was. Only contract failures consume the correction attempt; a semantic
+        outcome and an infrastructure error do not reach this method's counter.
+        """
+        action_id = self.stage_action_id()
+        if self.stage_fail_closed(action_id):
+            raise self.stage_rejection_error(self.stage_rejection())
+        try:
+            payload = contract.unwrap_envelope(data, action_id)
+            record = self.translate_stage_payload(stage, payload)
+        except contract.Rejected as rejected:
+            raise self.stage_rejection_error(
+                self.record_stage_rejection(stage, action_id, rejected.failures)
+            ) from None
+        # The response conformed. Materialize cards only now.
+        self.write_stage_cards(record.pop("_cards", []))
+        self.clear_stage_rejection()
+        return record
+
+    def write_stage_cards(self, cards: list[dict]) -> None:
+        """Serialize validated cards to host-derived paths. The model never does."""
+        for card in cards:
+            if card.get("markdown") is None:
+                continue        # host tooling already staged this artifact
+            target = inside(self.root, card["staged_path"])
+            target.parent.mkdir(parents=True, exist_ok=True)
+            atomic_write(target, card["markdown"].encode("utf-8"))
+
+    def staged_card_path(self, card: dict) -> str:
+        """Where a drafted card is staged inside the run, derived by the host.
+
+        ``drafts/`` mirrors the library below the domain, exactly as beta.110
+        staged it, so every downstream consumer keeps working unchanged.
+        """
+        below = card["library_path"][1:]
+        return "drafts/" + "/".join((*below, f"{card['object_id']}.md"))
+
+    def render_stage_card(self, card: dict) -> dict:
+        """Build the complete card file from the structured response."""
+        front = dict(card["frontmatter"])
+        # Identity and placement are host-owned, so they are written, not accepted.
+        front["object_id"] = card["object_id"]
+        front["object_type"] = card["object_type"]
+        front["name"] = card["name"]
+        front["library_path"] = list(card["library_path"])
+        ordered = {key: front[key] for key in CARD_FRONT_ORDER if key in front}
+        ordered.update({key: value for key, value in front.items() if key not in ordered})
+        markdown = contract.render_card(
+            card["object_type"], card["name"],
+            preflight.yaml.safe_dump(ordered, sort_keys=False, allow_unicode=True).strip("\n"),
+            card["body"],
+        )
+        return {"staged_path": self.staged_card_path(card), "markdown": markdown}
+
+    def resolve_live_object(self, object_id: str) -> str | None:
+        """The live card a model named by id, located by the host, not by path."""
+        base = inside(self.repo, f"library/{self.domain}")
+        if not base.is_dir():
+            return None
+        for path in sorted(base.rglob(f"{object_id}.md")):
+            return path.relative_to(base).as_posix()
+        return None
+
+    def translate_stage_payload(self, stage: str, payload: dict) -> dict:
+        """Validate one stage payload and translate it to the internal record.
+
+        The internal shape is deliberately the beta.110 one: this layer closes the
+        model-facing interface without disturbing the controller logic, the
+        checkpoint format or the landing transaction beneath it.
+        """
+        out = contract.Collector()
+        fields = {spec.name: spec for spec in contract.stage_fields(stage)}
+        required = {name for name, spec in fields.items() if spec.required}
+        required |= self.stage_required_extras(stage)
+        # Every declared field stays legal; only requirement is run-conditional.
+        optional = set(fields) - required
+        mapping = contract._keys(payload, required, "payload", out, optional=optional)
+        record: dict[str, Any] = {}
+        cards: list[dict] = []
+
+        if stage == "pass1":
+            record["full_read"] = contract._bool(mapping.get("full_read"), "payload.full_read", out)
+            cards = self.collect_stage_cards(mapping.get("cards"), "payload.cards", out)
+            record["working_drafts"] = [card["staged_path"] for card in cards]
+            # Retired from the serialized contract in Stage Contract v1; the
+            # reasoning obligation lives in the PASS 1 instruction, and PASS 2's
+            # buckets carry the reconciliation that downstream code consumes.
+            record["overlap_object_ids"] = []
+            self.collect_flag_list(mapping, "secondary_subject_flags", ("flag_id", "subject"), record, out)
+            self.collect_flag_list(mapping, "questions", ("question_id", "question"), record, out)
+            if "version_sensitive_flags" in required:
+                self.collect_flag_list(mapping, "version_sensitive_flags",
+                                       ("flag_id", "source_claim", "reason"), record, out)
+        elif stage == "checkpoint":
+            record["answers"] = []
+            for index, item in enumerate(contract._list(mapping.get("answers"), "payload.answers", out)):
+                here = f"payload.answers[{index}]"
+                entry = contract._keys(item, {"question_id", "resolution"}, here, out)
+                record["answers"].append({
+                    "question_id": contract._text(entry.get("question_id"), f"{here}.question_id", out),
+                    "resolution": contract._text(entry.get("resolution"), f"{here}.resolution", out),
+                })
+        elif stage in {"pass2", "closure_pass2"}:
+            record["approval_required"] = contract._bool(mapping.get("approval_required"),
+                                                         "payload.approval_required", out)
+            if stage == "pass2":
+                record["full_reread"] = contract._bool(mapping.get("full_reread"),
+                                                       "payload.full_reread", out)
+                self.collect_flag_list(mapping, "flag_resolutions", ("flag_id", "reason"),
+                                       record, out)
+            record["buckets"] = self.collect_buckets(mapping.get("buckets"), out)
+            record["taxonomy"] = self.collect_taxonomy(mapping.get("taxonomy"), out)
+            cards = self.collect_stage_cards(mapping.get("cards", []), "payload.cards", out)
+            artifacts = self.collect_stage_artifacts(mapping.get("artifacts", []), out)
+            record["changes"] = ([card["staged_path"] for card in cards]
+                                 + [item["staged_path"] for item in artifacts])
+            cards = cards + [item for item in artifacts if item.get("markdown") is not None]
+            record["removals"] = self.collect_removals(mapping.get("removals", []), out)
+            for name in ("owner_reconciliation", "metadata_classification"):
+                record[name] = contract._list(mapping.get(name, []), f"payload.{name}", out)
+            if "language_modernization" in required:
+                record["language_modernization"] = contract._mapping(
+                    mapping.get("language_modernization"), "payload.language_modernization", out)
+            if stage == "closure_pass2":
+                record["closure_audits"] = self.collect_flags_map(
+                    mapping.get("closure_audits"), contract.CLOSURE_AUDITS, "payload.closure_audits", out)
+        elif stage in {"pass3", "closure_pass3"}:
+            record["card_only_review"] = contract._bool(mapping.get("card_only_review"),
+                                                        "payload.card_only_review", out)
+            record["checks"] = self.collect_flags_map(
+                mapping.get("checks"), self.semantic_check_names(), "payload.checks", out)
+            # The host owns the digest map: it computes the staged hashes itself
+            # before and after validation, so asking a model to reproduce them
+            # added a failure mode without adding a check.
+            record["reviewed_sha256"] = self.staged_hashes()
+        elif stage == "preflight":
+            record = self.translate_preflight_payload(mapping, out)
+        else:
+            raise RunError(f"no stage contract for {stage}")
+
+        out.raise_if_failed()
+        if stage != "preflight":
+            # Decision 4: the host writes the identity and version fields its own
+            # internal record needs; the model never echoed them.
+            record["schema_version"] = 1
+            record["unit_id"] = self.unit()["unit_id"]
+        record["_cards"] = cards
+        return record
+
+    def collect_stage_cards(self, value: Any, path: str, out: contract.Collector) -> list[dict]:
+        cards: list[dict] = []
+        seen: set[str] = set()
+        for index, raw in enumerate(contract._list(value, path, out)):
+            here = f"{path}[{index}]"
+            card = contract.validate_card(raw, self.domain, here, out)
+            if not card["object_id"] or not card["object_type"] or len(card["library_path"]) < 2:
+                continue
+            if card["object_id"] in seen:
+                out.add(f"{here}.object_id", "duplicate_value",
+                        "two cards in one response claim the same object_id", None, card["object_id"])
+                continue
+            seen.add(card["object_id"])
+            rendered = self.render_stage_card(card)
+            cards.append({**card, **rendered})
+        return cards
+
+    def collect_stage_artifacts(self, value: Any, out: contract.Collector) -> list[dict]:
+        """Resolve typed artifacts to host-derived staged paths.
+
+        A recipe and a module are serialized by the host from declared content. An
+        asset is host-produced tooling output that the model only references, so
+        the host derives its directory and requires the file to already be staged.
+        """
+        resolved: list[dict] = []
+        for index, raw in enumerate(contract._list(value, "payload.artifacts", out)):
+            here = f"payload.artifacts[{index}]"
+            item = contract.validate_artifact(raw, self.domain, here, out)
+            kind = item.get("kind")
+            if kind == "recipe":
+                if not item["recipe"]:
+                    continue
+                staged = f"recipes/{item['recipe']}.yaml"
+                body = preflight.yaml.safe_dump({"modules": item["modules"]}, sort_keys=False)
+                live = inside(self.repo, f"workspace/release-recipes/{item['recipe']}.yaml")
+                if live.is_file():
+                    owner = preflight.yaml.safe_load(live.read_text(encoding="utf-8")) or {}
+                    merged = {key: val for key, val in owner.items() if key != "modules"}
+                    merged["modules"] = item["modules"]
+                    body = preflight.yaml.safe_dump(merged, sort_keys=False)
+                resolved.append({"staged_path": staged, "markdown": body})
+            elif kind == "module":
+                if not item["library_path"]:
+                    continue
+                below = item["library_path"][1:]
+                staged = "drafts/" + "/".join((*below, "MODULE.yaml"))
+                name = "/".join(item["library_path"])
+                body = preflight.yaml.safe_dump({"name": name, "requires": item["requires"]},
+                                                sort_keys=False)
+                resolved.append({"staged_path": staged, "markdown": body})
+            elif kind == "asset":
+                if not item["library_path"] or not item["filename"]:
+                    continue
+                below = item["library_path"][1:]
+                staged = "drafts/" + "/".join((*below, "assets", item["filename"]))
+                if not inside(self.root, staged).is_file():
+                    out.add(f"{here}.filename", "unresolved_object_id",
+                            "the asset is not staged in this run; host tooling places assets, "
+                            "and the response only references them", None, item["filename"])
+                    continue
+                resolved.append({"staged_path": staged, "markdown": None})
+        return resolved
+
+    def collect_flag_list(self, mapping: dict, name: str, keys: tuple[str, ...],
+                          record: dict, out: contract.Collector) -> None:
+        identifier = keys[0]
+        items: list[dict] = []
+        seen: set[str] = set()
+        for index, raw in enumerate(contract._list(mapping.get(name, []), f"payload.{name}", out)):
+            here = f"payload.{name}[{index}]"
+            entry = contract._keys(raw, set(keys), here, out)
+            value = entry.get(identifier)
+            if not isinstance(value, str) or not contract.FLAG_RE.fullmatch(value):
+                out.add(f"{here}.{identifier}", "invalid_identifier",
+                        "identifier must be a lowercase token", contract.FLAG_RE.pattern, value)
+                continue
+            if value in seen:
+                out.add(f"{here}.{identifier}", "duplicate_value", "identifier repeats", None, value)
+                continue
+            seen.add(value)
+            items.append({key: (value if key == identifier
+                                else contract._text(entry.get(key), f"{here}.{key}", out))
+                          for key in keys})
+        record[name] = items
+
+    def collect_buckets(self, value: Any, out: contract.Collector) -> dict:
+        mapping = contract._keys(value, set(contract.BUCKETS), "payload.buckets", out)
+        result = {}
+        for bucket in contract.BUCKETS:
+            entries = []
+            for index, raw in enumerate(contract._list(mapping.get(bucket, []),
+                                                       f"payload.buckets.{bucket}", out)):
+                here = f"payload.buckets.{bucket}[{index}]"
+                entry = contract._keys(raw, {"object_id", "reason"}, here, out)
+                object_id = entry.get("object_id")
+                if not isinstance(object_id, str) or not contract.OBJECT_ID_RE.fullmatch(object_id):
+                    out.add(f"{here}.object_id", "invalid_identifier",
+                            "object_id must match the canonical identifier shape",
+                            contract.OBJECT_ID_RE.pattern, object_id)
+                    continue
+                entries.append({"object_id": object_id,
+                                "reason": contract._text(entry.get("reason"), f"{here}.reason", out)})
+            result[bucket] = entries
+        return result
+
+    def collect_taxonomy(self, value: Any, out: contract.Collector) -> dict:
+        mapping = contract._keys(value, set(contract.TAXONOMY), "payload.taxonomy", out)
+        result = {}
+        for action in contract.TAXONOMY:
+            entries = []
+            for index, raw in enumerate(contract._list(mapping.get(action, []),
+                                                       f"payload.taxonomy.{action}", out)):
+                here = f"payload.taxonomy.{action}[{index}]"
+                entry = contract._keys(raw, {"library_path", "reason"}, here, out)
+                segments = contract._list(entry.get("library_path"), f"{here}.library_path", out)
+                clean = []
+                for position, segment in enumerate(segments):
+                    if not isinstance(segment, str) or not contract.PATH_SEGMENT_RE.fullmatch(segment):
+                        out.add(f"{here}.library_path[{position}]", "invalid_identifier",
+                                "library_path segments must be lowercase library slugs",
+                                contract.PATH_SEGMENT_RE.pattern, segment)
+                    else:
+                        clean.append(segment)
+                if not clean:
+                    continue
+                if clean[0] != self.domain:
+                    out.add(f"{here}.library_path[0]", "illegal_enum",
+                            "library_path must start with the run's authorized domain",
+                            [self.domain], clean[0])
+                    continue
+                # The host converts declared ownership into the domain-relative
+                # category path the delta is compared against. The model names
+                # neither a path nor a filename.
+                entries.append({"path": "/".join(clean[1:]),
+                                "reason": contract._text(entry.get("reason"), f"{here}.reason", out)})
+            result[action] = entries
+        return result
+
+    def collect_removals(self, value: Any, out: contract.Collector) -> list[str]:
+        removals: list[str] = []
+        for index, raw in enumerate(contract._list(value, "payload.removals", out)):
+            here = f"payload.removals[{index}]"
+            if not isinstance(raw, str) or not contract.OBJECT_ID_RE.fullmatch(raw):
+                out.add(here, "invalid_identifier",
+                        "a removal names a live object_id, never a path",
+                        contract.OBJECT_ID_RE.pattern, raw)
+                continue
+            resolved = self.resolve_live_object(raw)
+            if resolved is None:
+                out.add(here, "unresolved_object_id",
+                        "no live card in this domain carries that object_id", None, raw)
+                continue
+            removals.append(resolved)
+        return removals
+
+    def collect_object_ids(self, value: Any, path: str, out: contract.Collector) -> list[str]:
+        """A list of canonical object ids, deduplicated, shape-checked by the host."""
+        result: list[str] = []
+        seen: set[str] = set()
+        for index, raw in enumerate(contract._list(value, path, out)):
+            here = f"{path}[{index}]"
+            if not isinstance(raw, str) or not contract.OBJECT_ID_RE.fullmatch(raw):
+                out.add(here, "invalid_identifier", "expected a canonical object_id",
+                        contract.OBJECT_ID_RE.pattern, raw)
+                continue
+            if raw in seen:
+                out.add(here, "duplicate_value", "object_id repeats", None, raw)
+                continue
+            seen.add(raw)
+            result.append(raw)
+        return result
+
+    def collect_flags_map(self, value: Any, names: Iterable[str], path: str,
+                          out: contract.Collector) -> dict:
+        wanted = tuple(names)
+        mapping = contract._keys(value, set(wanted), path, out)
+        return {name: contract._bool(mapping.get(name), f"{path}.{name}", out) for name in wanted}
+
+    def translate_preflight_payload(self, mapping: dict, out: contract.Collector) -> dict:
+        """Build the beta.110 preflight record from the closed payload.
+
+        Preflight keeps its own SCHEMA_VERSION: it is a different concept from the
+        stage contract version and previously accepted preflights must keep
+        loading, so the host writes that field rather than merging it away.
+        """
+        record: dict[str, Any] = {
+            "schema_version": preflight.SCHEMA_VERSION,
+            "phase": preflight.PHASE,
+            "domain": self.domain,
+            "mode": "unit ingestion",
+        }
+        for name in ("title", "author", "extent", "text_quality", "subject"):
+            record[name] = contract._text(mapping.get(name), f"payload.{name}", out)
+        units = []
+        seen: set[str] = set()
+        for index, raw in enumerate(contract._list(mapping.get("units"), "payload.units", out)):
+            here = f"payload.units[{index}]"
+            entry = contract._keys(raw, {"unit_id", "material", "locator", "source_pages",
+                                         "printed_pages", "overlap_object_ids",
+                                         "card_potential"}, here, out)
+            unit_id = entry.get("unit_id")
+            if not isinstance(unit_id, str) or not contract.UNIT_ID_RE.fullmatch(unit_id):
+                out.add(f"{here}.unit_id", "invalid_identifier",
+                        "unit_id must look like u01", contract.UNIT_ID_RE.pattern, unit_id)
+                continue
+            if unit_id in seen:
+                out.add(f"{here}.unit_id", "duplicate_value", "unit_id repeats", None, unit_id)
+                continue
+            seen.add(unit_id)
+            units.append({
+                "unit_id": unit_id,
+                "material": contract._text(entry.get("material"), f"{here}.material", out),
+                "locator": contract._text(entry.get("locator"), f"{here}.locator", out),
+                "source_pages": entry.get("source_pages"),
+                "printed_pages": entry.get("printed_pages"),
+                "overlap_object_ids": self.collect_object_ids(
+                    entry.get("overlap_object_ids"), f"{here}.overlap_object_ids", out),
+                "card_potential": contract._enum(entry.get("card_potential"),
+                                                 contract.CARD_POTENTIAL,
+                                                 f"{here}.card_potential", out),
+            })
+        record["units"] = units
+        record["no_extract"] = contract._list(mapping.get("no_extract", []), "payload.no_extract", out)
+        # The host always writes this key for schema 3: a dict for Software
+        # Engineering, null everywhere else. A model may not supply it elsewhere.
+        if self.domain == "software-engineering":
+            record["language_policy"] = contract._mapping(mapping.get("language_policy"),
+                                                          "payload.language_policy", out)
+        else:
+            if "language_policy" in mapping:
+                out.add("payload.language_policy", "unknown_field",
+                        "only software-engineering declares a programming-language policy")
+            record["language_policy"] = None
+        return record
+
     def submit(self, phase: str, data: dict) -> str:
         if self.state.get("stop_reached"):
             raise RunError(f"stop target {self.state.get('stop_after')} has been reached; run continue-run before advancing")
@@ -1695,6 +2409,10 @@ class Run:
             raise RunError(f"cannot submit {phase}; current phase is {self.state['phase']}")
         previous_unit_index = self.state["unit_index"]
         self.require_unattended_action(phase)
+        if phase in contract.STAGES:
+            # Closed contract in, validated internal record out. Nothing below
+            # this line changed with Stage Contract v1.
+            data = self.stage_response(phase, data)
         if phase == "load":
             exact(data, {"schema_version", "documents_read"}, "load")
             documents = array(data["documents_read"], "documents_read")
@@ -2409,7 +3127,7 @@ for name in recipes:
     def land(self, decision: dict) -> str:
         # Independent books may stage in parallel, but only one unit in a domain
         # may integrate at a time. This lease contains no research/run state.
-        lease = inside(self.repo, f"workspace/skill-staging/{self.domain}/.landing.lock")
+        lease = inside(self.repo, f"{RUNS_ROOT}/{self.domain}/.landing.lock")
         try:
             descriptor = os.open(lease, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
         except FileExistsError as exc:
@@ -2701,7 +3419,7 @@ def _load_start_over_state(root: Path) -> dict:
             intent,
             {
                 "schema_version", "requested_at", "reason", "restart_from",
-                "carry_notes", "new_task", "domain", "source", "state",
+                "carry_notes", "new_run_id", "domain", "source", "state",
             },
             "start-over intent",
         )
@@ -2717,7 +3435,7 @@ def _load_start_over_state(root: Path) -> dict:
             "reason": None,
             "restart_from": None,
             "carry_notes": None,
-            "new_task": None,
+            "new_run_id": None,
             "domain": state.get("domain"),
             "source": state.get("source"),
             "state": state,
@@ -2734,7 +3452,7 @@ def _load_start_over_state(root: Path) -> dict:
                 "reason": record.get("reason"),
                 "restart_from": reset.get("restart_from"),
                 "carry_notes": reset.get("carry_notes"),
-                "new_task": reset.get("new_task"),
+                "new_run_id": reset.get("new_run_id"),
                 "domain": state.get("domain"),
                 "source": state.get("source"),
                 "state": state,
@@ -2748,7 +3466,6 @@ def start_over(
     reason: str,
     restart_from: str = "scratch",
     carry_notes: bool = False,
-    task: str | None = None,
 ) -> dict:
     """Authoritatively abandon one run and create a fresh run from an explicit boundary.
 
@@ -2777,6 +3494,11 @@ def start_over(
         raise RunError("start-over requires the original bound source bytes to still exist")
     if state.get("phase") == "finished":
         raise RunError("a finished run is closed with close-run, not started over")
+    # The replacement run keeps the old run's library ownership: a reset changes
+    # the run, never where its cards are destined to land.
+    owner_parts = resolve_owner(
+        repo, domain, state.get("owner") or "/".join(root.relative_to(repo / RUNS_ROOT).parts[1:-1])
+    )
 
     existing_intent = inside(root, RESET_INTENT)
     if existing_intent.is_file():
@@ -2786,18 +3508,15 @@ def start_over(
             seed["reason"] != reason
             or seed["restart_from"] != restart_from
             or bool(seed["carry_notes"]) != bool(carry_notes)
-            or (task is not None and seed["new_task"] != task)
         ):
             raise RunError(
                 "a different start-over transaction is already pending; rerun the original start-over command or inspect reset-intent.json"
             )
-        task = seed["new_task"]
+        replacement_id = seed["new_run_id"]
+        if not RUN_ID_RE.fullmatch(str(replacement_id)):
+            raise RunError("pending start-over intent does not name a valid replacement run id")
     else:
-        if task is None:
-            stem = re.sub(r"[^a-z0-9]+", "-", source.stem.lower()).strip("-") or "book"
-            task = f"{stem}-restart-{uuid.uuid4().hex[:8]}"
-        if not SLUG_RE.fullmatch(task):
-            raise RunError("start-over task must be a lowercase book/run slug")
+        replacement_id = new_run_id(inside(repo, "/".join((RUNS_ROOT, domain, *owner_parts))))
 
     # Validate carry boundaries before making the old run ineligible.
     old_run = None
@@ -2820,7 +3539,7 @@ def start_over(
                     "legacy Software Engineering preflight lacks the schema-3 language policy; restart from source_prep so the new preflight can classify and modernize programming-language material"
                 )
 
-    new_root = inside(repo, f"workspace/skill-staging/{domain}/{task}")
+    new_root = inside(repo, "/".join((RUNS_ROOT, domain, *owner_parts, replacement_id)))
     if not existing_intent.is_file() and new_root.exists():
         raise RunError(f"start-over target already exists: {new_root}")
 
@@ -2839,7 +3558,7 @@ def start_over(
             "reason": reason,
             "restart_from": restart_from,
             "carry_notes": bool(carry_notes),
-            "new_task": task,
+            "new_run_id": replacement_id,
             "domain": domain,
             "source": str(source),
             "state": state,
@@ -2869,7 +3588,7 @@ def start_over(
                 "requested_at": seed["requested_at"],
                 "restart_from": restart_from,
                 "carry_notes": bool(carry_notes),
-                "new_task": task,
+                "new_run_id": replacement_id,
                 "replacement_run": None,
             },
         }
@@ -2878,7 +3597,7 @@ def start_over(
 
     # Create or resume creation of the replacement run named in the reset intent.
     if not new_root.exists():
-        created = start(repo, source, domain, task, "complete")
+        created = start(repo, source, domain, "/".join(owner_parts), "complete", replacement_id)
         if created != new_root:
             raise RunError("start-over replacement path mismatch")
     new_run = Run(repo, new_root)
@@ -2995,20 +3714,69 @@ def resume(repo: Path, root: Path | None = None, domain: str | None = None, sour
     return Run(repo, root).pickup(source)
 
 
+def stage_schemas(repo: Path, root: Path | None, stage: str | None, enums: bool) -> dict:
+    """The authoritative contract description, for a model or a tool to consume.
+
+    Generated from the same declarations the templates and the validator use, so
+    a skeleton, a schema and an acceptance check can never disagree.
+    """
+    if enums:
+        return {
+            "contract_version": contract.CONTRACT_VERSION,
+            "object_types": list(contract.OBJECT_TYPES),
+            "buckets": list(contract.BUCKETS),
+            "taxonomy": list(contract.TAXONOMY),
+            "card_potential": list(contract.CARD_POTENTIAL),
+            "confidence": list(contract.CONFIDENCE),
+            "lane_fit": list(contract.LANE_FIT),
+            "foundation_role": list(contract.FOUNDATION_ROLE),
+            "routing_class": list(contract.ROUTING_CLASS),
+            "specialization_axis": list(contract.SPECIALIZATION_AXIS),
+            "modernization_dispositions": list(contract.MODERNIZATION_DISPOSITIONS),
+            "landing_basis": list(contract.LANDING_BASIS),
+            "artifact_kinds": list(contract.ARTIFACT_KINDS),
+            "closure_audits": list(contract.CLOSURE_AUDITS),
+            "failure_codes": list(contract.FAILURE_CODES),
+            "card_body": {object_type: [heading for heading, _ in sections]
+                          for object_type, sections in contract.CARD_BODY.items()},
+        }
+    checks = SEMANTIC_CHECKS
+    if root is not None:
+        checks = Run(repo, root).semantic_check_names()
+    stages = (stage,) if stage else contract.STAGES
+    return {
+        "contract_version": contract.CONTRACT_VERSION,
+        "stages": {name: contract.json_schema(name, checks) for name in stages},
+        "card_body": {object_type: contract.card_skeleton(object_type)
+                      for object_type in contract.OBJECT_TYPES},
+    }
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", type=Path, help="auto-detected from the current project by default")
     sub = parser.add_subparsers(dest="command", required=True)
-    start_parser = sub.add_parser("start", help="authorize a domain-local book/run workspace; no source reading")
+    start_parser = sub.add_parser("start", help="authorize a domain-local run workspace; no source reading")
     start_parser.add_argument("--source", type=Path, required=True)
     start_parser.add_argument("--domain", help="must be authorized by the user/project; never infer from source topic")
-    start_parser.add_argument("--task", help="optional unique lowercase book/run slug")
+    start_parser.add_argument("--owner", help="library module path below the domain this run authors into, "
+                              "e.g. languages/python; the run id itself is always short and opaque")
     start_parser.add_argument("--stop-after", choices=("source_prep", "preflight", "complete"), default="complete",
                               help="optional resumable stop target; preflight stops before PASS 1 unit ingestion")
     resume_parser = sub.add_parser("resume", help="find and verify an unfinished run, then name its one next action; read-only")
     resume_parser.add_argument("--run", type=Path, help="the run to verify; omit to search the domain")
     resume_parser.add_argument("--domain", help="the user-authorized domain to search")
     resume_parser.add_argument("--source", type=Path, help="only runs bound to this source path or identical bytes")
+    schema_parser = sub.add_parser(
+        "schema",
+        help="print the authoritative Stage Contract v1 JSON Schema for a stage",
+    )
+    schema_parser.add_argument("--stage", choices=contract.STAGES,
+                               help="omit to print every stage")
+    schema_parser.add_argument("--run", type=Path,
+                               help="use this run's semantic checks and domain")
+    schema_parser.add_argument("--enums", action="store_true",
+                               help="print the declared vocabularies instead")
     abandon_parser = sub.add_parser("abandon", help="retire an unfinished run on explicit user instruction; drafts are kept")
     abandon_parser.add_argument("--run", type=Path, required=True)
     abandon_parser.add_argument("--reason", required=True, help="the user's explicit instruction to abandon this run")
@@ -3026,7 +3794,6 @@ def build_parser() -> argparse.ArgumentParser:
         help="only these explicitly named prior artifacts may seed the replacement run",
     )
     start_over_parser.add_argument("--carry-notes", action="store_true", help="copy NOTES.md into the replacement run")
-    start_over_parser.add_argument("--task", help="optional replacement run slug; default is a unique restart slug")
     for command in ("status", "template", "present", "submit", "accept-preflight", "revise-preflight", "rewind", "rollback", "recover", "continue-run", "replan", "land", "close-run"):
         command_parser = sub.add_parser(command)
         command_parser.add_argument("--run", type=Path, required=True)
@@ -3051,8 +3818,11 @@ def main(argv: Iterable[str] | None = None) -> int:
     try:
         repo = args.repo_root.resolve() if args.repo_root else preflight.find_repo_root(Path.cwd())
         if args.command == "start":
-            run = Run(repo, start(repo, args.source, args.domain, args.task, args.stop_after))
+            run = Run(repo, start(repo, args.source, args.domain, args.owner, args.stop_after))
             print(json.dumps(run.brief(), indent=2))
+            return 0
+        if args.command == "schema":
+            print(json.dumps(stage_schemas(repo, args.run, args.stage, args.enums), indent=2))
             return 0
         if args.command == "resume":
             result = resume(repo, args.run, args.domain, args.source)
@@ -3062,7 +3832,7 @@ def main(argv: Iterable[str] | None = None) -> int:
             print(abandon(repo, args.run, args.reason))
             return 0
         if args.command == "start-over":
-            print(json.dumps(start_over(repo, args.run, args.reason, args.restart_from, args.carry_notes, args.task), indent=2))
+            print(json.dumps(start_over(repo, args.run, args.reason, args.restart_from, args.carry_notes), indent=2))
             return 0
         run = Run(repo, args.run)
         if args.command == "recover":

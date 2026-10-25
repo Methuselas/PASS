@@ -19,6 +19,38 @@ from runtime import pass_authoring_workflow as workflow
 from runtime import pass_source_prep
 
 
+def card_payload(oid, *, links=None, note="Keep only changes with an observable purpose.",
+                 placement=("writing", "craft")):
+    """The structured response for one drafted Pattern card.
+
+    Carries no filename and no path: the host derives both from object_id and
+    library_path.
+    """
+    return {
+        "object_id": oid,
+        "object_type": "pattern",
+        "name": oid[4:].replace("_", " ").title(),
+        "library_path": list(placement),
+        "frontmatter": {
+            "stage_binding": "3 rough", "lane_fit": "skill", "foundation_role": "foundation",
+            "routing_class": "general", "specialization_axis": "none",
+            "foundation_object_id": "none", "tags": ["revision"], "cross_links": links or [],
+            "confidence": "high", "references": [], "variants": [],
+        },
+        "body": {
+            "pattern_rule": {
+                "if": "a revision changes the reader's understanding",
+                "then": "compare the intended effect with the revised result",
+                "else": "preserve the working passage",
+            },
+            "do": [{"text": "Identify the effect before choosing an edit."}],
+            "dont": [{"text": "Substitute extra detail for a clear decision."}],
+            "checklist": [{"text": "Can the intended effect be seen in the result?"}],
+            "notes": [{"type": "paragraph", "text": note}],
+        },
+    }
+
+
 def card(path, oid, *, links=None, note="Keep only changes with an observable purpose.", placement=None):
     parts = path.parts[path.parts.index("library") + 1:-1] if "library" in path.parts else ("writing", "craft")
     data = dict(object_id=oid, object_type="pattern", name=oid[4:].replace("_", " ").title(),
@@ -53,7 +85,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
-        self.repo = Path(self.temporary.name)
+        self.repo = Path(self.temporary.name).resolve()
         shutil.copytree(ROOT / "PASS/tools", self.repo / "PASS/tools", ignore=shutil.ignore_patterns("__pycache__"))
         for name in workflow.required_documents(ROOT):
             target = self.repo / name
@@ -67,7 +99,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         (self.repo / "workspace/release-recipes/SkillForge_Writing.yaml").write_text("modules: [writing/craft]\n", encoding="utf-8")
         self.source = self.repo / "Original Book.txt"
         self.source.write_text("Original user input remains untouched.\n", encoding="utf-8")
-        self.root = workflow.start(self.repo, self.source, "writing", "original-book-run-one")
+        self.root = workflow.start(self.repo, self.source, "writing")
         self.run = workflow.Run(self.repo, self.root)
 
     def module(self, name):
@@ -79,16 +111,25 @@ class AuthoringWorkflowTests(unittest.TestCase):
         pass_source_prep.prepare(self.run)
         pass_source_prep.finalize(self.run)
 
+    def stage(self, **payload):
+        """The pending stage envelope with its payload filled in."""
+        record = self.run.template()
+        record["payload"].update(payload)
+        return record
+
     def begin(self, count=1):
         self.run.submit("load", self.run.template())
         self.prep()
-        record = self.run.template()
-        record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
-                      subject="Revise prose for an observable reader effect.", mode="unit ingestion")
-        record["units"] = [dict(unit_id=f"u{i:02d}", material=f"Instructional unit {i}", locator=f"chapter {i}",
-                                source_pages=None, printed_pages=None,
-                                overlap_object_ids=[self.live.stem], card_potential="medium") for i in range(1, count + 1)]
-        record["no_extract"] = []
+        record = self.stage(
+            title="Original Book", author="Fixture Author", extent="20 pages",
+            text_quality="readable",
+            subject="Revise prose for an observable reader effect.",
+            units=[dict(unit_id=f"u{i:02d}", material=f"Instructional unit {i}",
+                        locator=f"chapter {i}", source_pages=None, printed_pages=None,
+                        overlap_object_ids=[self.live.stem], card_potential="medium")
+                   for i in range(1, count + 1)],
+            no_extract=[],
+        )
         self.run.submit("preflight", record)
         self.accept()
 
@@ -99,30 +140,33 @@ class AuthoringWorkflowTests(unittest.TestCase):
                                        reason="The practitioner confirmed the presented subject and unit plan."))
 
     def first(self, *, questions=False, flags=False):
-        record = self.run.template()
-        record["full_read"] = True
+        record = self.stage(full_read=True)
         if questions:
-            record["questions"] = [{"question_id": "scope", "question": "Which interpretation is authorized?"}]
+            record["payload"]["questions"] = [
+                {"question_id": "scope", "question": "Which interpretation is authorized?"}]
         if flags:
-            record["secondary_subject_flags"] = [{"flag_id": "secondary", "subject": "Revisit a possible embedded revision rule."}]
+            record["payload"]["secondary_subject_flags"] = [
+                {"flag_id": "secondary", "subject": "Revisit a possible embedded revision rule."}]
         self.run.submit("pass1", record)
 
     def second(self, *, refine=False, approval=False):
-        record = self.run.template()
-        record.update(full_reread=True, approval_required=approval)
-        for flag in record["flag_resolutions"]:
+        record = self.stage(full_reread=True, approval_required=approval)
+        payload = record["payload"]
+        for flag in payload["flag_resolutions"]:
             flag["reason"] = "Instruction does not justify another reusable owner."
         if refine:
-            name = "drafts/craft/" + self.live.name
-            card(self.run.root / name, self.live.stem, note="Test the change against the declared reader effect before acceptance.")
-            record["changes"] = [name]
-            record["buckets"]["REFINE"] = [{"object_id": self.live.stem, "reason": "Make the acceptance test explicit."}]
-            record["owner_reconciliation"] = [{
+            payload["cards"] = [card_payload(
+                self.live.stem,
+                note="Test the change against the declared reader effect before acceptance.",
+            )]
+            payload["buckets"]["REFINE"] = [
+                {"object_id": self.live.stem, "reason": "Make the acceptance test explicit."}]
+            payload["owner_reconciliation"] = [{
                 "object_id": self.live.stem,
                 "compared_owner_ids": [self.live.stem],
                 "reason": "The live card is the nearest existing owner and is being refined rather than duplicated.",
             }]
-            record["metadata_classification"] = [{
+            payload["metadata_classification"] = [{
                 "object_id": self.live.stem,
                 "stage_binding": "3 rough",
                 "lane_fit": "skill",
@@ -130,14 +174,16 @@ class AuthoringWorkflowTests(unittest.TestCase):
                 "reason": "The staged refinement preserves the card's demonstrated execution role and confidence.",
             }]
         else:
-            record["buckets"]["REINFORCE"] = [{"object_id": self.live.stem, "reason": "The existing owner covers the unit completely."}]
+            payload["buckets"]["REINFORCE"] = [
+                {"object_id": self.live.stem, "reason": "The existing owner covers the unit completely."}]
         self.run.submit("pass2", record)
         return record
 
     def third(self):
-        record = self.run.template()
-        record["card_only_review"] = True
-        record["checks"] = {name: True for name in workflow.SEMANTIC_CHECKS}
+        # reviewed_sha256 is gone from the contract: the host computes the staged
+        # digests itself before and after validation.
+        record = self.stage(card_only_review=True,
+                            checks={name: True for name in workflow.SEMANTIC_CHECKS})
         self.run.submit("pass3", record)
 
     def ready(self, *, count=1, refine=False, approval=False):
@@ -146,6 +192,22 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.second(refine=refine, approval=approval)
         self.third()
 
+
+    def audit_payload(self, payload, oid, card, owner_ids=None):
+        """Reconciliation and classification for a card in the same response."""
+        fm = card["frontmatter"]
+        payload["owner_reconciliation"] = [{
+            "object_id": oid,
+            "compared_owner_ids": list(owner_ids or []),
+            "reason": "The candidate was compared against the nearest live owners before disposition.",
+        }]
+        payload["metadata_classification"] = [{
+            "object_id": oid,
+            "stage_binding": fm["stage_binding"],
+            "lane_fit": fm["lane_fit"],
+            "confidence": fm["confidence"],
+            "reason": "The staged card metadata was classified explicitly for this object.",
+        }]
 
     def audit_changed(self, record, oid, staged_name, owner_ids=None):
         fm = workflow.preflight._frontmatter(self.root / staged_name)
@@ -165,12 +227,12 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def close_source(self):
         self.assertEqual(self.run.state["phase"], "closure_pass2")
         record = self.run.template()
-        record["closure_audits"] = {name: True for name in record["closure_audits"]}
+        record["payload"]["closure_audits"] = {
+            name: True for name in record["payload"]["closure_audits"]}
         self.run.submit("closure_pass2", record)
-        record = self.run.template()
-        record["card_only_review"] = True
-        record["checks"] = {name: True for name in workflow.SEMANTIC_CHECKS}
-        self.run.submit("closure_pass3", record)
+        self.run.submit("closure_pass3", self.stage(
+            card_only_review=True,
+            checks={name: True for name in workflow.SEMANTIC_CHECKS}))
         packet = self.run.present()
         decision = dict(
             schema_version=1, unit_id="closure", basis="evidence",
@@ -191,9 +253,9 @@ class AuthoringWorkflowTests(unittest.TestCase):
         (self.repo / "library/apa-style").mkdir()
         for domain in (None, "apa-style", "../writing", "missing"):
             with self.subTest(domain=domain), self.assertRaises(workflow.RunError):
-                workflow.start(self.repo, self.source, domain, "another-run")
+                workflow.start(self.repo, self.source, domain)
         self.assertFalse((self.repo / "library/missing").exists())
-        self.assertFalse((self.repo / "workspace/skill-staging/apa-style").exists())
+        self.assertFalse((self.repo / workflow.RUNS_ROOT / "apa-style").exists())
 
     def other_source(self, name="Second Book.txt", text="A different book with different bytes entirely.\n"):
         path = self.repo / name
@@ -212,32 +274,95 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_single_domain_project_defaults_without_reading_source(self):
         second = self.other_source()
         with patch.object(Path, "read_bytes", side_effect=AssertionError("source content must not be read")):
-            root = workflow.start(self.repo, second, None, "single-domain-run")
+            root = workflow.start(self.repo, second, None)
         self.assertEqual(workflow.Run(self.repo, root).domain, "writing")
 
     def test_staging_is_separate_for_each_book_run(self):
-        other = workflow.start(self.repo, self.other_source(), "writing", "original-book-run-two")
+        other = workflow.start(self.repo, self.other_source(), "writing")
         self.assertNotEqual(other, self.root)
         with self.assertRaises(workflow.RunError):
-            workflow.start(self.repo, self.other_source("Third Book.txt", "Third.\n"), "writing", self.root.name)
+            workflow.start(self.repo, self.other_source("Third Book.txt", "Third.\n"),
+                           "writing", None, "complete", self.root.name)
 
-    def test_genre_subfolder_run_is_loaded_and_discovered(self):
-        domain_dir = self.root.parent  # already resolved by start
-        genre = domain_dir / "prose"
-        genre.mkdir(parents=True, exist_ok=True)
-        moved = genre / self.root.name
-        shutil.move(str(self.root), str(moved))
-        self.assertEqual(workflow.Run(self.repo, moved).domain, "writing")
-        found = [p.relative_to(self.repo / "workspace/skill-staging").as_posix()
+    def test_run_id_is_short_opaque_and_carries_no_source_description(self):
+        self.assertTrue(workflow.RUN_ID_RE.fullmatch(self.root.name))
+        self.assertEqual(len(self.root.name), 10)
+        self.assertNotIn("original", self.root.as_posix().lower())
+        self.assertEqual(self.run.state["label"], "Original Book")
+        self.assertEqual(self.run.state["run_id"], self.root.name)
+        self.assertEqual(self.run.state["owner"], "")
+
+    def test_a_long_source_title_does_not_lengthen_the_run_path(self):
+        source = self.repo / (
+            "Automate The Boring Stuff With Python Practical Programming For "
+            "Total Beginners Second Edition Fully Revised And Expanded.txt"
+        )
+        source.write_text("A long title must not become a long path.\n", encoding="utf-8")
+        self.module("writing/fiction/dialogue")
+        root = workflow.start(self.repo, source, "writing", "fiction/dialogue")
+        relative = root.relative_to(self.repo).as_posix()
+        self.assertTrue(workflow.RUN_ID_RE.fullmatch(root.name))
+        self.assertNotIn("automate", relative.lower())
+        self.assertLessEqual(len(relative), workflow.RUN_ROOT_BUDGET)
+        self.assertTrue(workflow.Run(self.repo, root).state["label"].startswith("Automate"))
+
+    def test_run_is_placed_at_its_library_owner_and_discovered_there(self):
+        self.module("writing/fiction/dialogue")
+        owned = workflow.start(self.repo, self.other_source(), "writing", "fiction/dialogue")
+        placement = owned.relative_to(self.repo / workflow.RUNS_ROOT)
+        self.assertEqual(placement.parts[:3], ("writing", "fiction", "dialogue"))
+        loaded = workflow.Run(self.repo, owned)
+        self.assertEqual(loaded.domain, "writing")
+        self.assertEqual(loaded.state["owner"], "fiction/dialogue")
+        found = [p.relative_to(self.repo / workflow.RUNS_ROOT).as_posix()
                  for p in workflow.open_runs(self.repo, "writing")]
-        self.assertIn("writing/prose/" + self.root.name, found)
-        self.assertNotIn("writing/" + self.root.name, found)
+        self.assertIn("writing/fiction/dialogue/" + owned.name, found)
+        self.assertIn("writing/" + self.root.name, found)
 
-    def test_run_root_rejects_unsupported_depths(self):
-        with self.subTest(depth="shallow"), self.assertRaises(workflow.RunError):
-            workflow.run_root(self.repo, self.repo / "workspace/skill-staging/stray-book")
-        with self.subTest(depth="deep"), self.assertRaises(workflow.RunError):
-            workflow.run_root(self.repo, self.repo / "workspace/skill-staging/writing/a/b/original-book-run-one")
+    def test_owner_must_mirror_a_canonical_library_path(self):
+        # An invented parallel taxonomy, a typo, and a malformed path are all
+        # refused; the library, not the run layout, decides what is a real owner.
+        for owner in ("Python", "fiction/Dialogue", "a/b/c/d", "../writing", "fiction//x"):
+            with self.subTest(owner=owner), self.assertRaises(workflow.RunError):
+                workflow.start(self.repo, self.other_source(), "writing", owner)
+
+    def test_owner_depth_is_bounded_by_the_library_not_by_a_taxonomy_cap(self):
+        # Arbitrarily deep ownership is allowed as long as the library has it and
+        # the resulting run root fits the path budget.
+        deep = "fiction/structure/scene/beats"
+        self.module(f"writing/{deep}")
+        root = workflow.start(self.repo, self.other_source(), "writing", deep)
+        self.assertEqual(
+            root.relative_to(self.repo / workflow.RUNS_ROOT).parts[:-1],
+            ("writing", *deep.split("/")),
+        )
+        self.assertEqual(workflow.Run(self.repo, root).state["owner"], deep)
+
+    def test_a_new_module_leaf_is_allowed_but_an_unrooted_path_is_not(self):
+        # Authoring the first card of a genuinely new module must stay possible.
+        self.assertTrue(workflow.start(self.repo, self.other_source(), "writing", "craft/dialogue").is_dir())
+        with self.assertRaisesRegex(workflow.RunError, "does not mirror a canonical library path"):
+            workflow.start(self.repo, self.other_source("Fourth.txt", "Fourth.\n"), "writing", "nope/deeper")
+
+    def test_a_run_root_past_the_path_budget_is_refused(self):
+        owner = "/".join(("a" * 20,) * 3)
+        self.module(f"writing/{owner}")
+        with self.assertRaisesRegex(workflow.RunError, "character budget"):
+            workflow.start(self.repo, self.other_source(), "writing", owner)
+
+    def test_run_root_rejects_anything_but_one_canonical_run_path(self):
+        base = self.repo / workflow.RUNS_ROOT
+        rejected = (
+            "writing",                                    # no run id at all
+            "writing/fiction",                            # an owner segment, not a run
+            "writing/original-book-run-one",              # descriptive, not an opaque id
+        )
+        for bad in rejected:
+            with self.subTest(path=bad), self.assertRaises(workflow.RunError):
+                workflow.run_root(self.repo, base / bad)
+        with self.subTest(path="retired root"), self.assertRaises(workflow.RunError):
+            workflow.run_root(self.repo, self.repo / "workspace/skill-staging/writing" / self.root.name)
+        self.assertEqual(workflow.run_root(self.repo, self.root), self.root)
 
     def test_start_refuses_a_second_run_of_the_same_source(self):
         self.begin()
@@ -247,15 +372,15 @@ class AuthoringWorkflowTests(unittest.TestCase):
         for source in (self.source, copy):
             with self.subTest(source=source.name), self.assertRaisesRegex(workflow.RunError, "existing incomplete PASS run"):
                 workflow.start(self.repo, source, "writing", None)
-        self.assertEqual(sorted(p.name for p in (self.repo / "workspace/skill-staging/writing").iterdir()), [self.root.name])
+        self.assertEqual(sorted(p.name for p in (self.repo / workflow.RUNS_ROOT / "writing").iterdir()), [self.root.name])
 
     def test_same_source_may_start_in_another_domain_or_after_finishing(self):
         self.module("art/foundations")
-        self.assertTrue(workflow.start(self.repo, self.source, "art", "art-reading").is_dir())
+        self.assertTrue(workflow.start(self.repo, self.source, "art").is_dir())
         self.ready()
         self.run.land(self.decision())
         self.close_source()
-        self.assertTrue(workflow.start(self.repo, self.source, "writing", "second-reading").is_dir())
+        self.assertTrue(workflow.start(self.repo, self.source, "writing").is_dir())
 
     def test_abandon_retires_the_run_keeps_its_drafts_and_unblocks_start(self):
         self.begin()
@@ -273,7 +398,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaisesRegex(workflow.RunError, "abandoned"):
             workflow.Run(self.repo, self.root)
         self.assertEqual(self.resumed(domain="writing")["outcome"], "no_incomplete_run")
-        self.assertTrue(workflow.start(self.repo, self.source, "writing", "restarted").is_dir())
+        self.assertTrue(workflow.start(self.repo, self.source, "writing").is_dir())
 
     def test_finished_run_is_closed_not_abandoned(self):
         self.ready()
@@ -298,20 +423,22 @@ class AuthoringWorkflowTests(unittest.TestCase):
         check("LOAD")
         self.prep()
         check("source prep verified")
-        record = self.run.template()
-        record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
-                      subject="Revise prose for an observable reader effect.", mode="unit ingestion", no_extract=[],
-                      units=[dict(unit_id=f"u0{i}", material=f"Unit {i}", locator=f"chapter {i}",
-                                  source_pages=None, printed_pages=None,
-                                  overlap_object_ids=[self.live.stem], card_potential="medium") for i in (1, 2)])
-        self.run.submit("preflight", record)
+        self.run.submit("preflight", self.stage(
+            title="Original Book", author="Fixture Author", extent="20 pages",
+            text_quality="readable", subject="Revise prose for an observable reader effect.",
+            no_extract=[],
+            units=[dict(unit_id=f"u0{i}", material=f"Unit {i}", locator=f"chapter {i}",
+                        source_pages=None, printed_pages=None,
+                        overlap_object_ids=[self.live.stem], card_potential="medium")
+                   for i in (1, 2)]))
         check("preflight validated; acceptance pending")
         self.accept()
         self.assertEqual(check("preflight accepted")["current_unit"], "U01")
         self.first(questions=True)
         check("U01 PASS 1")
         answers = self.run.template()
-        answers["answers"][0]["resolution"] = "Practitioner chose the narrower interpretation."
+        answers["payload"]["answers"][0]["resolution"] = (
+            "Practitioner chose the narrower interpretation.")
         self.run.submit("checkpoint", answers)
         check("U01 checkpoint")
         self.second(refine=True)
@@ -366,7 +493,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
     def test_resume_asks_when_several_runs_are_open(self):
         second = self.other_source()
-        other = workflow.start(self.repo, second, "writing", "second-book")
+        other = workflow.start(self.repo, second, "writing")
         self.assertEqual(self.resumed(domain="writing")["outcome"], "choose_run")
         self.assertEqual(self.resumed(domain="writing", source=second)["run"], str(other))
 
@@ -382,6 +509,33 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertIn(workflow.HANDOFF_MARK, handoff)
         self.assertIn("Last safe endpoint: **LOAD**", handoff)
         self.assertIn("pass.py resume --run", handoff)
+
+    def test_recover_restores_state_and_staged_files_from_checkpoint_blobs(self):
+        self.ready(refine=True)
+        self.locked(self.run.land, self.decision())
+        manifest = self.run.checkpoint_manifest()
+        staged = dict(manifest["files"])
+        self.assertTrue(staged, "the accepted delta must be checkpointed")
+        # Staged artifacts are preserved as flat content-addressed blobs, not as
+        # a second nested copy of the staged tree.
+        blobs = self.root / workflow.CHECKPOINT_BLOBS
+        self.assertTrue(all((blobs / sha).is_file() for sha in staged.values()))
+        self.assertFalse((self.root / workflow.CHECKPOINT / "files").exists())
+
+        # Simulate a hard interruption after run.json changed but before the
+        # next checkpoint: controller state drifts and a staged file is lost.
+        victim = self.root / sorted(staged)[0]
+        victim.unlink()
+        state = json.loads(self.run.state_path.read_text(encoding="utf-8"))
+        state["stop_reached"] = not state["stop_reached"]
+        workflow.atomic_write(self.run.state_path, (json.dumps(state, indent=2) + "\n").encode("utf-8"))
+        self.run.reload()
+        self.assertIn("recover", self.run.pickup()["next_action"])
+
+        self.assertIn("RECOVERED", self.run.recover())
+        self.assertEqual(self.run.staged_tree(), staged)
+        self.assertEqual(workflow.digest(self.run.state_path), manifest["state_sha256"])
+        self.assertTrue(victim.is_file())
 
     def test_interrupted_pass3_rolls_back_to_the_end_of_pass2(self):
         self.begin()
@@ -507,14 +661,13 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_validated_preflight_waits_for_bound_explicit_confirmation(self):
         self.run.submit("load", self.run.template())
         self.prep()
-        record = self.run.template()
-        record.update(title="Original Book", author="Fixture Author", extent="20 pages", text_quality="readable",
-                      subject="Revise prose for an observable reader effect.", mode="unit ingestion")
-        record["units"] = [dict(unit_id="u01", material="Instructional unit 1", locator="chapter 1",
-                                source_pages=None, printed_pages=None,
-                                overlap_object_ids=[self.live.stem], card_potential="medium")]
-        record["no_extract"] = []
-        self.run.submit("preflight", record)
+        self.run.submit("preflight", self.stage(
+            title="Original Book", author="Fixture Author", extent="20 pages",
+            text_quality="readable", subject="Revise prose for an observable reader effect.",
+            no_extract=[],
+            units=[dict(unit_id="u01", material="Instructional unit 1", locator="chapter 1",
+                        source_pages=None, printed_pages=None,
+                        overlap_object_ids=[self.live.stem], card_potential="medium")]))
         self.assertEqual(self.run.state["phase"], "preflight_accept")
         with self.assertRaisesRegex(workflow.RunError, "preflight_accept"):
             self.run.submit("pass1", dict(full_read=True))
@@ -536,7 +689,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         manifest = {"source_kind": "pdf", "segments": list(range(1, 21))}
         with patch.object(pass_source_prep, "verify", return_value=manifest):
             def parsed(unit, schema_version=workflow.preflight.SCHEMA_VERSION):
-                record = self.run.template()
+                record = workflow.preflight.template_record(self.run.domain)
                 record["schema_version"] = schema_version
                 if schema_version < 3:
                     # A genuine schema-1/2 record never carried the schema-3
@@ -552,7 +705,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
                         overlap_object_ids=[], card_potential="medium")
             self.run.validate_preflight_source_coordinates(parsed(base))
             self.run.validate_preflight_source_coordinates(parsed(base, schema_version=2))
-            hybrid = self.run.template()
+            hybrid = workflow.preflight.template_record(self.run.domain)
             hybrid["schema_version"] = 2
             with self.assertRaisesRegex(workflow.preflight.PreflightError, "unexpected language_policy"):
                 workflow.preflight.parse_preflight(hybrid)
@@ -608,7 +761,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         page.insert_text((72, 100), "Table 1-1. First table\n\nTable 1-2. Second table\n\nTable 1-3. Third table\n\nSome prose around the tables.\n")
         doc.save(source)
         doc.close()
-        root = workflow.start(self.repo, source, "writing", "tables-book-run")
+        root = workflow.start(self.repo, source, "writing")
         run = workflow.Run(self.repo, root)
         run.submit("load", run.template())
         pass_source_prep.prepare(run)
@@ -619,11 +772,12 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertTrue(any("table sanity check" in item["requirement"] for item in gate["review_requirements"]))
         self.assertTrue(any("table sanity check" in warning["warning"] for warning in gate["warnings"]))
         record = run.template()
-        record.update(title="Tables Book", author="Fixture Author", extent="1 page", text_quality="readable",
-                      subject="Use numbered reference tables.", mode="unit ingestion", no_extract=[])
-        record["units"] = [dict(unit_id="u01", material="Table unit", locator="page 1",
-                                 source_pages={"start": 1, "end": 1}, printed_pages=None,
-                                 overlap_object_ids=[], card_potential="low")]
+        record["payload"].update(
+            title="Tables Book", author="Fixture Author", extent="1 page",
+            text_quality="readable", subject="Use numbered reference tables.", no_extract=[],
+            units=[dict(unit_id="u01", material="Table unit", locator="page 1",
+                        source_pages={"start": 1, "end": 1}, printed_pages=None,
+                        overlap_object_ids=[], card_potential="low")])
         run.submit("preflight", record)
         audit = run.preflight_quality_audit()
         self.assertEqual(audit["source_integrity"], "review")
@@ -642,19 +796,20 @@ class AuthoringWorkflowTests(unittest.TestCase):
             self.run.submit("preflight", record)
         self.assertEqual(self.run.state["phase"], "preflight")
 
-    def test_curriculum_audit_fails_closed_instead_of_falling_through(self):
+    def test_model_cannot_rename_stage_vocabulary_or_set_host_owned_mode(self):
+        # beta.110 caught a curriculum-audit mode after parsing it. Stage Contract
+        # v1 makes it unstatable: mode is host-owned and is not a payload field.
         self.run.submit("load", self.run.template())
         self.prep()
-        record = self.run.template()
-        record["mode"] = "curriculum audit"
-        with self.assertRaisesRegex(workflow.RunError, "unit ingestion only"):
+        record = self.stage(mode="curriculum audit")
+        with self.assertRaisesRegex(workflow.RunError, "unknown_field"):
             self.run.submit("preflight", record)
+        self.assertEqual(self.run.state["phase"], "preflight")
 
     def test_only_one_active_unit_and_all_three_passes_required(self):
         self.begin(2)
-        record = self.run.template()
-        record.update(full_read=True, unit_id="u02")
-        with self.assertRaisesRegex(workflow.RunError, "only active unit"):
+        record = self.stage(full_read=True, unit_id="u02")
+        with self.assertRaisesRegex(workflow.RunError, "unknown_field"):
             self.run.submit("pass1", record)
         self.first()
         with self.assertRaises(workflow.RunError):
@@ -663,14 +818,26 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
     def test_full_read_and_cold_reread_are_explicit(self):
         self.begin()
-        for value in (False, 1, "true"):
-            record = self.run.template()
-            record["full_read"] = value
-            with self.subTest(value=value), self.assertRaises(workflow.RunError):
-                self.run.submit("pass1", record)
+        # An honest false attestation is a semantic outcome, so it is refused
+        # without spending the contract-correction attempt.
+        with self.assertRaises(workflow.RunError):
+            self.run.submit("pass1", self.stage(full_read=False))
+        self.assertIsNone(self.run.stage_rejection())
         self.first()
         with self.assertRaises(workflow.RunError):
             self.run.submit("pass2", self.run.template())
+
+    def test_a_wrongly_typed_attestation_is_a_contract_failure(self):
+        self.begin()
+        # A non-boolean is malformed output, not a judgment: it is a contract
+        # failure, and two of them fail the stage closed.
+        with self.assertRaisesRegex(workflow.RunError, "wrong_type"):
+            self.run.submit("pass1", self.stage(full_read=1))
+        self.assertEqual(self.run.stage_rejection()["attempt"], 1)
+        with self.assertRaisesRegex(workflow.RunError, "wrong_type"):
+            self.run.submit("pass1", self.stage(full_read="true"))
+        self.assertTrue(self.run.stage_rejection()["fail_closed"])
+        self.assertEqual(self.run.state["phase"], "pass1")
 
     def test_questions_stop_progress_until_all_are_answered(self):
         self.begin()
@@ -680,15 +847,15 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaises(workflow.RunError):
             self.run.submit("checkpoint", dict(schema_version=1, unit_id="u01", answers=[]))
         record = self.run.template()
-        record["answers"][0]["resolution"] = "Practitioner chose the narrower interpretation."
+        record["payload"]["answers"][0]["resolution"] = (
+            "Practitioner chose the narrower interpretation.")
         self.run.submit("checkpoint", record)
         self.assertEqual(self.run.state["phase"], "pass2")
 
     def test_every_secondary_flag_requires_a_reasoned_resolution(self):
         self.begin()
         self.first(flags=True)
-        record = self.run.template()
-        record.update(full_reread=True, flag_resolutions=[])
+        record = self.stage(full_reread=True, flag_resolutions=[])
         with self.assertRaisesRegex(workflow.RunError, "every PASS 1"):
             self.run.submit("pass2", record)
         self.second()
@@ -696,17 +863,14 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_dispositions_are_exclusive_and_reinforce_cannot_mutate(self):
         self.begin()
         self.first()
-        record = self.run.template()
-        record["full_reread"] = True
+        record = self.stage(full_reread=True)
         item = dict(object_id=self.live.stem, reason="Observed coverage.")
-        record["buckets"]["REINFORCE"] = [item]
-        record["buckets"]["REFINE"] = [item]
+        record["payload"]["buckets"]["REINFORCE"] = [item]
+        record["payload"]["buckets"]["REFINE"] = [item]
         with self.assertRaisesRegex(workflow.RunError, "duplicate dispositions"):
             self.run.submit("pass2", record)
-        record["buckets"]["REFINE"] = []
-        name = "drafts/craft/" + self.live.name
-        card(self.root / name, self.live.stem, note="Different content.")
-        record["changes"] = [name]
+        record["payload"]["buckets"]["REFINE"] = []
+        record["payload"]["cards"] = [card_payload(self.live.stem, note="Different content.")]
         with self.assertRaisesRegex(workflow.RunError, "changing disposition"):
             self.run.submit("pass2", record)
 
@@ -717,7 +881,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.run.land(self.decision())
         self.assertEqual(self.run.state["phase"], "closure_pass2")
         self.assertFalse(staged.exists())
-        # The accepted delta is staged in skill-staging; the live canon is
+        # The accepted delta is staged inside the run; the live canon is
         # untouched until the source close transaction.
         accepted = self.root / "accepted/files/library/writing/craft" / self.live.name
         self.assertEqual(accepted.read_bytes(), expected)
@@ -750,14 +914,18 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaisesRegex(workflow.RunError, "relation contract"):
             self.third()
 
-    def test_actual_reviewed_hashes_are_required(self):
+    def test_reviewed_hashes_are_host_owned_and_not_a_model_field(self):
         self.begin()
         self.first()
         self.second(refine=True)
-        record = self.run.template()
-        record.update(card_only_review=True, checks={n: True for n in workflow.SEMANTIC_CHECKS}, reviewed_sha256={})
-        with self.assertRaisesRegex(workflow.RunError, "actual staged files"):
+        record = self.stage(card_only_review=True,
+                            checks={n: True for n in workflow.SEMANTIC_CHECKS},
+                            reviewed_sha256={})
+        with self.assertRaisesRegex(workflow.RunError, "unknown_field"):
             self.run.submit("pass3", record)
+        # The host computes them itself, so an honest PASS 3 still passes.
+        self.third()
+        self.assertEqual(self.run.state["reviewed_sha256"], self.run.staged_hashes())
 
     def test_edited_draft_after_review_requires_rescan(self):
         self.ready(refine=True)
@@ -773,7 +941,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
 
     def test_another_books_landing_invalidates_the_older_review(self):
         self.ready(refine=True)
-        other_root = workflow.start(self.repo, self.other_source(), "writing", "book-two")
+        other_root = workflow.start(self.repo, self.other_source(), "writing")
         older = self.run
         self.run = workflow.Run(self.repo, other_root)
         self.ready(refine=True)
@@ -852,14 +1020,13 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_new_category_needs_taxonomy_and_foreign_recipe_is_protected(self):
         self.begin()
         self.first()
-        record = self.run.template()
-        record["full_reread"] = True
+        record = self.stage(full_reread=True)
+        payload = record["payload"]
         oid = "PAT_compare_reader_expectations"
-        name = f"drafts/new-category/{oid}.md"
-        card(self.root / name, oid)
-        record["changes"] = [name]
-        record["buckets"]["NEW_PATTERNS"] = [dict(object_id=oid, reason="Different reusable decision.")]
-        self.audit_changed(record, oid, name, [self.live.stem])
+        drafted = card_payload(oid, placement=("writing", "new-category"))
+        payload["cards"] = [drafted]
+        payload["buckets"]["NEW_PATTERNS"] = [dict(object_id=oid, reason="Different reusable decision.")]
+        self.audit_payload(payload, oid, drafted, [self.live.stem])
         with self.assertRaisesRegex(workflow.RunError, "NEW_SUBCATEGORY"):
             self.run.submit("pass2", record)
         recipe = self.repo / "workspace/release-recipes/SkillForge_Art.yaml"
@@ -873,13 +1040,8 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_invalid_recipe_closure_is_rejected_before_landing(self):
         self.begin()
         self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        name = "recipes/SkillForge_Writing.yaml"
-        staged = self.root / name
-        staged.parent.mkdir()
-        staged.write_text("modules: [writing/missing]\n", encoding="utf-8")
-        record["changes"] = [name]
+        record = self.stage(full_reread=True, artifacts=[
+            {"kind": "recipe", "recipe": "SkillForge_Writing", "modules": ["writing/missing"]}])
         self.run.submit("pass2", record)
         with self.assertRaisesRegex(workflow.RunError, "missing module"):
             self.third()
@@ -914,13 +1076,12 @@ class AuthoringWorkflowTests(unittest.TestCase):
         card(self.repo / f"library/art/craft/{oid}.md", oid, note="A separate foreign-domain owner.")
         self.begin()
         self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        name = f"drafts/craft/{oid}.md"
-        card(self.root / name, oid, note="A new writing owner with a colliding ID.")
-        record["changes"] = [name]
-        record["buckets"]["NEW_PATTERNS"] = [dict(object_id=oid, reason="Different reusable decision.")]
-        self.audit_changed(record, oid, name, [self.live.stem])
+        record = self.stage(full_reread=True)
+        payload = record["payload"]
+        drafted = card_payload(oid, note="A new writing owner with a colliding ID.")
+        payload["cards"] = [drafted]
+        payload["buckets"]["NEW_PATTERNS"] = [dict(object_id=oid, reason="Different reusable decision.")]
+        self.audit_payload(payload, oid, drafted, [self.live.stem])
         self.run.submit("pass2", record)
         self.third()
         with self.assertRaisesRegex(workflow.RunError, "validate.py failed"):
@@ -964,20 +1125,23 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertTrue(old_index.exists())
         self.begin()
         self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        name = "drafts/craft/new-topic/" + self.live.name
-        card(self.root / name, self.live.stem, placement=["writing", "craft", "new-topic"], note="The owner belongs in the revised topic.")
-        record["changes"] = [name]
-        record["removals"] = ["craft/old-topic/" + self.live.name]
-        record["buckets"]["REFINE"] = [dict(object_id=self.live.stem, reason="Reconcile the owner with its actual subject.")]
-        record["taxonomy"]["MOVE"] = [dict(path="craft/new-topic", reason="This category owns the decision.")]
-        record["taxonomy"]["NEW_SUBCATEGORY"] = [dict(path="craft/new-topic", reason="Give the reusable decision its own topic.")]
-        self.audit_changed(record, self.live.stem, name, [self.live.stem])
+        record = self.stage(full_reread=True)
+        payload = record["payload"]
+        drafted = card_payload(self.live.stem, placement=("writing", "craft", "new-topic"),
+                               note="The owner belongs in the revised topic.")
+        payload["cards"] = [drafted]
+        payload["removals"] = [self.live.stem]
+        payload["buckets"]["REFINE"] = [dict(object_id=self.live.stem, reason="Reconcile the owner with its actual subject.")]
+        payload["taxonomy"]["MOVE"] = [dict(library_path=["writing", "craft", "new-topic"],
+                                            reason="This category owns the decision.")]
+        payload["taxonomy"]["NEW_SUBCATEGORY"] = [
+            dict(library_path=["writing", "craft", "new-topic"],
+                 reason="Give the reusable decision its own topic.")]
+        self.audit_payload(payload, self.live.stem, drafted, [self.live.stem])
         self.run.submit("pass2", record)
         self.third()
         self.run.land(self.decision())
-        # The move is staged in skill-staging; the live canon is untouched until close.
+        # The move is staged inside the run; the live canon is untouched until close.
         self.assertTrue(self.live.exists())
         self.close_source()
         self.assertFalse(self.live.exists())
@@ -995,13 +1159,14 @@ class AuthoringWorkflowTests(unittest.TestCase):
     def test_asset_support_folder_is_not_a_new_knowledge_subcategory(self):
         self.begin()
         self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        name = "drafts/craft/assets/new-reference.jpg"
-        staged = self.root / name
+        # Host tooling stages an asset; the response only references it by leaf
+        # name, and the host owns the directory.
+        staged = self.root / "drafts/craft/assets/new-reference.jpg"
         staged.parent.mkdir(parents=True)
         staged.write_bytes(b"image fixture, not yet referenced")
-        record["changes"] = [name]
+        record = self.stage(full_reread=True, artifacts=[
+            {"kind": "asset", "library_path": ["writing", "craft"],
+             "filename": "new-reference.jpg"}])
         self.run.submit("pass2", record)
         self.assertEqual(self.run.state["phase"], "pass3")
 
@@ -1009,13 +1174,8 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.module("writing/new-module")
         self.begin()
         self.first()
-        record = self.run.template()
-        record["full_reread"] = True
-        name = "recipes/SkillForge_Writing.yaml"
-        staged = self.root / name
-        staged.parent.mkdir()
-        staged.write_text("modules: [writing/craft]\n", encoding="utf-8")
-        record["changes"] = [name]
+        record = self.stage(full_reread=True, artifacts=[
+            {"kind": "recipe", "recipe": "SkillForge_Writing", "modules": ["writing/craft"]}])
         self.run.submit("pass2", record)
         with self.assertRaisesRegex(workflow.RunError, "every active-domain module"):
             self.third()

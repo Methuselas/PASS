@@ -6,6 +6,1732 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.138 - 2026-10-24
+
+### Fixed
+
+- **The generated SkillForge `SKILL.md` Skillset Memory section no longer
+  describes a claim as an observation (residual post-R2 wording correction).**
+  beta.137 restated the section's opening as the current learned state and moved
+  its vocabulary from the retired `entry` to `claim`, but it left the clause
+  "read each claim as an observation carrying a stated confidence". The final R2
+  defines a claim as a **learned proposition**, not an observation, so that
+  clause still contradicted the contract it was meant to state. The clause now
+  reads "read each claim as a learned proposition carrying a stated confidence,
+  not as an instruction". Only that generated sentence changed: retrieval,
+  confidence, projection behavior, schema, corpus, packaging, and Tesseract are
+  all untouched. A regression gate on the existing learned-versus-history test
+  now holds the generated section to the not-an-observation rule, scoped to the
+  claim description rather than a repository-wide ban on the word.
+
+## 1.0.0-beta.137 - 2026-10-24
+
+### Fixed
+
+- **The generated SkillForge `SKILL.md` no longer misdescribes Skillset
+  Memory as empirical history (post-R2 producer wording correction).** The
+  release generator's Skillset Memory section opened by calling
+  `memory/<domain>/skill_memory.yaml` "this skillset's **empirical record**:
+  what actually happened when this canon was used" and told the reader to
+  "read each entry as an observation" - wording that reverses the final R2
+  authority split, where Skillset Memory is the current learned state and
+  Training History is the empirical record of concrete attempts. The section
+  now states what it is: the skillset's current learned state about doing the
+  skill's work, carried as claims, not canon, with the release copy a
+  current-state projection that omits claim-level `evidence` and ships no
+  `training_history.jsonl`. No release mechanics, schema, or claim data
+  changed; a focused regression gate holds the generated section to the
+  learned-versus-history distinction and the claim vocabulary.
+
+## 1.0.0-beta.136 - 2026-10-24
+
+### Fixed
+
+- **The root `README.md` no longer teaches the retired pre-R2 Memory
+  architecture (T22 correction).** The landing page escaped criterion 1's
+  governed-surface scan, but it states the Memory contract in present-tense
+  instructional prose, so it is T22-owned. Its Memory passages now state the
+  schema-3 claim contract - current learned claims classed `conduct` or
+  `reach`, with card candidates in
+  `canon_workflow/<domain>/card_candidates.yaml` rather than in Memory - and
+  the CRQ walkthrough now starts from an open candidate in that store with
+  the live `prepare --candidate` interface instead of the dead
+  `--memory-entry` invocation that read Skillset Memory. A narrow regression
+  gate holds the root README to the same retired-vocabulary rule the governed
+  documents face, without redefining criterion 1's surface list.
+
+## 1.0.0-beta.135 - 2026-10-24
+
+### Changed
+
+- **Every document that states the Skillset Memory contract now states the
+  schema-3 claim contract (T22).** The runtime moved to claims over T01-T21, but
+  the prose a reader reaches first still described the retired shape, so the
+  repository carried two contradictory specifications of the same store. This is
+  contract correction, not documentation tidying: a reader who followed
+  `MEMORY_SCHEMA.md` section 5 would have written an entry with a `type`, a
+  `status`, and an `evidence_count` into a store whose validator rejects all
+  three.
+
+  `MEMORY_SCHEMA.md` is the principal change. The v1/v2 store shape, the
+  required/optional entry keys, the two promotion thresholds, the five-state
+  lifecycle, specialization profiles, card-candidate incubation, and compaction
+  are deleted; the claim contract is promoted to section 5 and is now the whole
+  current Memory contract. Retrieval is restated for v3 as its own section, and
+  self-containment is kept, re-pointed from the entry to the claim. The four
+  test-locked phrases survive verbatim, including the invalid-run invariant,
+  which now says an invalid event must never increment *the weight of evidence
+  standing behind a claim* rather than naming the retired `evidence_count`.
+
+  The hard rule in `CLAUDE.md` and `AGENTS.md` keeps its bold lead byte for byte
+  and replaces the prose after it: claims, `conduct` and `reach`, currentness as
+  presence, retirement as removal, and `confidence` as maturity that is never
+  mechanically derived. `ARCHITECTURE.md` contract 20 drops the four retired
+  types and states what a release actually ships - the current-state projection
+  only, with representative `evidence` stripped and no Training History beside
+  it.
+
+- **The candidate workflow is documented where it actually lives.**
+  `CANDIDATE_REFINEMENT.md` described CRQ intake as resolving a `card_candidate`
+  out of Skillset Memory, which T10/T11 re-homed to
+  `canon_workflow/<domain>/card_candidates.yaml` and the controller has read
+  from ever since. The intake section, the disposition vocabulary
+  (`candidate_action`, not the retired `memory_action`), and the
+  `SOFTWARE_CARD_FIELD_TESTS.md` repair pipeline now name that store. Skillset
+  Memory is stated as what it is on this path: not a CRQ input.
+
+### Fixed
+
+- **`MODULE_RELEASES.md` no longer promises a legacy pass-through that T21
+  deleted.** It said a store of any older schema ships whole with its History;
+  packaging has one branch and projects schema 3, and a store of any other
+  declared schema stops the build.
+
+- **`memory/README.md`'s current-contract defects.** It opened by describing
+  Skillset Memory as "what actually happened when the canon was used", which is
+  Training History; it said `build_release.py` "copies the store", which
+  predates the T09 projection; it called Memory "the record of using the canon";
+  and it claimed the Art store is seeded with three craft observations, which
+  the migrated store is not. The separately deferred wording question in the
+  directory tree is untouched.
+
+- **The anti-inline firewall runs against claims.** `test_memory_is_not_inlined_into_canon`
+  iterated `entries` and compared `observation`, so after the migration it
+  passed over an empty list and proved nothing. It now reads `claims` and checks
+  both prose fields a claim carries - `claim` and `delta.statement` - against
+  every card and skill entrypoint.
+
+### Added
+
+- `test_memory.py::ContractDocuments`, two gates over the documents that state
+  the contract: no governed current document presents retired schema vocabulary
+  as a current Memory schema value, and every `memory.py <word>` it names is a
+  live subcommand read off the tool's own parser. Neither is a repository-wide
+  string ban. Ordinary English is not banned - `status:` front matter and "awaits
+  diagnosis" both stand, because the ambiguous tokens are caught only as keys
+  inside a fenced block describing a Memory store - and a sentence that declares
+  a name retired is permitted, which is what lets the S2 rule row list the
+  legacy-only keys it rejects and lets "There is no `supersede`" state the
+  contract. `workspace/handoffs/` and Training History are outside both gates:
+  rewriting the migration evidence to match the present would destroy the record
+  the migration was judged on.
+
+## 1.0.0-beta.134 - 2026-10-24
+
+### Fixed
+
+- **Every current-store reader now passes through one authoritative schema
+  gate, so none of them can consume a store before its runtime schema state has
+  been classified (T21 correction).** beta.133 put the runtime on schema 3
+  alone, but the check that enforced it was per-command, and three reading paths
+  disagreed with each other and with the validator. An independent review
+  reproduced all three.
+
+  `query` asked only whether the declared version was a *retired* one. A store
+  declaring `memory_schema_version: 4` therefore retrieved normally — claims
+  returned, ordinary receipt, exit 0 — while `validate` called the same file an
+  unknown version. `show` asked nothing at all: on a v1 or v2 store it reported
+  `no claim '<id>'`, which says a claim is absent from a store whose claims this
+  runtime cannot read, and on a legacy-declared mapping that happened to carry a
+  `claims` key it printed the claim and exited 0. That was a runtime path
+  reading v1/v2 content, which beta.133 states does not exist.
+
+  The fix is one seam rather than three checks. `load_current_store` loads a
+  store only after classifying it, and `query`, `query_v3_store` and `show` call
+  it instead of `load_memory`; `unsupported_version_problem` is the third
+  refusal beside `unmigrated_problem`, so an undefined version never borrows the
+  migration wording and a retired one never reads as unknown. The write path
+  already enforced the exact version and is unchanged. `validate` and `review`
+  keep their own error channels and their existing messages.
+
+- **A domain directory with no `skill_memory.yaml` in it is absence, not a
+  failure.** Fail-open covers no store, no domain, and an empty store (R2.5
+  §9.2), and this topology is the first of those: the directory can be left
+  behind by a partial copy or a domain nothing has written yet. The named-domain
+  lookup accepted the directory on `is_dir()` alone while the unnamed sweep
+  required the store file, so a query with `--domain` reached the loader for a
+  file that was not there and exited non-zero with no receipt. `domain_dirs` now
+  applies one predicate both ways in, and the query answers `retrieved: (none)`
+  at exit 0 as it already did for a missing root or a missing domain.
+
+  Four runtime states stay exactly distinct, and a test drives one command
+  through all four: absent (exit 0, honest empty receipt), unmigrated 1 or 2
+  (non-zero, *unmigrated, not corrupt*), unsupported 4 or otherwise undefined
+  (non-zero, unknown-version error, no migration wording), and schema 3 (the
+  normal path). A parseable but schema-invalid v3 store stays deferred (R2.3 #3,
+  R2.5 §12.11): this correction defines no corruption policy.
+
+### Testing
+
+- New `test_memory.py::SchemaContract` tests, each failing against beta.133 for
+  the behavior it describes: `test_a_legacy_store_shaped_like_a_current_one_is_still_refused`
+  (a legacy-declared store carrying `claims`, through `show` and `query`),
+  `test_an_unsupported_version_is_refused_by_every_reader` (schema 4 through
+  `query`, `show`, `validate` and `review`),
+  `test_an_existing_domain_directory_with_no_store_is_absence`, and
+  `test_the_four_runtime_schema_states_stay_distinct`, which exists to catch a
+  shared gate widened to make one case pass.
+
+- `show` joined `SchemaContract.unmigrated_commands`, the command/version matrix
+  that beta.133 ran over every other reading command. Its omission is why the
+  bypass shipped, and the matrix checks the store's bytes afterwards.
+
+- `V3RetrievalSurface` now allows `load_current_store` and no longer allows
+  `load_memory`: retrieval may not open a store ungated.
+
+## 1.0.0-beta.133 - 2026-10-24
+
+### Removed
+
+- **Skillset Memory now reads one schema, and every transition scaffold that
+  made two schemas possible is deleted (T21).** All four stores reached
+  `memory_schema_version: 3` at beta.132, which was the condition R2.5 set for
+  this cutover: no legacy store, path, or fixture could be removed until the
+  gates that depended on it had passed.
+
+  Gone from `PASS/tools/`: `memory_legacy_input.py` (the migration-input reader,
+  a transition scaffold rather than a compatibility feature — Decision 1) and
+  `migrate_memory_v3.py` (the one-time migrator). Gone from `memory.py`: the
+  schema dispatch, `score_entry`, `query_store`, `review_legacy_store`,
+  `STALE_DAYS`, `ENTRY_REQUIRED`, `RETRIEVABLE_STATUS`, `ID_RE`, the duplicate
+  `FAILURE_LAYERS` that T12 had already re-homed to
+  `PASS/runtime/candidate_qualification/schemas.py`, and `query --scope-id`, the
+  legacy spelling of `--scope`. Gone from `build_release.py`: the `stage_memory`
+  pass-through that shipped a non-v3 store whole (Decision 2 — one deletion
+  ticket, no permanent conditional). `stage_memory` now has exactly one branch
+  and it projects schema 3.
+
+  Both deleted tool paths joined
+  `test_architecture.py::test_retired_authoring_infrastructure_is_gone`, so
+  neither can return quietly.
+
+### Changed
+
+- **A v1 or v2 store is refused as unmigrated, not corrupt.** Every command that
+  reads a store — `validate`, `query`, `review`, `add`, `update`, `retire`,
+  `link-evidence` — exits non-zero naming the store path, the declared version,
+  the schema-3 contract in `PASS/docs/MEMORY_SCHEMA.md`, and the retired
+  migrator that is recoverable from repository history. The word is
+  *unmigrated*: the bytes may be perfect and the fix is a migration rather than
+  a repair. Nothing upgrades a store in place, and the message is deliberately
+  not generalised into a corruption policy — a parseable but schema-invalid v3
+  store stays deferred (R2.3 #3, R2.5 §12.11).
+
+  Fail-open is unchanged and is now stated beside its opposite. A missing
+  `memory/` root, a missing domain, and an empty store each exit 0 with an
+  honest empty receipt, because nothing in PASS may stop because Memory is
+  absent. A wrong-version store is *presence*, not absence — it asserts that
+  learned state exists while being unreadable — so it is always loud. An
+  undefined version such as 4 is still the unknown-version validation error, and
+  reads differently from unmigrated.
+
+- **`memory.py validate` counts claims.** The summary counted `entries`, so
+  every migrated store reported zero content and the printed total under-reported
+  the corpus; beta.130 recorded the gap and left it here. The live corpus now
+  reports `4 store(s), 127 claim(s), 308 event(s) validated`. A store with no
+  History file beside it contributes no events rather than a missing-file error,
+  which is what absence means beside a v3 store (I5).
+
+- **`PASS/docs/MEMORY_SCHEMA.md` §10 and `memory/README.md` state the cutover.**
+  Both described a dispatch that routed v1/v2 to a reader that no longer exists.
+  §10's status line now records that schema 3 is live and sole; sections 5 and 7
+  still describe the retired shape and are explicitly marked as describing no
+  store that exists, because deleting them is T22's.
+
+### Testing
+
+- New `test_memory.py::SchemaContract` tests: `test_a_v1_store_is_loudly_unmigrated`,
+  `test_a_v2_store_is_loudly_unmigrated` (both driving every reading command and
+  checking the store's bytes afterwards), `test_unmigrated_is_not_corrupt`,
+  `test_absence_is_still_silent_and_fail_open`, and
+  `test_no_runtime_path_parses_schema_one_or_two` — the last read off the syntax
+  tree, locking the retired version numbers to the single function that builds
+  the refusal. `ShippedStore::test_no_legacy_store_remains_in_the_working_tree`
+  asserts criterion 48 over the whole repository rather than over `memory/`.
+
+- **The R2.5 §8.2 reversals landed.** Obsolete and removed, each for the reason
+  §8.2 gives: `test_learned_principle_is_an_accepted_memory_type`,
+  `test_v2_accepts_specialization_profiles_and_card_candidates`,
+  `test_v1_rejects_v2_only_entry_types`,
+  `test_superseded_status_requires_a_successor`,
+  `test_unknown_evidence_origin_is_rejected`,
+  `test_human_teaching_is_a_recognized_evidence_origin`, and
+  `test_evidence_count_must_match_cited_events`. Surviving in spirit:
+  `test_unknown_schema_version_is_rejected`, which now also asserts that the
+  unknown-version message and the unmigrated message are different.
+  `test_stage_memory_copies_a_legacy_store_untouched` and
+  `test_projected_store_problems_passes_a_legacy_store` — the two further
+  reversals scope recovery identified — are replaced by
+  `test_stage_memory_refuses_a_store_it_cannot_project` and
+  `test_projected_store_problems_reports_a_store_of_another_schema`.
+
+- **Entry-shaped duplicates were retired rather than re-pointed.** The v1/v2
+  contract classes stated things the v3 suites already state against the only
+  claim schema there is, so `TemporaryStateFirewall` (covered by
+  `V3Leakage::test_retired_authoring_and_lineage_keys_are_rejected` and
+  `test_conversation_deference_is_rejected`), the entry-shape half of
+  `SchemaContract` (covered by `V3Schema` and `V3ClaimInvariants`), and the
+  entry-citing half of `AdmissibilityContract` (covered by
+  `V3ReferentialIntegrity`) are gone. Each surviving class names where its old
+  statements went. `AdmissibilityContract` keeps the Training History half,
+  which is unversioned (R2.5 §8.4) and so crossed the cutover unchanged.
+  `SchemaDispatch` became `CorpusSurface`: its four mixed-state tests described
+  an arrangement the cutover removed, and what survives is the two-channel
+  validate run plus a new `test_the_summary_counts_claims_across_every_store`.
+
+- **`tests/test_memory_migration.py` is deleted with the migrator it tested.**
+  2,440 lines covering FREEZE, hash verification, the sentence inventory, the
+  A1–A10 accounting checker, the three reports, and the VERIFY gate — every one
+  of them driving `migrate_memory_v3.py`. A suite for a deleted tool is not
+  coverage.
+
+### Owner decision recorded
+
+- **`SpecificationExamples` is removed, not restored.** Two committed statements
+  prescribed opposite dispositions for that suite: the beta.130 T20 entry said
+  restoring its worked examples against a committed fixture "is T21's", while
+  `test_memory_migration.py` and the beta.129 T17 entry said T21 removes the
+  suite when the last domain migrates. The authoritative T21 ticket is silent,
+  so the conflict went to the owner, who ruled: **remove the suite, and do not
+  restore it against a committed v1/v2 fixture.**
+
+  The beta.130 statement was an erroneous carry-forward note and is not T21
+  authority; it stays in the changelog as historical evidence of the mistake
+  rather than being rewritten. The ruling follows from what the suite was for —
+  it read two *live legacy* entries, `SE_MEM_001` and `GAMEDESIGN_MEM_001`, and
+  T17 and T20 consumed both — and from criterion 48, which is read literally: a
+  committed test fixture that is itself a v1/v2 Memory store is a legacy store
+  in the working tree. Restoring the examples would have preserved a transition
+  scaffold inside the ticket whose whole subject is removing them.
+
+  So: no committed legacy fixture is retained anywhere. The wrong-version tests
+  synthesize minimal v1/v2 input inside their own temporary directories, which
+  is test input rather than a retained store, and no production path parses it
+  as a supported schema. A9 derivation coverage retired with the migrator it
+  belonged to.
+
+### Already satisfied, reconciled honestly
+
+Three scope items were closed before this ticket began, and are recorded rather
+than re-done:
+
+- `FAILURE_LAYERS` was re-homed by T12 to
+  `PASS/runtime/candidate_qualification/schemas.py`; verified that nothing
+  imports it from a deleted module, and the dead duplicate in `memory.py` was
+  removed with the other legacy constants.
+- Criterion 48 was already satisfied for the four live stores at beta.132; what
+  this ticket added is the repository-wide assertion that keeps it satisfied.
+- The seven `SchemaContract` reversals R2.5 §8.2 names were all present and were
+  reversed here by name.
+
+Two items are explicitly **not** done, and neither is a gap: `MEMORY_SCHEMA.md`'s
+legacy sections belong to T22, and the FREEZE inputs and signed ledgers under
+`workspace/handoffs/` are untracked migration evidence this ticket is forbidden
+to delete. They are the owner's to release; nothing active reads them and no
+release ships them.
+
+### Validation
+
+`python -m unittest discover -s tests -p "test_*.py"` green.
+`python PASS/tools/validate.py`, `verify_references.py`, and
+`memory.py validate` over all four v3 stores green, with no FLAG unreviewed. A
+transcript of a v1 fixture refused loudly by `validate`, `query`, `review`, and
+`add` — with the fixture byte-identical afterwards — and an absent `memory/` root
+accepted silently at exit 0, is reproduced by
+`SchemaContract.assertLoudlyUnmigrated` and
+`test_absence_is_still_silent_and_fail_open`. `PASS/tools/` carries neither
+deleted module.
+
+## 1.0.0-beta.132 - 2026-10-24
+
+### Changed
+
+- **The last T20 scenario resting on a lexical proxy is reclassified from MIXED
+  to DECISION, and the claim it carried ceases to be executed.** A targeted
+  re-review of beta.131 confirmed the three other blocker fixes and reproduced
+  the corrected edit-history figures independently, then found that the proxy
+  correction had missed one instance of the very error it was correcting.
+
+  `fixtures/f_verification_batches.py` assigns a card an assertion *kind* by
+  phrase regex. A non-match was being promoted into the semantic assertion that
+  **35 of 202 C++ cards make no assertion a compile-or-run probe can decide**,
+  and `SE_MEMORY_BEHAVIOR_TESTS.md` offered that census as the sole executed
+  support for the claim that unreachable content must be scored untested rather
+  than passing. The census survived the first correction because it looked like
+  a count rather than a rate - 35 cards, enumerated, not sampled. The count is
+  real; what it counts is not probe reach.
+
+  **One member of the bucket refutes it by compiling.** The classifier assigns
+  the empty kind set to `PAT_never_redefine_inherited_default_parameter`, whose
+  Pattern Rule and `Don't` section assert that a call through a base-typed
+  reference selects the derived virtual body and the base default argument -
+  directly executable C++. The probe is carried as
+  `fixtures/f_probe_reach_counterexample.cpp`:
+
+  ```
+  cl /nologo /std:c++20 /EHsc /W4 f_probe_reach_counterexample.cpp    exit 0
+  base-reference=21 derived-reference=22                              exit 0
+  ```
+
+  21 is the derived body carrying the base default. Five further unmatched cards
+  plainly assert executable behaviour - the short-circuit and comma operators,
+  the `std::async` launch policy, postfix increment in terms of prefix, a
+  non-virtual redefinition, constant-time erase into the hole - and the harness
+  now lists them unadjudicated so that no count is drawn from them.
+
+  The classifier is kept as a detector and its result renamed to what it
+  establishes, **classifier-unmatched cards**, supporting no claim. No census of
+  probe reach was run: settling it means reading all 35 cards, which is a sweep
+  and not a migration step, and no other fixture in the set bears on the claim.
+  Truthful downgrade was preferred to manufacturing evidence for the old label.
+
+  | | EXECUTED | MIXED | DECISION | claims on reasoning evidence alone |
+  |---|---:|---:|---:|---:|
+  | beta.130 | 39 | 2 | 1 | 7 of 81 |
+  | beta.131 | 37 | 4 | 1 | 12 of 81 |
+  | **beta.132** | **37** | **3** | **2** | **13 of 81** |
+
+  The scenario total stays 42 and section 3a of the evidence artifact gains a
+  fourth proxy row, so every row of its index can still be checked against the
+  rule it states.
+
+- **No claim changed, and the store is not rewritten.** No claim text, delta,
+  envelope, evidence citation or identifier was touched, `memory_version` stays
+  63, and the builder reproduces the installed software-engineering store byte
+  for byte (SHA-256 `29ec1211d436ba2e85a496f917133b09de886749f94904a6c2f78ebd2418ef1e`).
+  The frozen legacy bytes verify against their FREEZE digest. The accounting is
+  unchanged: 46 entries, 146 propositions, 146 dispositions, 127 survivors, 81
+  claims, 19 signed losses, zero HOLDs, zero FLAGs. No disposition,
+  decomposition, loss item, duplicate adjudication or Canon verdict was touched;
+  the beta.131 fixes to the three other blockers are left exactly as they stood;
+  T17, T18 and T19 were not reopened; T21 is not started. This is an evidence
+  classification correction, not a regression in migration quality.
+
+## 1.0.0-beta.131 - 2026-10-23
+
+### Fixed
+
+- **A T20 claim reversed the empirical result it was written from, and is
+  corrected.** `SE_MEM_5628P29ZTEVVZASMYW7FTJ6YKG` said a behaviour credited to
+  a support on four self-reports *did not survive the support being withheld*.
+  The frozen legacy entry `SE_MEM_016` and event `SE_EV_0041` record the
+  opposite: five candidate supports were withdrawn one or two at a time and the
+  behaviour survived every removal, including the arm with none of the five
+  present. What did not survive withholding was the **credit given to
+  retrieval**. The claim now states that the ablation refuted the attribution
+  and left the behaviour standing, which also removes a contradiction with the
+  neighbouring reach claim recording the same persistence. The duplicate-matrix
+  row that distinguishes this claim from the independent-validation claim was
+  re-run against the corrected wording and is unchanged: the correction changes
+  what the ablation refuted, not the condition under which the claim fires.
+- **A claim asserted a cause its experiment did not establish.**
+  `SE_MEM_AXTNZ3499FNCZRZC3DGSVQTVZC` held that where one density metric
+  separates author kinds, *the separating variable is vintage or size*. The
+  seven-corpus measurement reproduces - the within-kind spread exceeds the
+  between-kind gap on two of three metrics, and runtime-check density separates
+  the sampled groups at a 2.82 gap against a 0.79 spread - but nothing in it
+  measured vintage or size. Those corpora are also the newest and the smallest,
+  so the three vary together. The claim now reports two of three exactly, states
+  the separation on the third as observed, and names vintage and size as
+  **confounds preventing attribution** rather than as demonstrated causes.
+- **Two claims rested on predictive language a rerun did not establish.**
+  `SE_MEM_DPPP6562EDPMYN6FW5GY5CKT9M` began "What predicts a broken claim about
+  what the language requires...", excluding claim kind and raw age. The rerun
+  measured **edits per card**, not broken-claim frequency, and the series is
+  non-monotone (1.42, 2.31, 1.64, 2.71, 1.47 by source distance). The claim is
+  rewritten to the scoped historical observation its own batch evidence
+  supports - the nine batches whose source provenance was known - and the
+  predictive framing is gone; the companion claim's stale condition,
+  which asserted source distance *predicts* better than claim kind, is corrected
+  to the same historical form, and both now carry the edit measurement in their
+  envelopes as an explicitly non-equivalent proxy.
+
+### Changed
+
+- **Two behaviour scenarios are reclassified from EXECUTED to MIXED, because
+  their harnesses measured proxies and the evidence reported the proxies as the
+  thing they stood for.** This supersedes the beta.130 figures.
+
+  | | EXECUTED | MIXED | DECISION | claims on reasoning evidence alone |
+  |---|---:|---:|---:|---:|
+  | beta.130 | 39 | 2 | 1 | 7 of 81 |
+  | **beta.131** | **37** | **4** | **1** | **12 of 81** |
+
+  The drill-specification sweep flagged 262 of 472 graded requirements as
+  "unbacked" on a word-overlap heuristic, and the evidence called them 262
+  specification defects. A hand adjudication of fifteen flags drawn at even
+  intervals from the sorted flag list, each read against its drill's own
+  instruction steps, **confirmed none**: thirteen are false positives and two
+  requirements carry one unasked element each. One drill has all six of its
+  requirements flagged while its instructions ask for the graded work step by
+  step, and the lowest-overlap flag in the sample is also a false positive, so
+  the cut point is not the problem. The sweep is now reported as 262 **candidate
+  flags** at a measured precision of zero, which converts it into a second
+  executed instance of the claim that a keyword proxy for a non-decidable
+  property reports noise - the one claim that scenario does establish. The other
+  two return to reasoning evidence.
+- The repair-history harness counted every post-introduction commit as a repair
+  and every commit sparing the IF/THEN marker lines as illustration-only,
+  yielding "411 of 462 (89 %)". Both were wrong. **173 of the 462 edits never
+  leave the YAML front matter** - the worked example changes a foundation role
+  and one cross-link - and the marker regex under-counts rule edits by 2.7×,
+  because a rule can be reworded without its markers changing. Classified by
+  section over the pattern cards: 360 edits, 152 metadata-only, and of the 208
+  prose edits **152 (73 %) leave the rule untouched**. The harness now keeps
+  *edit*, *metadata edit*, *rule edit*, *repair* and *probe failure* as five
+  separate terms in its own header, and records that git holds the first three
+  and neither of the last two. Three claims about probe outcomes across twenty
+  verification batches return to reasoning evidence; the corpus census of what a
+  probe cannot reach stays executed, because the repository does answer it.
+- `memory/software-engineering/skill_memory.yaml` declares `memory_version: 63`.
+  The store is regenerated from the same frozen legacy bytes and the same
+  recorded claim-id map, so every claim id is unchanged and the four corrected
+  claims are the only content difference.
+
+### Known issues
+
+- **Twelve of 81 claims rest on a reasoning fixture alone**, up from seven: the
+  seven beta.130 recorded, plus the two whose lexical cross-reference does not
+  implement the semantic one they describe, plus the three about probe outcomes
+  across twenty verification batches that git cannot see. Each is recorded with
+  why it cannot be executed and the strongest experiment run in its place.
+  Adjudicating all 262 flags by hand would execute one of the two; re-running
+  twenty verification batches against the C++ module would execute the three,
+  and that is a sweep rather than a migration step.
+- The migration accounting, Canon ownership, loss accounting, cutover, domain
+  isolation, duplicate dispositions and the `SE_MEM_003` / `SE_MEM_016`
+  adjudication are unchanged and were not reopened: 46 entries, 146
+  propositions, 146 dispositions, 81 claims, 19 signed losses, zero HOLDs.
+  Full discovery and the skip baseline are unchanged from beta.130.
+
+## 1.0.0-beta.130 - 2026-10-23
+
+### Changed
+
+- **The software-engineering Skillset Memory store is migrated to schema 3,
+  completing the four-domain migration (T20).** All four domains now declare
+  `memory_schema_version: 3`; no legacy store remains in the corpus. The
+  migration was gated on an empirical requirement the three earlier domains did
+  not carry: every surviving claim had to be put against a fixture exercising
+  real code or repository behaviour, not a prose fixture.
+- **Accounting.** **46 legacy entries** decomposed into **146 propositions**,
+  which received **146 dispositions** - REWRITE 124, EXTRACT 3, REHOME 1,
+  REJECT 18 - of which **127 survive** and resolve to **81 live claims**. The
+  gap is 46 redirections where several source propositions collapse onto one
+  claim; there are no splits. Losses: **19** items (18 rejections, 1
+  re-homing), each signed individually with its own note; **zero** HOLDs and
+  **zero** FLAGs. The **508** sentences of the forty-six entries' `observation`,
+  `boundary` and `diagnosis.hypothesis` are each accounted exactly once.
+  Thirteen entries were classified as in-place accretion and all thirteen went
+  to an independent blind second reader. The store declares
+  `memory_schema_version: 3` and `memory_version: 62`.
+  `memory/software-engineering/training_history.jsonl` is byte-identical to its
+  FREEZE hash at **124 events**, and the art, game-design and writing stores are
+  byte-identical to their pre-T20 hashes.
+- **The empirical layer is now executed rather than reasoned.** Forty-two
+  behaviour-test scenarios back the 81 claims: **39 EXECUTED, 2 MIXED, 1
+  DECISION**, against 25 EXECUTED and 17 DECISION before this pass. Claims
+  resting on a reasoning fixture alone fell from **37 of 81 to 7 of 81**. The
+  conversions are real measurements over real artifacts - 378 core patterns
+  swept for rule-position defects, 102 drills cross-referenced against their own
+  grading standards, seven C++ corpora re-measured for check and comment
+  density, 202 C++ cards against 462 git repair commits, a fail-closed gate run
+  against two phrasings of one violation, `validate.py` line-traced over 2 388
+  objects, and four contract seams rebuilt and run.
+- **Three claims were changed because the measurements disagreed with them.**
+  `T_008_1` claimed the within-kind spread exceeds the between-kind gap *on
+  every metric*; re-measurement over seven corpora found it holds on two of
+  three, and the claim is narrowed with the confound named. `T_022_2` claimed a
+  count derived from a structure survives re-measurement; byte sizes reproduced
+  exactly but an element-move count did not, because the container growth factor
+  is an implementation choice, so the claim now draws the line between what a
+  structure fixes and what an implementation fixes. `T_025_2` claimed source
+  distance predicts a broken language claim; it holds at the extremes
+  (2.71 repairs/card at distance 4 against 1.42 at distance 0) and fails in the
+  middle, so the claim is narrowed to aiming a batch rather than ranking one. A
+  fourth measurement - language-requirement cards showing the *highest* repair
+  rate, against `T_025_1`'s ordering - is recorded without changing the claim,
+  because repair frequency is a proxy for probe failure and a card is touched
+  for other reasons.
+- **The duplicate matrix is reproducible.** All five `duplicate_of` rejections
+  now rest on an executed discrimination that would have separated the pair had
+  they been distinct; two of the five previously rested on reading. A sixth row
+  records a pair that is *not* a duplicate, with the two evidence configurations
+  that separate it.
+- **The `SE_MEM_003` / `SE_MEM_016` adjudication is closed, and no owner
+  decision remains.** The two entries declare the same `scope_id` and are
+  distinct boundaries on it: 003's content was absorbed into
+  `AP_review_code_you_did_not_write` between its sighting and this migration -
+  six of seven propositions are now Canon text verbatim, checked clause by
+  clause - while 016's nine survive as six claims because step 5, step 7 and
+  `PAT_look_for_the_evidence_outside_the_code` do not carry them. Nothing was
+  merged across the two entries, nothing was chosen for being newer, and neither
+  was retired.
+
+### Fixed
+
+- Three migration tests pinned the live software-engineering store as a legacy
+  migration input - the last such store in the corpus. They now assert the
+  firewall that matters after T20: FREEZE and the sentence emitter must *refuse*
+  a schema-3 store rather than re-freeze or slice it, which is the only way a v3
+  store could be migrated twice. The mechanics the live store exercised are
+  preserved synthetically, including the overlap case where an event is both
+  invalid and quarantined and must be excluded once rather than twice.
+- A T20 behaviour fixture resolved `PASS/tools/memory.py` relative to the
+  caller's working directory, so it only ran from the repository root. It now
+  resolves from its own location.
+
+### Known issues
+
+- **The full-discovery skip baseline moves from 2 to 3.** `SpecificationExamples`
+  draws its A9 end-to-end examples from the two live legacy entries R2.5 7.2
+  names, `SE_MEM_001` and `GAMEDESIGN_MEM_001`. T17 migrated the second and T20
+  the first, so both parameterisations now skip with a message saying so, and
+  that class provides no coverage at all. The A9 derivation is still exercised
+  by the synthetic suites, but the specification's own worked examples are no
+  longer run against anything. Restoring them against a committed fixture
+  instead of the live corpus is T21's, and is deliberately not done here.
+  Full discovery: **829 OK, 3 skipped** - the third being the one this entry
+  describes, alongside the game-design example and the pre-existing Windows
+  symlink limitation.
+- Seven of 81 claims still rest on a reasoning fixture alone, each recorded with
+  why it cannot be executed: one needs a code example the card corpus does not
+  contain (no software-engineering card carries a code fence), three need a
+  corpus of task outputs graded against their own stated requirements that is
+  not on this machine, and three need a second party - an independent runner, an
+  independent grader, or separately-authored observation and diagnosis - which a
+  single session cannot supply.
+- `memory.py`'s L4 specimen-grade check reads `C++` as the grade `C+`. Three
+  envelope statements were reworded to the legacy store's own "C plus plus"
+  convention rather than widening the rule, which T20 may not do. Any future
+  C++ Memory claim will hit it.
+
+## 1.0.0-beta.129 - 2026-10-23
+
+### Changed
+
+- **The writing schema-3 migration is corrected after independent review: four
+  propositions reinstated as survivors, three new claims, one claim's evidence
+  and envelope repaired (T19 correction).** The review found the migration's
+  mechanical apparatus sound and did not reopen the FREEZE, the decomposition,
+  the second-reader pass, or the re-homes; it found four Canon-only verdicts
+  wrong and one surviving claim internally inconsistent. The arithmetic below
+  **supersedes the figures published in 1.0.0-beta.128**; everything beta.128
+  recorded about the FREEZE, the 323-object baseline, the second-reader control,
+  and the re-homes still holds.
+- **Corrected accounting.** **37 legacy entries** decomposed into **100
+  propositions**, which received **100 dispositions**, of which **42 survive**
+  and name **23 distinct live claims** - twelve target ids are shared by more
+  than one source proposition (merges) and no disposition is a split, so the
+  surviving-disposition count and the claim count differ by 19 by design.
+  Dispositions: CARRY 27, REWRITE 14, EXTRACT 1, REHOME 7, REJECT 51. Losses:
+  **58** items (51 rejections, 7 re-homings), each signed individually with its
+  own note; **zero** HOLDs and **zero** FLAGs. The **172** sentences of the
+  thirty-seven entries' `observation`, `boundary`, and `diagnosis.hypothesis`
+  are still each accounted exactly once - these corrections move dispositions,
+  never proposition boundaries, so A9 is unchanged by construction. The store
+  declares `memory_schema_version: 3` and `memory_version: 24`.
+  `memory/writing/training_history.jsonl` remains byte-identical to its FREEZE
+  hash at **76 events**.
+- **Three reinstated claims, and why Canon does not own them.** Each was
+  re-searched against the whole 323-object baseline, with the strongest
+  candidates read in full and the absence confirmed by whole-package `grep`
+  rather than by search rank. (1) `WRI_MEM_005#p1`/`#p2` merge into one claim
+  about switching discourse form: the ranked owner,
+  `PAT_expand_poetic_voice_by_borrowing_another_discourse`, is poetry-scoped in
+  its normative text, triggers on lyric staleness rather than a changed
+  narrative or cognitive job, and exits by subordinating the borrowed element to
+  the poem's speaker rather than when its job is complete; the strongest prose
+  candidate, `PAT_use_diaries_and_letters_as_active_story_documents`, is scoped
+  to in-world documents and supplies no entry trigger. (2) `WRI_MEM_014#p3`
+  becomes the density corrective: `DRILL_revise_clause_load_without_flattening_
+  complexity` owns three of its four moves but no Canon object directs a reviser
+  to make an abstraction concrete as a remedy for conceptual density - `grep`
+  for `concretiz` returns **zero** hits across all 323 objects, and the nearest
+  owner, `PAT_replace_abstractions_with_specific_sensory_images`, converts
+  generalization into *sensory* detail, a descriptive remedy rather than a load
+  remedy. (3) `WRI_MEM_019#p2` becomes the ordering claim: the owning card
+  requires invented-language constraints to reach conduct or inference but says
+  nothing about when, and its own timing bullet expressly permits meaning to be
+  `supplied nearby`; the card that does state the ordering,
+  `PAT_build_institutional_settings_as_rule_bound_social_worlds`, states it
+  about institutional rules, not about a designed language, so joining the two
+  would be the two-object synthesis this baseline forbids.
+- **The over-retention claim's evidence and envelope now agree with its text.**
+  The claim retains `WRI_MEM_023#p4`'s residue - that the retention returns
+  during revision once control resumes - but was supported only by the comic
+  pair from `WRI_MEM_037` while its envelope excluded *later drafts* and
+  *non-comic forms*, which is where that half is demonstrated.
+  `WRITING_EV_0046` joins the evidence as the analytical instance, the excluded
+  regions are replaced by what is genuinely unshown (poetry, career writing, a
+  second original story), and the first-draft-comic condition is replaced by the
+  honest one: two unlike instances leave the cross-form generalization thin, so
+  `confidence` stays `provisional`. The recurrence clause was preserved rather
+  than dropped; dropping it would have been the cheaper repair.
+- **One rejection's owner attribution corrected, outcome unchanged.**
+  `WRI_MEM_024#p6`, the prohibition on optimizing against AI-authorship detector
+  scores, now cites `DRILL_reverse_engineer_and_transform_a_writers_microstyle`
+  instruction 12, which states the prohibition as a standing drill step, instead
+  of a variant-scoped sentence in
+  `PAT_replace_received_language_with_precise_distinctive_phrasing`. The legacy
+  entry nominated that drill, so the rejection stands and
+  `outside_nomination` remains false. With `WRI_MEM_014#p3` reinstated, the
+  rejections owned outside the legacy nominations fall to **5 of 51**, and **36
+  of the 51** verdicts rest on a variant.
+- **Evidence admissibility re-proved explicitly, and the A-2 divergence count
+  re-derived rather than assumed.** All **43** evidence references across the 23
+  claims exist in the frozen History, are `valid`, are `performance`, are
+  unquarantined, cite only the admissible set of each claim's own source
+  entries, and no claim cites more than three; `t19_evidence_check.py`
+  reproduces the proof and computes the default/selected comparison per claim.
+  **2 of 23** claims diverge from the mechanical first-and-last default, against
+  8 of 15 in T17 and 4 of 8 in T18. Both divergences are still merges spanning
+  two legacy entries, and all **21** single-entry claims took the default
+  unchanged - including the three reinstated ones. A-2 is not reopened and no
+  specification change is proposed.
+- **The loss report no longer presents a survivor as a loss.** The three
+  migration reports were removed explicitly, re-derived from the corrected
+  ledger, and re-signed: 58 items, 58 individual notes, no document-level
+  approval and no bulk path. The four obsolete signoffs are gone from the live
+  report, and the pre-correction signed report is retained beside the ledger
+  under `superseded-pre-correction/` so the review trail survives.
+- **Known issues left behind, unchanged by this correction.**
+  `memory.py validate` still reports a legacy-entry tally that counts
+  `.entries`, so the three v3 stores contribute 0 and the printed figure is 46 -
+  software-engineering's entries alone; the behaviour is cosmetic and T21
+  removes the remaining legacy branch. Re-running the gate against the live tree
+  after cutover fails A9, correctly, because the legacy input no longer exists
+  there; the post-cutover gate run used the frozen copy. software-engineering
+  remains the last v1 store and is T20's, which stays blocked. The
+  `SE_MEM_003`/`SE_MEM_016` contradiction pair and T18's owed
+  `canon_workflow` hand-off for `DRILL_hold_one_head_type_across_expression_set`
+  are both still carried forward untouched.
+
+
+## 1.0.0-beta.128 - 2026-10-22
+
+### Changed
+
+- **The writing Skillset Memory store is migrated to schema 3: 37 legacy entries
+  become 20 live claims (T19).** The third domain migration, and the only one
+  whose input was a **v2** store. Accounting, with the units kept distinct
+  because conflating them was T17's accounting defect: **37 legacy entries**
+  decomposed into **100 propositions**, which received **100 dispositions**, of
+  which **38 survive** and name **20 distinct live claims** - eleven target ids
+  are shared by more than one source proposition (merges) and no disposition is
+  a split, so the surviving-disposition count and the claim count differ by 18
+  by design. Dispositions: CARRY 23, REWRITE 14, EXTRACT 1, REHOME 7,
+  REJECT 55. Losses: 62 items (55 rejections, 7 re-homings), each signed
+  individually with its own note; **zero** HOLDs and **zero** FLAGs. The
+  **172** sentences of the thirty-seven entries' `observation`, `boundary`, and
+  `diagnosis.hypothesis` are each accounted exactly once. The store declares
+  `memory_schema_version: 3` and `memory_version: 23`; no v2 store remains
+  anywhere. `memory/writing/training_history.jsonl` is untouched at **76
+  events**, all valid, all `performance`, none quarantined.
+- **The Canon-only baseline was the whole writing Canon from the first pass.**
+  The baseline covers all **323** applicable Canon objects - 318 under
+  `library/writing` and 5 under `library/metaskills` - counting one object as
+  one markdown file whose basename begins `AP_`, `PAT_`, or `DRILL_`, excluding
+  `INDEX.md` and `README.md` and not counting variants separately. `metaskills`
+  inclusion was **re-proved for this domain** rather than carried over from
+  T18: the writing release recipe's module closure is entirely internal, and
+  `build_release.py` adds `metaskills` unconditionally and fails any build that
+  omits it. That mattered - one survivor's verdict rests on a metaskills object,
+  and excluding the package would have produced a false survivor. All 55
+  rejections are `fails_canon_only_baseline`; **6 of them name an owning object
+  the legacy entry never nominated**, and a nomination-bounded check would have
+  admitted all six. Each rejection records its owning Canon object and the
+  normative clause actually read; **38 of the 55 rest on a variant**, and in
+  every case the owner recorded is the containing card. Search identified
+  candidates and decided nothing; negative findings were confirmed by
+  whole-package `grep` rather than by search rank.
+- **Writing's Canon had already absorbed most of its Memory.** Three cards own
+  23 of the 55 rejections, and `WRI_MEM_024` was rejected in all six of its
+  propositions by a single card whose Do bullet and one variant state the
+  entire entry - including its prohibition on treating detector output as a
+  revision target. The 38 surviving propositions are of three kinds Canon
+  structurally cannot hold: this skill's own demonstrated error profile, its
+  capability calibration, and a small set of genuine craft gaps around reading
+  a work whose representation is bad and matching evidence form to claim type.
+- **All 37 entries were declared accretion narratives and every one received a
+  genuinely independent blind second decomposition.** The blind input carried
+  only the legacy semantic text and the numbered sentence inventory; it was
+  sealed and the independent reader dispatched **before** the primary
+  decomposition existed, so neither read could see the other. The reads
+  returned 83 and 99 propositions; reconciliation adopted the second read in
+  fifteen of the sixteen diverging entries and held the primary in one
+  (`WRI_MEM_030`, where merging the prose-rendering limit would have
+  under-decomposed). Four propositions were recovered only by the independent
+  read, and **three of the twenty final claims depend materially on them**.
+- **The four card candidates are re-homed to `canon_workflow` with every
+  hand-off verified complete.** `WRI_MEM_031`, `032`, `033`, and `036` were
+  checked present in `canon_workflow/writing/card_candidates.yaml` with their
+  resolved destination ids **before** the legacy store was replaced, not
+  assumed; the transcript is dated ahead of the removal. T11 owns the export
+  and this ticket only verified and accounted it.
+- **The four specialization profiles became `claim_class: reach`.** Each carries
+  `delta.kinds` within `{posture, verification}`, and the four profiles yielded
+  five reach claims because comic timing and comic editing are separately
+  demonstrated capabilities. Every specimen title, named evaluator, and letter
+  grade is stripped. All **seven** first-person legacy entries - `WRI_MEM_007`, `008`, `009`,
+  `014`, `020`, `023`, `037` - were rewritten to model-neutral voice under
+  `rewrite_reason: voice`, across 11 propositions and 7 target claims.
+- **Evidence admissibility was proved explicitly against the frozen Training
+  History** rather than left to the fail-open absent-History rule: all 37
+  evidence references across the 20 claims exist, are `valid`, are
+  `performance`, are unquarantined, and come only from the admissible cited set
+  of each claim's own source entries. **2 of 20** claims diverge from the
+  mechanical first-and-last default, against 8 of 15 in T17 and 4 of 8 in T18;
+  both divergences are merges spanning two legacy entries, and all 18
+  single-entry claims took the default unchanged. Recorded as an observation
+  for the series - A-2 is not reopened and no specification change is proposed.
+
+
+## 1.0.0-beta.127 - 2026-10-22
+
+### Changed
+
+- **The art Skillset Memory store is migrated to schema 3: 20 legacy entries
+  become 8 live claims (T18).** The second domain migration, run with the T17
+  correction applied from the start. Accounting, with the three units kept
+  distinct because conflating them was T17's accounting defect: **20 legacy
+  entries** decomposed into **72 propositions**, of which **17 surviving
+  dispositions** name **8 distinct live claims** - six of those claims are
+  merges, where more than one source proposition shares one target id, and no
+  disposition is a split. Dispositions: CARRY 2, REWRITE 10, EXTRACT 5,
+  REHOME 1, REJECT 54. The **144** sentences of the twenty entries'
+  `observation`, `boundary`, and `diagnosis.hypothesis` are each accounted
+  exactly once. The store declares `memory_schema_version: 3` and
+  `memory_version: 23`; no v1 store remains for the domain. `memory/art/
+  training_history.jsonl` is untouched at **80 events**.
+- **The Canon-only baseline was the whole art Canon from the first pass, not the
+  nominated links.** T17 failed its final review on exactly that defect, so T18
+  built the baseline over all **645** Canon objects - 640 under `library/art`
+  and 5 under `library/metaskills`, counting one object as one markdown file
+  whose basename begins `AP_`, `PAT_`, or `DRILL_`, excluding `INDEX.md` and
+  `README.md` and not counting variants separately. `metaskills` is in the
+  baseline because every art release ships it, and excluding it would have
+  produced two false survivors. Of the 54 rejections, **46** are
+  `fails_canon_only_baseline`, and **20 of those name an owning card the legacy
+  entry never nominated** - a nomination-driven check would have admitted all
+  twenty. The remaining rejections are `not_portable` 5, `belongs_to_canon_
+  workflow` 2, and `not_craft_scope` 1. Each rejection records its owning Canon
+  object and the normative clause actually read; search identified candidates
+  and decided nothing.
+- **The eleven accretion entries received a genuinely independent blind second
+  decomposition, and it changed the result.** An independent reader worked from
+  the frozen `observation` / `boundary` / `hypothesis` text and §7.2 alone,
+  launched before the first decomposition existed in any file so that
+  independence ran in both directions. It was finer on all eleven entries - 51
+  propositions against 35 - and its reading was adopted wholesale after
+  reconciliation. Two of the eight surviving claims exist because of it: the
+  insufficient-delta failure of a reduction pass, which the first reading had
+  folded into its sibling leakage proposition, and the reach claim calibrating
+  demonstrated against undemonstrated regions, which the first reading had
+  labelled evidence recitation. The mark was earned by that reading, not written
+  mechanically.
+- **The single `resolved` entry and the single invalid event are both disposed
+  of explicitly.** `ART_MEM_004` left current Memory with all six of its
+  propositions rejected against the repaired Stage 4 Action Protocol, which now
+  states each of them; no graveyard was created. No surviving claim cites
+  `ART_EV_0003`, the one invalid event, and every cited event exists, is valid,
+  is admissible, and belongs to its source entry's own cited set.
+- **Four of the eight claims carry reviewer-selected evidence rather than the
+  mechanical default**, which the specification permits. In every case the
+  default was unrepresentative for the same structural reason: a tranche-rollup
+  source or a merged claim makes "first and last cited event" a function of
+  ordering or set union rather than of relevance. A-2 is not reopened and no
+  specification change is proposed.
+- **One Canon defect is re-homed rather than rejected, with the hand-off
+  recorded as owed.** `DRILL_hold_one_head_type_across_expression_set` still
+  requires observing facial tissue in a mirror, a premise that is not literally
+  executable; the card was re-read to confirm the defect is current. Opening the
+  Canon-quality item is left as an owner decision, since T18's blast radius is
+  one memory store and one ledger.
+- **T09's deferred test reversal (SR6) came due and is performed.**
+  `tests/test_architecture.py::ReleaseMemoryTests::test_release_ships_the_memory_of_the_domains_it_bundles`
+  reads the real art store rather than a fixture, and it asserted
+  unconditionally that a release ships `memory/art/training_history.jsonl`.
+  That was correct while the store was v1 and became false the moment T18
+  migrated it, because a schema-3 store ships as a current-state projection.
+  The assertion now follows the store's declared schema: for v3 it requires no
+  shipped History and no `evidence` key on any staged claim, and the legacy
+  branch remains for the pre-v3 stores until T21 deletes the legacy reader.
+  T09 had already built the v3 behaviour and covered it against a fixture in
+  `ReleaseV3MemoryTests`; only this real-store assertion was left inverted, by
+  design, because inverting it before a real store was v3 would have broken the
+  suite. A release built from the real art store was inspected as the ticket's
+  completion evidence: one YAML per memory domain, no History, no `evidence`
+  key, all eight claim ids byte-identical to the live store, and all four
+  quality gates `passed`.
+- **Known cosmetic reporting gap, left for T21.** `memory.py validate`'s summary
+  line sums each store's `entries` key, so a schema-3 store contributes zero to
+  that tally: the corpus now reports 83 entries, which is the legacy stores
+  alone (software-engineering 46 plus writing 37). Every claim is validated -
+  only the printed count excludes v3 - and T21 deletes the legacy branch that
+  makes the line ambiguous. No acceptance criterion reads that number.
+- **Stale README version statement repaired.** The versioning section had read
+  "the current version is `1.0.0-beta.105`" since that release; it now tracks
+  `VERSION` alongside the project-status line.
+
+## 1.0.0-beta.126 - 2026-10-21
+
+### Changed
+
+- **The game-design Canon-only baseline is corrected to a whole-Canon audit,
+  and the live store falls from 32 claims to 15 (T17 correction).** T17's final
+  independent review failed the ticket on one defect: the baseline had been
+  applied claim -> nominated Canon instead of claim -> whole Canon. The evidence
+  file proved it - `canon-overlap-check.txt` printed, for each claim, only the
+  cards that claim's own `canon` field already named. That is adequate for a
+  rejection, which names its owning clause and can be re-checked, and worthless
+  for an admission, because the owner that matters is usually a card the claim
+  never nominated. The reviewer audited all 32 survivors against the whole card
+  set and found 13 confirmed restatements, one borderline case, and four more to
+  inspect. Nineteen propositions moved to REJECT. Final accounting: 33 legacy
+  entries, 90 propositions, 197 sentences each covered exactly once, 15 live
+  claims, dispositions CARRY 8 / REWRITE 6 / EXTRACT 2 / REHOME 4 / REJECT 70,
+  with 69 of those rejections on the Canon-only baseline and one as
+  `not_craft_scope`.
+- **`duplicate_of` is now unused in this migration.** The last two such
+  rejections, `GAMEDESIGN_MEM_001#p5` and `002#p4`, both named claims the
+  correction rejected. Both were re-pointed at the Canon object that actually
+  owns the lesson, so no rejection in the domain now defers to another Memory
+  claim - every one names a card clause or a non-craft authority.
+- **One fused claim was de-merged rather than rejected whole.**
+  `GAMEDESIGN_MEM_001#p2` and `#p3` had been merged onto one claim, which forced
+  one Canon-baseline result onto two assertions with different owners. `p2` - a
+  shared randomizer is not a shared grammar - is the reuse-grammar Pattern's
+  Don't outright. `p3` is not any card's: that the competence term of a pool is a
+  separable axis, so the resolution can survive unchanged while what it measures
+  changes. It survives as a new claim with its evidence narrowed to the one
+  event that demonstrates it. Proposition boundaries did not move, so sentence
+  coverage is untouched.
+- **Four rejections go beyond the review's confirmed list, and two of its
+  flagged claims were preserved.** `complexity_value`, `complexity_placement`,
+  `operator_complexity_and_medium` and `campaign_hub_continuity` are Canon
+  restatements - the operating-cost Pattern's Notes state the placement lesson
+  with the claim's own rare-but-rich versus small-but-every-attack contrast, and
+  the hub Pattern scored the highest single overlap in the audit at 0.568.
+  `rule_removal_repair` and `force_visibility` were preserved on inspection:
+  the first adds a confirmation criterion (operator and players independently
+  rejecting the rule) that no card names, the second reconciles two cards that
+  pull in opposite directions on withholding information.
+
+### Notes
+
+- The audit evidence is replaced, not patched. `WHOLE_CANON_ADMISSION_AUDIT.md`
+  records a verdict and an owning clause for every one of the 32 claims, and
+  `t17_canon_search.py` proves all 181 game-design cards were searched for every
+  one and ranks the cards worth reading. The ranking is reading order only: no
+  similarity threshold admits or rejects anything, and every classification was
+  made by reading normative text. `canon-overlap-check.txt` is retired as
+  `.SUPERSEDED`. Both artifacts stay untracked migration evidence; no runtime
+  Canon-baseline engine was added.
+- The borderline claim is decided explicitly. `local_operating_conditions` fails
+  the baseline whole. Three of its four mechanisms are in the action-topology
+  Pattern's Notes; the fourth, environment-specific rule behaviour, is one item
+  in a four-item source list, carries no delta the card lacks, and has no
+  surviving claim to qualify as an envelope condition. The decisive point is
+  consistency: the same card had already rejected `018#p1`.
+- A-2 remains a nonblocking specification finding, remeasured on the corrected
+  set: 8 of the 15 surviving claims carry evidence the entry-level default would
+  not have produced. Every surviving claim's evidence was re-checked as
+  admissible and drawn from its own legacy entry.
+- The independent Codex second-reader pass is unaffected and was not re-run.
+  This correction changed dispositions and one claim-level merge, not any
+  decomposition the second reading produced. Two propositions that reading
+  recovered from silent folds, `002#p10` and `002#p11`, are now rejected as
+  Canon restatements; recovering them was still right, because an accounted
+  rejection is not the same outcome as a silent fold.
+- Still T20's: the only same-scope contradiction pair in the corpus is
+  `SE_MEM_003`/`SE_MEM_016` in software-engineering. None was invented here.
+
+## 1.0.0-beta.125 - 2026-10-20
+
+### Changed
+
+- **`memory/game-design/skill_memory.yaml` is a schema-3 store: the first live
+  Memory vNext semantic migration (T17).** Thirty-three legacy v1 entries were
+  frozen, decomposed into 90 propositions with a complete 197-sentence coverage
+  map, dispositioned one by one, and replaced by 32 authored v3 claims. Every
+  claim carries a freshly generated `GD_MEM_` identity, a newly authored
+  `delta`, an independently re-derived `confidence`, and an envelope
+  restructured into `holds_in` / `not_shown_in` / `conditions`; no legacy id,
+  sequence number, or migration record survives in the store. The legacy
+  `type`, `scope_type`, `status`, `evidence_count`, `interventions`,
+  `runtime_scope`, and `diagnosis` fields are gone with the schema, and the
+  three legacy card-id scopes became topic scopes with the card moved to
+  `canon`. `memory.py validate` now reports a mixed corpus - one v3 store and
+  three legacy stores - and Training History is untouched at 28 events.
+- **The dominant migration finding: 48 of this domain's 90 propositions were
+  rejected on the Canon-only baseline, leaving 32 live claims out of 67 authored
+  claim bodies.** (This bullet originally read "35 of the 67 claims authored from
+  this domain were rejected on the Canon-only baseline", which labelled dropped
+  claim bodies as Canon-baseline rejections and conflated bodies with
+  propositions: of the 35 bodies dropped, 2 went as `duplicate_of` and 1 as
+  `not_craft_scope`. Corrected in beta.126, which also corrects the baseline
+  itself.) Each was compared against
+  the normative text of every card that could own it, not only the cards the
+  legacy entry nominated, and each rejection names the Pattern Rule, AP
+  objective, or Drill instruction that already states both the proposition and
+  its delta. Thirteen of the thirty-three legacy entries contribute no claim.
+  The reason is structural rather than a defect in the legacy store:
+  game-design's cards and its Memory were authored from the same source study,
+  so an entry recording that a system behaved as its card predicts is a verdict
+  on the card. This is R2.4's named failure mode found at scale, and it
+  diverges sharply from R2.1's estimate of three card-verdict entries across
+  the whole corpus - an owner-visible judgment the independent review can
+  overturn item by item from the signed loss report.
+- **The thirteen accretion entries' second-reader requirement is satisfied by
+  an independent agent, and reconciling its findings changed the result.** The
+  requirement was first executed by re-reading the same text myself, which this
+  migration's own artifact recorded as insufficient. A separate agent then
+  performed a blind decomposition from the frozen text, declared 66 independent
+  propositions against the ledger's 53 for those entries, and returned
+  *reconciliation required*: four under-decompositions, six substantive
+  boundary disagreements, and five meanings absent from the proposition texts.
+  Reconciling them added eight propositions, removed four claims, added one,
+  and rewrote two. Four results are worth naming. One recovered proposition is
+  now the only thing `GAMEDESIGN_MEM_006` contributes to Memory at all - the
+  criterion separating a consolidation that also helps novices from one that
+  serves experts only. Three fused propositions in the character-economy entry
+  were joining assertions with *different* Canon owners, so one half of each
+  escaped the baseline; split and tested, the drawback and lifecycle material
+  is Canon's and the substitution-mastery axis is not. The production-probe
+  entry had extended one sentence's "not table-playtested, so" over a second
+  sentence's untested baseline, isolation, retention, and transfer, which table
+  play would not have established either; that causal strengthening is removed.
+  And two claims that named `AP_run_a_simulation_budget_audit` as their own
+  Canon were restating it.
+- **`tests/test_memory_migration.py` handles a mixed-schema live corpus.** The
+  Memory-tree firewall test now proves the migrator writes nothing under
+  `memory/` on the refusal path a schema-3 store takes, as well as on the
+  success path a legacy store takes, and the specification-example suite skips
+  a domain whose legacy example entry its own migration has consumed. Neither
+  assertion is weakened; T21 removes the suite when the last domain migrates.
+
+### Notes
+
+- A-2 is answered on the first domain migrated, as R2.5 §11 asks, with the
+  recommendation to **change** the representative-evidence default: it is
+  specified per legacy entry but every claim comes from a proposition, so on a
+  split - the normal case - it has no defined meaning, and 18 of the 32
+  surviving claims carry evidence it would not have produced. The finding and
+  its two concrete constraints are in the migration task's workspace.
+- T17 introduced no `contradicts` pair. The one known same-scope pair in the
+  corpus is `SE_MEM_003`/`SE_MEM_016`, in software-engineering, so the
+  disputed-pair writer question stays open for T20 rather than being forced
+  here. The T17 ticket's rationale attributes that pair to game-design; it does
+  not hold, and the ticket's third acceptance criterion is inapplicable rather
+  than satisfied.
+- One weakness is carried forward rather than repaired here. The Canon-only
+  baseline's *rejections* each name an owning clause and can be audited; its
+  *admissions* cannot be shown to have been tested against the cards that might
+  own them, because the overlap check was driven by each claim's own `canon`
+  list. Four of the five restatements found during reconciliation were found by
+  reading a card the claim had not nominated. T18-T20 should drive the baseline
+  from the domain's whole card set. **Carrying this forward instead of resolving
+  it is what failed T17's final independent review; beta.126 resolves it.**
+
+## 1.0.0-beta.124 - 2026-10-20
+
+### Added
+
+- **The migration ledger now produces the three R2.5 §7.5 reports, and the
+  loss report cannot be approved in bulk — it is signed item by item, and
+  `gate` is the single VERIFY-step entry point (criterion 45).**
+  `migrate_memory_v3.py report --domain <d>` derives three artifacts from the
+  ledger's recorded dispositions, deterministically and never from a second
+  hand-maintained record: **survival** (every CARRY, REWRITE, SPLIT, CONDENSE,
+  and EXTRACT proposition and the target claim(s) it survives as, with a
+  SPLIT's full target list and a merge's shared target shown exactly as
+  recorded), **loss** (every REJECT with its reason kind, prose reason, and
+  any `duplicate_of` obligation; every REHOME with its destination and
+  pointer-or-hand-off; and every proposition shed inside a CONDENSE with its
+  `shed_reason` and the condensation it was shed from — the anti-silent-drop
+  report), and **re-homing** (every REHOME and EXTRACT with destination,
+  residue targets where they exist, and a complete-or-owed hand-off status
+  derived from the ledger's own pointer-vs-hand-off vocabulary). The loss
+  report is the signoff artifact: each item carries its own `signed_off`
+  field and reviewer note, the schema has no document-level approval key, and
+  regeneration refuses while existing reports would be overwritten so a
+  reviewer's signoffs are never silently destroyed. Reports land in the
+  task's purpose directory beside the ledger, never under `memory/`.
+- **`migrate_memory_v3.py gate --domain <d> --store <path>` is the VERIFY
+  gate: A1–A10 re-run, zero HOLDs, the candidate through the real v3
+  validator, every FLAG reviewed, every loss item signed.**
+  The gate re-runs the existing accounting checker rather than forking it —
+  A2 source drift and a remaining HOLD refuse exactly as under `account`,
+  never warn — and requires the loss artifact to equal the ledger's own loss
+  set in both directions: a missing row, a row naming something that is not a
+  loss, a duplicate row, a reason edited after signing, a `signed_off` that
+  is not the literal `true`, or an empty reviewer note each refuse. The
+  candidate store goes through `memory.py`'s actual v3 validator (ERRORs
+  refuse; a History file beside the candidate resolves evidence, its absence
+  does not), and every FLAG must be cleared or individually accepted with a
+  note in a `review-<domain>.yaml` artifact beside the ledger — a stale
+  acknowledgment refuses, and acceptance never mutates Memory. There is no
+  bulk-approval field, flag, or environment variable, asserted by grep and by
+  structural refusal; the gate writes nothing and decides nothing semantic —
+  whether a loss was right stays review judgment.
+
+## 1.0.0-beta.123 - 2026-10-19
+
+### Added
+
+- **A9 now proves sentence coverage: every source sentence of a decomposed
+  entry is attributed exactly once, or the ledger fails (R2.5 §7.2, §7.5,
+  criterion 44a).**
+  Each decomposition carries a `sentence_map` — one record per source sentence
+  number, attributing it to at least one proposition id recorded in that
+  entry's decomposition or to a closed non-propositional reason
+  (`evidence_recitation`, `episode_narrative`, `restatement`,
+  `environment_context`, `canon_restatement`). `account` re-derives each
+  frozen entry's inventory from the frozen bytes — `observation`, `boundary`,
+  and `diagnosis.hypothesis` concatenated in that order (§7.4 step 1, no
+  per-field slicing) and split with `validate.py`'s `SENTENCE_RE` — so A9,
+  reported as delegated since beta.122, is now the real check and names every
+  failure: a sentence with no row, a sentence counted twice, a row outside the
+  inventory, or a reference to a proposition id absent from that entry's
+  decomposition. The ledger also declares which entries are accretion
+  narratives (`accretion_entries`), and A9 checks each declared entry's
+  decomposition record for the presence-only `second_reader: true` mark, in
+  both directions — the mark's presence, never the reading. Coverage, never
+  comprehension: the checker does not read what a sentence means and never
+  judges whether an attribution is honest.
+- **`migrate_memory_v3.py sentences --domain <d> --entry <id>` emits the
+  numbered sentence inventory of one legacy entry — A9's source text.**
+  Emission only: nothing is attributed, decomposed, classified, or written,
+  and the subcommand has no ledger flag, so it cannot read or touch a ledger.
+  Segmentation is the repository's one sentence splitter, imported rather
+  than copied, so unchanged bytes yield an identical list on every run.
+
+## 1.0.0-beta.122 - 2026-10-19
+
+### Added
+
+- **The migration ledger now carries a schema, and `account` checks recorded
+  judgments against all ten completeness rules (R2.5 §7.2–§7.5).
+  `migrate_memory_v3.py account --domain <d> --ledger-dir <dir> --store <path>`
+  first validates the ledger's structure — required blocks, the closed
+  disposition class vocabulary (CARRY, REWRITE, SPLIT, CONDENSE, EXTRACT,
+  REHOME, REJECT, plus the transient HOLD), the closed rewrite-reason,
+  rejection-reason-kind, and destination-authority vocabularies, and the
+  `<legacy-entry-id>#p<n>` proposition identity shape — refusing a malformed
+  artifact before any check runs. It then runs A1–A10: every legacy entry
+  decomposed exactly once; the frozen hashes still matching (A2, reusing
+  T13's mechanics); every proposition dispositioned exactly once, including
+  CONDENSE sheds as explicit per-proposition accounting; every disposition
+  carrying its class's obligation; every target claim existing in the
+  candidate store; every store claim named by at least one disposition; zero
+  HOLDs; counts reported with the merge difference stated rather than an
+  equality asserted; and every target a well-formed vNext id that equals no
+  legacy entry id or proposition id. A9 is reported as delegated to T15.
+  Every failure names its check. The checker never assigns, proposes, or
+  suggests a disposition and never judges semantic fidelity — completeness
+  and referential integrity only — and it writes nothing, to `memory/` or
+  anywhere else. One-time tooling, deleted by T21 with the legacy input
+  reader.
+
+## 1.0.0-beta.121 - 2026-10-19
+
+### Added
+
+- **Migration FREEZE records a legacy Memory store exactly, or refuses it
+  (R2.5 §7.4 step 0).** `migrate_memory_v3.py freeze --domain <d>` runs the
+  existing Memory validator against a v1/v2 store — the same dispatch
+  `memory.py validate` uses — and on success writes a one-time
+  `ledger-<domain>.yaml` into the task's workspace purpose directory: the
+  store's `memory_schema_version`, `memory_version`, entry count, a sha256 of
+  each entry's exact serialized bytes, and the admissible event id set (valid +
+  performance + not quarantined, the CRQ rule mirrored rather than imported).
+  `verify-hashes` re-checks every recorded hash and the entry id set (check
+  A2), so an entry edited, removed, or added after FREEZE fails loudly. The
+  tool refuses an invalid store without emitting a ledger, refuses a schema-3
+  store, refuses to overwrite an existing ledger, and never writes under
+  `memory/`: legacy stores stay read-only migration inputs until their own
+  domain migration is signed off. It decomposes nothing, classifies nothing,
+  authors no vNext claim, and computes no confidence — judgment stays with
+  models and humans. One-time tooling, deleted by T21 with the legacy input
+  reader.
+
+## 1.0.0-beta.120 - 2026-10-19
+
+### Changed
+
+- **A release stages a schema-3 Memory store as a current-state projection
+  (R2.5 §8.5).** `build_release.py` reads a v3 `skill_memory.yaml`, drops every
+  claim-level `evidence` key, and ships only that file — no
+  `training_history.jsonl` — for each owned domain. Every claim id and every
+  other key carries through unchanged; the source store is read and never
+  rewritten. `check` rejects a v3 store shipped with History beside it or with
+  an `evidence` key still present, and the SKILL.md memory section says the
+  copy is a projection when no History ships. Stores of any older schema still
+  ship whole, History included, until the legacy reader is deleted. Project
+  snapshots are unaffected: they continue to round-trip the full writable
+  store, and their import gate validates those shipped bytes.
+
+## 1.0.0-beta.119 - 2026-10-18
+
+### Added
+
+- **`memory.py review` has a schema-3 surface, and it reports rather than
+  repairs.** A v3 store is now reviewed by its own path: a past-due
+  `revalidate_after`, the FLAG rules (C2 fusion word count, C5 three-kind
+  delta, L5 host-local prose, and I2 an unresolved `canon` id), every valid
+  disputed pair, and the informational uncited-events line. Findings are read
+  only - review writes no file, leaves `memory_version` alone, appends no
+  History event, and keeps no receipt, sidecar, cache, or acknowledgement that
+  a finding was seen. A finding is a property of current state, so it comes
+  back on every run until an authorised write changes that state.
+- **A valid disputed pair is a review item, listed once.** Both claims stay
+  present and retrievable. Review performs no demotion, no merge, no erasure,
+  no confidence change, no winner selection, and no retirement: which side
+  wins is a human judgment the tool does not make or record. The stale R2.5
+  wording that `review` reports *asymmetric* `contradicts` is superseded -
+  after beta.118 asymmetry is an ERROR, so a well-formed pair is the only
+  contradiction shape left to surface.
+
+### Changed
+
+- **Review and validation are two channels, and review never softens the
+  other.** A structurally invalid store is reported under `ERROR:` with its
+  rule id and exits non-zero, and its findings are withheld rather than
+  restated as softer concerns: a malformed contradiction - one-sided, missing
+  its target, or naming more than one counterpart - stays an error. No ERROR
+  rule was downgraded to a flag to let review continue.
+- **Age triggers a listing and nothing else (F2).** A past-due claim is not
+  suppressed, not rank-penalised, and not relabelled; `last_verified` and
+  `revalidate_after` are untouched. A store whose every claim is past due
+  retrieves identically to one that is not. `STALE_DAYS` no longer reaches the
+  v3 path - the per-claim date replaced the repository-wide constant - and the
+  legacy `confidence strong on N event(s)` heuristic was not ported, so no v3
+  review output computes, suggests, promotes, or demotes a confidence, or
+  prints one at all (F1, SR4).
+- **Unresolved `canon` ids are conditional on the library.** I2 is reported
+  only when a `library/` root exists; with none, the same store stays valid and
+  unflagged, because library absence is a missing input and not Memory
+  corruption. Review reports only what failed to resolve and never enumerates
+  the links that did - listing them would be Memory offering a Canon menu, and
+  Canon is selected before Memory is read.
+
+### Known issues
+
+- A valid disputed pair cannot be resolved through the ordinary one-claim
+  `retire`: removing either member leaves the survivor with an I6-asymmetric
+  link. I6 is not weakened and no atomic pair-resolution operation was
+  invented; the gap is recorded for a later decision.
+- A schema-invalid mapping-shaped `contradicts` can still crash `query`, which
+  slices the value before checking its list shape. Found during the beta.118
+  review, bounded, and left for a separate maintenance decision.
+
+## 1.0.0-beta.118 - 2026-10-18
+
+### Fixed
+
+- **A contradiction is a disputed pair, and `contradicts` now carries exactly
+  one claim id (S9).** R2.5 §4.8 defines the relation as a pair and names the
+  other side a *counterpart*, singular, but never stated the cardinality as a
+  rule. The gap was latent until T07 built co-return on top of it: retrieval
+  expanded the whole contradiction-connected component, so a validator-accepted
+  symmetric chain of 10, 100 or 1,000 claims came back entire from
+  `--limit 1` - bounded by the store rather than by the request, which is the
+  store dump R2.5 §9.2 forbids. Absent `contradicts` stays valid and one member
+  stays valid; more than one is now an ERROR. With I6's symmetry and
+  no-self-reference, every valid contradiction component is exactly two claims,
+  so chains and contradiction graphs are rejected at the schema.
+- **Co-return is one hop to one counterpart and never recursive.** Retrieval
+  attaches the single direct counterpart of each ranked claim; the recursive
+  component walk is deleted. Expansion is at most one counterpart per ranked
+  claim, so what a query returns is bounded by the request. The bound is a
+  property of retrieval rather than of the store it reads: retrieval takes the
+  one counterpart a valid claim has, so a malformed file cannot make a query
+  unbounded either. No traversal or component budget was introduced - a budget
+  would have made the bound a tuning number instead of a structural fact.
+
+### Unchanged
+
+- Every other accepted T07 behavior: the rank tuple and its order, Canon
+  authority and the printing of no card id, opaque ids, `revalidate_after`
+  changing nothing, empty and missing query behavior, exactly one receipt, and
+  the legacy `score_entry` / `query_store` path. The counterpart still does not
+  consume the caller's limit, still returns with the ranked member, and still
+  produces the same pair receipt segment. The live corpus is legacy and
+  byte-untouched.
+
+### Documentation
+
+- `PASS/docs/MEMORY_SCHEMA.md` states the pair cardinality in the claim schema,
+  in S9, and in a new section that says why it is a bound and not a style
+  rule. `memory/README.md` and the `query` help say the counterpart is one and
+  that co-return never walks a chain. The R2.5 design artifacts under
+  `workspace/handoffs/` are left as written: the underspecification they
+  contain is part of how this defect happened.
+
+### Tests
+
+- `V3ClaimInvariants::test_a_contradiction_carries_exactly_one_counterpart`
+  rejects a claim naming two targets while both name it back - a store I6
+  accepts, so the pair cap is demonstrably what catches a graph.
+- `V3ReferentialIntegrity::test_a_three_claim_contradiction_chain_is_structurally_rejected`
+  and `::test_a_contradiction_triangle_is_structurally_rejected` reject both
+  three-claim components, chain and cycle, and confirm the two-claim pair still
+  validates.
+- `V3Retrieval::test_a_limit_of_one_cannot_expand_into_a_contradiction_chain`
+  is the defect's regression, at review's 10, 100 and 1,000;
+  `::test_expansion_is_bounded_by_the_request_at_every_limit` holds the general
+  bound; `::test_a_store_that_breaks_the_pair_rule_still_cannot_dump` holds it
+  over a store the validator refuses. Each was mutation-checked: restoring the
+  component walk, dropping the one-counterpart take, and removing the S9
+  cardinality branch each made them fail before being reverted.
+- `pop` leaves the retrieval AST allowlist with the frontier queue it existed
+  for.
+
+## 1.0.0-beta.117 - 2026-10-18
+
+### Added
+
+- Added the schema-3 retrieval path to `PASS/tools/memory.py`:
+  `score_claim(claim, scope, canon_ids, cues)`, `query_v3_store` and
+  `print_v3_claim`. `query` now routes each store by its own
+  `memory_schema_version`, so a corpus part way through migration answers one
+  request (R2.5 §9.2, criteria 29-33, 7l, 13, 19).
+- `query` takes `--scope` (one topic slug, matched exactly) and `--canon`
+  (comma-separated Canon object ids, matched exactly). `--scope-id` remains as
+  the legacy spelling of `--scope` and is deleted with the rest of the legacy
+  reader.
+
+### Changed
+
+- **Ranking is a tuple compared left to right, not a weighted score.** Exact
+  `scope`, then exact `canon` id, then cue and claim substrings, then
+  `confidence`. A weight would make "confidence ranks last" an arithmetic
+  accident that enough cue hits could overturn; the tuple makes it structural.
+  Ranking reads `confidence` and never writes it, and a query leaves the store
+  byte-identical (F3).
+- **`canon` ids are matched against what the caller already pinned.** Canon
+  selection runs before Memory retrieval and the ids come in from the caller.
+  No path enumerates a claim's `canon` links to propose, rank or discover a
+  Canon object, and the query output deliberately prints no card id: returning
+  the links of everything retrieved would hand back a list of Canon objects
+  that Memory assembled. A `reach` claim carrying a `canon` link is therefore
+  retrievable by it and still cannot route (R2.5 §9.2, §4.4).
+- **A contradicted claim never comes back alone.** A returned claim's
+  `contradicts` counterparts are returned with it, following the whole
+  contradiction component rather than one hop, and they are not charged
+  against the caller's limit. The single receipt names them in their own
+  segment so a counterpart can never be read as a claim that spent a slot
+  (R2.5 §4.8).
+- **An empty scope with no cues and no canon ids is reported as not a
+  retrieval strategy** and answered with nothing. Returning the first N claims
+  would be a store dump wearing a limit.
+- A `--canon` request against a store below schema 3 prints a note saying it
+  could not be used to match, rather than dropping the filter silently - a
+  dropped filter reads as a filter that matched nothing.
+- **`query` fails open.** A missing memory root or a missing domain now exits 0
+  with a `note:` line and an honest empty receipt instead of exiting 1, because
+  nothing in PASS may stop because Memory is absent. A store that is present
+  but unreadable still fails loudly: that is a broken file, not an absent one.
+- Claims of equal rank keep the order the file gives them. Sorting by id is
+  exactly what an opaque key forbids, and the file's order is the only other
+  deterministic order available.
+- `revalidate_after` being past changes nothing about retrieval: no
+  suppression, no penalty, no reordering. T08 owns review-time visibility.
+- `memory/README.md` now states the retrieval contract and shows the v3 query
+  surface.
+
+### Unchanged
+
+- The legacy `score_entry` / `query_store` path and its output are untouched
+  and keep serving v1/v2 stores until T21 deletes them. The live corpus is
+  still legacy and is byte-untouched by this commit.
+
+### Tests
+
+- `tests/test_memory.py::RetrievalContract` is re-pointed at schema 3;
+  `test_resolved_entries_stop_being_retrieved` becomes
+  `test_a_retired_claim_is_absent_from_the_store`, because v3 has no
+  retrievability status - retirement removes the claim (R2.5 §1.4).
+- New `V3Retrieval` covers bounding across every request shape and limit,
+  scope and canon outranking a cue match, claim-text substring matching, a
+  reach claim found by its Canon id, contradiction co-return and its
+  non-consumption of the limit, `revalidate_after` changing nothing,
+  confidence ranking last without a write, id opacity from the outside,
+  missing root / missing domain / empty store, exactly one receipt, and the
+  empty-request report.
+- New `V3RetrievalSurface` reads criteria 7l, 9 and F3 off the syntax tree: an
+  allowlist of every name and method the ranking path may reach for, a check
+  that retrieval stores into nothing it was given, and the exact set of
+  functions in the tool that read a claim's `canon` key, each with the reason
+  it is allowed to.
+
+## 1.0.0-beta.116 - 2026-10-18
+
+### Added
+
+- Added `link-evidence` to `PASS/tools/memory.py`:
+  `link_evidence(domain_dir, claim_id, event_ids, replace=False)` makes one to
+  three admissible events a claim's complete `evidence`, sets `last_verified`
+  to today, and runs through the existing `change_claims` path — whole-store
+  validation, per-domain lock, atomic replace, `memory_version` +1, readback
+  confirmation, and a refusal that leaves the file byte-identical. A fourth
+  id, an empty list, or a repeated id is refused at the write seam; S9 holds
+  the same cap of three for any other path (R2.5 §3.5, §8.3, criterion 15).
+
+### Changed
+
+- **Evidence admissibility at the link seam is now the shared helper T03
+  owns.** `link_evidence` calls `evidence_admissibility_problem` instead of
+  a private copy of the rules, so unknown, invalid, correction, quarantined and
+  non-performance events are refused with exactly the message `validate` would
+  raise inside the store. A store with no `training_history.jsonl` refuses
+  rather than linking evidence it cannot verify. Admissibility semantics are
+  unchanged.
+- `--events` stays the claim's complete evidence after the call. Dropping an id
+  the claim already cites is refused without `--replace`; with `--replace` the
+  write succeeds and the dropped ids are reported on stdout instead of being
+  lost silently.
+- The uncited-events line from `review` is relabelled informational (R2.5
+  §8.4): it states that it is not a backlog and not a measure of support, and
+  it now counts citations from v3 claims' `evidence` alongside legacy entries'
+  `evidence_events`. Under a cap of three the number is a view of History
+  nothing has linked yet, not a queue to drain.
+- `memory/README.md` and the pass-authoring command block —
+  `.claude/skills/pass-authoring/SKILL.md` and its `.agents` mirror — now name
+  `link-evidence`.
+
+### Removed
+
+- **Removed `compact`** from the tool, the help, and the source, with it
+  `compact_link`, `_compact_link`, `cmd_compact`, and the report mode that
+  called uncited events "awaiting consolidation". `link-evidence` replaces it.
+- No write path ever writes `evidence_count`, and `link_evidence` never reads,
+  writes, or prints a `confidence` (F1): representative evidence is
+  illustrative, never a measure, and the linked ids never influence any
+  ranking, note, or output ordering.
+
+### Tests
+
+- New `tests/test_memory.py::V3LinkEvidence`: three ids accepted, a fourth
+  refused; invalid, correction and quarantined events refused through the
+  shared helper; a drop refused without `--replace` and reported with it; no
+  `evidence_count` in the store and none assigned on the write path (checked on
+  the syntax tree); no confidence mutated or printed; `compact` absent from
+  `--help` and the source; and the uncited line asserting "informational",
+  "not a backlog" and "not a measure". The six legacy-fixture `compact` tests
+  re-point here as `link-evidence` tests: linking is schema-3 only since T05,
+  so they cannot stay on v1 fixtures.
+- `V3WriteConfidence.WRITE_FUNCTIONS` now covers `link_evidence`;
+  `test_a_legacy_store_is_not_writable` and
+  `test_a_write_needs_exactly_one_domain` cover the new command.
+
+## 1.0.0-beta.115 - 2026-10-18
+
+### Added
+
+- Added the Skillset Memory v3 writer to `PASS/tools/memory.py`: `add_claim`,
+  `update_claim` and `retire_claim`, reached from the new top-level `add`,
+  `update`, `retire` and `show` subcommands. `add` generates the claim's id
+  itself (R2.5 §3.4) and refuses a caller-supplied one; `update` can reach every
+  field except `id`; `retire` requires `--reason` and **physically removes** the
+  claim, because currentness is presence (§1.4). The reason is operator-facing at
+  the moment of the write and is persisted nowhere — no tombstone, no retired-id
+  list, no lineage field, no sidecar, no History event.
+- Added the §9.4 admission prompt. Before every `add`, and before any `update`
+  touching `claim` or `delta`, the writer prints the R2.4 admission question and
+  the Canon-only baseline verbatim, including when the write is then refused. It
+  is a prompt, not a gate: the tool validates `delta`'s shape and never judges
+  whether the delta is real, and it never reads from stdin.
+
+### Changed
+
+- **Writing Skillset Memory is now schema-3 only** (R2.5 §9.1). A v1 or v2 store
+  is still read and validated through the T04 dispatch, but a write against one
+  is refused naming the schema; the way to change a legacy store is to migrate
+  its domain. The whole-store validation, per-domain lock, atomic replace,
+  `memory_version` +1 and readback confirmation are carried over unchanged, now
+  keyed on `claims` and checked against the v3 validator.
+- Generalized `spliced_store` over the store's collection key, so untouched v3
+  claims keep their bytes and line endings exactly as untouched legacy entries
+  did. R2.0 calls byte-splicing implementation rather than contract; it survives
+  because one key name was its whole cost.
+- Rewrote the write-discipline statements in `memory/README.md` and the memory
+  command block in `.claude/skills/pass-authoring/SKILL.md` (and its `.agents`
+  mirror) for v3: generated ids, retirement as removal with a mandatory
+  operator-facing reason, replacement as `retire` then `add`, and no computed or
+  inherited confidence.
+
+### Removed
+
+- **Deleted the sequential claim allocator** `next_entry_id` rather than porting
+  it. It derived the next number from the highest *surviving* entry, so the first
+  `add` after a retirement reissued the retired id. Training History keeps its
+  own sequence: `next_event_id` is untouched, because events are append-only and
+  nothing removes one (§8.4).
+- **Removed `supersede`** from the tool and its help, with `add_entry`,
+  `update_entry`, `supersede_entry`, `change_entries`, `ordered_entry`,
+  `ENTRY_KEY_ORDER`, `find_entry` and the `entry` subcommand group. A replacement
+  is `retire` then `add`, with a fresh id and an independently re-derived
+  `confidence`; no write path computes, suggests, copies or auto-promotes a
+  confidence value (F1–F4), which `tests/test_memory.py` now locks at the syntax
+  tree as well as end to end.
+
+### Tests
+
+- Replaced `EntryCommands` with `V3WriteIdentity`, `V3Retirement`,
+  `V3WriteConfidence`, `V3Admission`, `V3WriteSafety` and `V3WriterSurface`
+  against temporary v3 stores, the live corpus being untouched. The reversals are
+  deliberate and named: `test_there_is_no_delete` became
+  `test_retirement_removes_the_claim_and_requires_a_reason`, the two supersede
+  tests became `test_replacement_is_retire_then_add_with_a_fresh_id`, and
+  `test_the_legacy_allocator_is_still_present_for_the_legacy_tree` became
+  `test_the_sequential_claim_allocator_is_gone`.
+- `test_retiring_a_contradiction_target_is_refused` records a found gap rather
+  than working around it: §4.8 forbids automatic erasure of a contradiction
+  marker, so a contradicted pair can be neither retired nor unlinked one claim at
+  a time. Resolving a pair needs a single write touching both claims, which is
+  not on the §8.3 operation surface.
+
+## 1.0.0-beta.114 - 2026-10-18
+
+### Added
+
+- Added schema-version dispatch to Skillset Memory (`PASS/tools/memory.py`):
+  `validate_contents` now returns `(errors, flags)` and routes each store's
+  claim side by `memory_schema_version` — schema 3 to `validate_v3_contents`,
+  schemas 1 and 2 to the new `PASS/tools/memory_legacy_input.py`, anything
+  else to the existing unknown-version error — while Training History
+  validation (event shape, duplicate event ids, correction ordering) runs
+  unchanged for every version, because History is not versioned (R2.5 §8.4).
+  A mixed-state corpus of v1/v2 and v3 stores now validates in one `validate`
+  run, which also prints each store's declared schema version and any review
+  FLAGs (a flags-only result still exits 0).
+- Added `PASS/tools/memory_legacy_input.py`, the isolated v1/v2
+  migration-input reader: the legacy claim vocabularies and `validate_entry`
+  moved there verbatim. Its docstring binds it to deletion by ticket T21 and
+  forbids any runtime path from growing a dependency on it, and
+  `tests/test_memory.py::SchemaDispatch` enforces that the dispatch in
+  `memory.py` is its only importer. A v3 store beside an absent
+  `training_history.jsonl` keeps its I5 semantics through `validate_store`:
+  absence is not corruption, and the file is not reported missing.
+
+### Changed
+
+- Extracted one shared evidence-admissibility implementation
+  (`evidence_admissibility_problem`, field-parameterized) called by both the
+  legacy `evidence_events` path and the v3 `evidence` path, with quarantine
+  derived by the single `quarantined_event_ids` helper, so the invalid-run
+  invariant cannot drift between the two claim sides. Legacy messages read
+  exactly as before; v3 messages keep their `(I4)` rule tags.
+
+## 1.0.0-beta.113 - 2026-10-18
+
+### Added
+
+- Added v3 referential integrity to Skillset Memory (`PASS/tools/memory.py`):
+  `validate_v3_references` implements the R2.5 §4.6 rules I1–I6. Canon shape
+  (I1) and evidence-id shape (I3) are checked always; canon resolves against
+  the claim's own package plus `metaskills` only when a `library/` root is
+  supplied and present, and a reference that does not resolve is a FLAG for
+  review rather than an ERROR (I2), so Memory validity never depends on
+  library state. Evidence members resolve against `training_history.jsonl`
+  only when it is present, reusing the legacy invalid / correction /
+  quarantine admissibility semantics unchanged (I4); with History absent they
+  are not resolved and the store stays valid (I5). `contradicts` targets must
+  exist in the same store, be symmetric, and never self-reference (I6).
+  `validate_v3_store` now accepts an optional library root and loads History
+  only when the file exists.
+- Added the `tests/test_memory.py` `V3ReferentialIntegrity` suite (21 tests)
+  and extended `Portability` with two criterion-28a tests: a v3 store
+  validates in a bare directory containing nothing but
+  `memory/<domain>/skill_memory.yaml` (with or without a `.git` directory
+  beside it), and `PASS/tools/memory.py` never names, imports, or runs a
+  version-control command.
+
+### Changed
+
+- Updated `PASS/docs/MEMORY_SCHEMA.md` §10 with the I1–I6 rule-table rows and
+  the conditional-resolution design: shape checked always, evidence resolved
+  only against a present History, canon only against a present Library root.
+
+## 1.0.0-beta.112 - 2026-10-17
+
+### Added
+
+- Added Skillset Memory schema v3 structural validation (`PASS/tools/memory.py`):
+  `validate_v3_contents` / `validate_v3_store` implement the R2.5 claim-store
+  contract as a pure function beside the untouched legacy validator — store
+  shape and required fields (S1–S10), claim prose and fusion smells (C1–C6),
+  envelope invariants (E1–E2), the reach posture invariant (R1), and the
+  retired-vocabulary/leakage gates (L1–L5) — with errors and flags on separate
+  channels so a flags-only result stays exit-zero. Runtime dispatch is not
+  wired; the four live v1/v2 stores keep the legacy validator unchanged, and a
+  v3 store has its own `CLAIM_FORBIDDEN_KEYS` list (provenance is required
+  there, rejected in v1/v2).
+- Added `PASS/docs/MEMORY_SCHEMA.md` §10 documenting the v3 store shape, the
+  claim schema, the closed vocabularies, the full rule table with ERROR/FLAG
+  channels, and the semantic checks v3 validation deliberately cannot make.
+- Added the `tests/test_memory.py` v3 suite (45 tests): store shape, closed
+  vocabularies, required fields, word caps, accretion connectives, envelope
+  sentinels, reach/delta closure, cross-store id collision, legacy-key
+  rejection, the identity/leakage gates, the spec's boundary cases, and the
+  three verbatim §6 specification examples.
+
+## 1.0.0-beta.111 - 2026-10-17
+
+### Added
+
+- Added Stage Contract v1 (`PASS/runtime/stage_contract.py`): one closed,
+  model-facing structural response for Preflight, PASS 1, CHECKPOINT, PASS 2,
+  PASS 3 and both closure stages, so every supported model returns the same
+  artifact. Free-form model cognition, a closed stage output contract, then
+  deterministic host validation and rendering. Model reasoning and semantic
+  conclusions remain unconstrained.
+- Added `python PASS/pass.py schema [--stage <stage>] [--enums]`, the
+  authoritative JSON Schema and declared vocabularies, generated from the same
+  declarations the templates and the validator use.
+- Added `PASS/docs/STAGE_CONTRACT.md` with the ownership split, the envelope, the
+  failure codes and worked artifacts for all four stages plus a rendered Pattern,
+  AP and Drill.
+- Added `tests/test_stage_contract.py`: cross-model conformance (structure,
+  schema, enums and host-written files must match while semantics may differ),
+  host path ownership, write-nothing-on-invalid, stale-token refusal, the bounded
+  correction attempt and fail-close, and preflight schema independence.
+
+### Changed
+
+- Stage responses are now the envelope `{"action_id": ..., "payload": ...}`. The
+  model echoes one opaque host-issued token that binds the bound source, stage,
+  unit index, unit and controller state, and states no other identity. This
+  replaces the `schema_version` and `unit_id` echoes and is strictly stronger: a
+  response produced for another unit, stage or superseded state is refused with
+  `stale_action_id`.
+- Drafted cards cross the boundary as structured objects rather than files. The
+  model supplies `object_id`, `object_type`, `library_path`, `name`, frontmatter
+  and an object-type-specific body; the host derives the path, renders every
+  heading, heading order, IF/THEN/ELSE label, list marker, indent and blank line,
+  and writes the file only after the whole response validates. The audit behind
+  this verified it is lossless: across all 2,388 library cards `object_id` equals
+  the filename stem and `library_path` equals the directory, with no exceptions.
+- Non-card staged items are typed `artifacts` -- an owned release recipe, a
+  `MODULE.yaml`, or an asset -- whose paths the host derives from declared
+  identity. A model no longer composes any path string.
+- Removed `reviewed_sha256`, `working_drafts`, `changes`, `schema_version`,
+  `unit_id` and `mode` from the model-facing payloads. The host already owned
+  every one of them and now writes them itself; PASS 3 attests with
+  `card_only_review` and `checks`, and the host computes the staged digests before
+  and after validation as it already did.
+- Retired `overlap_object_ids` from the PASS 1 payload, which had no downstream
+  consumer. The reasoning obligation is unchanged and PASS 2's buckets still carry
+  the reconciliation. The identically named *preflight unit* field is kept: it is
+  validated against the library, printed in the human-facing preflight packet and
+  counted in the verification summary.
+- `template` now prints the envelope with a payload skeleton generated from the
+  schema and seeded with the identifiers the host already owns, eliminating the
+  split between SHOUTING preflight placeholders and empty-value workflow
+  templates. No value's status is ambiguous any more.
+
+### Fixed
+
+- Fixed the unbounded retry hole: a malformed stage response is refused before
+  anything is written and recorded as a machine-readable
+  `controller/stage-rejection.json` with a closed failure-code vocabulary. The
+  same pending action gets exactly one correction attempt; a second malformed
+  response fails the stage closed, preserves the last completed boundary, and
+  makes unattended mode return `blocked_human_required` instead of reissuing the
+  same action forever. Infrastructure failures and semantic outcomes --
+  `approval_required`, an honest `false` check, a legitimate empty result -- are
+  not contract failures and consume no attempt.
+- Corrected two enum defects found while building the contract: `card_potential`
+  was missing `mixed`, which the synthetic closure unit uses, and `text_quality`
+  is free text upstream rather than an enum. A test now asserts the contract's
+  vocabularies never drift from their authorities.
+- Fixed the PASS 2 `removals` JSON Schema item type under the R1 candidate-3
+  closure review: the published schema declared array items as objects while
+  the runtime validator accepts only `object_id` strings, so a
+  schema-conforming response for a non-empty removals list was guaranteed to be
+  contract-rejected. The schema now declares string items matching
+  `OBJECT_ID_RE`, and a regression test asserts the published schema and the
+  live validator agree on valid, invalid-type, invalid-shape and empty
+  removals.
+
+## 1.0.0-beta.110 - 2026-10-17
+
+### Changed
+
+- Normalized PASS run storage onto one canonical run root, `Pass-runs/`, whose
+  hierarchy mirrors canonical library ownership: a run is filed at the module
+  path its cards land in, as in
+  `Pass-runs/software-engineering/languages/python/r_a1b2c3d4/`. The retired
+  `workspace/skill-staging/<domain>/<book-run>/` layout and its parallel
+  "genre" taxonomy are gone, and `PASS/vfx.py` now shares the same run root at
+  `Pass-runs/software-engineering/unreal-engine/vfx/<run-id>/` instead of
+  keeping `workspace/vfx-authoring/<task>/` as a second convention.
+- Replaced descriptive run directory names with short opaque run ids (`r_` plus
+  eight hex characters). No generated path segment carries a source title, book
+  title, domain, language, unit title, chapter title or timestamp. `pass.py
+  start` takes `--owner <module-path>` in place of `--task <slug>`, and
+  `start-over` allocates a replacement id rather than naming one.
+- Recorded run description as metadata instead of path text: `controller/run.json`
+  gains `run_id`, `owner` and a human-readable `label` at run schema 3. A
+  schema-2 run is upgraded in place from its own location, so relocating a run
+  is a plain directory move.
+- Checkpointed staged artifacts as flat content-addressed blobs under
+  `controller/checkpoint/blobs/<sha256>` instead of mirroring the staged tree
+  under `controller/checkpoint/files/<path>`. The old nesting reproduced a full
+  library-relative card path inside every checkpoint.
+- Validated run ownership against the library instead of against a taxonomy cap
+  the run layout invented. `OWNER_MAX_PARTS` and `OWNER_MAX_CHARS` are gone;
+  `resolve_owner` requires an owner to resolve to an existing module directory
+  under `library/<domain>/` or to a new leaf directly beneath one, and the only
+  bound on depth is the total path budget. `parse_owner` remains shape-only so an
+  existing run stays openable after its library module is renamed or retired.
+
+### Fixed
+
+- Fixed the Windows path-length defect that made real runs fail mid-copy. A live
+  run reached 300 absolute characters, past the 260-character limit, because an
+  86-character source-title directory sat above a 158-character library card
+  path. The same work now peaks at 198 characters, and PASS does not require the
+  machine to opt into Windows long paths. `start` refuses a run root over
+  `RUN_ROOT_BUDGET`, `check_path_budget` names an over-long path instead of
+  letting Windows fail obscurely, and `tests/test_architecture.py::RunPathBudgetTests`
+  holds the measured per-domain worst case to account.
+
+### Added
+
+- Added a regression test for `Run.recover()`, which previously had none, now
+  covering restoration of controller state and staged files from checkpoint
+  blobs after a simulated hard interruption.
+
+### Removed
+
+- Removed `workspace/_diag_paths.py`, a task-owned diagnostic marked
+  delete-after-use whose target run no longer exists and which had no referrers.
+- Removed the run-schema-1 in-memory upgrade branch. No retained run requires it:
+  every live run is schema 2, verified by reading each `controller/run.json`.
+
 ## 1.0.0-beta.107 - 2026-10-12
 
 ### Added

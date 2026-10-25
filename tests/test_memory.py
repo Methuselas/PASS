@@ -1105,6 +1105,31 @@ class ContractDocuments(unittest.TestCase):
             + "\n  ".join(offenders),
         )
 
+    def test_root_readme_does_not_state_a_retired_memory_type(self) -> None:
+        """The landing page states the Memory contract, so T22 owns it.
+
+        The root README escaped the governed-surface list the other gate
+        scans, and it is the file the beta.136 correction repairs. This
+        applies the same retired-token rule to that one file only: it does
+        not add the README to `GOVERNED_FILES`, does not touch the two
+        criterion-1 gates, and is not a repository-wide ban - a line that
+        declares a token retired stays exempt under the same
+        `RETIREMENT_MARKERS`.
+        """
+        path = ROOT / "README.md"
+        offenders: list[str] = []
+        for number, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
+            if any(marker in line.lower() for marker in RETIREMENT_MARKERS):
+                continue
+            for token in RETIRED_SCHEMA_TOKENS:
+                if re.search(rf"\b{token}\b", line):
+                    offenders.append(f"README.md:{number}: {token}")
+        self.assertEqual(
+            offenders, [],
+            "the root README presents retired Memory vocabulary as current "
+            "schema:\n  " + "\n  ".join(offenders),
+        )
+
 
 class V3WriteFixture(unittest.TestCase):
     """A disposable schema-3 store, so no test mutates the shipped corpus.

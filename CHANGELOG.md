@@ -6,6 +6,23 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.136 - 2026-10-24
+
+### Fixed
+
+- **The root `README.md` no longer teaches the retired pre-R2 Memory
+  architecture (T22 correction).** The landing page escaped criterion 1's
+  governed-surface scan, but it states the Memory contract in present-tense
+  instructional prose, so it is T22-owned. Its Memory passages now state the
+  schema-3 claim contract - current learned claims classed `conduct` or
+  `reach`, with card candidates in
+  `canon_workflow/<domain>/card_candidates.yaml` rather than in Memory - and
+  the CRQ walkthrough now starts from an open candidate in that store with
+  the live `prepare --candidate` interface instead of the dead
+  `--memory-entry` invocation that read Skillset Memory. A narrow regression
+  gate holds the root README to the same retired-vocabulary rule the governed
+  documents face, without redefining criterion 1's surface list.
+
 ## 1.0.0-beta.135 - 2026-10-24
 
 ### Changed

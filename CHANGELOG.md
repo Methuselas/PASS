@@ -6,6 +6,25 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.137 - 2026-10-24
+
+### Fixed
+
+- **The generated SkillForge `SKILL.md` no longer misdescribes Skillset
+  Memory as empirical history (post-R2 producer wording correction).** The
+  release generator's Skillset Memory section opened by calling
+  `memory/<domain>/skill_memory.yaml` "this skillset's **empirical record**:
+  what actually happened when this canon was used" and told the reader to
+  "read each entry as an observation" - wording that reverses the final R2
+  authority split, where Skillset Memory is the current learned state and
+  Training History is the empirical record of concrete attempts. The section
+  now states what it is: the skillset's current learned state about doing the
+  skill's work, carried as claims, not canon, with the release copy a
+  current-state projection that omits claim-level `evidence` and ships no
+  `training_history.jsonl`. No release mechanics, schema, or claim data
+  changed; a focused regression gate holds the generated section to the
+  learned-versus-history distinction and the claim vocabulary.
+
 ## 1.0.0-beta.136 - 2026-10-24
 
 ### Fixed

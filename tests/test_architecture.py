@@ -1442,6 +1442,31 @@ class ReleaseV3MemoryTests(unittest.TestCase):
         self.assertIn("current-state projection", skill)
         self.assertNotIn("holds the events an entry was consolidated from", skill)
 
+    def test_skillset_memory_section_states_learned_claims_not_empirical_history(
+        self,
+    ) -> None:
+        section = self._skillset_memory_section()
+        # The section must not describe Skillset Memory as the empirical record of
+        # what actually happened - that is Training History, and under the final R2
+        # the two are separate concepts.
+        self.assertNotIn("empirical record", section)
+        self.assertNotIn("what actually happened", section)
+        # It names the claim contract, not the retired entry vocabulary.
+        self.assertRegex(section, r"\bclaim\b")
+        self.assertNotRegex(section, r"\bentry\b")
+        # It still states that the release ships the current-state projection.
+        self.assertIn("current-state projection", section)
+
+    def _skillset_memory_section(self) -> str:
+        lines = (self.out / "SKILL.md").read_text(encoding="utf-8").splitlines()
+        out, capturing = [], False
+        for line in lines:
+            if line.startswith("## "):
+                capturing = line.strip() == "## Skillset Memory"
+            elif capturing:
+                out.append(line)
+        return "\n".join(out)
+
     def test_manifest_records_memory_validation(self) -> None:
         manifest = json.loads(
             (self.out / "RELEASE_MANIFEST.json").read_text(encoding="utf-8")

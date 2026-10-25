@@ -35,7 +35,7 @@ SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 # VFX runs share the one canonical run root, placed at the library ownership path
 # their recipe cards land in. The descriptive task name is state, not a path
 # segment, so the run directory stays short and opaque like every other run.
-RUNS_ROOT = "Pass-runs"
+RUNS_ROOT = "workspace/Pass-runs"
 VFX_OWNER = ("software-engineering", "unreal-engine", "vfx")
 RUN_ID_RE = re.compile(r"^r_[0-9a-f]{8}$")
 LIBRARY_SEGMENT_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")

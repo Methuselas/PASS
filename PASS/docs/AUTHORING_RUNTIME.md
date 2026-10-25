@@ -192,7 +192,7 @@ process is stopped. This prevents a still-running old process from racing the
 replacement while also ensuring a crashed process cannot make reset impossible.
 
 ```text
-Pass-runs/<domain>[/<module-path>...]/<run-id>/
+workspace/Pass-runs/<domain>[/<module-path>...]/<run-id>/
   RUN_NOTE.md
   HANDOFF.md
   controller/run.json
@@ -243,9 +243,9 @@ worked artifacts.
 
 ### Run placement and naming
 
-`Pass-runs/` is the one run root for every PASS run. Inside it, a run is filed at
+`workspace/Pass-runs/` is the one run root for every PASS run. Inside it, a run is filed at
 the canonical library ownership path its cards are destined for, so a Python run
-lives at `Pass-runs/software-engineering/languages/python/<run-id>/` and never
+lives at `workspace/Pass-runs/software-engineering/languages/python/<run-id>/` and never
 under an invented parallel label such as `Python/`. Runs do not get a second
 domain taxonomy of their own. `--owner` names the module path below the domain.
 
@@ -484,6 +484,6 @@ After successful source closure, `close-run` removes generated controller state,
 prepared source, accepted staging and its run note, prunes empty owner directories
 and preserves nonempty retained work. Preserve original inputs, other runs and
 explicit failure-evidence holds. Project snapshots and published SkillForge
-releases never carry `Pass-runs/` authoring state; a resumed run stays
+releases never carry `workspace/Pass-runs/` authoring state; a resumed run stays
 where it lives, in the repository's run root. Deleting closed scratch never
 invalidates canonical library knowledge.

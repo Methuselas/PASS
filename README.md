@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.138`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.139`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -139,7 +139,7 @@ than writing directly to `library/`.
 ```bash
 python PASS/vfx.py start --inventory inventory.json --task boss-spawn
 python workspace/tools/extract_vfx_stills.py captures.json -o evidence --interval 0.5
-python PASS/vfx.py register-captures --run Pass-runs/software-engineering/unreal-engine/vfx/r_a1b2c3d4 --manifest evidence/vfx-stills-manifest.json
+python PASS/vfx.py register-captures --run workspace/Pass-runs/software-engineering/unreal-engine/vfx/r_a1b2c3d4 --manifest evidence/vfx-stills-manifest.json
 ```
 
 Niagara Recipes live under
@@ -205,7 +205,7 @@ PASS work.
    before any unit PASS 1 ingestion. After a deliberate stop, `continue-run`
    resumes the same transaction history.
 4. During substantive PASS, every unit completes PASS 1, PASS 2 and PASS 3. The
-   reviewed unit is accepted into the run's cumulative `Pass-runs/` staging
+   reviewed unit is accepted into the run's cumulative `workspace/Pass-runs/` staging
    delta, not directly into canonical `library/`. Later units reconcile against
    the live canonical library plus that accepted source delta. After the final
    unit, complete source closure (AP synthesis, DRILL synthesis, cross-library
@@ -690,7 +690,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.138`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.139`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

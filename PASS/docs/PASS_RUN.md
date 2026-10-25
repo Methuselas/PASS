@@ -144,7 +144,7 @@ not modified unless that work is explicitly opened.
 
 ### Workspace lifecycle
 
-PASS runs live in the one canonical run root, `Pass-runs/`, which the
+PASS runs live in the one canonical run root, `workspace/Pass-runs/`, which the
 controller owns. For other work files, choose one task-named directory under the
 existing purpose bucket: `workspace/builds/`, `code-studies/`,
 `drill-runs/`, `candidate-qualification/` or `handoffs/`. Put reusable tools, release recipes, inputs and
@@ -154,7 +154,7 @@ deliverables in their existing `tools/`, `release-recipes/`, `sources/` and
 new ad-hoc buckets in the workspace root.
 
 The executable entrypoint owns
-`Pass-runs/<domain>[/<module-path>...]/<run-id>/`, filed at the canonical library
+`workspace/Pass-runs/<domain>[/<module-path>...]/<run-id>/`, filed at the canonical library
 ownership path the run authors into and named by a short opaque run id.
 `controller/` contains progression state and hard checkpoints; `prepared-source/`
 contains verified model-facing input when Source Prep has run;
@@ -165,7 +165,7 @@ path segment or a library category by itself; it is recorded as the run's
 `label` in `controller/run.json`. Prepared-source metadata and
 run/checkpoint state remain authoring-only and never enter cards.
 
-Project snapshots and published SkillForge releases never carry `Pass-runs/`
+Project snapshots and published SkillForge releases never carry `workspace/Pass-runs/`
 authoring state: runs resume from the verified checkpoint in the repository's
 run root, not from an archive. Project snapshots include only the canonical
 release recipe for the selected domain(s).

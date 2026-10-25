@@ -62,10 +62,10 @@ class SnapshotSelectionTests(unittest.TestCase):
         self.assertFalse(any("/__pycache__/" in path for path in relative))
         self.assertFalse(any(path.casefold().endswith(".pyc") for path in relative))
         self.assertFalse(any(path.startswith("workspace/project-releases/") for path in relative))
-        # Pass-runs is authoring state and never travels in a project
+        # workspace/Pass-runs is authoring state and never travels in a project
         # snapshot, for any domain (the art allowance was an older-build
         # bygone).
-        self.assertFalse(any(path.startswith("Pass-runs/") for path in relative))
+        self.assertFalse(any(path.startswith("workspace/Pass-runs/") for path in relative))
 
     def test_snapshot_includes_only_handoffs_for_selected_domains(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -6,6 +6,28 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.139 - 2026-10-25
+
+### Changed
+
+- **The canonical PASS run root moves back under the workspace folder, to
+  `workspace/Pass-runs/` (owner-directed convention change).** Commit e79b788
+  (2026-10-17) had normalized run storage from the retired
+  `workspace/skill-staging/` and `workspace/vfx-authoring/` buckets onto a
+  repository-root `Pass-runs/`; the owner has directed that PASS runs belong
+  under `workspace/`, so `RUNS_ROOT` in both `PASS/pass.py` and `PASS/vfx.py`
+  now resolves to `workspace/Pass-runs/` and the live run `r_9cea47d0` was
+  relocated without touching its state (checkpoints are content-addressed and
+  carry no absolute run paths, so resume is unaffected). Measured against the
+  real library the deepest staged path is now 256 absolute characters (was
+  246), still under the Windows 260 limit with the `RunPathBudgetTests` guard
+  intact, and the deepest run root is 70 of the 72-character
+  `RUN_ROOT_BUDGET` -- the move consumes 10 characters of the headroom that
+  e79b788 recovered, leaving 4 characters to the Windows limit. Project
+  snapshots are unaffected: the builder is allowlist-based and `workspace/`
+  scratch was already excluded. Run schema, checkpoints, stage contracts and
+  pedagogy are untouched.
+
 ## 1.0.0-beta.138 - 2026-10-24
 
 ### Fixed

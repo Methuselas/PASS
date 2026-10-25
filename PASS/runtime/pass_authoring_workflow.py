@@ -63,14 +63,14 @@ FLAG_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 # ----------------------------------------------------------------- run layout
 # Runs live in one root whose hierarchy mirrors canonical library ownership:
 #
-#     Pass-runs/<domain>[/<module-segment>...]/<run-id>/
-#     Pass-runs/software-engineering/languages/python/r_a1b2c3d4/
+#     workspace/Pass-runs/<domain>[/<module-segment>...]/<run-id>/
+#     workspace/Pass-runs/software-engineering/languages/python/r_a1b2c3d4/
 #
 # The run id is short, opaque and non-semantic. Every descriptive string --
 # source title, book name, unit title -- belongs in controller/run.json, never
 # in a path segment, because a descriptive segment is what pushed real runs past
 # the Windows MAX_PATH limit.
-RUNS_ROOT = "Pass-runs"
+RUNS_ROOT = "workspace/Pass-runs"
 RUN_ID_RE = re.compile(r"^r_[0-9a-f]{8}$")
 LABEL_MAX_CHARS = 80
 
@@ -83,8 +83,8 @@ LABEL_MAX_CHARS = 80
 # limit of its own: the library decides how deep a module sits, and the single
 # real constraint is that the run root still leave room for
 # accepted/files/<repo-relative card path>. Measured against the real library the
-# deepest case is software-engineering at 246 absolute characters from a 14-char
-# repo prefix, and the deepest run root any domain actually needs is 60.
+# deepest case is software-engineering at 256 absolute characters from a 14-char
+# repo prefix, and the deepest run root any domain actually needs is 70.
 # tests/test_architecture.py::RunPathBudgetTests holds both numbers to account.
 WINDOWS_MAX_PATH = 260
 SAFE_ABSOLUTE_PATH = 250

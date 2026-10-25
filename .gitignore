@@ -12,7 +12,7 @@ workspace/*
 !workspace/release-recipes/
 
 # PASS run storage: the one canonical run root is local authoring state
-Pass-runs/
+workspace/Pass-runs/
 
 # Agent scratch space
 tmp/

@@ -40,6 +40,7 @@ variants: []
 ## Do
 - Install through the current official Rust installation route for the operating system. When that route downloads and executes a script, inspect or otherwise verify it according to the environment's software-installation policy before granting it the requested authority.
 - Run `rustc --version` and `cargo --version` after installation or selection. A successful installer message does not prove that the shell resolves the intended toolchain.
+- Use stable as the ordinary project baseline when no unstable compiler feature is required. Adopt nightly only for a deliberate unstable-feature or toolchain requirement, and make that requirement part of the project's declared toolchain policy rather than an ambient developer preference. Use beta to test against the upcoming stable release for regressions, not as an accidental delivery baseline.
 - Use `rustup update stable` when the project permits movement to the current stable channel, and pin or select the project's declared toolchain when reproducibility matters more than following the newest stable release.
 - Use `rustup doc` for the documentation associated with the installed toolchain instead of assuming that an unrelated online version describes the local standard library.
 - Treat linker and native build-tool availability as a separate prerequisite. The Rust compiler can be present while final linking or native dependencies still fail.
@@ -48,6 +49,8 @@ variants: []
 - Don't copy an old platform-specific installer, PATH edit, help channel, or Visual Studio version into a current setup guide without checking the current Rust installation documentation.
 - Don't infer the active compiler from what rustup last downloaded; another override, pinned toolchain, or shell PATH can select different binaries.
 - Don't update a toolchain merely because a newer stable release exists when the project has an explicit compatibility target that has not been tested against it.
+- Don't move a project to nightly merely to make one build error disappear; first identify the unstable feature or dependency requirement and decide whether the compatibility cost is intentional.
+- Don't treat beta as a more-current production channel; its purpose is validation of the next stable release.
 - Don't assume the Rust Project services old stable releases with ongoing fixes; its current support policy applies fixes and security updates to the latest stable version, so a project that supports older compilers owns the testing and support consequences.
 
 ## Checklist

@@ -8,4 +8,5 @@
 - [Keep Rust Binary Logic in a Library for Integration Tests](PAT_keep_rust_binary_logic_in_a_library_for_integration_tests.md) - pattern; 0 design. Tags: architecture, binary_crates, library_crates, rust, testing.
 - [Match Rust Panic Tests to the Intended Failure](PAT_match_rust_panic_tests_to_the_intended_failure.md) - pattern; 4 final. Tags: assertions, error_paths, panic, rust, testing.
 - [Place Rust Tests by the Boundary They Validate](PAT_place_rust_tests_by_the_boundary_they_validate.md) - pattern; 4 final. Tags: integration_tests, public_api, rust, testing, unit_tests.
+- [Select Which Rust Tests to Run by Scope and Cost](PAT_select_rust_test_runs_by_scope_and_cost.md) - pattern; 4 final. Tags: cargo, filters, ignored_tests, rust, testing.
 - [Split Rust Tests Across Unit and Integration Boundaries](DRILL_split_rust_tests_across_unit_and_integration_boundaries.md) - drill; 4 final. Tags: cargo, integration_tests, rust, testing, unit_tests.

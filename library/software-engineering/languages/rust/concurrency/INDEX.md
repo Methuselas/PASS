@@ -5,6 +5,7 @@
 ## Objects
 
 - [Build a Fixed Rust Worker Pool with Orderly Shutdown](AP_build_a_fixed_rust_worker_pool_with_orderly_shutdown.md) - ap; 0 design. Tags: channels, concurrency, rust, shutdown, thread_pool.
+- [Choose the Rust Thread Spawn API by Configuration and Failure Contract](PAT_choose_rust_thread_spawn_api_by_configuration_and_failure_contract.md) - pattern; 2 block. Tags: builder, concurrency, error-handling, rust, threads.
 - [End Rust Channel Consumption by Dropping Every Sender](PAT_end_rust_channel_consumption_by_dropping_every_sender.md) - pattern; 2 block. Tags: channels, concurrency, ownership, rust, shutdown.
 - [Give a Spawned Rust Thread Owned Inputs and a Join Boundary](PAT_give_a_spawned_rust_thread_owned_inputs_and_a_join_boundary.md) - pattern; 2 block. Tags: concurrency, join, ownership, rust, threads.
 - [Read Send and Sync as Rust Thread-Boundary Contracts](PAT_read_send_and_sync_as_rust_thread_boundary_contracts.md) - pattern; 1 skeleton. Tags: concurrency, rust, send, sync, traits.

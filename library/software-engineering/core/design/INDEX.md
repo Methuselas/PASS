@@ -25,9 +25,11 @@
 - [Refuse to Implement an Architecture You Cannot Follow](PAT_judge_an_architecture_before_building_on_it.md) - pattern; 0 design. Tags: architecture, conceptual_integrity, design_review, prerequisites.
 - [Repair on the Way Down So One Pass Never Backs Up](PAT_repair_on_the_way_down_so_one_pass_never_backs_up.md) - pattern; 0 design. Tags: data_structures, hierarchical_structures, invariants, secondary_storage.
 - [Say Which Outside References Survive Each Operation](PAT_say_which_outside_references_survive_each_operation.md) - pattern; 0 design. Tags: contracts, data_structures, handles, references.
+- [Separate Parsing Stages by Representation Boundary](PAT_separate_parsing_stages_by_representation_boundary.md) - pattern; 0 design. Tags: ast, parsing, pipeline, representation, tokenization.
 - [Separate the Durable Need From the Current Policy](PAT_separate_the_durable_need_from_the_current_policy.md) - pattern; 0 design. Tags: abstraction, adaptability, business_rules, requirements.
 - [Settle the Load-Bearing Decisions Early, Leave the Finishes Open](PAT_settle_load_bearing_decisions_before_finishes.md) - pattern; 0 design. Tags: construction, cost_of_change, design, planning, sequencing.
 - [Split a Deferred Call Into Captured and Supplied](PAT_split_a_deferred_call_into_captured_and_supplied.md) - pattern; 0 design. Tags: api_design, callbacks, deferred_execution, design, lifetime.
+- [Start With Portable Interfaces Then Isolate Platform Extensions](PAT_start_with_portable_interfaces_then_isolate_platform_extensions.md) - pattern; 0 design. Tags: abstraction, interfaces, operating_system, platform, portability.
 - [State How Robust to Build Before Anyone Builds It](PAT_set_the_robustness_level_deliberately.md) - pattern; 0 design. Tags: architecture, consistency, overengineering, robustness, simplicity.
 - [Store the Derived Value Whose Updates Stay Local](PAT_store_the_derived_value_whose_updates_stay_local.md) - pattern; 0 design. Tags: data_structures, derived_state, design, invalidation, maintenance.
 - [Write Design Notation at the Level of Intent](PAT_write_design_notation_at_the_level_of_intent.md) - pattern; 0 design. Tags: comments, design_notation, detailed_design, intent, pseudocode.

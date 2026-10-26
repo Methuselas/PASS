@@ -9,4 +9,5 @@
 - [Propagate Rust Failures with Question Mark at a Compatible Boundary](PAT_propagate_rust_failures_with_question_mark_at_a_compatible_boundary.md) - pattern; 2 block. Tags: conversion, propagation, question-mark, result, rust.
 - [Trace a Rust Panic to the First Owned Frame](AP_trace_a_rust_panic_to_the_first_owned_frame.md) - ap; 4 final. Tags: backtrace, debugging, diagnosis, panic, rust.
 - [Turn Rust Parse Failures Into Loop Control](PAT_turn_rust_parse_failures_into_loop_control.md) - pattern; 2 block. Tags: control_flow, input, parsing, result, rust.
+- [Unify Rust Errors From Multiple Sources With From Conversions](PAT_unify_rust_errors_from_multiple_sources_with_from.md) - pattern; 2 block. Tags: error-handling, from, question-mark, result, rust.
 - [Use Rust Expect Only When Failure Proves a Broken Assumption](PAT_use_rust_expect_only_when_failure_proves_a_broken_assumption.md) - pattern; 2 block. Tags: expect, invariants, panic, rust, unwrap.

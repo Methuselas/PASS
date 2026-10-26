@@ -6,6 +6,25 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.141 - 2026-10-26
+
+### Added
+
+- **The Software Engineering library merges the adjudicated bake-off card set
+  (GPT / CW / Flash), closing the Rust subsystem coverage gap.** The merge
+  adds 43 new cards -- 38 Patterns, 3 Action Protocols and 2 Drills -- bringing
+  the domain to 1111 Patterns, 72 Action Protocols and 104 Drills. New Rust
+  subpackages cover `filesystem`, `io`, `networking`, `parsing`, `processes`,
+  `time` and `unsafe`; `packages`, `iterators`, `concurrency` and
+  `error-handling` gain new cards; and two core design Patterns land (parse
+  stages by representation boundary; portable interfaces before platform
+  extensions). Three existing cards carry their adjudicated refinements
+  (`AP_build_a_testable_rust_cli_pipeline`,
+  `PAT_give_a_spawned_rust_thread_owned_inputs_and_a_join_boundary`,
+  `PAT_manage_rust_toolchains_with_rustup`). Navigation indexes regenerate from
+  the cards (`build_index.py` reports 0 stale); no schema, tooling,
+  version-contract, or other-domain change.
+
 ## 1.0.0-beta.140 - 2026-10-25
 
 ### Fixed

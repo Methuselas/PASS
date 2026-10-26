@@ -6,4 +6,5 @@
 
 - [Confine Rust Unsafe to a Documented Safe Abstraction](PAT_confine_rust_unsafe_to_a_documented_safe_abstraction.md) - pattern; 0 design. Tags: abstraction, contracts, rust, safety_invariants, unsafe.
 - [Isolate Rust FFI Behind One Audited Boundary](PAT_isolate_rust_ffi_behind_one_audited_boundary.md) - pattern; 0 design. Tags: abi, ffi, rust, unsafe, validation.
+- [Prefer Tagged Rust Enums Unless Overlapping Representation Is Required](PAT_prefer_tagged_rust_enums_unless_overlapping_representation_is_required.md) - pattern; 1 skeleton. Tags: enum, ffi, repr-c, rust, union, unsafe.
 - [Prove Rust Raw-Pointer Ranges Before Forming References](PAT_prove_rust_raw_pointer_ranges_before_forming_references.md) - pattern; 2 block. Tags: aliasing, raw_pointers, rust, slices, unsafe.

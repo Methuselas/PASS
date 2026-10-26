@@ -4,5 +4,9 @@
 
 ## Objects
 
+- [Choose a Cargo Dependency Source by Release Contract](PAT_choose_cargo_dependency_source_by_release_contract.md) - pattern; 0 design. Tags: cargo, dependencies, git, path, publishing, registry, rust.
+- [Choose Cargo Targets by Artifact Boundary](PAT_choose_cargo_targets_by_artifact_boundary.md) - pattern; 0 design. Tags: benchmarks, binaries, cargo, examples, libraries, packages, rust, targets, tests.
+- [Choose Rust Library Crate Type by Consumer Linkage](PAT_choose_rust_library_crate_type_by_consumer_linkage.md) - pattern; 0 design. Tags: cargo, cdylib, crate_type, ffi, linkage, rust.
+- [Choose the Rust Library Layer by Runtime Environment](PAT_choose_rust_library_layer_by_runtime_environment.md) - pattern; 0 design. Tags: alloc, core, embedded, no-std, rust, std.
 - [Keep Cargo Workspace Membership and Dependencies Explicit](PAT_keep_cargo_workspace_members_dependency_explicit.md) - pattern; 1 skeleton. Tags: cargo, dependencies, packages, rust, workspace.
 - [Publish a Rust Crate as an Immutable Version](AP_publish_a_rust_crate_as_an_immutable_version.md) - ap; 4 final. Tags: cargo, crates_io, publishing, release, rust, semver.

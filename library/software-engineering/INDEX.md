@@ -299,6 +299,6 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 ## Topics
 
 - [Ai Systems](ai-systems/INDEX.md) - 76 object(s).
-- [Foundations](core/INDEX.md) - 455 object(s).
-- [Languages](languages/INDEX.md) - 422 object(s).
+- [Foundations](core/INDEX.md) - 457 object(s).
+- [Languages](languages/INDEX.md) - 463 object(s).
 - [Unreal Engine](unreal-engine/INDEX.md) - 291 object(s).

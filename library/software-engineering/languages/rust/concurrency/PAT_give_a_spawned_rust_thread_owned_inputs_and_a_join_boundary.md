@@ -30,13 +30,15 @@ variants: []
 - Use a `move` closure when the spawned task needs values from the caller, so the closure owns those values instead of borrowing stack data that may disappear first.
 - Treat the `JoinHandle` as the task's completion capability. Store it with the component that is responsible for observing the task's result.
 - Call `join` at the latest boundary that must not proceed before the task finishes, so earlier independent work can still overlap.
-- Handle the result of `join`; a panic in the spawned thread is returned to the joining thread rather than silently turning into success.
+- Handle the result of `join`; a panic in the spawned thread is returned to the joining thread rather than silently turning into success. The `Err` value is an opaque panic payload, not guaranteed to be a string; downcast only the payload types your reporting policy understands and retain a fallback for other payloads.
+- Map an observed child panic into the parent component's policy instead of assuming the operating system sees it as process failure; a joined child can panic while the parent continues running.
 - Design the thread's stop signal and wake-up path before relying on `join` during shutdown.
 
 ## Don't
 - Don't borrow a local into a thread that may outlive the local's scope.
 - Don't call `join` immediately after `spawn` unless sequential execution is intentional; that removes the overlap the thread was created to provide.
 - Don't discard a handle when completion, panic observation, or orderly shutdown matters.
+- Don't use `join().unwrap()` when the caller has a deliberate panic-reporting or recovery policy; match the outer join result so that policy stays explicit.
 - Don't assume dropping a `JoinHandle` stops its thread. Dropping detaches the handle while the thread continues running.
 
 ## Checklist

@@ -21,8 +21,6 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_orient_rib_cage_with_curved_openings
-- rel: supports
-  target_object_id: PAT_build_gesture_into_clear_masses
 reference:
   source_title: Dynamic Figure Drawing
   author: Burne Hogarth

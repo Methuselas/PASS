@@ -21,7 +21,7 @@ tags:
 - foreshortening
 - head_construction
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_model_animal_head_soft_tissue_by_plastic_significance_and_aperture_function
 - rel: related_to
   target_object_id: PAT_build_feline_head_from_skull_midline_and_broad_planes

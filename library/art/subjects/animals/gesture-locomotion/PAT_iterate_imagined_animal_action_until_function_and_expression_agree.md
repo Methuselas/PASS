@@ -26,8 +26,6 @@ tags:
 - exaggeration
 - diagnosis
 cross_links:
-- rel: supports
-  target_object_id: PAT_route_animal_gesture_through_governing_action_line
 - rel: related_to
   target_object_id: PAT_construct_animal_form_from_core_masses_framework_and_soft_parts
 - rel: related_to

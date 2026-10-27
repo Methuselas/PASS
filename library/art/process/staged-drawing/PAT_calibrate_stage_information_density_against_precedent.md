@@ -18,9 +18,7 @@ tags:
 - information_density
 - over_rendering
 cross_links:
-- rel: supports
-  target_object_id: AP_draw_a_figure_through_onion_skinned_stages
-- rel: supports
+- rel: related_to
   target_object_id: AP_gate_staged_visual_work_by_approval
 - rel: related_to
   target_object_id: PAT_build_gesture_into_clear_masses

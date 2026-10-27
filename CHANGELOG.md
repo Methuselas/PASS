@@ -6,6 +6,29 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.143 - 2026-10-27
+
+### Changed
+
+- **The Art library clears its entire relation-contract debt: 120
+  `--relations` violations across 55 cards are repaired semantically, leaving
+  the contract at zero violations library-wide.** Illegal pairings
+  (`pattern -> ap`, `pattern -> pattern`, `drill --supports--> ...`,
+  `pattern -> drill`) and reciprocated `supports` pairs are resolved by class:
+  reciprocated AP/Pattern pairs keep the legal AP-side edge and drop the
+  reverse Pattern-side edge; seven Drill `supports` edges become `teaches`;
+  genuine sequential dependencies become `prerequisite_for`
+  (characterize-light-source before edge-hardness/color resolution,
+  validate-three-point before distortion control, render-material before tone
+  consolidation); the clear-masses framework becomes `foundation_of` the five
+  figure-construction patterns it grounds; non-delegating adjacencies become
+  `related_to` (stage-gate and backcast pairs, texture-process and brush-ink
+  neighbors, animal head-feature clusters, interactive-action boarding);
+  redundant reverse edges whose correct directed edge already existed on the
+  target card are simply removed (integrate-head, iterate-action). Three
+  generated indexes update from the repaired cards. No card body, title, or
+  taxonomy changes.
+
 ## 1.0.0-beta.142 - 2026-10-27
 
 ### Added

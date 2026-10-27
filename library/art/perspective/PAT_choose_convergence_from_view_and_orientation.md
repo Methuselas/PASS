@@ -17,7 +17,7 @@ tags:
 - one_point
 - two_point
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_establish_eye_level_and_vanishing_directions
 reference:
   source_title: Perspective Drawing Handbook

@@ -19,8 +19,6 @@ tags:
 - minimum_mass
 - no_rendering
 cross_links:
-- rel: supports
-  target_object_id: AP_build_stage2_complete_mass_block
 - rel: related_to
   target_object_id: PAT_build_gesture_into_clear_masses
 - rel: related_to

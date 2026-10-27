@@ -19,8 +19,6 @@ tags:
 - form_unity
 - simplification
 cross_links:
-- rel: supports
-  target_object_id: AP_unify_a_foreshortened_figure_in_deep_space
 - rel: related_to
   target_object_id: PAT_lace_separated_forms_with_valid_interconnections
 - rel: related_to

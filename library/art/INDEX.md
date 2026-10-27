@@ -12,6 +12,9 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
   - then: Build the Stage 2 Complete Mass Block
 - **Build the Stage 2 Complete Mass Block** — read first
   - then: Realize the Stage 3 Rough Image
+- **Characterize a Light Source by Relative Strength, Apparent Size, and Spectrum** — read first
+  - then: Control Edge Hardness From Form, Light, and Focus
+  - then: Resolve Visible Color From Local Color, Light, and Reflection
 - **Choose Stage 1 Construction by Readability** — read first
   - then: Block the Complete Stage 2 Inventory
 - **Commit Stage 3 Form Realization Against the Thumbnail** — read first
@@ -63,6 +66,8 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
   - then: Map Pure Trunk Muscle Actions From Spinal Axes
 - **Realize the Stage 3 Rough Image** — read first
   - then: Finish Stage 4 as Finished Pencils
+- **Render Material From Optical Response** — read first
+  - then: Consolidate Resolved Form With Tone
 - **Return to the Art Centerline** — read first
   - then: Calibrate Stage Information Density Against Approved Precedent
   - then: Draw a Figure Through Onion-Skinned Stages
@@ -74,6 +79,8 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
   - then: Map Carnivore Forearm Muscle Groups From Joint Axes to Pull Bands
 - **Shape a Specialized Runner Foreleg From Functional Muscle and Skeletal Masses** — read first
   - then: Construct a Complete Runner Foreleg From Architectural Masses and Sections
+- **Validate Three-Point Perspective From the Vanishing Triangle** — read first
+  - then: Control Perspective Distortion With Viewpoint and Projection Choice
 
 ## Topics
 

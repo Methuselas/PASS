@@ -19,9 +19,9 @@ tags:
 - serial_study
 - atmosphere
 cross_links:
-- rel: supports
+- rel: teaches
   target_object_id: PAT_resolve_visible_color_from_local_color_light_and_reflection
-- rel: supports
+- rel: teaches
   target_object_id: PAT_grade_depth_with_atmospheric_effect
 - rel: related_to
   target_object_id: PAT_script_gamut_changes_across_sequential_images

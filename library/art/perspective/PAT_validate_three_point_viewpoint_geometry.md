@@ -19,7 +19,7 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_choose_convergence_from_view_and_orientation
-- rel: supports
+- rel: prerequisite_for
   target_object_id: PAT_control_perspective_distortion_with_viewpoint_and_projection_choice
 reference:
   source_title: 'Viewpoints: Mathematical Perspective and Fractal Geometry in Art'

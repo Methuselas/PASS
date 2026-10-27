@@ -19,9 +19,7 @@ tags:
 - drift_control
 - line_hierarchy
 cross_links:
-- rel: supports
-  target_object_id: AP_finish_stage4_as_finished_pencils
-- rel: supports
+- rel: related_to
   target_object_id: AP_gate_staged_visual_work_by_approval
 - rel: related_to
   target_object_id: PAT_preserve_articulated_limb_chain

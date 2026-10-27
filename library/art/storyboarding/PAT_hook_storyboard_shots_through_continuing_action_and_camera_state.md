@@ -25,8 +25,6 @@ cross_links:
   target_object_id: PAT_preserve_screen_geography_with_axis_of_action
 - rel: related_to
   target_object_id: PAT_motivate_camera_movement_from_story_action_or_information
-- rel: supports
-  target_object_id: AP_develop_storyboard_sequence_in_progressive_directing_passes
 reference:
   source_title: The Art of Storyboard
   author: Don Bluth

@@ -19,8 +19,6 @@ tags:
 - thumbnail_comparison
 - lighting_plan
 cross_links:
-- rel: supports
-  target_object_id: AP_realize_stage3_rough_image
 - rel: related_to
   target_object_id: PAT_calibrate_stage_information_density_against_precedent
 - rel: related_to

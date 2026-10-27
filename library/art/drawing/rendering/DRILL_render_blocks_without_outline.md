@@ -18,7 +18,7 @@ tags:
 - rendering
 - warmup
 cross_links:
-- rel: supports
+- rel: teaches
   target_object_id: AP_prepare_construction_for_rendering
 reference:
   source_title: 'Basic Rendering: Effective Drawing for Designers, Artists and Illustrators'

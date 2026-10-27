@@ -18,7 +18,7 @@ tags:
 - value
 - warmup
 cross_links:
-- rel: supports
+- rel: teaches
   target_object_id: PAT_render_material_from_optical_response
 reference:
   source_title: The Art of Animal Drawing

@@ -22,7 +22,7 @@ tags:
 - spatial_axes
 - architectural_construction
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_construct_animal_skull_from_cranial_facial_masses_and_load_paths
 - rel: related_to
   target_object_id: PAT_orient_animal_body_in_depth_with_backline_and_transverse_axes

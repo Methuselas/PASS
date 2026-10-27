@@ -18,9 +18,7 @@ tags:
 - registered_copy
 - risk_control
 - correction
-cross_links:
-- rel: supports
-  target_object_id: AP_diagnose_and_recover_failing_observed_rendering
+cross_links: []
 reference:
   source_title: 'Alla Prima II: Everything I Know About Painting—and More'
   author: Richard Schmid

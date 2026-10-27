@@ -25,8 +25,6 @@ cross_links:
   target_object_id: PAT_concentrate_contrast_and_accents_at_focal_area
 - rel: related_to
   target_object_id: PAT_handoff_focus_and_visual_weight_between_shots
-- rel: supports
-  target_object_id: AP_develop_storyboard_sequence_in_progressive_directing_passes
 - rel: related_to
   target_object_id: AP_validate_sequence_in_previsualization_before_final_animation
 reference:

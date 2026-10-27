@@ -18,9 +18,7 @@ tags:
 - head_construction
 - viewpoint
 - foreshortening
-cross_links:
-- rel: supports
-  target_object_id: PAT_build_gesture_into_clear_masses
+cross_links: []
 reference:
   source_title: Dynamic Figure Drawing
   author: Burne Hogarth

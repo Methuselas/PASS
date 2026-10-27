@@ -26,8 +26,6 @@ cross_links:
   target_object_id: PAT_translate_live_action_reference_into_story_readable_animation_extremes
 - rel: related_to
   target_object_id: PAT_stage_interacting_characters_as_one_action_reaction_system
-- rel: supports
-  target_object_id: AP_develop_storyboard_sequence_in_progressive_directing_passes
 reference:
   source_title: The Art of Storyboard
   author: Don Bluth

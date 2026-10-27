@@ -21,7 +21,7 @@ tags:
 cross_links:
 - rel: teaches
   target_object_id: PAT_consolidate_resolved_form_with_tone
-- rel: supports
+- rel: teaches
   target_object_id: AP_prepare_construction_for_rendering
 - rel: related_to
   target_object_id: PAT_design_lighting_to_serve_subject_mood_and_visual_intent

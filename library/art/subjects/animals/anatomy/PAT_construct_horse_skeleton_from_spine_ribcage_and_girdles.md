@@ -22,7 +22,7 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_preserve_articulated_limb_chain
-- rel: supports
+- rel: related_to
   target_object_id: DRILL_build_animals_from_pivot_skeletons_to_main_forms
 reference:
   source_title: The Art of Animal Drawing

@@ -19,8 +19,6 @@ tags:
 - balance
 - force_direction
 cross_links:
-- rel: supports
-  target_object_id: AP_notate_a_figure_in_structural_order
 - rel: related_to
   target_object_id: PAT_construct_foot_as_soft_tissue_support_wedge
 - rel: related_to

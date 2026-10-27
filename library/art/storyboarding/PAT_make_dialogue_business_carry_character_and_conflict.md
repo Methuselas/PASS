@@ -21,8 +21,6 @@ tags:
 - props
 - blocking
 cross_links:
-- rel: supports
-  target_object_id: AP_block_dialogue_scene_through_evolving_relationship_and_focus
 - rel: related_to
   target_object_id: PAT_characterize_story_figures_through_specific_behavior_and_evidence
 - rel: related_to

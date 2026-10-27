@@ -2,6 +2,16 @@
 
 # Art / Rendering
 
+## Reading order
+
+_Read a foundation before the skills that build on it (`prerequisite_for`)._
+
+- **Characterize a Light Source by Relative Strength, Apparent Size, and Spectrum** — read first
+  - then: Control Edge Hardness From Form, Light, and Focus
+  - then: Resolve Visible Color From Local Color, Light, and Reflection
+- **Render Material From Optical Response** — read first
+  - then: Consolidate Resolved Form With Tone
+
 ## Objects
 
 - [Build a Loose Surface From Precise Visual Decisions](PAT_build_loose_surface_from_precise_visual_decisions.md) - pattern; 4 final. Tags: brushwork, decision_control, looseness, mark_making, precision, rendering.

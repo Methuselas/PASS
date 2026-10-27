@@ -22,7 +22,7 @@ tags:
 - aperture
 - expression
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_model_animal_head_soft_tissue_by_plastic_significance_and_aperture_function
 - rel: related_to
   target_object_id: PAT_stage_animal_mood_through_whole_body_pose_and_behavioral_cues

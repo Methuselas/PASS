@@ -2,6 +2,13 @@
 
 # Art / Perspective
 
+## Reading order
+
+_Read a foundation before the skills that build on it (`prerequisite_for`)._
+
+- **Validate Three-Point Perspective From the Vanishing Triangle** — read first
+  - then: Control Perspective Distortion With Viewpoint and Projection Choice
+
 ## Objects
 
 - [Aim Clean Perspective Construction Lines](DRILL_aim_clean_perspective_construction_lines.md) - drill; 2 block. Tags: construction, line_control, perspective, warmup.

@@ -28,8 +28,6 @@ cross_links:
   target_object_id: PAT_preserve_visual_tone_and_world_consistency_across_sequence
 - rel: related_to
   target_object_id: PAT_key_representative_storyboard_panels_for_lighting_focus_and_production_priority
-- rel: supports
-  target_object_id: AP_develop_storyboard_sequence_in_progressive_directing_passes
 reference:
   source_title: The Art of Storyboard
   author: Don Bluth

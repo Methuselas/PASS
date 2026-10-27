@@ -23,7 +23,7 @@ tags:
 - connective_tissue
 - head_construction
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_construct_animal_head_from_cranial_base_nasal_bridge_and_muzzle
 - rel: related_to
   target_object_id: PAT_stage_animal_mood_through_whole_body_pose_and_behavioral_cues

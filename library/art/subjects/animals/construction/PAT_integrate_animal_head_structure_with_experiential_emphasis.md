@@ -28,8 +28,6 @@ cross_links:
   target_object_id: PAT_construct_animal_head_from_cranial_base_nasal_bridge_and_muzzle
 - rel: related_to
   target_object_id: PAT_build_feline_head_from_skull_midline_and_broad_planes
-- rel: supports
-  target_object_id: PAT_model_animal_head_soft_tissue_by_plastic_significance_and_aperture_function
 reference:
   source_title: The Artist's Guide to Animal Anatomy
   author: Gottfried Bammes

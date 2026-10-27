@@ -19,8 +19,6 @@ tags:
 - leg_attachment
 - weight_support
 cross_links:
-- rel: supports
-  target_object_id: AP_notate_a_figure_in_structural_order
 - rel: related_to
   target_object_id: PAT_map_rear_pelvic_masses_without_breaking_wedge
 - rel: related_to

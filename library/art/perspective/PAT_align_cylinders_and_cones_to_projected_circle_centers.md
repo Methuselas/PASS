@@ -17,7 +17,7 @@ tags:
 - cone
 - ellipse
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_construct_circles_as_ellipses_on_perspective_planes
 - rel: related_to
   target_object_id: PAT_turn_cylinder_end_curves_with_depth

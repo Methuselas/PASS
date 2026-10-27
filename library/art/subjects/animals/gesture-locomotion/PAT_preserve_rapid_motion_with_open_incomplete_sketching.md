@@ -22,7 +22,7 @@ tags:
 - omission
 - nonfinito
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_route_animal_gesture_through_governing_action_line
 - rel: related_to
   target_object_id: PAT_select_one_dominant_quality_for_animal_study

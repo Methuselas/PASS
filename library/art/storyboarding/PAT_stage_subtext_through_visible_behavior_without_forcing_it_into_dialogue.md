@@ -20,8 +20,6 @@ tags:
 - performance
 - character_relationship
 cross_links:
-- rel: supports
-  target_object_id: AP_review_and_revise_rough_storyboards_in_story_meeting
 - rel: related_to
   target_object_id: PAT_stage_interacting_characters_as_one_action_reaction_system
 - rel: related_to

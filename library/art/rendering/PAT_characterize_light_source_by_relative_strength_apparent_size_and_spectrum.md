@@ -21,9 +21,9 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_design_lighting_to_serve_subject_mood_and_visual_intent
-- rel: supports
+- rel: prerequisite_for
   target_object_id: PAT_resolve_visible_color_from_local_color_light_and_reflection
-- rel: supports
+- rel: prerequisite_for
   target_object_id: PAT_control_edge_hardness_from_form_light_and_focus
 reference:
   source_title: 'Color and Light: A Guide for the Realist Painter'

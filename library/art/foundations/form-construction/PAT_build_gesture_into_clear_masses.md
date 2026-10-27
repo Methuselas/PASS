@@ -18,8 +18,18 @@ tags:
 - blocking
 - spatial_orientation
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: AP_plan_and_build_work_from_thumbnail_to_final
+- rel: foundation_of
+  target_object_id: PAT_join_rib_cage_and_pelvis_through_flexible_waist
+- rel: foundation_of
+  target_object_id: PAT_orient_rib_cage_with_curved_openings
+- rel: foundation_of
+  target_object_id: PAT_seat_neck_inside_upper_chest_opening
+- rel: foundation_of
+  target_object_id: PAT_construct_head_from_cranial_ball_and_facial_wedge
+- rel: foundation_of
+  target_object_id: PAT_preserve_articulated_limb_chain
 reference:
   source_title: PASS Gen 1 Universal Step 0 + Four-Stage Workflow
   author: Blu + Admin

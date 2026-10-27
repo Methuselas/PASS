@@ -17,7 +17,7 @@ tags:
 - value
 - contrast
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: AP_construct_a_shared_scene_perspective_field
 reference:
   source_title: 'Color and Light: A Guide for the Realist Painter'

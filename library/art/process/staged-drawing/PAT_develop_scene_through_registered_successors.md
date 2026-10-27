@@ -21,14 +21,6 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: AP_draw_a_figure_through_onion_skinned_stages
-- rel: supports
-  target_object_id: AP_build_stage1_scene_skeleton
-- rel: supports
-  target_object_id: AP_build_stage2_complete_mass_block
-- rel: supports
-  target_object_id: AP_realize_stage3_rough_image
-- rel: supports
-  target_object_id: AP_finish_stage4_as_finished_pencils
 reference:
   source_title: Guided Broken Gate Registered-Successor and Edit-Target Review
   author: MaDin + GPT

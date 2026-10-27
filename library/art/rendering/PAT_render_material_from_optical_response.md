@@ -17,7 +17,7 @@ tags:
 - transparency
 - texture
 cross_links:
-- rel: supports
+- rel: prerequisite_for
   target_object_id: PAT_consolidate_resolved_form_with_tone
 reference:
   source_title: 'Basic Rendering: Effective Drawing for Designers, Artists and Illustrators'

@@ -18,7 +18,7 @@ tags:
 - brushwork
 - surface
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_render_material_from_optical_response
 - rel: related_to
   target_object_id: PAT_control_brush_ink_tone_with_moisture_and_pressure

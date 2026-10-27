@@ -20,8 +20,6 @@ tags:
 - escalation
 - pacing
 cross_links:
-- rel: supports
-  target_object_id: AP_develop_storyboard_sequence_in_progressive_directing_passes
 - rel: related_to
   target_object_id: PAT_escalate_sequence_intensity_through_progressive_compositional_contrast
 - rel: related_to

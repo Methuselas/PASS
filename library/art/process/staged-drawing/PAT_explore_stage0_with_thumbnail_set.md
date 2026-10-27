@@ -19,7 +19,7 @@ tags:
 - ideation
 - drift_prevention
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: AP_gate_staged_visual_work_by_approval
 - rel: related_to
   target_object_id: PAT_calibrate_stage_information_density_against_precedent

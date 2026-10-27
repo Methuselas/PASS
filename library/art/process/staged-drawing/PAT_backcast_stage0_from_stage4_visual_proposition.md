@@ -19,9 +19,9 @@ tags:
 - value_mass
 - drift_prevention
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_calibrate_stage_information_density_against_precedent
-- rel: supports
+- rel: related_to
   target_object_id: PAT_explore_stage0_with_thumbnail_set
 - rel: related_to
   target_object_id: PAT_preserve_structure_during_stage4_pencil_finish

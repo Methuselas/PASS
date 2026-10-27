@@ -19,8 +19,6 @@ tags:
 - torso_centerline
 - gesture
 cross_links:
-- rel: supports
-  target_object_id: AP_notate_a_figure_in_structural_order
 - rel: related_to
   target_object_id: PAT_join_rib_cage_and_pelvis_through_flexible_waist
 reference:

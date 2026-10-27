@@ -19,8 +19,6 @@ tags:
 - structural_readability
 - no_rendering
 cross_links:
-- rel: supports
-  target_object_id: AP_build_stage1_scene_skeleton
 - rel: related_to
   target_object_id: AP_notate_a_figure_in_structural_order
 - rel: related_to

@@ -20,8 +20,6 @@ tags:
 - plot
 - tension
 cross_links:
-- rel: supports
-  target_object_id: AP_develop_storyboard_sequence_in_progressive_directing_passes
 - rel: related_to
   target_object_id: PAT_control_story_information_with_conceal_and_reveal
 - rel: related_to

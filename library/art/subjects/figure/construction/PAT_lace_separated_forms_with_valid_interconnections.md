@@ -19,8 +19,6 @@ tags:
 - interconnection
 - anatomy
 cross_links:
-- rel: supports
-  target_object_id: AP_unify_a_foreshortened_figure_in_deep_space
 - rel: related_to
   target_object_id: PAT_carry_form_flow_through_joint_transitions
 - rel: related_to

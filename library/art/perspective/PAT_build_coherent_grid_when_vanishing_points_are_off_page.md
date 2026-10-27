@@ -16,9 +16,7 @@ tags:
 - grid
 - offpage_vp
 - brewer_method
-cross_links:
-- rel: supports
-  target_object_id: AP_construct_a_shared_scene_perspective_field
+cross_links: []
 reference:
   source_title: 'How to Draw: Drawing and Sketching Objects and Environments from Your Imagination'
   author: Scott Robertson with Thomas Bertling

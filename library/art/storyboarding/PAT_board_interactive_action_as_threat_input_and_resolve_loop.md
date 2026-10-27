@@ -20,7 +20,7 @@ tags:
 - resolution
 - continuity
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: AP_develop_storyboard_sequence_in_progressive_directing_passes
 - rel: related_to
   target_object_id: PAT_hook_storyboard_shots_through_continuing_action_and_camera_state

@@ -19,8 +19,6 @@ tags:
 - neck_attachment
 - composition
 cross_links:
-- rel: supports
-  target_object_id: AP_notate_a_figure_in_structural_order
 - rel: related_to
   target_object_id: PAT_construct_head_from_cranial_ball_and_facial_wedge
 - rel: related_to

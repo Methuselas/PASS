@@ -18,9 +18,9 @@ tags:
 - rendering
 - comparison
 cross_links:
-- rel: supports
+- rel: teaches
   target_object_id: PAT_render_material_from_optical_response
-- rel: supports
+- rel: teaches
   target_object_id: PAT_choose_texture_process_by_control_and_spread
 reference:
   source_title: The Artist's Guide to Animal Anatomy

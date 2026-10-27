@@ -18,8 +18,6 @@ tags:
 - handoff
 - production
 cross_links:
-- rel: supports
-  target_object_id: AP_develop_storyboard_sequence_in_progressive_directing_passes
 - rel: related_to
   target_object_id: AP_validate_sequence_in_previsualization_before_final_animation
 reference:

@@ -19,8 +19,6 @@ tags:
 - arm_yoke
 - arm_attachment
 cross_links:
-- rel: supports
-  target_object_id: AP_notate_a_figure_in_structural_order
 - rel: related_to
   target_object_id: PAT_integrate_shoulder_mass_with_rib_cage
 - rel: related_to

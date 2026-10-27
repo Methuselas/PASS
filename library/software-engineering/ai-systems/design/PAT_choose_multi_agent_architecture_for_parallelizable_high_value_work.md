@@ -23,8 +23,6 @@ cross_links:
   target_object_id: PAT_isolate_ai_agents_by_task_context_and_permissions
 - rel: related_to
   target_object_id: PAT_budget_agent_context_for_signal_density
-- rel: supports
-  target_object_id: PAT_scale_agent_effort_to_task_complexity
 reference:
   source_title: How we built our multi-agent research system
   author: Jeremy Hadfield, Barry Zhang, Kenneth Lien, Florian Scholz, Jeremy Fox, and Daniel Ford

@@ -6,6 +6,30 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.142 - 2026-10-27
+
+### Added
+
+- **The Software Engineering library merges the relations-fixed bake-off
+  supplement (Flash networking pass), extending core transport/protocol coverage
+  and the Rust async/networking surface.** The merge adds 23 new cards -- 22
+  Patterns and 1 Action Protocol. `core` gains 12 cards across `design`
+  (network service protocol Action Protocol plus transport-choice, listener
+  binding, multiplexed-request correlation and application-protocol
+  specification Patterns), `hard-to-misuse` (peer authentication, single-schema
+  RPC binding, external-write-model separation), `modularity` (composable
+  parsers), `working-practice` (TCP accept-backlog diagnosis, certificate
+  lifecycle) and `concurrency` (readiness draining). `languages/rust` gains 11
+  cards: async control flow, executor offloading, future polling and
+  data-parallel batches under `concurrency`; socket timeouts, HTTP stack
+  altitude, UDP multicast/broadcast, TCP half-close, resolver routing and
+  reuseport accept scaling under `networking`; and a new `serialization`
+  subpackage with byte-conversion choice. Seven existing ai-systems Patterns
+  carry relation fixes (`supports` downgraded to `related_to` where the edge
+  overstated the dependency; two unsound `supports` edges removed). Navigation
+  indexes regenerate from the cards; the adjudicated Rust refinements from
+  beta.141 are preserved unchanged.
+
 ## 1.0.0-beta.141 - 2026-10-26
 
 ### Added

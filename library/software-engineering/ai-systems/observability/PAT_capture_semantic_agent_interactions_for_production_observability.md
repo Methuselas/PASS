@@ -23,7 +23,7 @@ cross_links:
   target_object_id: PAT_debug_agent_tools_from_complete_execution_traces
 - rel: related_to
   target_object_id: PAT_separate_thread_state_from_cross_conversation_memory
-- rel: supports
+- rel: related_to
   target_object_id: PAT_combine_offline_evals_with_production_feedback
 reference:
   source_title: You don’t know what your agent will do until it’s in production

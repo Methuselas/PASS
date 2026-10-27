@@ -21,7 +21,7 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_calibrate_llm_judges_against_human_graders
-- rel: supports
+- rel: related_to
   target_object_id: PAT_combine_offline_evals_with_production_feedback
 - rel: related_to
   target_object_id: PAT_choose_evaluator_economics_to_match_required_coverage

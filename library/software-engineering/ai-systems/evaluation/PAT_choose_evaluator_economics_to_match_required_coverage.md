@@ -22,7 +22,7 @@ tags:
 cross_links:
 - rel: related_to
   target_object_id: PAT_use_typed_semantic_judges_for_bounded_eval_decisions
-- rel: supports
+- rel: related_to
   target_object_id: PAT_combine_offline_evals_with_production_feedback
 - rel: related_to
   target_object_id: PAT_measure_stochastic_agent_reliability_across_multiple_trials

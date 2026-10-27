@@ -18,6 +18,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Build a Routine From Intent-Level Pseudocode](AP_build_a_routine_from_intent_level_pseudocode.md) - ap; 1 skeleton. Tags: construction, detailed_design, iteration, pseudocode, routines.
 - [Choose What to Integrate Next by Where the Risk Is](PAT_choose_the_integration_order_by_risk.md) - pattern; 0 design. Tags: construction, integration, risk, sequencing.
 - [Decide Which Automated Checks Earn the Right to Block](PAT_decide_whether_a_check_blocks_or_warns.md) - pattern; 1 skeleton. Tags: automation, build, discipline, feedback, review.
+- [Diagnose TCP Failures under Accept Backlog Pressure](PAT_diagnose_tcp_accept_backlog_pressure.md) - pattern; 4 final. Tags: accept, backlog, diagnosis, networking, overload, tcp.
 - [Estimate by Decomposing and Cross-Checking, Never by Feel](PAT_estimate_by_decomposition_and_cross_check.md) - pattern; 0 design. Tags: calibration, estimation, planning, scheduling.
 - [Explain a Concept as a Wave — Abstract, Concrete, Abstract Again](PAT_teach_along_a_semantic_wave.md) - pattern; 0 design. Tags: explanation, memory, onboarding, teaching.
 - [Externalize Enough State That an Interruption Cannot Cost You the Context](PAT_prepare_for_interruption_before_it_arrives.md) - pattern; 3 rough. Tags: interruptions, note_taking, prospective_memory, working_practice.
@@ -27,6 +28,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Iterating Does Not Buy You Out of the Upfront Work](PAT_do_prerequisites_per_increment_when_iterating.md) - pattern; 0 design. Tags: architecture, iterative_development, prerequisites, requirements, rework.
 - [Keep a Known-Good Build Behind an Automated Smoke Test](PAT_keep_the_build_green_with_an_automated_smoke_test.md) - pattern; 1 skeleton. Tags: build, discipline, integration, testing.
 - [Know Why It Works Before You Build on It](PAT_know_why_it_works_before_you_move_on.md) - pattern; 2 block. Tags: assumptions, deliberate_practice, generated_code, undocumented_behaviour.
+- [Manage Expiring Certificates as a Lifecycle](PAT_manage_expiring_certificates_as_a_lifecycle.md) - pattern; 4 final. Tags: automation, certificates, operations, renewal, tls.
 - [Name the Activity You Are In, Then Support the Memory It Taxes](PAT_support_the_memory_system_the_activity_taxes.md) - pattern; 0 design. Tags: code_comprehension, cognitive_load, note_taking, working_practice.
 - [Pick the Method Per Problem Instead of Committing to One](PAT_keep_a_toolbox_instead_of_adopting_one_methodology.md) - pattern; 0 design. Tags: construction, judgment, methodology, technique_selection.
 - [Prepare an Onboarding That Supports All Three Memory Systems](AP_prepare_an_onboarding_for_all_three_memory_systems.md) - ap; 0 design. Tags: cognitive_load, documentation, onboarding, teaching.

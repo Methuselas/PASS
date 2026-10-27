@@ -19,8 +19,6 @@ tags:
 - orchestration
 - task_contracts
 cross_links:
-- rel: supports
-  target_object_id: PAT_isolate_ai_agents_by_task_context_and_permissions
 - rel: related_to
   target_object_id: PAT_write_agent_instructions_at_the_right_altitude
 - rel: related_to

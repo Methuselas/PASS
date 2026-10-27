@@ -113,6 +113,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Derive the Parallelism From Work and Span](PAT_derive_the_parallelism_from_work_and_span.md) - pattern; 0 design. Tags: concurrency, design, estimation, scalability, scheduling.
 - [Design a Parallel Decomposition](AP_design_a_parallel_decomposition.md) - ap; 0 design. Tags: concurrency, decomposition, design, load_balancing, scalability.
 - [Dispatch on Readiness or on Completion](PAT_dispatch_on_readiness_or_on_completion.md) - pattern; 0 design. Tags: concurrency, design, event_handling, io, patterns.
+- [Drain Readiness Until the Operation Would Block](PAT_drain_readiness_until_the_operation_would_block.md) - pattern; 2 block. Tags: concurrency, event-loop, io, nonblocking, readiness.
 - [Estimate a Concurrent Design's Ceiling Before Building It](PAT_estimate_a_concurrent_designs_ceiling_before_building_it.md) - pattern; 0 design. Tags: benchmarking, concurrency, design, estimation, measurement.
 - [Find the Axis the Parallelism Lies Along](PAT_find_the_axis_the_parallelism_lies_along.md) - pattern; 0 design. Tags: concurrency, decomposition, design, patterns, scalability.
 - [Fold an Interface Whose Operations Do Not Compose](DRILL_fold_an_unsafe_interface_into_transactions.md) - drill; 3 rough. Tags: concurrency, contracts, correctness, interface_design.

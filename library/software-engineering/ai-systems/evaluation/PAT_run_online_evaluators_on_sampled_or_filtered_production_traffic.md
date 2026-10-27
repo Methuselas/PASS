@@ -20,7 +20,7 @@ tags:
 - monitoring
 - sampling
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_combine_offline_evals_with_production_feedback
 - rel: related_to
   target_object_id: PAT_choose_evaluator_economics_to_match_required_coverage

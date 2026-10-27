@@ -19,6 +19,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 - [Catch the Coupling That the Compiler Cannot See](PAT_watch_for_semantic_coupling.md) - pattern; 3 rough. Tags: coupling, design, hidden_dependencies, modularity.
 - [Compose Modules With Few Well-Defined Interfaces](PAT_design_modular_interfaces.md) - pattern; 2 block. Tags: adaptability, coupling, interfaces, modularity.
+- [Compose Parsers From Small Rules](PAT_compose_parsers_from_small_rules.md) - pattern; 2 block. Tags: composition, grammar, modularity, parsing, protocols.
 - [Depend on Interfaces, Not Concrete Classes](PAT_depend_on_interfaces_not_concrete_classes.md) - pattern; 2 block. Tags: adaptability, dependency_inversion, interfaces, modularity.
 - [Design the File and Library Dependencies, Not Only the Class Ones](PAT_design_the_physical_dependency_graph_too.md) - pattern; 0 design. Tags: build_structure, coupling, dependencies, modularity.
 - [Don't Leak Implementation Details in Exceptions](PAT_dont_leak_implementation_details_in_exceptions.md) - pattern; 2 block. Tags: abstraction, error_handling, exceptions, modularity.

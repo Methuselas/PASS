@@ -6,10 +6,14 @@
 
 - [Ask Whether the Difficulty Is in the Problem or in Your Solution](PAT_separate_essential_from_accidental_complexity.md) - pattern; 0 design. Tags: complexity, design, diagnosis, simplicity.
 - [Assume Calls Can Overlap and Arrive in Any Order](PAT_assume_calls_can_overlap_and_arrive_in_any_order.md) - pattern; 0 design. Tags: api_design, concurrency, coupling, temporal_coupling.
+- [Bind Listeners Only to Intended Interfaces](PAT_bind_listeners_only_to_intended_interfaces.md) - pattern; 0 design. Tags: binding, configuration, exposure, listeners, networking.
 - [Check You Are Not Writing Your Previous Language in New Syntax](PAT_write_the_language_you_are_in_not_the_one_you_know.md) - pattern; 3 rough. Tags: code_review, design, idiom, language_choice, transfer.
+- [Choose a Transport by the Delivery Contract](PAT_choose_transport_by_delivery_contract.md) - pattern; 0 design. Tags: delivery-contract, networking, tcp, transport, udp.
 - [Choose Among Good Designs by What They Foreclose](PAT_choose_among_good_designs_by_what_they_foreclose.md) - pattern; 0 design. Tags: architecture, design, performance, premature_optimization, trade_offs.
 - [Choose Which Axis Stays Easy to Extend](PAT_choose_which_axis_stays_easy_to_extend.md) - pattern; 0 design. Tags: coupling, dependencies, design, extensibility, visitor.
+- [Correlate Multiplexed Requests With Explicit IDs](PAT_correlate_multiplexed_requests_with_explicit_ids.md) - pattern; 0 design. Tags: correlation, multiplexing, networking, protocols, request-response.
 - [Decide What to Express First, Then Find How the Language Can Carry It](PAT_program_into_the_language_not_in_it.md) - pattern; 0 design. Tags: abstraction, construction, conventions, design, language_choice.
+- [Design a Network Service Protocol](AP_design_a_network_service_protocol.md) - ap; 0 design. Tags: authentication, multiplexing, networking, protocol-design, service-design, transport.
 - [Design Deepest Where the Work Looks Easiest](PAT_choose_design_depth_by_risk_not_habit.md) - pattern; 0 design. Tags: design, documentation, planning, risk.
 - [Design Shutdown for Process-Lifetime Objects](PAT_design_shutdown_for_process_lifetime_objects.md) - pattern; 0 design. Tags: design, global_state, lifetime, resource_management, shutdown.
 - [Do Not Stop at the First Design That Would Work](PAT_produce_a_second_design_before_committing.md) - pattern; 0 design. Tags: alternatives, design, heuristics, iteration.
@@ -28,6 +32,7 @@
 - [Separate Parsing Stages by Representation Boundary](PAT_separate_parsing_stages_by_representation_boundary.md) - pattern; 0 design. Tags: ast, parsing, pipeline, representation, tokenization.
 - [Separate the Durable Need From the Current Policy](PAT_separate_the_durable_need_from_the_current_policy.md) - pattern; 0 design. Tags: abstraction, adaptability, business_rules, requirements.
 - [Settle the Load-Bearing Decisions Early, Leave the Finishes Open](PAT_settle_load_bearing_decisions_before_finishes.md) - pattern; 0 design. Tags: construction, cost_of_change, design, planning, sequencing.
+- [Specify the Application Protocol Above the Transport](PAT_specify_the_application_protocol_above_the_transport.md) - pattern; 0 design. Tags: contracts, encoding, framing, networking, protocols.
 - [Split a Deferred Call Into Captured and Supplied](PAT_split_a_deferred_call_into_captured_and_supplied.md) - pattern; 0 design. Tags: api_design, callbacks, deferred_execution, design, lifetime.
 - [Start With Portable Interfaces Then Isolate Platform Extensions](PAT_start_with_portable_interfaces_then_isolate_platform_extensions.md) - pattern; 0 design. Tags: abstraction, interfaces, operating_system, platform, portability.
 - [State How Robust to Build Before Anyone Builds It](PAT_set_the_robustness_level_deliberately.md) - pattern; 0 design. Tags: architecture, consistency, overengineering, robustness, simplicity.

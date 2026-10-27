@@ -18,7 +18,9 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 ## Objects
 
 - [A Default Stated More Than Once Will Disagree](PAT_state_a_types_default_in_one_place.md) - pattern; 2 block. Tags: consistency, initialization, maintenance, serialization, state.
+- [Authenticate the Peer, Not Just the Channel](PAT_authenticate_the_peer_not_just_the_channel.md) - pattern; 0 design. Tags: authentication, identity, key-agreement, security, tls.
 - [Close the Deep-Mutability Holes in a Class](DRILL_fix_deep_mutability_in_a_class.md) - drill; 3 rough. Tags: defensive_copying, immutability, refactoring, references.
+- [Generate RPC Bindings From One Service Schema](PAT_generate_rpc_bindings_from_one_service_schema.md) - pattern; 0 design. Tags: code-generation, contracts, idl, rpc, schema.
 - [Keep a Single Source of Truth for Data](PAT_single_source_of_truth_for_data.md) - pattern; 2 block. Tags: caching, derived_data, hard_to_misuse, single_source_of_truth.
 - [Keep a Single Source of Truth for Logic](PAT_single_source_of_truth_for_logic.md) - pattern; 2 block. Tags: decomposition, duplication, hard_to_misuse, single_source_of_truth.
 - [Keep Classes Immutable With Builder or Copy-on-Write](PAT_keep_immutable_with_builder_or_copy_on_write.md) - pattern; 2 block. Tags: builder_pattern, copy_on_write, design_patterns, immutability.
@@ -30,5 +32,6 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Remove a Redundant Second Source of Truth From a Data Model](DRILL_remove_redundant_derived_data.md) - drill; 3 rough. Tags: derived_data, hard_to_misuse, refactoring, single_source_of_truth.
 - [Replace an Overly General Type With a Dedicated Type](DRILL_replace_general_type_with_dedicated_type.md) - drill; 3 rough. Tags: hard_to_misuse, refactoring, type_safety, types.
 - [Represent Time With Dedicated Types, Not Integers](PAT_use_dedicated_time_types.md) - pattern; 2 block. Tags: hard_to_misuse, time, types, units.
+- [Separate External Write Models From Stored Entities](PAT_separate_external_write_models_from_stored_entities.md) - pattern; 0 design. Tags: api_design, authority, hard_to_misuse, input_models, persistence.
 - [Use a Dedicated Type Instead of an Overly General One](PAT_use_dedicated_types_over_general_ones.md) - pattern; 2 block. Tags: api_design, hard_to_misuse, type_safety, types.
   - Variants: `Alias the Type When a Class Is Too Big a Step` (method_sequence).

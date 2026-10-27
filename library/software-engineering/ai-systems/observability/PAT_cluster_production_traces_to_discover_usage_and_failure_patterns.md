@@ -19,7 +19,7 @@ tags:
 - clustering
 - failure_analysis
 cross_links:
-- rel: supports
+- rel: related_to
   target_object_id: PAT_combine_offline_evals_with_production_feedback
 - rel: related_to
   target_object_id: PAT_debug_agent_tools_from_complete_execution_traces

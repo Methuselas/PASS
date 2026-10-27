@@ -8,7 +8,7 @@
 - [Cli](cli/INDEX.md) - 2 object(s).
 - [Closures](closures/INDEX.md) - 2 object(s).
 - [Collections](collections/INDEX.md) - 4 object(s).
-- [Concurrency](concurrency/INDEX.md) - 6 object(s).
+- [Concurrency](concurrency/INDEX.md) - 10 object(s).
 - [Contracts](contracts/INDEX.md) - 2 object(s).
 - [Control Flow](control-flow/INDEX.md) - 1 object(s).
 - [Documentation](documentation/INDEX.md) - 1 object(s).
@@ -22,11 +22,12 @@
 - [Lifetimes](lifetimes/INDEX.md) - 3 object(s).
 - [Macros](macros/INDEX.md) - 3 object(s).
 - [Modules](modules/INDEX.md) - 5 object(s).
-- [Networking](networking/INDEX.md) - 6 object(s).
+- [Networking](networking/INDEX.md) - 12 object(s).
 - [Ownership](ownership/INDEX.md) - 8 object(s).
 - [Packages](packages/INDEX.md) - 6 object(s).
 - [Parsing](parsing/INDEX.md) - 7 object(s).
 - [Processes](processes/INDEX.md) - 6 object(s).
+- [Serialization](serialization/INDEX.md) - 1 object(s).
 - [Slices](slices/INDEX.md) - 1 object(s).
 - [Structs](structs/INDEX.md) - 4 object(s).
 - [Testing](testing/INDEX.md) - 6 object(s).

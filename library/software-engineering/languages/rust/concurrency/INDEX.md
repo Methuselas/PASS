@@ -8,5 +8,9 @@
 - [Choose the Rust Thread Spawn API by Configuration and Failure Contract](PAT_choose_rust_thread_spawn_api_by_configuration_and_failure_contract.md) - pattern; 2 block. Tags: builder, concurrency, error-handling, rust, threads.
 - [End Rust Channel Consumption by Dropping Every Sender](PAT_end_rust_channel_consumption_by_dropping_every_sender.md) - pattern; 2 block. Tags: channels, concurrency, ownership, rust, shutdown.
 - [Give a Spawned Rust Thread Owned Inputs and a Join Boundary](PAT_give_a_spawned_rust_thread_owned_inputs_and_a_join_boundary.md) - pattern; 2 block. Tags: concurrency, join, ownership, rust, threads.
+- [Make Rust Future Poll Return Pending Instead of Blocking](PAT_make_rust_future_poll_return_pending_instead_of_blocking.md) - pattern; 2 block. Tags: async, concurrency, future, poll, rust, waker.
 - [Read Send and Sync as Rust Thread-Boundary Contracts](PAT_read_send_and_sync_as_rust_thread_boundary_contracts.md) - pattern; 1 skeleton. Tags: concurrency, rust, send, sync, traits.
+- [Run Blocking Rust Work Off the Async Executor](PAT_run_blocking_rust_work_off_the_async_executor.md) - pattern; 2 block. Tags: async, blocking, executor, rust, spawn_blocking, tokio.
+- [Run Element-wise Rust Batch Work Through Data-parallel Iterators](PAT_run_elementwise_rust_batch_work_through_data_parallel_iterators.md) - pattern; 2 block. Tags: data-parallel, iterators, parallelism, rayon, rust, work-stealing.
 - [Share Rust Mutable State With Arc and Mutex](PAT_share_rust_mutable_state_with_arc_and_mutex.md) - pattern; 2 block. Tags: arc, concurrency, mutex, rust, shared_state.
+- [Write Rust Async Control Flow With async/await](PAT_write_rust_async_control_flow_with_async_await.md) - pattern; 2 block. Tags: async, await, concurrency, control-flow, future, rust.

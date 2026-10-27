@@ -4,9 +4,15 @@
 
 ## Objects
 
+- [Bound Blocking Rust Socket I/O with Timeouts](PAT_bound_blocking_rust_socket_io_with_timeouts.md) - pattern; 2 block. Tags: blocking, io, networking, rust, tcp, timeout.
+- [Choose Rust HTTP Components by Stack Altitude](PAT_choose_rust_http_stack_altitude.md) - pattern; 0 design. Tags: client, framework, http, hyper, networking, rust.
 - [Choose Rust TCP or UDP by Delivery Contract](PAT_choose_rust_tcp_or_udp_by_delivery_contract.md) - pattern; 0 design. Tags: networking, rust, tcp, transport, udp.
+- [Deliver Rust UDP Group Traffic with Multicast and Broadcast](PAT_deliver_rust_udp_group_traffic_with_multicast_and_broadcast.md) - pattern; 1 skeleton. Tags: broadcast, group-delivery, multicast, networking, rust, udp.
 - [Frame Application Messages Above Rust TCP Streams](PAT_frame_application_messages_above_rust_tcp_streams.md) - pattern; 2 block. Tags: framing, networking, protocols, rust, tcp.
+- [Half-Close Rust TCP Streams with Shutdown](PAT_half_close_rust_tcp_streams_with_shutdown.md) - pattern; 2 block. Tags: eof, half-close, rust, shutdown, tcp.
 - [Handle Framed TCP Messages Across Partial I/O](DRILL_handle_framed_tcp_messages_across_partial_io.md) - drill; 2 block. Tags: framing, io, networking, practice, rust, tcp.
 - [Relay Rust TCP Streams Bidirectionally for Transparent Proxying](PAT_relay_rust_tcp_streams_bidirectionally_for_transparent_proxying.md) - pattern; 2 block. Tags: full-duplex, networking, proxy, relay, rust, tcp.
+- [Resolve Rust Socket Addresses through the System Resolver](PAT_resolve_socket_addresses_through_the_system_resolver.md) - pattern; 1 skeleton. Tags: dns, networking, resolver, rust, tosockaddrs.
 - [Respect Datagram Boundaries in Rust UDP](PAT_respect_datagram_boundaries_in_rust_udp.md) - pattern; 2 block. Tags: buffer_size, datagram, networking, recv_from, rust, udp.
+- [Scale Rust TCP Accept Across Cores with ReusePort Listeners](PAT_scale_rust_tcp_accept_across_cores_with_reuseport_listeners.md) - pattern; 3 rough. Tags: accept, reuseport, rust, scaling, socket2, tcp.
 - [Treat Rust UDP Connect as Peer Selection, Not Session Establishment](PAT_treat_rust_udp_connect_as_peer_selection_not_session_establishment.md) - pattern; 2 block. Tags: api-contracts, networking, rust, sockets, udp.

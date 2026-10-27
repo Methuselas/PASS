@@ -300,8 +300,8 @@ gates:
   audit the complete landing packet, then land it under `unattended authorization`;
 - at `land` where `approval_required: true`, archive the packet and stop for the
   practitioner;
-- at `finished`, run full-library `validate.py` and `verify_references.py` and
-  record a source-completion marker.
+- at `finished`, run one full-library `validate.py --verify-references` pass plus
+  `build_index.py --check`, then record a source-completion marker.
 
 Chat reproduction of audited packets is not required in unattended mode. This is
 a token-saving presentation rule, **not** permission to omit the packet, hash,
@@ -397,8 +397,8 @@ bytes match the original identity. A different PDF cannot inherit the run.
    `reviewed_sha256` map for the files actually reviewed. The controller validates
    an overlay of the own domain plus `metaskills`, with replacements substituted
    for their live owners. Real schema, identity, asset and typed-relation checks
-   supplement the semantic review. Untouched historical relation migration debt
-   remains separate; edited cards and newly introduced defects must be clean.
+   supplement the semantic review. The canonical relation graph is clean and the
+   current relation contract is part of ordinary validation.
    Module identities and any staged recipe's full prerequisite closure must
    resolve. Any failure leaves this unit active.
 8. **Landing / staged acceptance.** Run `present` first and reproduce its generated packet in full.
@@ -412,9 +412,12 @@ bytes match the original identity. A different PDF cannot inherit the run.
    `approval_required` accepts only `user approval`. The controller rejects a
    landing decision unless `present` ran for the current unit and the decision is
    bound to the current packet hash. It then checks the reviewed bytes and
-   unchanged live owners, validates the complete working overlay including global
-   ID uniqueness, regenerates indexes in that overlay, and replaces `accepted/`
-   with the complete cumulative source delta relative to current canon. Canonical
+   unchanged live owners. PASS 3 has already validated the hash-bound unit overlay,
+   including repository-wide ID/link/relation metadata, so routine unit landing
+   does not repeat full semantic validation; it regenerates affected domain indexes
+   and replaces `accepted/` with the complete cumulative source delta relative to
+   current canon. Closure landing alone performs the full integration-overlay
+   validation before canonicalization. Canonical
    `library/` is not modified by an ordinary unit landing. The next unit reconciles
    against canonical knowledge plus this accepted delta. After the last source
    unit is accepted, the run enters `closure_pass2`. The closure record explicitly

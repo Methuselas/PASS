@@ -348,9 +348,9 @@ def status(run: Run) -> dict[str, Any]:
     return result
 
 
-def run_tool(repo: Path, name: str) -> str:
+def run_tool(repo: Path, name: str, *arguments: str) -> str:
     result = subprocess.run(
-        [sys.executable, str(repo / "PASS" / "tools" / name), "--library", str(repo / "library")],
+        [sys.executable, str(repo / "PASS" / "tools" / name), "--library", str(repo / "library"), *arguments],
         capture_output=True,
         text=True,
         encoding="utf-8",
@@ -368,11 +368,13 @@ def verify_finished(run: Run) -> dict[str, Any]:
     if run.state["phase"] != "finished":
         raise RunError("final source verification is available only after staged source closure has canonicalized successfully")
     run.source_or_prepared()
-    validate_output = run_tool(run.repo, "validate.py")
-    reference_output = run_tool(run.repo, "verify_references.py")
+    validate_output = run_tool(run.repo, "validate.py", "--verify-references")
+    index_output = run_tool(run.repo, "build_index.py", "--check")
+    reference_output = "REFERENCE REVIEW: integrated into final validate.py --verify-references gate"
     directory = audit_dir(run)
     atomic_write(inside(directory, "final-validate.txt"), (validate_output + "\n").encode("utf-8"))
     atomic_write(inside(directory, "final-verify-references.txt"), (reference_output + "\n").encode("utf-8"))
+    atomic_write(inside(directory, "final-index-check.txt"), (index_output + "\n").encode("utf-8"))
     record = {
         "schema_version": COMPLETION_SCHEMA,
         "source_sha256": run.source_identity()["sha256"],
@@ -380,6 +382,7 @@ def verify_finished(run: Run) -> dict[str, Any]:
         "unit_count": len(run.state["plan"]["units"]),
         "validate": "pass",
         "verify_references": "pass",
+        "indexes": "pass",
     }
     atomic_write(completion_path(run), (json.dumps(record, indent=2) + "\n").encode("utf-8"))
     append_event(run, {"event": "source_verified_complete", "unit_count": record["unit_count"], "source_sha256": record["source_sha256"]})

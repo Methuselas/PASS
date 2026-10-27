@@ -134,9 +134,8 @@ After edits, run the validation and release-boundary checks under `tools/` befor
 publishing a release:
 
 ```bash
-python tools/validate.py
-python tools/verify_references.py
-python tools/build_index.py
+python tools/validate.py --verify-references
+python tools/build_index.py --check
 ```
 
 Indexes are optional generated navigation, not canonical dependency state.

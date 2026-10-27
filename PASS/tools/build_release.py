@@ -636,8 +636,9 @@ def run_quality_gates(release_library: Path, release_memory: Path | None = None)
     the release ships memory, and reads the staged store and nothing else.
     """
     tool_dir = Path(__file__).resolve().parent
-    run_gate(tool_dir / "validate.py", ["--library", str(release_library)])
-    run_gate(tool_dir / "verify_references.py", ["--library", str(release_library)])
+    # Schema, relation and visual-reference checks share one parsed release
+    # library. Running a second reference process only reparses the same cards.
+    run_gate(tool_dir / "validate.py", ["--library", str(release_library), "--verify-references"])
     gates = {
         "schema_validation": "passed",
         "visual_reference_verification": "passed",

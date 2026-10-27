@@ -31,12 +31,19 @@ from the library, and generated indexes come from the cards.
 
 ## Validate the contribution
 
-Run the relevant focused checks while working, then run the complete boundary
-before proposing a repository-wide change:
+Run focused checks while working. For card/content-only changes, validate the
+affected package and its generated indexes; do not run unrelated repository
+tests or rewrite unrelated release recipes. Run the complete boundary only for
+canonical promotion or when PASS/runtime/schema/generator/test architecture
+changed.
 
 ```bash
-python PASS/tools/validate.py
-python PASS/tools/verify_references.py
+# Focused package/content validation
+python PASS/tools/validate.py --package art --verify-references
+python PASS/tools/build_index.py --package art --check
+
+# Full repository boundary when required
+python PASS/tools/validate.py --verify-references
 python PASS/tools/build_index.py --check
 python PASS/tools/memory.py validate
 python -m unittest discover -s tests -p "test_*.py"

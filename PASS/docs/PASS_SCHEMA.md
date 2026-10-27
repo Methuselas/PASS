@@ -179,11 +179,10 @@ manufactures one.
 term nobody could apply because nobody had defined it is removed rather than
 retrofitted with a meaning.
 
-**This contract is stated here before it is enforced.** The library predates it
-and does not yet satisfy it: run `tools/validate.py --relations` for the current
-per-package worklist. Each domain reconciles its own edges in its own run
-(`CLAUDE.md` rule 2); the check joins the default validation once the count
-reaches zero.
+**This contract is enforced by ordinary validation.** `tools/validate.py` checks
+relation legality for the selected package against repository-wide frontmatter
+metadata; `tools/validate.py --relations` remains available as a focused relation
+audit.
 
 ---
 

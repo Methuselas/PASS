@@ -10,7 +10,7 @@ factory for building skillsets with explicit decisions, procedures, practice,
 dependencies, runtime routing, validation, memory, project workspaces, and
 self-contained releases.
 
-**Project status:** public beta, version `1.0.0-beta.143`. The complete authoring,
+**Project status:** public beta, version `1.0.0-beta.144`. The complete authoring,
 validation, project-snapshot, and release workflows are available for public
 use. Beta releases may still make documented compatibility corrections before
 the stable `1.0.0` contract.
@@ -113,18 +113,24 @@ PASS tools require Python. PyYAML is the only package dependency.
 
 ```bash
 python -m pip install -r PASS/requirements.txt
-python PASS/tools/validate.py
-python PASS/tools/verify_references.py
+python PASS/tools/validate.py --verify-references
 python PASS/tools/build_index.py --check
 python PASS/tools/memory.py validate
 python -m unittest discover -s tests -p "test_*.py"
 ```
 
-Validate one domain while maintaining it:
+Validate one domain while maintaining card/content changes. Package scope
+performs full semantic validation for that package while loading only lightweight
+repository-wide metadata for IDs, links, foundations, and relation integrity:
 
 ```bash
-python PASS/tools/validate.py --package art
+python PASS/tools/validate.py --package art --verify-references
+python PASS/tools/build_index.py --package art --check
 ```
+
+The root unittest suite is for PASS/runtime/schema/generator/test architecture
+changes and explicit repository-wide promotion gates, not routine card-only unit
+landing. Card-only work must not rewrite unrelated release recipes.
 
 ### Analyze an existing Unreal Niagara effect
 
@@ -272,9 +278,8 @@ python -m pip install -r PASS/requirements.txt
 Before returning the project, regenerate navigation and run the bundled checks:
 
 ```bash
-python PASS/tools/build_index.py
-python PASS/tools/validate.py --package art
-python PASS/tools/verify_references.py
+python PASS/tools/build_index.py --package art
+python PASS/tools/validate.py --package art --verify-references
 python PASS/tools/memory.py validate
 ```
 
@@ -690,7 +695,7 @@ boundary, release recipe format, and release manifest. Version changes mean:
 - **PATCH** — a backward-compatible correction that adds no public capability.
 
 `1.0.0-beta.1` was the first formal public beta of the intended `1.0.0`
-contract; the current version is `1.0.0-beta.143`. Every PASS commit advances the
+contract; the current version is `1.0.0-beta.144`. Every PASS commit advances the
 Semantic Version and records the matching release entry in the changelog. During
 the public beta, commits increment the prerelease number and may contain clearly
 documented corrections that are incompatible with an earlier beta. Stable

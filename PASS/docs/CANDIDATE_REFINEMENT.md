@@ -256,8 +256,8 @@ authorized actions come from the frozen assessment and are never revised in
 place: a different set of actions is a fresh run.
 
 The candidate is then laid over a temporary copy of the live library, and the
-ordinary validators run on it: `validate.py --library <overlay>` and
-`verify_references.py --library <overlay>`. There is no weaker candidate schema.
+ordinary validator runs on it once: `validate.py --library <overlay>
+--verify-references`. There is no weaker candidate schema.
 The overlay is always removed, and canon is only read. The frozen manifest
 records baseline and candidate hashes, the changed sections, the rationale and
 the scope; card bytes changing after the freeze stop the run.
@@ -350,8 +350,8 @@ qualification decision). `canon_modified` is always false.
 
 **Acceptance still changes nothing by itself.** When the user or maintainer has
 authorized the integration task, the approved delta lands like any other card
-change: `validate.py`, `verify_references.py`, `build_index.py`, the test suite,
-and the version and changelog rules. Then apply the recommended
+change: `validate.py --verify-references`, `build_index.py`, the test suite, and
+the version and changelog rules. Then apply the recommended
 `candidate_action` to `canon_workflow/<domain>/card_candidates.yaml`
 deliberately:
 

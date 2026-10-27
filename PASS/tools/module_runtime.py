@@ -44,11 +44,16 @@ def _relative(value: object) -> PurePosixPath | None:
     return path
 
 
-def declared_runtimes(library_root: Path) -> tuple[dict[str, dict], list[tuple[str, str]]]:
-    """Module name -> {"root", "entrypoints", "tests"} for every valid declaration."""
+def declared_runtimes(
+    library_root: Path, package: str | None = None
+) -> tuple[dict[str, dict], list[tuple[str, str]]]:
+    """Module name -> runtime declaration for the selected package (or all)."""
     runtimes: dict[str, dict] = {}
     problems: list[tuple[str, str]] = []
-    for manifest in sorted(library_root.rglob(MODULE_MANIFEST)):
+    scope = library_root / package if package else library_root
+    if package and not scope.is_dir():
+        return runtimes, problems
+    for manifest in sorted(scope.rglob(MODULE_MANIFEST)):
         module_dir = manifest.parent
         name = module_dir.relative_to(library_root).as_posix()
         try:
@@ -110,8 +115,9 @@ def _stdlib_problems(path: Path, local: set[str]) -> list[str]:
     return [f"{path.name} imports non-standard-library module(s): {', '.join(foreign)}"] if foreign else []
 
 
-def runtime_problems(library_root: Path) -> list[tuple[str, str]]:
-    runtimes, problems = declared_runtimes(library_root)
+def runtime_problems(library_root: Path, package: str | None = None) -> list[tuple[str, str]]:
+    """Validate executable/runtime placement in one package, or the full library."""
+    runtimes, problems = declared_runtimes(library_root, package)
     declared_roots = {
         (library_root / name / RUNTIME_DIR).resolve(): name for name in runtimes
     }
@@ -125,7 +131,10 @@ def runtime_problems(library_root: Path) -> list[tuple[str, str]]:
             if path.name != "README.md":
                 problems.append((name, f"{path.relative_to(spec['root']).as_posix()}: runtime documentation "
                                        "belongs in README.md or --help; any other Markdown would be read as a card"))
-    for path in sorted(library_root.rglob("*")):
+    scan_root = library_root / package if package else library_root
+    if package and not scan_root.is_dir():
+        return problems
+    for path in sorted(scan_root.rglob("*")):
         if not path.is_file() or IGNORED_DIRS & set(path.relative_to(library_root).parts):
             continue
         inside = any(root == parent for parent in path.resolve().parents for root in declared_roots)

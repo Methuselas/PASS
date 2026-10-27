@@ -21,6 +21,7 @@ from typing import Any
 import yaml
 
 from module_runtime import runtime_problems
+from reference_checks import reference_failures
 from paths import default_library_root
 
 
@@ -257,9 +258,10 @@ def validate_record(record: ObjectRecord, library_root: Path) -> None:
         record.errors.append("rule 6: body headings may not contain Guard")
     if first_heading(record.body) != data.get("name"):
         record.errors.append("rule 7: H1 must match name exactly")
-    if PLACEHOLDER_RE.search(record.body) or PLACEHOLDER_RE.search(yaml.safe_dump(data)):
+    serialized_frontmatter = yaml.safe_dump(data)
+    if PLACEHOLDER_RE.search(record.body) or PLACEHOLDER_RE.search(serialized_frontmatter):
         record.errors.append("rule 8: unreplaced angle-bracket token")
-    if re.search(r"\bprovisional\b", record.body, re.IGNORECASE) or re.search(r"\bprovisional\b", yaml.safe_dump(data), re.IGNORECASE):
+    if re.search(r"\bprovisional\b", record.body, re.IGNORECASE) or re.search(r"\bprovisional\b", serialized_frontmatter, re.IGNORECASE):
         record.errors.append("rule 8: provisional is not valid")
     filename_prefix = {"pattern": "PAT_", "drill": "DRILL_", "ap": "AP_"}.get(object_type, "")
     if not filename_prefix or not record.path.name.startswith(filename_prefix) or not re.fullmatch(r"(?:PAT|DRILL|AP)_[a-z0-9][a-z0-9_]*\.md", record.path.name):
@@ -302,15 +304,62 @@ def validate_record(record: ObjectRecord, library_root: Path) -> None:
         record.errors.append("rule 18: duplicate list item within object")
 
 
-def validate_cross_object(records: list[ObjectRecord]) -> None:
+def parse_metadata(path: Path, library_root: Path) -> ObjectRecord:
+    """Read only frontmatter for repository-wide identity/relation checks.
+
+    Scoped validation needs global IDs, ownership and links, not unrelated card
+    bodies. Reading frontmatter only keeps the global safety net while making
+    `--package` a real work scope instead of a reporting filter.
+    """
+    relative = path.relative_to(library_root)
+    try:
+        with path.open("r", encoding="utf-8", newline="") as handle:
+            if handle.readline().rstrip("\r\n") != "---":
+                return ObjectRecord(path, relative, {}, "", {}, [])
+            lines: list[str] = []
+            for line in handle:
+                if line.rstrip("\r\n") == "---":
+                    break
+                lines.append(line)
+            else:
+                return ObjectRecord(path, relative, {}, "", {}, [])
+        data = yaml.safe_load("".join(lines))
+    except (OSError, yaml.YAMLError):
+        data = None
+    return ObjectRecord(path, relative, data if isinstance(data, dict) else {}, "", {}, [])
+
+
+def metadata_library(
+    library_root: Path,
+    *,
+    parsed_records: list[ObjectRecord] | None = None,
+    parsed_scope: Path | None = None,
+) -> list[ObjectRecord]:
+    """Build the global metadata universe without reparsing an already parsed scope."""
+    records = list(parsed_records or [])
+    for path in discover_objects(library_root):
+        if parsed_scope is not None and (path == parsed_scope or parsed_scope in path.parents):
+            continue
+        records.append(parse_metadata(path, library_root))
+    return records
+
+
+def validate_cross_object(records: list[ObjectRecord], metadata: list[ObjectRecord] | None = None) -> None:
+    """Validate scoped records against a repository-wide metadata index."""
+    universe = metadata if metadata is not None else records
     by_id: dict[str, list[ObjectRecord]] = defaultdict(list)
-    for record in records:
+    for record in universe:
         object_id = record.data.get("object_id")
         if object_id:
             by_id[str(object_id)].append(record)
+    scoped_by_label = {record.label: record for record in records}
+    scoped_by_id = defaultdict(list)
+    for record in records:
+        if record.data.get("object_id"):
+            scoped_by_id[str(record.data["object_id"])].append(record)
     for object_id, duplicates in by_id.items():
         if len(duplicates) > 1:
-            for record in duplicates:
+            for record in scoped_by_id.get(object_id, []):
                 record.errors.append(f"rule 12: duplicate object_id {object_id}")
     known_ids = set(by_id)
     owner_package = {
@@ -318,10 +367,8 @@ def validate_cross_object(records: list[ObjectRecord]) -> None:
         for object_id, owners in by_id.items()
         if len(owners) == 1
     }
-    # Prose can name a card as surely as a cross_link can. Variant ids are
-    # included because a variant is only reachable through the card that owns it.
     prose_package = dict(owner_package)
-    for record in records:
+    for record in universe:
         for variant in record.data.get("variants", []) or []:
             if isinstance(variant, dict) and variant.get("variant_id"):
                 prose_package.setdefault(str(variant["variant_id"]), package_of(record))
@@ -337,18 +384,12 @@ def validate_cross_object(records: list[ObjectRecord]) -> None:
             if target not in known_ids:
                 record.errors.append(f"rule 11: unresolved {kind} target {target}")
                 continue
-            # Domain independence: an Art card may not require a Writing card.
-            # Cards may depend freely inside their own package, plus the shared
-            # metaskills foundation every release already bundles.
             target_package = owner_package.get(target)
             source_package = package_of(record)
             if target_package and target_package not in {source_package} | SHARED_PACKAGES:
                 record.errors.append(
                     f"rule 26: {kind} {target} crosses from '{source_package}' into '{target_package}'"
                 )
-        # Rule 3 is a runtime property, not a frontmatter one: a card whose body
-        # names another package's object is unresolvable in any release that
-        # ships one package without the other, and cross_links cannot see it.
         source_package = package_of(record)
         for token in sorted(set(IDENTIFIER_RE.findall(record.body))):
             target_package = prose_package.get(token)
@@ -356,6 +397,10 @@ def validate_cross_object(records: list[ObjectRecord]) -> None:
                 record.errors.append(
                     f"rule 26: body names {token} from '{target_package}' outside '{source_package}'"
                 )
+
+    # Repetition/semantic-duplication checks are intentionally scoped to the
+    # fully parsed records. Cross-package bodies are independent release units;
+    # global identity/link integrity above still resolves against all packages.
     sentence_uses: dict[str, list[ObjectRecord]] = defaultdict(list)
     if_uses: dict[str, list[ObjectRecord]] = defaultdict(list)
     else_uses: dict[str, list[ObjectRecord]] = defaultdict(list)
@@ -388,13 +433,18 @@ def validate_cross_object(records: list[ObjectRecord]) -> None:
                 for owner in unique_owners:
                     owner.errors.append(f"rule {rule_number}: shared {label} appears in more than {DUPLICATE_THRESHOLD} objects")
 
+    # The relation contract is now clean canon, so it is part of normal
+    # validation. Metadata is sufficient: no unrelated body parse is required.
+    for label, problem in relation_problems(universe):
+        owner = scoped_by_label.get(label)
+        if owner is not None:
+            owner.errors.append(f"relation contract: {problem}")
 
 def relation_problems(records: list[ObjectRecord]) -> list[tuple[str, str]]:
     """Check every cross_link against the relation contract in PASS_SCHEMA.md 1a.
 
-    Reported separately from card validation because the library predates the
-    contract: each domain reconciles its own edges in its own run, and this check
-    joins the default validation once every package reports clean.
+    Ordinary validation enforces this contract. The standalone ``--relations``
+    mode remains useful when a focused relation-only audit is desired.
     """
     kind = {
         str(record.data.get("object_id")): record.data.get("object_type")
@@ -434,11 +484,26 @@ def discover_objects(library_root: Path) -> list[Path]:
     )
 
 
-def validate_library(library_root: Path) -> list[ObjectRecord]:
-    records = [parse_object(path, library_root) for path in discover_objects(library_root)]
+def validate_library(
+    library_root: Path,
+    package: str | None = None,
+    *,
+    verify_references: bool = False,
+) -> list[ObjectRecord]:
+    scope = library_root / package if package else library_root
+    if package and not scope.is_dir():
+        return []
+    records = [parse_object(path, library_root) for path in discover_objects(scope)]
     for record in records:
         validate_record(record, library_root)
-    validate_cross_object(records)
+        if verify_references:
+            for failure in reference_failures(record, library_root):
+                record.errors.append(f"reference review: {failure}")
+    metadata = (
+        metadata_library(library_root, parsed_records=records, parsed_scope=scope)
+        if package else records
+    )
+    validate_cross_object(records, metadata)
     return records
 
 
@@ -493,7 +558,7 @@ def transitive_requirements(name: str, modules: dict[str, list[str]]) -> set[str
     return seen
 
 
-def validate_modules(library_root: Path) -> list[tuple[str, str]]:
+def validate_modules(library_root: Path, package: str | None = None) -> list[tuple[str, str]]:
     """Check the module graph a release resolves, before it is resolved.
 
     A language module sits on top of its domain's language-agnostic foundation
@@ -504,6 +569,8 @@ def validate_modules(library_root: Path) -> list[tuple[str, str]]:
     """
     modules, problems = module_requirements(library_root)
     for name, requires in sorted(modules.items()):
+        if package and name.split("/")[0] != package:
+            continue
         for required in requires:
             if required not in modules:
                 problems.append((name, f"requires a module that does not exist: {required}"))
@@ -515,7 +582,7 @@ def validate_modules(library_root: Path) -> list[tuple[str, str]]:
             continue
         if core not in transitive_requirements(name, modules):
             problems.append((name, f"a language module must require {core}"))
-    problems.extend(runtime_problems(library_root))
+    problems.extend(runtime_problems(library_root, package))
     return sorted(set(problems))
 
 
@@ -526,27 +593,27 @@ def main() -> int:
         "--package",
         default=None,
         help=(
-            "Report only objects in this package (e.g. software-engineering). "
-            "The whole library is still loaded, so cross-links and cross-object "
-            "checks resolve against every package; only the reported set narrows."
+            "Validate only this package's card bodies while loading lightweight "
+            "repository-wide frontmatter for IDs, links, foundations and relations."
         ),
     )
     parser.add_argument(
         "--relations",
         action="store_true",
-        help=(
-            "Report cross_link violations of the relation contract (PASS_SCHEMA.md 1a) "
-            "instead of validating cards. The library predates the contract; this is the "
-            "per-package worklist until every package reports clean."
-        ),
+        help="Report only cross_link relation-contract violations using frontmatter metadata.",
+    )
+    parser.add_argument(
+        "--verify-references",
+        action="store_true",
+        help="Also verify shipped visual-reference assets and review sidecars in the selected scope.",
     )
     args = parser.parse_args()
     if not args.library.is_dir():
         print(f"FAIL: library root not found: {args.library.as_posix()}", file=sys.stderr)
         return 1
-    records = validate_library(args.library)
     if args.relations:
-        problems = relation_problems(records)
+        metadata = metadata_library(args.library)
+        problems = relation_problems(metadata)
         if args.package:
             problems = [(label, text) for label, text in problems if label.startswith(f"{args.package}/")]
         counts: Counter[str] = Counter(label.split("/")[0] for label, _ in problems)
@@ -557,19 +624,16 @@ def main() -> int:
             return 1
         print("PASS: every cross_link satisfies the relation contract")
         return 0
-    module_problems = validate_modules(args.library)
+    records = validate_library(args.library, args.package, verify_references=args.verify_references)
+    module_problems = validate_modules(args.library, args.package)
     scope = ""
     if args.package:
-        reported = records_in_package(records, args.package)
+        reported = records
         # A mistyped package name fails; a real package may hold only modules
         # (for example a module runtime) before its first cards land.
         if not reported and not (args.library / args.package).is_dir():
             print(f"No objects found in package '{args.package}' under {args.library.as_posix()}.")
             return 1
-        module_problems = [
-            (name, problem) for name, problem in module_problems
-            if name.split("/")[0] == args.package
-        ]
         scope = f" in package '{args.package}'"
     else:
         reported = records

@@ -1169,8 +1169,11 @@ def verify(run: Run) -> dict:
     if actual != data["files"] or package_digest(actual) != data["package_sha256"]:
         raise RunError("prepared source files changed after manifest creation; regenerate/finalize the package")
     for segment in data["segments"]:
-        file = inside(package_root(run), segment["file"])
-        if not file.is_file() or digest(file) != segment["sha256"]:
+        name = str(segment["file"])
+        file = inside(package_root(run), name)
+        # package_files() already hashed every prepared artifact. Reuse that
+        # verified digest instead of rereading each segment a second time.
+        if not file.is_file() or actual.get(name) != segment["sha256"]:
             raise RunError(f"prepared source segment failed verification: {segment.get('file')}")
         integrity = segment.get("integrity") or {}
         if integrity.get("code_blocks") != integrity.get("code_blocks_preserved"):
@@ -1213,7 +1216,7 @@ def _prepared_headings(run: Run, manifest: dict[str, Any]) -> list[tuple[int, st
     return headings
 
 
-def audit_unit_boundaries(run: Run, record) -> dict[str, Any]:
+def audit_unit_boundaries(run: Run, record, manifest: dict[str, Any] | None = None) -> dict[str, Any]:
     """Deterministically sanity-check an accepted-looking PDF unit map.
 
     This is not a semantic replacement for preflight. It catches mechanical
@@ -1221,7 +1224,7 @@ def audit_unit_boundaries(run: Run, record) -> dict[str, Any]:
     implausibly tiny spans, and a strong heading/material match that lands in a
     neighboring unit instead of the unit that claims it.
     """
-    manifest = verify(run)
+    manifest = manifest if manifest is not None else verify(run)
     if manifest.get("source_kind") != "pdf" or getattr(record, "schema_version", 1) < 2:
         return {"status": "pass", "blocking": [], "review": []}
     units = [u for u in record.units if u.source_pages is not None]
@@ -1404,11 +1407,11 @@ def _page_marker(path: Path) -> int:
     return int(match.group(1))
 
 
-def materialize_units(run: Run) -> dict[str, str]:
+def materialize_units(run: Run, manifest: dict[str, Any] | None = None) -> dict[str, str]:
     """Build unit Markdown from accepted page locators when deterministic."""
     if not run.state.get("plan"):
         return {}
-    manifest = verify(run)
+    manifest = manifest if manifest is not None else verify(run)
     if manifest["source_kind"] != "pdf":
         return {}
     page_count = len(manifest["segments"])
@@ -1486,7 +1489,8 @@ def finalize(run: Run, legacy_backfill: bool = False) -> str:
         "compatibility_baseline": manifest.get("compatibility_baseline", []),
     }
     if legacy_backfill:
-        materialize_units(run)
+        materialize_units(run, manifest)
+        # Materialization mutates the package, so re-verify once after the write.
         manifest = verify(run)
         run.state["source_prep"]["package_sha256"] = manifest["package_sha256"]
     else:

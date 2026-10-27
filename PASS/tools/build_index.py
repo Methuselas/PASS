@@ -13,6 +13,11 @@ actually contains. Regenerate rather than hand-edit.
 A directory gets an index when it holds cards directly or has a descendant that
 does. A directory's display name comes from `display_name` in its MODULE.yaml
 when present, otherwise from the folder name.
+
+The renderer precomputes directory/subtree maps once. Older implementations
+rescanned the complete card list for every INDEX.md, which made index generation
+scale roughly with ``directories * cards`` even though the result is purely a
+set of deterministic lookups.
 """
 
 from __future__ import annotations
@@ -20,6 +25,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -48,21 +54,108 @@ class Card:
         return str(self.data.get("object_id", ""))
 
 
+def read_frontmatter(path: Path) -> dict[str, Any] | None:
+    """Read only the YAML frontmatter instead of the complete card body."""
+    try:
+        with path.open("r", encoding="utf-8", newline="") as handle:
+            first = handle.readline()
+            if first.rstrip("\r\n") != "---":
+                return None
+            lines: list[str] = []
+            for line in handle:
+                if line.rstrip("\r\n") == "---":
+                    break
+                lines.append(line)
+            else:
+                return None
+    except OSError:
+        return None
+    try:
+        data = yaml.safe_load("".join(lines))
+    except yaml.YAMLError:
+        return None
+    return data if isinstance(data, dict) else None
+
+
 def load_cards(library: Path) -> list[Card]:
     cards: list[Card] = []
     for path in sorted(library.rglob("*.md")):
         if path.name in SKIP_NAMES:
             continue
-        match = FM_RE.match(path.read_text(encoding="utf-8"))
-        if not match:
-            continue
-        data = yaml.safe_load(match.group("front"))
+        data = read_frontmatter(path)
         if isinstance(data, dict) and data.get("object_id"):
             cards.append(Card(path, data))
     return cards
 
 
+class IndexContext:
+    """Precomputed navigation facts shared by every rendered directory."""
+
+    def __init__(self, library: Path, cards: list[Card]):
+        self.library = library
+        self.cards = cards
+        self.names = {card.object_id: card.name for card in cards}
+        self.own_by_dir: dict[Path, list[Card]] = defaultdict(list)
+        self.subtree_by_dir: dict[Path, list[Card]] = defaultdict(list)
+        self.directories: set[Path] = set()
+        self.children_by_dir: dict[Path, list[Path]] = defaultdict(list)
+        self._display_names: dict[Path, str] = {}
+        self._titles: dict[Path, str] = {}
+
+        for card in cards:
+            parent = card.path.parent
+            self.own_by_dir[parent].append(card)
+            current = parent
+            while current != library:
+                self.directories.add(current)
+                self.subtree_by_dir[current].append(card)
+                current = current.parent
+
+        for directory in self.directories:
+            if directory.parent in self.directories:
+                self.children_by_dir[directory.parent].append(directory)
+
+        for cards_here in self.own_by_dir.values():
+            cards_here.sort(key=sort_key)
+        for cards_here in self.subtree_by_dir.values():
+            cards_here.sort(key=sort_key)
+        for children in self.children_by_dir.values():
+            children.sort()
+
+    def display_name(self, directory: Path) -> str:
+        cached = self._display_names.get(directory)
+        if cached is not None:
+            return cached
+        module = directory / "MODULE.yaml"
+        value = None
+        if module.is_file():
+            try:
+                data = yaml.safe_load(module.read_text(encoding="utf-8"))
+            except (OSError, yaml.YAMLError):
+                data = None
+            if isinstance(data, dict) and data.get("display_name"):
+                value = str(data["display_name"])
+        if value is None:
+            value = directory.name.replace("-", " ").title()
+        self._display_names[directory] = value
+        return value
+
+    def title_for(self, directory: Path) -> str:
+        cached = self._titles.get(directory)
+        if cached is not None:
+            return cached
+        parts: list[str] = []
+        current = directory
+        while current != self.library:
+            parts.append(self.display_name(current))
+            current = current.parent
+        value = " / ".join(reversed(parts))
+        self._titles[directory] = value
+        return value
+
+
 def display_name(directory: Path) -> str:
+    """Compatibility helper for callers outside the renderer."""
     module = directory / "MODULE.yaml"
     if module.is_file():
         data = yaml.safe_load(module.read_text(encoding="utf-8"))
@@ -102,27 +195,17 @@ def variant_summary(card: Card) -> str | None:
         for variant in card.data.get("variants") or []
         if isinstance(variant, dict) and variant.get("variant_name") and variant.get("variant_basis")
     ]
-    # Declared order, not sorted: a card lists its variants in the order that
-    # makes sense to read them.
     return f"  - Variants: {'; '.join(entries)}." if entries else None
 
 
 def tag_summary(card: Card) -> str:
-    """Tags are the index's retrieval surface.
-
-    A card's name states the decision it carries, which frequently omits the
-    words someone would actually search for -- a concurrency card can be named
-    without containing "concurrency". Sorted rather than declared order: tags
-    are lookup keys with no reading sequence, and sorting keeps regenerated
-    indexes stable against reordering in the frontmatter.
-    """
     tags = [str(tag).strip() for tag in card.data.get("tags") or [] if str(tag).strip()]
     return f" Tags: {', '.join(sorted(tags))}." if tags else ""
 
 
 def reading_order_lines(subtree_cards: list[Card], names: dict[str, str]) -> list[str]:
     lines: list[str] = []
-    for card in sorted(subtree_cards, key=sort_key):
+    for card in subtree_cards:
         targets = sorted(
             names.get(str(link["target_object_id"]), str(link["target_object_id"]))
             for link in card.data.get("cross_links") or []
@@ -136,14 +219,27 @@ def reading_order_lines(subtree_cards: list[Card], names: dict[str, str]) -> lis
 
 
 def render(directory: Path, library: Path, cards: list[Card], directories: set[Path]) -> str:
-    names = {card.object_id: card.name for card in cards}
-    own = sorted((c for c in cards if c.path.parent == directory), key=sort_key)
-    subtree = [c for c in cards if directory in c.path.parents]
-    children = sorted(d for d in directories if d.parent == directory)
+    """Compatibility renderer retaining the historical public helper signature."""
+    context = IndexContext(library, cards)
+    # A caller may intentionally pass a filtered directory set.
+    context.directories = set(directories)
+    context.children_by_dir = defaultdict(list)
+    for child in directories:
+        if child.parent in directories:
+            context.children_by_dir[child.parent].append(child)
+    for children in context.children_by_dir.values():
+        children.sort()
+    return render_from_context(directory, context)
 
-    out = [HEADER, "", f"# {title_for(directory, library)}"]
 
-    reading = reading_order_lines(subtree, names)
+def render_from_context(directory: Path, context: IndexContext) -> str:
+    own = context.own_by_dir.get(directory, [])
+    subtree = context.subtree_by_dir.get(directory, [])
+    children = context.children_by_dir.get(directory, [])
+
+    out = [HEADER, "", f"# {context.title_for(directory)}"]
+
+    reading = reading_order_lines(subtree, context.names)
     if reading:
         out += ["", "## Reading order", "", READING_NOTE, ""] + reading
 
@@ -162,8 +258,8 @@ def render(directory: Path, library: Path, cards: list[Card], directories: set[P
     if children:
         out += ["", "## Topics", ""]
         for child in children:
-            count = sum(1 for c in cards if child == c.path.parent or child in c.path.parents)
-            out.append(f"- [{display_name(child)}]({child.name}/INDEX.md) - {count} object(s).")
+            count = len(context.subtree_by_dir.get(child, []))
+            out.append(f"- [{context.display_name(child)}]({child.name}/INDEX.md) - {count} object(s).")
 
     return "\n".join(out) + "\n"
 
@@ -180,7 +276,8 @@ def main() -> int:
 
     library = args.library
     cards = load_cards(library)
-    directories = index_directories(library, cards)
+    context = IndexContext(library, cards)
+    directories = set(context.directories)
     if args.package:
         scope = library / args.package
         directories = {d for d in directories if d == scope or scope in d.parents}
@@ -188,19 +285,44 @@ def main() -> int:
             print(f"No cards found in package '{args.package}'.")
             return 1
 
+    # Restrict parent/child navigation to the selected output set while keeping
+    # global object names available for prerequisite labels.
+    children_by_dir: dict[Path, list[Path]] = defaultdict(list)
+    for directory in directories:
+        if directory.parent in directories:
+            children_by_dir[directory.parent].append(directory)
+    for children in children_by_dir.values():
+        children.sort()
+    original_children = context.children_by_dir
+    context.children_by_dir = children_by_dir
+
     stale: list[str] = []
     written = 0
-    for directory in sorted(directories):
-        target = directory / "INDEX.md"
-        content = render(directory, library, cards, directories)
-        current = target.read_text(encoding="utf-8") if target.is_file() else None
-        if current == content:
-            continue
-        if args.check:
-            stale.append(f"{'stale' if current is not None else 'missing'}: {target.relative_to(library).as_posix()}")
-            continue
-        target.write_text(content, encoding="utf-8", newline="")
-        written += 1
+    removed = 0
+    existing_scope = (library / args.package) if args.package else library
+    existing_indexes = {p for p in existing_scope.rglob("INDEX.md") if p.is_file()}
+    expected_indexes = {directory / "INDEX.md" for directory in directories}
+    orphaned = sorted(existing_indexes - expected_indexes)
+    if args.check:
+        stale.extend(f"orphaned: {path.relative_to(library).as_posix()}" for path in orphaned)
+    else:
+        for path in orphaned:
+            path.unlink()
+            removed += 1
+    try:
+        for directory in sorted(directories):
+            target = directory / "INDEX.md"
+            content = render_from_context(directory, context)
+            current = target.read_text(encoding="utf-8") if target.is_file() else None
+            if current == content:
+                continue
+            if args.check:
+                stale.append(f"{'stale' if current is not None else 'missing'}: {target.relative_to(library).as_posix()}")
+                continue
+            target.write_text(content, encoding="utf-8", newline="")
+            written += 1
+    finally:
+        context.children_by_dir = original_children
 
     if args.check:
         for line in stale:
@@ -210,7 +332,7 @@ def main() -> int:
             return 1
         print(f"PASS: {len(directories)} index/indices are current")
         return 0
-    print(f"Wrote {written} index/indices ({len(directories)} checked).")
+    print(f"Wrote {written} index/indices, removed {removed} orphaned index/indices ({len(directories)} checked).")
     return 0
 
 

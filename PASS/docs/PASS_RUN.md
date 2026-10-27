@@ -170,14 +170,18 @@ authoring state: runs resume from the verified checkpoint in the repository's
 run root, not from an archive. Project snapshots include only the canonical
 release recipe for the selected domain(s).
 
-Unit landing validates the complete working overlay and accepts the reviewed
-delta into `accepted/`; it does **not** mutate canonical `library/`. Subsequent
-units see canonical knowledge plus this accepted source delta. The source-close
-transaction validates the complete overlay, serializes canonical integration with
-the domain landing lease, writes/verifies canonical bytes, checkpoints the result,
-and only then retires its commit journal. If the process dies before the new
-checkpoint becomes durable, `recover` restores the prior verified controller and
-canonical state.
+PASS 3 validates the hash-bound active-domain overlay (with lightweight global
+ID/link/relation metadata). Routine unit landing rechecks the reviewed hashes and
+unchanged live owners, regenerates affected domain navigation, and accepts the
+reviewed delta into `accepted/`; it does **not** rerun full-repository semantic
+validation and does **not** mutate canonical `library/`. Subsequent units see
+canonical knowledge plus this accepted source delta. The source-close transaction
+performs the full integration-overlay validation, serializes canonical integration
+with the domain landing lease, writes/verifies canonical bytes, checkpoints the
+result, and only then retires its commit journal. Post-canonical completion runs
+one final full-library validation/reference gate. If the process dies before the
+new checkpoint becomes durable, `recover` restores the prior verified controller
+and canonical state.
 
 `PASS/runtime/pass_candidate_qualification.py` owns
 `workspace/candidate-qualification/<domain>/<run-id>/`, one Candidate Refinement

@@ -518,7 +518,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.assertTrue(staged, "the accepted delta must be checkpointed")
         # Staged artifacts are preserved as flat content-addressed blobs, not as
         # a second nested copy of the staged tree.
-        blobs = self.root / workflow.CHECKPOINT_BLOBS
+        blobs = self.root / workflow.CHECKPOINT_BLOB_STORE
         self.assertTrue(all((blobs / sha).is_file() for sha in staged.values()))
         self.assertFalse((self.root / workflow.CHECKPOINT / "files").exists())
 
@@ -1070,7 +1070,7 @@ class AuthoringWorkflowTests(unittest.TestCase):
             self.run.land(self.decision())
         self.run.land(self.decision("user approval"))
 
-    def test_integration_rejects_global_id_collision_without_loading_foreign_cards_during_authoring(self):
+    def test_integration_rejects_global_id_collision_at_source_closure(self):
         self.module("art/craft")
         oid = "PAT_compare_effects_before_acceptance"
         card(self.repo / f"library/art/craft/{oid}.md", oid, note="A separate foreign-domain owner.")
@@ -1084,8 +1084,13 @@ class AuthoringWorkflowTests(unittest.TestCase):
         self.audit_payload(payload, oid, drafted, [self.live.stem])
         self.run.submit("pass2", record)
         self.third()
+        # Routine landing reuses the PASS 3 hash-bound proof, and authoring
+        # overlays never load foreign cards, so the cross-package collision is
+        # rejected by the full integration gate at source-closure land.
+        self.run.land(self.decision())
+        self.assertEqual(self.run.state["phase"], "closure_pass2")
         with self.assertRaisesRegex(workflow.RunError, "validate.py failed"):
-            self.run.land(self.decision())
+            self.close_source()
         self.assertFalse((self.repo / f"library/writing/craft/{oid}.md").exists())
 
     def test_wrong_library_path_and_card_provenance_fail_the_real_schema_gate(self):
@@ -1101,12 +1106,14 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaisesRegex(workflow.RunError, "source_id"):
             self.third()
 
-    def test_untouched_relation_migration_debt_is_not_a_new_blocker(self):
+    def test_relation_contract_debt_now_blocks_the_authoring_gate(self):
+        # The relation contract joined default validation once every package
+        # reported clean (beta.144); illegal live edges now fail PASS 3 instead
+        # of being tolerated as untouched migration debt.
         other = self.live.parent / "PAT_inspect_acceptance_criterion.md"
         card(other, other.stem, links=[dict(rel="supports", target_object_id=self.live.stem)])
-        self.ready()
-        self.run.land(self.decision())
-        self.assertEqual(self.run.state["phase"], "closure_pass2")
+        with self.assertRaisesRegex(workflow.RunError, "relation contract"):
+            self.ready()
 
     def test_live_asset_or_prerequisite_change_also_invalidates_review(self):
         self.ready()

@@ -6,6 +6,55 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.144 - 2026-10-27
+
+### Changed
+
+- **Routine PASS unit landing no longer revalidates the complete repository.**
+  PASS 3 now proves the active package against repository-wide identity/link/relation
+  metadata; ordinary unit landing reuses that hash-bound proof and stages the
+  cumulative source delta. Source-closure landing still performs a full integration
+  validation before canonicalization, and source completion still performs a full
+  post-canonical validation/reference/index proof.
+- **Mechanical validation no longer reparses the same card corpus in separate
+  schema, reference, and relation processes.** `validate.py --verify-references`
+  performs those gates in one parse context; package scope fully parses only the
+  selected package while loading lightweight global frontmatter for cross-package
+  integrity. Release quality gates use the same combined validator, and release
+  graph closure is built only when module/recipe inputs actually changed.
+- **Generated index work is precomputed instead of rescanning every card for every
+  directory.** Directory ownership, subtree membership, child counts, display names,
+  and prerequisite labels are cached once; stale/orphaned indexes are updated or
+  pruned without delete-and-rebuild churn.
+- **PASS 2, Source Prep, and checkpoints reuse deterministic state instead of
+  rebuilding it repeatedly.** PASS 2 shares one accepted overlay/card view per
+  submission; Source Prep reuses one verified manifest/package hash map per gate;
+  working-tree copies no longer hash bytes immediately before copying; checkpoint
+  blobs now live in a persistent content-addressed store and unchanged hashes are
+  not recopied on every accepted transition.
+- **Controller output is context-compact by default.** Landing status reports counts,
+  approval state, reviewed-file count, and the next action instead of echoing the
+  complete PASS 2 delta back into model context; `status --verbose` and `present`
+  retain the complete authoritative detail when it is actually needed.
+- **Repository instructions now distinguish card/content validation from tooling
+  architecture validation.** Card-only runs use package-scoped validators/indexes
+  and must not rewrite unrelated release recipes; the root unittest suite remains
+  mandatory for PASS/runtime/schema/generator/test architecture changes and explicit
+  repository-wide promotion gates.
+
+### Tests
+
+- Added regression coverage for package-scoped body/runtime validation, byte-identical
+  index generation, one-process content/full validation routing, compact landing
+  status, and persistent checkpoint-blob reuse.
+- Updated three stale contracts that predated these semantics: relation-contract
+  debt now blocks the authoring gate instead of being tolerated as untouched
+  migration debt, a cross-package object-id collision is rejected at the
+  source-closure integration gate (routine landing reuses the PASS 3 proof), and
+  the checkpoint-blob regression asserts the new persistent store path. `AGENTS.md`
+  and `CLAUDE.md` were compressed back under the 8 KiB cold-start budget after the
+  validation-scope guidance grew them past it; no bold-lead rule changed.
+
 ## 1.0.0-beta.143 - 2026-10-27
 
 ### Changed

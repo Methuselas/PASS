@@ -53,4 +53,4 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 - [Cpp](cpp/INDEX.md) - 202 object(s).
 - [Python](python/INDEX.md) - 131 object(s).
-- [Rust](rust/INDEX.md) - 141 object(s).
+- [Rust](rust/INDEX.md) - 149 object(s).

@@ -16,6 +16,7 @@
 - [Design a Network Service Protocol](AP_design_a_network_service_protocol.md) - ap; 0 design. Tags: authentication, multiplexing, networking, protocol-design, service-design, transport.
 - [Design Deepest Where the Work Looks Easiest](PAT_choose_design_depth_by_risk_not_habit.md) - pattern; 0 design. Tags: design, documentation, planning, risk.
 - [Design Shutdown for Process-Lifetime Objects](PAT_design_shutdown_for_process_lifetime_objects.md) - pattern; 0 design. Tags: design, global_state, lifetime, resource_management, shutdown.
+- [Detect Stale Connections With a Heartbeat Deadline](PAT_detect_stale_connections_with_a_heartbeat_deadline.md) - pattern; 0 design. Tags: connections, heartbeats, liveness, networking, timeouts.
 - [Do Not Stop at the First Design That Would Work](PAT_produce_a_second_design_before_committing.md) - pattern; 0 design. Tags: alternatives, design, heuristics, iteration.
 - [Funnel Family-Consistent Creation Through One Interface](PAT_funnel_family_consistent_creation_through_one_interface.md) - pattern; 0 design. Tags: consistency, coupling, design, factories, interface_segregation.
 - [Have the Operation Record Its Own Reversal](PAT_have_the_doer_record_the_undo.md) - pattern; 2 block. Tags: command, design, reversibility, state_management, undo.

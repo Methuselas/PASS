@@ -6,6 +6,56 @@ skillsets may evolve independently.
 
 ## Unreleased
 
+## 1.0.0-beta.146 - 2026-10-27
+
+### Added
+
+- **The Software Engineering library adds two residual Patterns from the blind second Fullstack Rust pass.**
+  Core gains a connection-pool lifetime/resource-management Pattern for repeated database work;
+  Rust networking gains a reusable HTTP-client Pattern so connection pooling and transport policy
+  live at application/service lifetime rather than ordinary request-call lifetime.
+- **The Software Engineering library also incorporates the seven surviving Patterns from the two
+  independent `r_9cea47d0` GPT reads.** These are the seven survivors after semantic adjudication of
+  the two reads, not fourteen raw proposals and not a new PASS run: a heartbeat deadline for detecting
+  stale connections; treating uploaded files as untrusted content and paths; delegating direct uploads
+  with narrow expiring capabilities; keeping bulk state resident across a hot interop boundary; defining
+  infrastructure as versioned desired state; redirecting after successful state-changing form posts; and
+  preferring Rust-native dependencies when FFI adds only impedance.
+- **Closure synthesis adds an Action Protocol for building a database-backed Rust HTTP service.**
+  The AP coordinates HTTP-stack selection, typed handler and write-model contracts, pooled database
+  lifetime, blocking-work isolation, reversible migrations, database-enforced invariants, typed error
+  flow, set-oriented related-row loading, vertical-slice construction, and boundary-matched tests.
+
+### Changed
+
+- **The relational foreign-key Pattern now requires proving enforcement is active in deployed
+  database and connection configuration.** Declaring a foreign key is no longer treated as sufficient
+  protection when the selected engine or connection can leave enforcement disabled.
+
+## 1.0.0-beta.145 - 2026-10-27
+
+### Added
+
+- **The Software Engineering library adds ten adjudicated Rust-reading-order residual Patterns.**
+  The completed *Fullstack Rust* pass contributes six still-unowned decisions against
+  beta.144: set-oriented parent/child batch loading, reversible schema-migration
+  rollback, database-enforced uniqueness, database foreign-key integrity, generated
+  marshalling at rich foreign boundaries, and typed Rust HTTP handler contracts.
+  An independent reread of *Practical System Programming for Rust Developers* adds
+  four residual Rust Patterns covering filesystem permission/symlink policy,
+  structured child-process argv versus shell syntax, USB device identity across
+  enumeration/open, and scoped terminal-state restoration.
+
+### Changed
+
+- **Adjudication preserves the stronger beta.144 owners where the older Fullstack
+  run overlapped later canon.** The existing Rust HTTP-stack-altitude owner, general
+  blocking-work/async-executor owner, filesystem path/open-intent owners, and
+  multi-source error-conversion owner remain authoritative instead of being
+  overwritten by older staged versions. The typed HTTP-handler Pattern is placed in
+  the current `languages/rust/networking` taxonomy and related to the existing HTTP
+  stack-altitude owner.
+
 ## 1.0.0-beta.144 - 2026-10-27
 
 ### Changed

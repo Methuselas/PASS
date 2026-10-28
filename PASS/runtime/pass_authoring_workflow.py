@@ -2706,7 +2706,10 @@ class Run:
             raise RunError("every staged Software Engineering Core card change requires an agnosticism review" + (": " + "; ".join(detail) if detail else ""))
 
     def accept_closure_pass2(self, data: dict) -> None:
-        self.header(data, {"closure_audits", "buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification"})
+        keys = {"closure_audits", "buckets", "taxonomy", "changes", "removals", "approval_required", "owner_reconciliation", "metadata_classification"}
+        if self.language_modernization_required():
+            keys.add("language_modernization")
+        self.header(data, keys)
         exact(data["closure_audits"], {"ap_synthesis", "drill_synthesis", "cross_library_reconciliation", "metadata_classification"}, "closure audits")
         if any(value is not True for value in data["closure_audits"].values()):
             raise RunError("source closure requires explicit AP synthesis, DRILL synthesis, cross-library reconciliation, and metadata audits")

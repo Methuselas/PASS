@@ -18,6 +18,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Build a Routine From Intent-Level Pseudocode](AP_build_a_routine_from_intent_level_pseudocode.md) - ap; 1 skeleton. Tags: construction, detailed_design, iteration, pseudocode, routines.
 - [Choose What to Integrate Next by Where the Risk Is](PAT_choose_the_integration_order_by_risk.md) - pattern; 0 design. Tags: construction, integration, risk, sequencing.
 - [Decide Which Automated Checks Earn the Right to Block](PAT_decide_whether_a_check_blocks_or_warns.md) - pattern; 1 skeleton. Tags: automation, build, discipline, feedback, review.
+- [Define Infrastructure as Versioned Desired State](PAT_define_infrastructure_as_versioned_desired_state.md) - pattern; 0 design. Tags: change_control, configuration, deployment, infrastructure_as_code, reproducibility.
 - [Diagnose TCP Failures under Accept Backlog Pressure](PAT_diagnose_tcp_accept_backlog_pressure.md) - pattern; 4 final. Tags: accept, backlog, diagnosis, networking, overload, tcp.
 - [Estimate by Decomposing and Cross-Checking, Never by Feel](PAT_estimate_by_decomposition_and_cross_check.md) - pattern; 0 design. Tags: calibration, estimation, planning, scheduling.
 - [Explain a Concept as a Wave — Abstract, Concrete, Abstract Again](PAT_teach_along_a_semantic_wave.md) - pattern; 0 design. Tags: explanation, memory, onboarding, teaching.

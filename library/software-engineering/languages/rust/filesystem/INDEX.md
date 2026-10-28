@@ -4,6 +4,7 @@
 
 ## Objects
 
+- [Change Rust File Permissions with Platform and Symlink Policy](PAT_change_rust_file_permissions_with_platform_and_symlink_policy.md) - pattern; 2 block. Tags: filesystem, permissions, portability, rust, security, symlink.
 - [Choose Rust Links by File Identity or Path Indirection](PAT_choose_rust_links_by_file_identity_or_path_indirection.md) - pattern; 1 skeleton. Tags: filesystem, hard-link, identity, paths, rust, symlink.
 - [Choose Rust Symlink-Following Semantics Before Querying Metadata](PAT_choose_rust_symlink_following_semantics_before_querying_metadata.md) - pattern; 2 block. Tags: filesystem, metadata, paths, rust, security, symlink.
 - [Guard Rust Filesystem Probes Before Unwrapping](PAT_guard_rust_filesystem_probes_before_unwrapping.md) - pattern; 2 block. Tags: filesystem, metadata, path, rust, toctou, unwrap.

@@ -9,4 +9,5 @@
 - [Choose the Rust Child-Process API by the Completion Contract](PAT_choose_rust_child_process_api_by_completion_contract.md) - pattern; 2 block. Tags: child-process, command, exit-status, processes, rust, stdio.
 - [Define the Rust Child Environment at the Spawn Boundary](PAT_define_rust_child_environment_at_spawn_boundary.md) - pattern; 1 skeleton. Tags: command, configuration, environment, processes, rust.
 - [Launch and Supervise a Rust Child Process](AP_launch_and_supervise_a_rust_child_process.md) - ap; 1 skeleton. Tags: command, environment, lifecycle, processes, rust, shutdown, stdio.
+- [Pass Rust Child Arguments as argv Unless Shell Syntax Is the Contract](PAT_pass_rust_child_arguments_as_argv_unless_shell_syntax_is_the_contract.md) - pattern; 2 block. Tags: argv, command, parsing, processes, rust, security, shell.
 - [Translate Rust Signals into Normal Control Flow](PAT_translate_rust_signals_into_normal_control_flow.md) - pattern; 2 block. Tags: processes, rust, shutdown, signals, unix.

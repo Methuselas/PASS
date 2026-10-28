@@ -256,25 +256,25 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 
 ## Topics
 
-- [Abstraction](abstraction/INDEX.md) - 17 object(s).
+- [Abstraction](abstraction/INDEX.md) - 18 object(s).
 - [Avoiding Surprises](avoiding-surprises/INDEX.md) - 11 object(s).
 - [Code Comprehension](code-comprehension/INDEX.md) - 23 object(s).
 - [Code Quality](code-quality/INDEX.md) - 17 object(s).
 - [Concurrency](concurrency/INDEX.md) - 61 object(s).
-- [Contracts](contracts/INDEX.md) - 9 object(s).
-- [Control Flow](control-flow/INDEX.md) - 15 object(s).
+- [Contracts](contracts/INDEX.md) - 11 object(s).
+- [Control Flow](control-flow/INDEX.md) - 16 object(s).
 - [Data Types](data-types/INDEX.md) - 5 object(s).
 - [Deliberate Practice](deliberate-practice/INDEX.md) - 14 object(s).
 - [Dependencies](dependencies/INDEX.md) - 3 object(s).
-- [Design](design/INDEX.md) - 34 object(s).
+- [Design](design/INDEX.md) - 35 object(s).
 - [Error Handling](error-handling/INDEX.md) - 21 object(s).
-- [Hard To Misuse](hard-to-misuse/INDEX.md) - 17 object(s).
+- [Hard To Misuse](hard-to-misuse/INDEX.md) - 19 object(s).
 - [Modularity](modularity/INDEX.md) - 16 object(s).
-- [Performance](performance/INDEX.md) - 46 object(s).
+- [Performance](performance/INDEX.md) - 49 object(s).
 - [Problem Solving](problem-solving/INDEX.md) - 41 object(s).
 - [Readability](readability/INDEX.md) - 32 object(s).
-- [Refactoring](refactoring/INDEX.md) - 11 object(s).
+- [Refactoring](refactoring/INDEX.md) - 12 object(s).
 - [Reusability](reusability/INDEX.md) - 9 object(s).
 - [Testing](testing/INDEX.md) - 36 object(s).
 - [Variables](variables/INDEX.md) - 4 object(s).
-- [Working Practice](working-practice/INDEX.md) - 27 object(s).
+- [Working Practice](working-practice/INDEX.md) - 28 object(s).

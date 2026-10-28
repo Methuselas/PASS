@@ -7,5 +7,7 @@
 - [Choose Rust Buffering by I/O Operation Shape](PAT_choose_rust_buffering_by_io_operation_shape.md) - pattern; 2 block. Tags: buffering, io, performance, rust, syscalls.
 - [Choose Rust I/O Methods by Completion Contract](PAT_choose_rust_io_methods_by_completion_contract.md) - pattern; 2 block. Tags: io, protocols, read, rust, write.
 - [Choose Terminal Input Mode by Editing Ownership](PAT_choose_terminal_input_mode_by_editing_ownership.md) - pattern; 2 block. Tags: canonical-mode, input, raw-mode, rust, terminal, tui.
+- [Preserve Rust USB Device Identity Across Enumeration and Open](PAT_preserve_rust_usb_device_identity_across_enumeration_and_open.md) - pattern; 2 block. Tags: devices, enumeration, errors, identity, io, rust, usb.
 - [Program Rust I/O Against Read and Write Traits](PAT_program_rust_io_against_read_and_write_traits.md) - pattern; 1 skeleton. Tags: abstraction, io, read, rust, testability, write.
+- [Restore Rust Terminal State with Scoped Guards](PAT_restore_rust_terminal_state_with_scoped_guards.md) - pattern; 2 block. Tags: cleanup, mouse, raii, raw-mode, rust, terminal, tui.
 - [Window Terminal Content to the Visible Grid](PAT_window_terminal_content_to_the_visible_grid.md) - pattern; 2 block. Tags: rendering, rust, scrolling, terminal, tui, viewport.

@@ -407,6 +407,23 @@ class AuthoringWorkflowTests(unittest.TestCase):
         with self.assertRaisesRegex(workflow.RunError, "close-run"):
             workflow.abandon(self.repo, self.root, "The user asked to abandon it.")
 
+    def test_closure_pass2_accepts_required_language_modernization(self):
+        # Regression: the closure PASS 2 header must accept the
+        # language_modernization field that the stage contract requires once
+        # modernization is enabled -- mirroring accept_pass2. The header
+        # previously rejected the field as "unexpected" because it omitted the
+        # run-conditional key, dead-ending every modernized source closure.
+        self.ready()
+        self.run.land(self.decision())
+        self.assertEqual(self.run.state["phase"], "closure_pass2")
+        with patch.object(workflow.Run, "language_modernization_required", return_value=True):
+            record = self.run.template()
+            self.assertIn("language_modernization", record["payload"])
+            record["payload"]["closure_audits"] = {
+                name: True for name in record["payload"]["closure_audits"]}
+            self.run.submit("closure_pass2", record)
+        self.assertEqual(self.run.state["phase"], "closure_pass3")
+
     def test_resume_names_the_controller_next_action_at_every_phase(self):
         def check(last):
             result = self.resumed(domain="writing")

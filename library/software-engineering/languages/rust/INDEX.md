@@ -15,18 +15,18 @@
 - [Enums And Patterns](enums-and-patterns/INDEX.md) - 5 object(s).
 - [Error Handling](error-handling/INDEX.md) - 7 object(s).
 - [Expressions](expressions/INDEX.md) - 1 object(s).
-- [Filesystem](filesystem/INDEX.md) - 6 object(s).
+- [Filesystem](filesystem/INDEX.md) - 7 object(s).
 - [Generics](generics/INDEX.md) - 2 object(s).
-- [Io](io/INDEX.md) - 5 object(s).
+- [Io](io/INDEX.md) - 7 object(s).
 - [Iterators](iterators/INDEX.md) - 6 object(s).
 - [Lifetimes](lifetimes/INDEX.md) - 3 object(s).
 - [Macros](macros/INDEX.md) - 3 object(s).
 - [Modules](modules/INDEX.md) - 5 object(s).
-- [Networking](networking/INDEX.md) - 12 object(s).
+- [Networking](networking/INDEX.md) - 15 object(s).
 - [Ownership](ownership/INDEX.md) - 8 object(s).
-- [Packages](packages/INDEX.md) - 6 object(s).
+- [Packages](packages/INDEX.md) - 7 object(s).
 - [Parsing](parsing/INDEX.md) - 7 object(s).
-- [Processes](processes/INDEX.md) - 6 object(s).
+- [Processes](processes/INDEX.md) - 7 object(s).
 - [Serialization](serialization/INDEX.md) - 1 object(s).
 - [Slices](slices/INDEX.md) - 1 object(s).
 - [Structs](structs/INDEX.md) - 4 object(s).

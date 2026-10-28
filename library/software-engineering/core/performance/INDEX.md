@@ -41,6 +41,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Ask for the Least Order the Consumer Needs](PAT_ask_for_the_least_order_the_consumer_needs.md) - pattern; 0 design. Tags: algorithm_choice, performance, selection, sorting.
 - [Ask Whether the Hot Code Can Run Less Often](PAT_ask_whether_the_hot_code_can_run_less_often.md) - pattern; 4 final. Tags: design, optimization, performance, profiling, tuning.
 - [Ask Whether the Problem Grows With the Machine](PAT_ask_whether_the_problem_grows_with_the_machine.md) - pattern; 0 design. Tags: concurrency, estimation, measurement, performance, scalability.
+- [Batch-Load Related Rows and Regroup by Parent](PAT_batch_load_related_rows_and_regroup_by_parent.md) - pattern; 2 block. Tags: batching, database, n-plus-one, performance, queries, relationships.
 - [Bound the Sequence When One Operation Is Occasionally Expensive](PAT_bound_the_sequence_when_one_operation_is_occasionally_expensive.md) - pattern; 0 design. Tags: amortized_analysis, cost_model, data_structures, latency, performance.
 - [Build a Pool for a Hot Allocation](AP_build_a_pool_for_a_hot_allocation.md) - ap; 4 final. Tags: allocation, performance, pooling, resource_management, tuning.
 - [Check for Memory Saturation Before Adding Threads](PAT_check_for_memory_saturation_before_adding_threads.md) - pattern; 0 design. Tags: concurrency, hardware, memory, performance, scalability.
@@ -57,6 +58,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Every Fast Path Must Be Deletable Without Changing the Answer](PAT_make_every_fast_path_redundant_with_the_general_one.md) - pattern; 3 rough. Tags: correctness, fallback, optimization, performance, testing.
 - [Hoist Allocation Out of the Work](PAT_hoist_allocation_out_of_the_work.md) - pattern; 4 final. Tags: allocation, concurrency, memory, performance, tuning.
 - [Keep a Spare Before Releasing Capacity](PAT_keep_a_spare_before_releasing_capacity.md) - pattern; 3 rough. Tags: hysteresis, performance, pooling, resource_management, thrashing.
+- [Keep Bulk State Resident Across a Hot Interop Boundary](PAT_keep_bulk_state_resident_across_a_hot_interop_boundary.md) - pattern; 0 design. Tags: data_movement, ffi, interop, marshalling, performance.
 - [Lay Data Out for the Group That Reads It Together](PAT_lay_data_out_for_the_group_that_reads_it_together.md) - pattern; 0 design. Tags: concurrency, data_layout, gpu, memory, performance.
 - [Let Measurement Decide What to Tune, Never Intuition](PAT_let_measurement_decide_what_to_tune.md) - pattern; 4 final. Tags: measurement, optimization, performance, premature_optimization.
 - [Locate a Performance Bottleneck by Measurement](AP_locate_a_performance_bottleneck_by_measurement.md) - ap; 4 final. Tags: benchmarking, diagnosis, measurement, performance, profiling.
@@ -78,6 +80,7 @@ _Read a foundation before the skills that build on it (`prerequisite_for`)._
 - [Read Wall, CPU, and Thread Time Together](PAT_read_wall_cpu_and_thread_time_together.md) - pattern; 4 final. Tags: benchmarking, concurrency, diagnosis, measurement, performance.
 - [Report the Spread, Not Just the Number](PAT_report_the_spread_not_just_the_number.md) - pattern; 4 final. Tags: benchmarking, measurement, performance, reporting, statistics.
 - [Reproduce the Real Context Before Believing a Micro-Benchmark](PAT_reproduce_the_real_context_before_believing_a_microbenchmark.md) - pattern; 4 final. Tags: benchmarking, measurement, optimization, performance, validity.
+- [Reuse Database Connections Through a Pool](PAT_reuse_database_connections_through_a_pool.md) - pattern; 1 skeleton. Tags: connections, database, performance, pooling, resource_management.
 - [Size Each Node to One Transfer of the Slow Tier](PAT_size_each_node_to_one_transfer_of_the_slow_tier.md) - pattern; 0 design. Tags: cost_model, data_structures, performance, secondary_storage.
 - [Sort by What the Keys Are Once Comparisons Are the Cost](PAT_sort_by_what_the_keys_are_once_comparisons_are_the_cost.md) - pattern; 0 design. Tags: algorithm_choice, lower_bound, performance, sorting.
 - [Sort the Order, Not the Records, When Records Are Costly to Move](PAT_sort_the_order_not_the_records_when_records_are_costly_to_move.md) - pattern; 0 design. Tags: data_movement, memory_access, permutation, sorting.
